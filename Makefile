@@ -1,25 +1,36 @@
-# Set CUDA and OptiX paths
-CUDA_PATH = "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.6"
-OPTIX_SDK_PATH = "C:/ProgramData/NVIDIA Corporation/OptiX SDK 8.1.0"
+all: ClearScreen AsczEngine Run
 
-# Compiler and linker flags
-NVCC = $(CUDA_PATH)/bin/nvcc
-CXXFLAGS = -I$(OPTIX_SDK_PATH)/include -I$(CUDA_PATH)/include
-LDFLAGS = -L$(CUDA_PATH)/lib/x64
+ClearScreen:
+	rm -f AsczEngine.exe \
+	clear
 
-# Sources and target
-SRC = src/main.cu
-OBJ = main.o
-TARGET = raytracer
+AsczEngine:
+	nvcc \
+		\
+		-I libraries/SFML/include \
+		-L libraries/SFML/lib \
+		\
+		-o AsczEngine \
+		\
+		\
+		AsczEngine.cu \
+		\
+		-lsfml-system \
+		-lsfml-window \
+		-lsfml-graphics \
+		-lsfml-audio \
+		-lopenal32 \
+		\
+		-rdc=true \
+		--expt-relaxed-constexpr \
+		--extended-lambda \
 
-# Build rules
-all: $(TARGET)
-
-$(TARGET): $(OBJ)
-	$(NVCC) $(OBJ) -o $(TARGET) $(LDFLAGS) -lcudart_static
-
-%.o: %.cu
-	$(NVCC) -c $< -o $@ $(CXXFLAGS)
+Run:
+	./AsczEngine
 
 clean:
-	del $(OBJ) $(TARGET)
+	rm -f AsczEngine.exe
+
+# Add <-mwindows> so when you run AsczEngine.exe
+# it doesnt open a terminal
+# (unless you need debugging and stuff ofc)
