@@ -34,6 +34,7 @@
         "xtree": "cpp",
         "xutility": "cpp",
         "__config": "cpp",
-        "iosfwd": "cpp"
+        "iosfwd": "cpp",
+        "string": "cpp"
     }
 }

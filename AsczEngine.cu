@@ -22,6 +22,18 @@ struct Triangle {
     Vec3f n0, n1, n2;
 
     bool reflect = false; // Test reflection
+
+    // Some helper functions
+    void uniformColor(Vec3f color) {
+        c1 = color;
+        c2 = color;
+        c3 = color;
+    }
+    void uniformNormal(Vec3f normal) {
+        n0 = normal;
+        n1 = normal;
+        n2 = normal;
+    }
 };
 
 __global__ void clearFramebuffer(Vec3f *framebuffer, int width, int height) {
@@ -92,22 +104,27 @@ __global__ void castRays(
         if (t > 0.00001 && t < zdepth) {
             zdepth = t;
 
+            // Interpolate color
+            Vec3f color = triangles[i].c1 * (1 - u - v) + triangles[i].c2 * u + triangles[i].c3 * v;
+            // Interpolate normal
+            Vec3f normal = triangles[i].n0 * (1 - u - v) + triangles[i].n1 * u + triangles[i].n2 * v;
+
             // If reflective, the resulting ray will be the reflection of the current ray
             if (triangles[i].reflect) {
                 recursiveRay.origin = ray.origin + ray.direction * t;
-                recursiveRay.direction = ray.reflect((B - A) & (C - A));
+                recursiveRay.direction = ray.reflect(normal);
                 recursive = true;
+                
+                // Set the color to black for now   
+                framebuffer[idx] = Vec3f(0, 0, 0);
 
                 continue;
+
             }
 
             recursive = false;
 
-            // Interpolate color
-            Vec3f color = triangles[i].c1 * (1 - u - v) + triangles[i].c2 * u + triangles[i].c3 * v;
             framebuffer[idx] = color;
-            // Interpolate normal
-            Vec3f normal = triangles[i].n0 * (1 - u - v) + triangles[i].n1 * u + triangles[i].n2 * v;
         }
     }
 
@@ -163,42 +180,66 @@ int main() {
 
     // Creating some test triangles
     Triangle *d_triangles;
-    int triCount = 4;
+    int triCount = 7;
     cudaMalloc(&d_triangles, triCount * sizeof(Triangle));
 
-    Triangle triangles[4];
+    Triangle triangles[7];
     // Postive Z
     triangles[0].v0 = Vec3f(-10, -10, 50);
     triangles[0].v1 = Vec3f(10, -10, 50);
     triangles[0].v2 = Vec3f(0, 10, 50);
-    triangles[0].c1 = Vec3f(1, 0, 0);   
-    triangles[0].c2 = Vec3f(0, 1, 0);
+    triangles[0].c1 = Vec3f(1, 0, 0);
+    triangles[0].c2 = Vec3f(1, 1, 1);
     triangles[0].c3 = Vec3f(0, 0, 1);
-
-    // Negative Z
-    triangles[1].v0 = Vec3f(-10, -10, -50);
-    triangles[1].v1 = Vec3f(10, -10, -50);
-    triangles[1].v2 = Vec3f(0, 10, -50);
-    triangles[1].c1 = Vec3f(1, 0, 0);
-    triangles[1].c2 = Vec3f(1, 1, 0);
-    triangles[1].c3 = Vec3f(0, 1, 0);
-    triangles[1].reflect = true;
+    triangles[0].uniformNormal(Vec3f(0, 0, -1));
 
     // Positive X
-    triangles[2].v0 = Vec3f(50, -10, -10);
-    triangles[2].v1 = Vec3f(50, -10, 10);
-    triangles[2].v2 = Vec3f(50, 10, 0);
+    triangles[1].v0 = Vec3f(50, -10, -10);
+    triangles[1].v1 = Vec3f(50, -10, 10);
+    triangles[1].v2 = Vec3f(50, 10, 0);
+    triangles[1].c1 = Vec3f(0, 1, 0);
+    triangles[1].c2 = Vec3f(0, 0, 1);
+    triangles[1].c3 = Vec3f(1, 0, 0);
+    triangles[1].uniformNormal(Vec3f(-1, 0, 0));
+
+    // Negative X
+    triangles[2].v0 = Vec3f(-50, -10, -10);
+    triangles[2].v1 = Vec3f(-50, -10, 10);
+    triangles[2].v2 = Vec3f(-50, 10, 0);
     triangles[2].c1 = Vec3f(0, 1, 0);
     triangles[2].c2 = Vec3f(0, 0, 1);
     triangles[2].c3 = Vec3f(1, 0, 0);
+    triangles[2].uniformNormal(Vec3f(1, 0, 0));
 
-    // Negative X
-    triangles[3].v0 = Vec3f(-50, -10, -10);
-    triangles[3].v1 = Vec3f(-50, -10, 10);
-    triangles[3].v2 = Vec3f(-50, 10, 0);
-    triangles[3].c1 = Vec3f(0, 1, 0);
-    triangles[3].c2 = Vec3f(0, 0, 1);
-    triangles[3].c3 = Vec3f(1, 0, 0);
+    // Negative Z Wall create a frame for the mirror
+    triangles[3].v0 = Vec3f(-51, -10.5, -51);
+    triangles[3].v1 = Vec3f(51, -10.5, -51);
+    triangles[3].v2 = Vec3f(51, 10.5, -51);
+    triangles[4].v0 = Vec3f(-51, -10.5, -51);
+    triangles[4].v1 = Vec3f(51, 10.5, -51);
+    triangles[4].v2 = Vec3f(-51, 10.5, -51);
+    // Set the color to white
+    triangles[3].uniformColor(Vec3f(1, 1, 1));
+    triangles[4].uniformColor(Vec3f(1, 1, 1));
+    // Set the normal to positive Z
+    triangles[3].uniformNormal(Vec3f(0, 0, 1));
+    triangles[4].uniformNormal(Vec3f(0, 0, 1));
+
+    // Negative Z Mirror (-50, -10, -50) to (50, 10, -50)
+    triangles[5].v0 = Vec3f(-50, -10, -50);
+    triangles[5].v1 = Vec3f(50, -10, -50);
+    triangles[5].v2 = Vec3f(50, 10, -50);
+    triangles[6].v0 = Vec3f(-50, -10, -50);
+    triangles[6].v1 = Vec3f(50, 10, -50);
+    triangles[6].v2 = Vec3f(-50, 10, -50);
+    // Set the color to white
+    triangles[5].uniformColor(Vec3f(1, 1, 1));
+    triangles[6].uniformColor(Vec3f(1, 1, 1));
+    // Set the normal to positive Z 
+    triangles[5].uniformNormal(Vec3f(0, 0, 1));
+    triangles[6].uniformNormal(Vec3f(0, 0, 1));
+    triangles[5].reflect = true;
+    triangles[6].reflect = true;
 
     cudaMemcpy(d_triangles, triangles, triCount * sizeof(Triangle), cudaMemcpyHostToDevice);   
 
@@ -281,11 +322,21 @@ int main() {
         generateRays<<<blocks, threads>>>(CAMERA, d_rays, width, height);
         cudaDeviceSynchronize();
 
-        // Cast rays
-        castRays<<<blocks, threads>>>(
-            d_framebuffer, d_rays, d_raycursive, d_hasrecursive,
-            d_triangles, width, height, triCount);
-        cudaDeviceSynchronize();
+        // Recursive ray tracing
+        bool *hasrecursive = new bool(true);
+        while (*hasrecursive) {
+            *hasrecursive = false;
+            cudaMemcpy(d_hasrecursive, hasrecursive, sizeof(bool), cudaMemcpyHostToDevice); 
+
+            // Cast rays
+            castRays<<<blocks, threads>>>(d_framebuffer, d_rays, d_raycursive, d_hasrecursive, d_triangles, width, height, triCount);
+            cudaDeviceSynchronize();
+            
+            // Copy hasrecursive to host
+            cudaMemcpy(hasrecursive, d_hasrecursive, sizeof(bool), cudaMemcpyDeviceToHost);
+
+            std::cout << *hasrecursive << std::endl;
+        }
 
         // Log
         LOG.addLog("Welcome to AsczEngine RTx", sf::Color::White, 1);
