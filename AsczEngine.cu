@@ -22,6 +22,7 @@ struct Triangle {
     Vec3f n0, n1, n2;
 
     bool reflect = false; // Test reflection
+    bool display = true; // For debugging
 
     // Some helper functions
     void uniformColor(Vec3f color) {
@@ -79,6 +80,8 @@ __global__ void castRays(
     float zdepth = 1000000.0f;
     // This will soon be replaced with BVH traversal method
     for (int i = 0; i < triangleCount; i++) {
+        if (!triangles[i].display) continue;
+
         Vec3f A = triangles[i].v0;  
         Vec3f B = triangles[i].v1;
         Vec3f C = triangles[i].v2;
@@ -216,6 +219,9 @@ int main() {
     int mrHeight = 50;
     int mrDepth = 100;
 
+    int wallWidth = 200;
+    int wallHeight = 100;
+
     // Negative Z Mirror
     triangles[3].v0 = Vec3f(-mrWidth, -mrHeight, -mrDepth);
     triangles[3].v1 = Vec3f(mrWidth, -mrHeight, -mrDepth);
@@ -230,12 +236,12 @@ int main() {
     triangles[4].reflect = true;
 
     // Negative Z Wall
-    triangles[5].v0 = Vec3f(-200, -100, -mrDepth - .1);
-    triangles[5].v1 = Vec3f(200, -100, -mrDepth - .1);
-    triangles[5].v2 = Vec3f(200, 100, -mrDepth - .1);
-    triangles[6].v0 = Vec3f(-200, -100, -mrDepth - .1);
-    triangles[6].v1 = Vec3f(200, 100, -mrDepth - .1);
-    triangles[6].v2 = Vec3f(-200, 100, -mrDepth - .1);
+    triangles[5].v0 = Vec3f(-wallWidth, -wallHeight, -mrDepth - .1);
+    triangles[5].v1 = Vec3f(wallWidth, -wallHeight, -mrDepth - .1);
+    triangles[5].v2 = Vec3f(wallWidth, wallHeight, -mrDepth - .1);
+    triangles[6].v0 = Vec3f(-wallWidth, -wallHeight, -mrDepth - .1);
+    triangles[6].v1 = Vec3f(wallWidth, wallHeight, -mrDepth - .1);
+    triangles[6].v2 = Vec3f(-wallWidth, wallHeight, -mrDepth - .1);
     // Set the color to white
     triangles[5].c1 = Vec3f(0.6, 1, 0.6);
     triangles[5].c2 = Vec3f(0.6, 0.6, 1);
@@ -259,14 +265,17 @@ int main() {
     triangles[8].uniformNormal(Vec3f(0, 0, -1));
     triangles[7].reflect = true;
     triangles[8].reflect = true;
+    // Turn off display
+    triangles[7].display = false;
+    triangles[8].display = false;
 
     // Positive Z Wall
-    triangles[9].v0 = Vec3f(-200, -100, mrDepth + .1);
-    triangles[9].v1 = Vec3f(200, -100, mrDepth + .1);
-    triangles[9].v2 = Vec3f(200, 100, mrDepth + .1);
-    triangles[10].v0 = Vec3f(-200, -100, mrDepth + .1);
-    triangles[10].v1 = Vec3f(200, 100, mrDepth + .1);
-    triangles[10].v2 = Vec3f(-200, 100, mrDepth + .1);
+    triangles[9].v0 = Vec3f(-wallWidth, -wallHeight, mrDepth + .1);
+    triangles[9].v1 = Vec3f(wallWidth, -wallHeight, mrDepth + .1);
+    triangles[9].v2 = Vec3f(wallWidth, wallHeight, mrDepth + .1);
+    triangles[10].v0 = Vec3f(-wallWidth, -wallHeight, mrDepth + .1);
+    triangles[10].v1 = Vec3f(wallWidth, wallHeight, mrDepth + .1);
+    triangles[10].v2 = Vec3f(-wallWidth, wallHeight, mrDepth + .1);
     // Set the color to gradient
     triangles[9].c1 = Vec3f(1, 0.6, 0.6);
     triangles[9].c2 = Vec3f(0.6, 1, 0.6);
