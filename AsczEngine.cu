@@ -185,35 +185,36 @@ int main() {
     // Creating some test triangles
     Triangle *d_triangles;
     int triCount = 11;
+    int tc = 0;
     cudaMalloc(&d_triangles, triCount * sizeof(Triangle));
 
     Triangle triangles[11];
     // Postive Z
-    triangles[0].v0 = Vec3f(-10, -10, 50);
-    triangles[0].v1 = Vec3f(10, -10, 50);
-    triangles[0].v2 = Vec3f(0, 10, 50);
-    triangles[0].c1 = Vec3f(1, 0, 0);
-    triangles[0].c2 = Vec3f(1, 1, 1);
-    triangles[0].c3 = Vec3f(0, 0, 1);
-    triangles[0].uniformNormal(Vec3f(0, 0, -1));
+    triangles[tc].v0 = Vec3f(-10, -10, 50);
+    triangles[tc].v1 = Vec3f(10, -10, 50);
+    triangles[tc].v2 = Vec3f(0, 10, 50);
+    triangles[tc].c1 = Vec3f(1, 0, 0);
+    triangles[tc].c2 = Vec3f(1, 1, 1);
+    triangles[tc].c3 = Vec3f(0, 0, 1);
+    triangles[tc].uniformNormal(Vec3f(0, 0, -1));
 
     // Positive X
-    triangles[1].v0 = Vec3f(50, -10, -10);
-    triangles[1].v1 = Vec3f(50, -10, 10);
-    triangles[1].v2 = Vec3f(50, 10, 0);
-    triangles[1].c1 = Vec3f(0, 1, 0);
-    triangles[1].c2 = Vec3f(0, 0, 1);
-    triangles[1].c3 = Vec3f(1, 0, 0);
-    triangles[1].uniformNormal(Vec3f(-1, 0, 0));
+    triangles[++tc].v0 = Vec3f(50, -10, -10);
+    triangles[tc].v1 = Vec3f(50, -10, 10);
+    triangles[tc].v2 = Vec3f(50, 10, 0);
+    triangles[tc].c1 = Vec3f(0, 1, 0);
+    triangles[tc].c2 = Vec3f(0, 0, 1);
+    triangles[tc].c3 = Vec3f(1, 0, 0);
+    triangles[tc].uniformNormal(Vec3f(-1, 0, 0));
 
     // Negative X
-    triangles[2].v0 = Vec3f(-50, -10, -10);
-    triangles[2].v1 = Vec3f(-50, -10, 10);
-    triangles[2].v2 = Vec3f(-50, 10, 0);
-    triangles[2].c1 = Vec3f(0, 1, 0);
-    triangles[2].c2 = Vec3f(0, 0, 1);
-    triangles[2].c3 = Vec3f(1,  0, 0);
-    triangles[2].uniformNormal(Vec3f(1, 0, 0));
+    triangles[++tc].v0 = Vec3f(-50, -10, -10);
+    triangles[tc].v1 = Vec3f(-50, -10, 10);
+    triangles[tc].v2 = Vec3f(-50, 10, 0);
+    triangles[tc].c1 = Vec3f(0, 1, 0);
+    triangles[tc].c2 = Vec3f(0, 0, 1);
+    triangles[tc].c3 = Vec3f(1,  0, 0);
+    triangles[tc].uniformNormal(Vec3f(1, 0, 0));
 
     int mrWidth = 100;
     int mrHeight = 50;
