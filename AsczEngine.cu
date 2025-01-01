@@ -67,10 +67,14 @@ __global__ void castRays(
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx >= width * height) return;
 
+    if (!raycursive[idx]) return;
+
     Ray ray = rays[idx];
 
     Ray recursiveRay;
     bool recursive = false;
+
+    Vec3f resultColor = Vec3f(0, 0, 0);
 
     float zdepth = 1000000.0f;
     // This will soon be replaced with BVH traversal method
@@ -111,20 +115,15 @@ __global__ void castRays(
 
             // If reflective, the resulting ray will be the reflection of the current ray
             if (triangles[i].reflect) {
-                recursiveRay.origin = ray.origin + ray.direction * t;
+                recursiveRay.origin = ray.origin + ray.direction * t + normal * 1e-4;
                 recursiveRay.direction = ray.reflect(normal);
                 recursive = true;
-                
-                // Set the color to black for now   
-                framebuffer[idx] = Vec3f(0, 0, 0);
 
                 continue;
-
             }
 
             recursive = false;
-
-            framebuffer[idx] = color;
+            resultColor = color;
         }
     }
 
@@ -135,6 +134,8 @@ __global__ void castRays(
     } else {
         raycursive[idx] = false;
     }
+
+    framebuffer[idx] = resultColor; 
 }   
 
 int main() {
@@ -147,9 +148,9 @@ int main() {
     CsLogHandler LOG = CsLogHandler();
 
     // Create SFMLTexture
-    int width = 600;
-    int height = 600;
-    SFMLTexture SFTex(600, 600);
+    int width = 1000;
+    int height = 800;
+    SFMLTexture SFTex(width, height);
     
     int threads = 256;
     int blocks = (width * height + threads - 1) / threads;
@@ -211,40 +212,59 @@ int main() {
     triangles[2].c3 = Vec3f(1, 0, 0);
     triangles[2].uniformNormal(Vec3f(1, 0, 0));
 
-    // Negative Z Wall create a frame for the mirror
-    triangles[3].v0 = Vec3f(-51, -10.5, -51);
-    triangles[3].v1 = Vec3f(51, -10.5, -51);
-    triangles[3].v2 = Vec3f(51, 10.5, -51);
-    triangles[4].v0 = Vec3f(-51, -10.5, -51);
-    triangles[4].v1 = Vec3f(51, 10.5, -51);
-    triangles[4].v2 = Vec3f(-51, 10.5, -51);
+    int mrWidth = 100;
+    int mrHeight = 41;
+    int mrDepth = 100;
+
+    // Negative Z Mirror
+    triangles[3].v0 = Vec3f(-mrWidth, -mrHeight, -mrDepth);
+    triangles[3].v1 = Vec3f(mrWidth, -mrHeight, -mrDepth);
+    triangles[3].v2 = Vec3f(mrWidth, mrHeight, -mrDepth);
+    triangles[4].v0 = Vec3f(-mrWidth, -mrHeight, -mrDepth);
+    triangles[4].v1 = Vec3f(mrWidth, mrHeight, -mrDepth);
+    triangles[4].v2 = Vec3f(-mrWidth, mrHeight, -mrDepth);
     // Set the color to white
     triangles[3].uniformColor(Vec3f(1, 1, 1));
     triangles[4].uniformColor(Vec3f(1, 1, 1));
-    // Set the normal to positive Z
+    // Set the normal to positive Z 
     triangles[3].uniformNormal(Vec3f(0, 0, 1));
     triangles[4].uniformNormal(Vec3f(0, 0, 1));
+    triangles[3].reflect = true;
+    triangles[4].reflect = true;
 
-    // Negative Z Mirror (-50, -10, -50) to (50, 10, -50)
-    triangles[5].v0 = Vec3f(-50, -10, -50);
-    triangles[5].v1 = Vec3f(50, -10, -50);
-    triangles[5].v2 = Vec3f(50, 10, -50);
-    triangles[6].v0 = Vec3f(-50, -10, -50);
-    triangles[6].v1 = Vec3f(50, 10, -50);
-    triangles[6].v2 = Vec3f(-50, 10, -50);
+    // Negative Z Wall create a frame for the mirror
+    // triangles[5].v0 = Vec3f(-mrWidth - 1, -mrHeight - 1, -mrDepth - .1);
+    // triangles[5].v1 = Vec3f(mrWidth + 1, -mrHeight - 1, -mrDepth - .1);
+    // triangles[5].v2 = Vec3f(mrWidth + 1, mrHeight + 1, -mrDepth - .1);
+    // triangles[6].v0 = Vec3f(-mrWidth - 1, -mrHeight - 1, -mrDepth - .1);
+    // triangles[6].v1 = Vec3f(mrWidth + 1, mrHeight + 1, -mrDepth - .1);
+    // triangles[6].v2 = Vec3f(-mrWidth - 1, mrHeight + 1, -mrDepth - .1);
+    // // Set the color to white
+    // triangles[5].uniformColor(Vec3f(0, 1, 1));
+    // triangles[6].uniformColor(Vec3f(1, 1, 0));
+    // // Set the normal to positive Z
+    // triangles[5].uniformNormal(Vec3f(0, 0, 1));
+    // triangles[6].uniformNormal(Vec3f(0, 0, 1));
+    
+    triangles[5].v0 = Vec3f(-200, -100, -mrDepth - .1);
+    triangles[5].v1 = Vec3f(200, -100, -mrDepth - .1);
+    triangles[5].v2 = Vec3f(200, 100, -mrDepth - .1);
+    triangles[6].v0 = Vec3f(-200, -100, -mrDepth - .1);
+    triangles[6].v1 = Vec3f(200, 100, -mrDepth - .1);
+    triangles[6].v2 = Vec3f(-200, 100, -mrDepth - .1);
     // Set the color to white
     triangles[5].uniformColor(Vec3f(1, 1, 1));
     triangles[6].uniformColor(Vec3f(1, 1, 1));
-    // Set the normal to positive Z 
+    // Set the normal to positive Z
     triangles[5].uniformNormal(Vec3f(0, 0, 1));
     triangles[6].uniformNormal(Vec3f(0, 0, 1));
-    triangles[5].reflect = true;
-    triangles[6].reflect = true;
 
     cudaMemcpy(d_triangles, triangles, triCount * sizeof(Triangle), cudaMemcpyHostToDevice);   
 
     sf::RenderWindow window(sf::VideoMode(width, height), "AsczEngine");
 
+    // Hide cursor
+    window.setMouseCursorVisible(!CAMERA.focus);
     while (window.isOpen()) {
         // Frame start
         FPS.startFrame();
@@ -323,6 +343,10 @@ int main() {
         cudaDeviceSynchronize();
 
         // Recursive ray tracing
+        // Set all to true to kickstart the first iteration
+        resetRecursive<<<blocks, threads>>>(d_raycursive, width, height);   
+        cudaDeviceSynchronize();
+
         bool *hasrecursive = new bool(true);
         while (*hasrecursive) {
             *hasrecursive = false;
