@@ -1,7 +1,6 @@
 #ifndef VECTOR_CUH
 #define VECTOR_CUH
 
-#include <iostream>
 #include <vector>
 #include <cstdio>
 #include <cmath>
@@ -42,6 +41,7 @@ struct Vec3f {
     __host__ __device__ Vec4f toVec4f();
 
     // Basic operations
+    __host__ __device__ Vec3f operator-() const;
     __host__ __device__ Vec3f operator+(const Vec3f &v) const;
     __host__ __device__ Vec3f operator+(const float t) const;
     __host__ __device__ Vec3f operator-(const Vec3f &v) const;
@@ -52,18 +52,22 @@ struct Vec3f {
     __host__ __device__ void operator-=(const Vec3f &v);
     __host__ __device__ void operator*=(const float scl);
     __host__ __device__ void operator/=(const float scl);
-    // Advanced operations
-    __host__ __device__ float operator*(const Vec3f &v) const; // Dot product
-    __host__ __device__ Vec3f operator&(const Vec3f &v) const; // Cross product
-    __host__ __device__ float mag(); // Magnitude
-    __host__ __device__ void norm(); // Normalize
-    // Special operations
-    __host__ __device__ static Vec3f bary(Vec2f v, Vec2f v0, Vec2f v1, Vec2f v2); // Barycentric coordinates
-    __host__ __device__ void limit(float min, float max); // Limit the vector
+    // Dot product
+    __host__ __device__ float operator*(const Vec3f &v) const;
+    // Cross product 
+    __host__ __device__ Vec3f operator&(const Vec3f &v) const;
+    // Magnitude
+    __host__ __device__ float mag();
+    // Normalize
+    __host__ __device__ void norm();
+    // Barycentric coordinates
+    __host__ __device__ static Vec3f bary(Vec2f v, Vec2f v0, Vec2f v1, Vec2f v2);
+    // Limit the vector
+    __host__ __device__ void limit(float min, float max);
 
     // Transformations
     __host__ __device__ static Vec3f translate(Vec3f &v, const Vec3f &t);
-    __host__ __device__ static Vec3f rotate(Vec3f &v, const Vec3f &o, const Vec3f &n, const float w);
+    __host__ __device__ static Vec3f rotate(Vec3f &v, const Vec3f &o, const Vec3f &n, const float w); // RIght-hand rule
     __host__ __device__ static Vec3f rotateX(Vec3f &v, const Vec3f &o, const float rx);
     __host__ __device__ static Vec3f rotateY(Vec3f &v, const Vec3f &o, const float ry);
     __host__ __device__ static Vec3f rotateZ(Vec3f &v, const Vec3f &o, const float rz);
@@ -82,8 +86,9 @@ struct Vec4f {
     float x, y, z, w;
     __host__ __device__ Vec4f();
     __host__ __device__ Vec4f(float x, float y, float z, float w);
-    __host__ __device__ Vec3f toVec3f(bool norm=true); // From Homogeneous to Cartesian
+    __host__ __device__ Vec3f toVec3f(bool norm=true);
 
+    // Basic operations
     __host__ __device__ Vec4f operator+(const Vec4f &v);
     __host__ __device__ Vec4f operator+(const float t);
     __host__ __device__ Vec4f operator-(const Vec4f &v);
@@ -91,76 +96,8 @@ struct Vec4f {
     __host__ __device__ Vec4f operator*(const float scl);
     __host__ __device__ Vec4f operator/(const float scl);
 
-    __host__ __device__ void limit(float min, float max); // Limit the vector
+    // Limit the vector
+    __host__ __device__ void limit(float min, float max);
 };
-
-struct Vec2ulli {
-    ULLInt x = 0, y = 0;
-};
-
-// SoA structure Vecs
-
-struct Vec1f_ptr {
-    float *x;
-    ULLInt size = 0;
-
-    void malloc(ULLInt size);
-    void free();
-    void operator+=(Vec1f_ptr &vec);
-    void setAll(float val);
-};
-struct Vec2f_ptr {
-    float *x, *y;
-    ULLInt size = 0;
-
-    void malloc(ULLInt size);
-    void free();
-    void operator+=(Vec2f_ptr &vec);
-    void setAll(float val);
-};
-struct Vec3f_ptr {
-    float *x, *y, *z;
-    ULLInt size = 0;
-
-    void malloc(ULLInt size);
-    void free();
-    void operator+=(Vec3f_ptr &vec);
-    void setAll(float val);
-};
-struct Vec4f_ptr {
-    float *x, *y, *z, *w;
-    ULLInt size = 0;
-
-    void malloc(ULLInt size);
-    void free();
-    void operator+=(Vec4f_ptr &vec);
-    void setAll(float val);
-};
-
-// Specific purposes Vecs
-struct Vec1lli_ptr {
-    LLInt *x;
-    ULLInt size = 0;
-
-    void malloc(ULLInt size);
-    void free();
-    void operator+=(Vec1lli_ptr &vec);
-};
-struct Vec2i_ptr {
-    int *x, *y;
-    ULLInt size = 0;
-
-    void malloc(ULLInt size);
-    void free();
-    void operator+=(Vec2i_ptr &vec);
-};
-
-// Atomic functions for float
-__device__ bool atomicMinFloat(float* addr, float value);
-__device__ bool atomicMinDouble(double* addr, double value);
-
-// Helpful kernels
-__global__ void setFloatAllKernel(float *arr, float val, ULLInt size);
-__global__ void setLLIntAllKernel(LLInt *arr, LLInt val, ULLInt size);
 
 #endif

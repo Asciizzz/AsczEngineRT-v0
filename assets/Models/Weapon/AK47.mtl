@@ -1,0 +1,8 @@
+newmtl BrownAK47
+Kd .8 .6 .2
+
+newmtl BlackAK47
+Kd 0.2 0.2 0.2
+
+newmtl GrayAK47
+Kd 0.7 0.7 0.7

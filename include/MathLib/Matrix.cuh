@@ -3,8 +3,6 @@
 
 #include <Vector.cuh>
 
-// Note: & is matrix multiplication, * is element-wise multiplication
-
 struct Mat4f {
     float data[4][4] = {0};
     __host__ __device__ Mat4f();

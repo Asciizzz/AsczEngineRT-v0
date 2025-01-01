@@ -1,4 +1,3 @@
-#include <Vector.cuh>
 #include <Matrix.cuh>
 
 // VEC2f
@@ -31,6 +30,9 @@ Vec4f Vec3f::toVec4f() {
     return Vec4f(x, y, z, 1);
 }
 
+Vec3f Vec3f::operator-() const {
+    return Vec3f(-x, -y, -z);
+}
 Vec3f Vec3f::operator+(const Vec3f& v) const {
     return Vec3f(x + v.x, y + v.y, z + v.z);
 }
@@ -65,7 +67,7 @@ void Vec3f::operator/=(const float scl) {
 float Vec3f::operator*(const Vec3f& v) const {
     return x * v.x + y * v.y + z * v.z;
 }
-Vec3f Vec3f::operator&(const Vec3f& v) const {
+Vec3f Vec3f::operator&(const Vec3f& v) const { // Cross product
     return Vec3f(y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x);
 }
 float Vec3f::mag() {
@@ -228,212 +230,4 @@ void Vec4f::limit(float min, float max) {
     y = std::max(min, std::min(y, max));
     z = std::max(min, std::min(z, max));
     w = std::max(min, std::min(w, max));
-}
-
-// SoA structure Vecs
-
-void Vec1f_ptr::malloc(ULLInt size) {
-    this->size = size;
-    cudaMalloc(&x, size * sizeof(float));
-}
-void Vec1f_ptr::free() {
-    this->size = 0;
-    cudaFree(x);
-}
-void Vec1f_ptr::operator+=(Vec1f_ptr& vec) {
-    Vec1f_ptr newVec;
-    newVec.malloc(size + vec.size);
-
-    cudaMemcpy(newVec.x, x, size * sizeof(float), cudaMemcpyDeviceToDevice);
-    cudaMemcpy(newVec.x + size, vec.x, vec.size * sizeof(float), cudaMemcpyDeviceToDevice);
-
-    free();
-    vec.free();
-    *this = newVec;
-}
-void Vec1f_ptr::setAll(float val) {
-    setFloatAllKernel<<<(size + 255) / 256, 256>>>(x, val, size);
-}
-
-void Vec2f_ptr::malloc(ULLInt size) {
-    this->size = size;
-    cudaMalloc(&x, size * sizeof(float));
-    cudaMalloc(&y, size * sizeof(float));
-}
-void Vec2f_ptr::free() {
-    this->size = 0;
-    cudaFree(x);
-    cudaFree(y);
-}
-void Vec2f_ptr::operator+=(Vec2f_ptr& vec) {
-    Vec2f_ptr newVec;
-    newVec.malloc(size + vec.size);
-
-    cudaMemcpy(newVec.x, x, size * sizeof(float), cudaMemcpyDeviceToDevice);
-    cudaMemcpy(newVec.y, y, size * sizeof(float), cudaMemcpyDeviceToDevice);
-
-    cudaMemcpy(newVec.x + size, vec.x, vec.size * sizeof(float), cudaMemcpyDeviceToDevice);
-    cudaMemcpy(newVec.y + size, vec.y, vec.size * sizeof(float), cudaMemcpyDeviceToDevice);
-
-    free();
-    vec.free();
-    *this = newVec;
-}
-void Vec2f_ptr::setAll(float val) {
-    setFloatAllKernel<<<(size + 255) / 256, 256>>>(x, val, size);
-    setFloatAllKernel<<<(size + 255) / 256, 256>>>(y, val, size);
-}
-
-void Vec3f_ptr::malloc(ULLInt size) {
-    this->size = size;
-    cudaMalloc(&x, size * sizeof(float));
-    cudaMalloc(&y, size * sizeof(float));
-    cudaMalloc(&z, size * sizeof(float));
-}
-void Vec3f_ptr::free() {
-    this->size = 0;
-    cudaFree(x);
-    cudaFree(y);
-    cudaFree(z);
-}
-void Vec3f_ptr::operator+=(Vec3f_ptr& vec) {
-    Vec3f_ptr newVec;
-    newVec.malloc(size + vec.size);
-
-    cudaMemcpy(newVec.x, x, size * sizeof(float), cudaMemcpyDeviceToDevice);
-    cudaMemcpy(newVec.y, y, size * sizeof(float), cudaMemcpyDeviceToDevice);
-    cudaMemcpy(newVec.z, z, size * sizeof(float), cudaMemcpyDeviceToDevice);
-
-    cudaMemcpy(newVec.x + size, vec.x, vec.size * sizeof(float), cudaMemcpyDeviceToDevice);
-    cudaMemcpy(newVec.y + size, vec.y, vec.size * sizeof(float), cudaMemcpyDeviceToDevice);
-    cudaMemcpy(newVec.z + size, vec.z, vec.size * sizeof(float), cudaMemcpyDeviceToDevice);
-
-    free();
-    vec.free();
-    *this = newVec;
-}
-void Vec3f_ptr::setAll(float val) {
-    setFloatAllKernel<<<(size + 255) / 256, 256>>>(x, val, size);
-    setFloatAllKernel<<<(size + 255) / 256, 256>>>(y, val, size);
-    setFloatAllKernel<<<(size + 255) / 256, 256>>>(z, val, size);
-}
-
-void Vec4f_ptr::malloc(ULLInt size) {
-    this->size = size;
-    cudaMalloc(&x, size * sizeof(float));
-    cudaMalloc(&y, size * sizeof(float));
-    cudaMalloc(&z, size * sizeof(float));
-    cudaMalloc(&w, size * sizeof(float));
-}
-void Vec4f_ptr::free() {
-    this->size = 0;
-    cudaFree(x);
-    cudaFree(y);
-    cudaFree(z);
-    cudaFree(w);
-}
-void Vec4f_ptr::operator+=(Vec4f_ptr& vec) {
-    Vec4f_ptr newVec;
-    newVec.malloc(size + vec.size);
-
-    cudaMemcpy(newVec.x, x, size * sizeof(float), cudaMemcpyDeviceToDevice);
-    cudaMemcpy(newVec.y, y, size * sizeof(float), cudaMemcpyDeviceToDevice);
-    cudaMemcpy(newVec.z, z, size * sizeof(float), cudaMemcpyDeviceToDevice);
-    cudaMemcpy(newVec.w, w, size * sizeof(float), cudaMemcpyDeviceToDevice);
-
-    cudaMemcpy(newVec.x + size, vec.x, vec.size * sizeof(float), cudaMemcpyDeviceToDevice);
-    cudaMemcpy(newVec.y + size, vec.y, vec.size * sizeof(float), cudaMemcpyDeviceToDevice);
-    cudaMemcpy(newVec.z + size, vec.z, vec.size * sizeof(float), cudaMemcpyDeviceToDevice);
-    cudaMemcpy(newVec.w + size, vec.w, vec.size * sizeof(float), cudaMemcpyDeviceToDevice);
-
-    free();
-    vec.free();
-    *this = newVec;
-}
-void Vec4f_ptr::setAll(float val) {
-    setFloatAllKernel<<<(size + 255) / 256, 256>>>(x, val, size);
-    setFloatAllKernel<<<(size + 255) / 256, 256>>>(y, val, size);
-    setFloatAllKernel<<<(size + 255) / 256, 256>>>(z, val, size);
-    setFloatAllKernel<<<(size + 255) / 256, 256>>>(w, val, size);
-}
-
-void Vec1lli_ptr::malloc(ULLInt size) {
-    this->size = size;
-    cudaMalloc(&x, size * sizeof(LLInt));
-}
-void Vec1lli_ptr::free() {
-    this->size = 0;
-    cudaFree(x);
-}
-void Vec1lli_ptr::operator+=(Vec1lli_ptr& vec) {
-    Vec1lli_ptr newVec;
-    newVec.malloc(size + vec.size);
-
-    cudaMemcpy(newVec.x, x, size * sizeof(LLInt), cudaMemcpyDeviceToDevice);
-    cudaMemcpy(newVec.x + size, vec.x, vec.size * sizeof(LLInt), cudaMemcpyDeviceToDevice);
-
-    free();
-    vec.free();
-    *this = newVec;
-}
-
-void Vec2i_ptr::malloc(ULLInt size) {
-    this->size = size;
-    cudaMalloc(&x, size * sizeof(int));
-    cudaMalloc(&y, size * sizeof(int));
-}
-void Vec2i_ptr::free() {
-    this->size = 0;
-    cudaFree(x);
-    cudaFree(y);
-}
-void Vec2i_ptr::operator+=(Vec2i_ptr& vec) {
-    Vec2i_ptr newVec;
-    newVec.malloc(size + vec.size);
-
-    cudaMemcpy(newVec.x, x, size * sizeof(int), cudaMemcpyDeviceToDevice);
-    cudaMemcpy(newVec.y, y, size * sizeof(int), cudaMemcpyDeviceToDevice);
-
-    cudaMemcpy(newVec.x + size, vec.x, vec.size * sizeof(int), cudaMemcpyDeviceToDevice);
-    cudaMemcpy(newVec.y + size, vec.y, vec.size * sizeof(int), cudaMemcpyDeviceToDevice);
-
-    free();
-    vec.free();
-    *this = newVec;
-}
-
-
-// Atomics
-__device__ bool atomicMinFloat(float* addr, float value) {
-    int* addr_as_int = (int*)addr;
-    int old = *addr_as_int, assumed;
-
-    do {
-        assumed = old;
-        old = atomicCAS(addr_as_int, assumed, __float_as_int(fminf(value, __int_as_float(assumed))));
-    } while (assumed != old);
-
-    return __int_as_float(old) > value;
-}
-
-__device__ bool atomicMinDouble(double* addr, double value) {
-    unsigned long long int* addr_as_ull = (unsigned long long int*)addr;
-    unsigned long long int old = *addr_as_ull, assumed;
-
-    do {
-        assumed = old;
-        old = atomicCAS(addr_as_ull, assumed, __double_as_longlong(fmin(value, __longlong_as_double(assumed))));
-    } while (assumed != old);
-
-    return __longlong_as_double(old) > value;
-}
-
-// Helper functions
-__global__ void setFloatAllKernel(float *arr, float val, ULLInt size) {
-    ULLInt i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (i < size) arr[i] = val;
-}
-__global__ void setLLIntAllKernel(LLInt *arr, LLInt val, ULLInt size) {
-    ULLInt i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (i < size) arr[i] = val;
 }

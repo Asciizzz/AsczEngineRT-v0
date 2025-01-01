@@ -1,0 +1,17 @@
+newmtl mat0
+map_Kd Sky0.bmp
+
+newmtl mat1
+map_Kd Sky1.bmp
+
+newmtl mat2
+map_Kd Sky2.bmp
+
+newmtl mat3
+map_Kd Sky3.bmp
+
+newmtl mat4
+map_Kd Sky4.bmp
+
+newmtl mat5
+map_Kd Sky5.bmp

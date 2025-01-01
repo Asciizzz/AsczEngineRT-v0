@@ -5,13 +5,23 @@ ClearScreen:
 	clear
 
 AsczEngine:
-	nvcc \
+	nvcc\
+		-I include/MathLib \
+		-I include/Graphic3D \
+		-I include/System \
 		\
 		-I libraries/SFML/include \
 		-L libraries/SFML/lib \
 		\
 		-o AsczEngine \
 		\
+		src/MathLib/Vector.cu \
+		src/MathLib/Matrix.cu \
+		src/Graphic3D/Ray.cu \
+		src/Graphic3D/Camera.cu \
+		src/Graphic3D/SFMLTexture.cu \
+		src/System/FpsHandler.cu \
+		src/System/CsLogHandler.cu \
 		\
 		AsczEngine.cu \
 		\
