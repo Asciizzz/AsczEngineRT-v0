@@ -31,6 +31,13 @@ __global__ void clearFramebuffer(Vec3f *framebuffer, int width, int height) {
     framebuffer[idx] = Vec3f(0, 0, 0);
 }
 
+__global__ void resetRecursive(bool *raycursive, int width, int height) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= width * height) return;
+
+    raycursive[idx] = true; // To kickstart the first iteration
+}
+
 __global__ void generateRays(Camera camera, Ray *rays, int width, int height) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx >= width * height) return;
@@ -42,8 +49,9 @@ __global__ void generateRays(Camera camera, Ray *rays, int width, int height) {
 }
 
 __global__ void castRays(
-    Vec3f *framebuffer, Ray *rays, bool *raycursive,
-    Triangle *triangles, int width, int height, int triangleCount) {
+    Vec3f *framebuffer, Ray *rays, bool *raycursive, bool *hasrecursive,
+    Triangle *triangles, int width, int height, int triangleCount
+) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx >= width * height) return;
 
@@ -105,7 +113,10 @@ __global__ void castRays(
 
     if (recursive) {
         rays[idx] = recursiveRay;
-        atmoicAdd(raycursive, 1);
+        raycursive[idx] = true;
+        *hasrecursive = true;
+    } else {
+        raycursive[idx] = false;
     }
 }   
 
@@ -122,6 +133,9 @@ int main() {
     int width = 600;
     int height = 600;
     SFMLTexture SFTex(600, 600);
+    
+    int threads = 256;
+    int blocks = (width * height + threads - 1) / threads;
 
     // Test camera
     Camera CAMERA;
@@ -135,13 +149,17 @@ int main() {
     cudaMalloc(&d_framebuffer, width * height * sizeof(Vec3f));
 
     // For ray recursion
-    Ray *d_raycursive; // Pun intended
-    bool *d_hasreflected;
-    cudaMalloc(&d_raycursive, width * height * sizeof(Ray));
-    cudaMalloc(&d_hasreflected, sizeof(bool));
+    bool *d_raycursive; // Pun intended
+    bool *d_hasrecursive;
+    cudaMalloc(&d_raycursive, width * height * sizeof(bool));
+    cudaMalloc(&d_hasrecursive, sizeof(bool));
 
-    int threads = 256;
-    int blocks = (width * height + threads - 1) / threads;
+    // Set all to true to kickstart the first iteration
+    resetRecursive<<<blocks, threads>>>(d_raycursive, width, height);
+    cudaDeviceSynchronize();
+
+    // Set the hasrecursive true
+    cudaMemcpy(d_hasrecursive, new bool(true), sizeof(bool), cudaMemcpyHostToDevice);
 
     // Creating some test triangles
     Triangle *d_triangles;
@@ -264,7 +282,9 @@ int main() {
         cudaDeviceSynchronize();
 
         // Cast rays
-        castRays<<<blocks, threads>>>(d_framebuffer, d_rays, d_triangles, width, height, triCount);
+        castRays<<<blocks, threads>>>(
+            d_framebuffer, d_rays, d_raycursive, d_hasrecursive,
+            d_triangles, width, height, triCount);
         cudaDeviceSynchronize();
 
         // Log
