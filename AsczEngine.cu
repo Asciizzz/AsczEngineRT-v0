@@ -183,11 +183,8 @@ int main() {
     cudaMemcpy(d_hasrecursive, new bool(true), sizeof(bool), cudaMemcpyHostToDevice);
 
     // Creating some test triangles
-    Triangle *d_triangles;
-    int triCount = 11;
+    
     int tc = 0;
-    cudaMalloc(&d_triangles, triCount * sizeof(Triangle));
-
     Triangle triangles[11];
     // Postive Z
     triangles[tc].v0 = Vec3f(-10, -10, 50);
@@ -224,72 +221,67 @@ int main() {
     int wallHeight = 100;
 
     // Negative Z Mirror
-    triangles[3].v0 = Vec3f(-mrWidth, -mrHeight, -mrDepth);
-    triangles[3].v1 = Vec3f(mrWidth, -mrHeight, -mrDepth);
-    triangles[3].v2 = Vec3f(mrWidth, mrHeight, -mrDepth);
-    triangles[4].v0 = Vec3f(-mrWidth, -mrHeight, -mrDepth);
-    triangles[4].v1 = Vec3f(mrWidth, mrHeight, -mrDepth);
-    triangles[4].v2 = Vec3f(-mrWidth, mrHeight, -mrDepth);
-    // Set the normal to positive Z
-    triangles[3].uniformNormal(Vec3f(0, 0, 1));
-    triangles[4].uniformNormal(Vec3f(0, 0, 1));
-    triangles[3].reflect = true;
-    triangles[4].reflect = true;
+    triangles[++tc].v0 = Vec3f(-mrWidth, -mrHeight, -mrDepth);
+    triangles[tc].v1 = Vec3f(mrWidth, -mrHeight, -mrDepth);
+    triangles[tc].v2 = Vec3f(mrWidth, mrHeight, -mrDepth);
+    triangles[tc].uniformNormal(Vec3f(0, 0, 1));
+    triangles[tc].reflect = true;
+    triangles[++tc].v0 = Vec3f(-mrWidth, -mrHeight, -mrDepth);
+    triangles[tc].v1 = Vec3f(mrWidth, mrHeight, -mrDepth);
+    triangles[tc].v2 = Vec3f(-mrWidth, mrHeight, -mrDepth);
+    triangles[tc].uniformNormal(Vec3f(0, 0, 1));
+    triangles[tc].reflect = true;
 
     // Negative Z Wall
-    triangles[5].v0 = Vec3f(-wallWidth, -wallHeight, -mrDepth - .1);
-    triangles[5].v1 = Vec3f(wallWidth, -wallHeight, -mrDepth - .1);
-    triangles[5].v2 = Vec3f(wallWidth, wallHeight, -mrDepth - .1);
-    triangles[6].v0 = Vec3f(-wallWidth, -wallHeight, -mrDepth - .1);
-    triangles[6].v1 = Vec3f(wallWidth, wallHeight, -mrDepth - .1);
-    triangles[6].v2 = Vec3f(-wallWidth, wallHeight, -mrDepth - .1);
-    // Set the color to white
-    triangles[5].c1 = Vec3f(0.6, 1, 0.6);
-    triangles[5].c2 = Vec3f(0.6, 0.6, 1);
-    triangles[5].c3 = Vec3f(1, 0.6, 0.6);
-    triangles[6].c1 = Vec3f(0.6, 1, 0.6);
-    triangles[6].c2 = Vec3f(1, 0.6, 0.6);
-    triangles[6].c3 = Vec3f(0.6, 0.6, 1);
-    // Set the normal to positive Z
-    triangles[5].uniformNormal(Vec3f(0, 0, 1));
-    triangles[6].uniformNormal(Vec3f(0, 0, 1));
+    triangles[++tc].v0 = Vec3f(-wallWidth, -wallHeight, -mrDepth - .1);
+    triangles[tc].v1 = Vec3f(wallWidth, -wallHeight, -mrDepth - .1);
+    triangles[tc].v2 = Vec3f(wallWidth, wallHeight, -mrDepth - .1);
+    triangles[tc].c1 = Vec3f(0.6, 1, 0.6);
+    triangles[tc].c2 = Vec3f(0.6, 0.6, 1);
+    triangles[tc].c3 = Vec3f(1, 0.6, 0.6);
+    triangles[tc].uniformNormal(Vec3f(0, 0, 1));
+    triangles[++tc].v0 = Vec3f(-wallWidth, -wallHeight, -mrDepth - .1);
+    triangles[tc].v1 = Vec3f(wallWidth, wallHeight, -mrDepth - .1);
+    triangles[tc].v2 = Vec3f(-wallWidth, wallHeight, -mrDepth - .1);
+    triangles[tc].c1 = Vec3f(0.6, 1, 0.6);
+    triangles[tc].c2 = Vec3f(1, 0.6, 0.6);
+    triangles[tc].c3 = Vec3f(0.6, 0.6, 1);
+    triangles[tc].uniformNormal(Vec3f(0, 0, 1));
 
     // Positive Z Mirror
-    triangles[7].v0 = Vec3f(-mrWidth, -mrHeight, mrDepth);
-    triangles[7].v1 = Vec3f(mrWidth, -mrHeight, mrDepth);
-    triangles[7].v2 = Vec3f(mrWidth, mrHeight, mrDepth);
-    triangles[8].v0 = Vec3f(-mrWidth, -mrHeight, mrDepth);
-    triangles[8].v1 = Vec3f(mrWidth, mrHeight, mrDepth);
-    triangles[8].v2 = Vec3f(-mrWidth, mrHeight, mrDepth);
-    // Set the normal to positive Z
-    triangles[7].uniformNormal(Vec3f(0, 0, -1));
-    triangles[8].uniformNormal(Vec3f(0, 0, -1));
-    triangles[7].reflect = true;
-    triangles[8].reflect = true;
-    // Turn off display
-    triangles[7].display = false;
-    triangles[8].display = false;
+    triangles[++tc].v0 = Vec3f(-mrWidth, -mrHeight, mrDepth);
+    triangles[tc].v1 = Vec3f(mrWidth, -mrHeight, mrDepth);
+    triangles[tc].v2 = Vec3f(mrWidth, mrHeight, mrDepth);
+    triangles[tc].uniformNormal(Vec3f(0, 0, -1));
+    triangles[tc].reflect = true;
+    triangles[tc].display = false;
+    triangles[++tc].v0 = Vec3f(-mrWidth, -mrHeight, mrDepth);
+    triangles[tc].v1 = Vec3f(mrWidth, mrHeight, mrDepth);
+    triangles[tc].v2 = Vec3f(-mrWidth, mrHeight, mrDepth);
+    triangles[tc].uniformNormal(Vec3f(0, 0, -1));
+    triangles[tc].reflect = true;
+    triangles[tc].display = false;
 
     // Positive Z Wall
-    triangles[9].v0 = Vec3f(-wallWidth, -wallHeight, mrDepth + .1);
-    triangles[9].v1 = Vec3f(wallWidth, -wallHeight, mrDepth + .1);
-    triangles[9].v2 = Vec3f(wallWidth, wallHeight, mrDepth + .1);
-    triangles[10].v0 = Vec3f(-wallWidth, -wallHeight, mrDepth + .1);
-    triangles[10].v1 = Vec3f(wallWidth, wallHeight, mrDepth + .1);
-    triangles[10].v2 = Vec3f(-wallWidth, wallHeight, mrDepth + .1);
-    // Set the color to gradient
-    triangles[9].c1 = Vec3f(1, 0.6, 0.6);
-    triangles[9].c2 = Vec3f(0.6, 1, 0.6);
-    triangles[9].c3 = Vec3f(0.6, 0.6, 1);
-    triangles[10].c1 = Vec3f(1, 0.6, 0.6);
-    triangles[10].c2 = Vec3f(0.6, 0.6, 1);
-    triangles[10].c3 = Vec3f(0.6, 1, 0.6);
-    // Set the normal to positive Z
-    triangles[9].uniformNormal(Vec3f(0, 0, 1));
-    triangles[10].uniformNormal(Vec3f(0, 0, 1));
+    triangles[++tc].v0 = Vec3f(-wallWidth, -wallHeight, mrDepth + .1);
+    triangles[tc].v1 = Vec3f(wallWidth, -wallHeight, mrDepth + .1);
+    triangles[tc].v2 = Vec3f(wallWidth, wallHeight, mrDepth + .1);
+    triangles[tc].c1 = Vec3f(1, 0.6, 0.6);;
+    triangles[tc].c2 = Vec3f(0.6, 1, 0.6);;
+    triangles[tc].c3 = Vec3f(0.6, 0.6, 1);
+    triangles[tc].uniformNormal(Vec3f(0, 0, 1));
+    triangles[++tc].v0 = Vec3f(-wallWidth, -wallHeight, mrDepth + .1);
+    triangles[tc].v1 = Vec3f(wallWidth, wallHeight, mrDepth + .1);
+    triangles[tc].v2 = Vec3f(-wallWidth, wallHeight, mrDepth + .1);
+    triangles[tc].c1 = Vec3f(1, 0.6, 0.6);
+    triangles[tc].c2 = Vec3f(0.6, 0.6, 1);
+    triangles[tc].c3 = Vec3f(0.6, 1, 0.6);
+    triangles[tc].uniformNormal(Vec3f(0, 0, 1));
 
     // Copy to device
-    cudaMemcpy(d_triangles, triangles, triCount * sizeof(Triangle), cudaMemcpyHostToDevice);   
+    Triangle *d_triangles;
+    cudaMalloc(&d_triangles, ++tc * sizeof(Triangle));
+    cudaMemcpy(d_triangles, triangles, tc * sizeof(Triangle), cudaMemcpyHostToDevice);   
 
     // Create window
     sf::RenderWindow window(sf::VideoMode(width, height), "AsczEngine");
@@ -383,7 +375,7 @@ int main() {
             cudaMemcpy(d_hasrecursive, hasrecursive, sizeof(bool), cudaMemcpyHostToDevice); 
 
             // Cast rays
-            castRays<<<blocks, threads>>>(d_framebuffer, d_rays, d_raycursive, d_hasrecursive, d_triangles, width, height, triCount);
+            castRays<<<blocks, threads>>>(d_framebuffer, d_rays, d_raycursive, d_hasrecursive, d_triangles, width, height, tc);
             cudaDeviceSynchronize();
             
             // Copy hasrecursive to host
