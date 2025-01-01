@@ -148,8 +148,8 @@ int main() {
     CsLogHandler LOG = CsLogHandler();
 
     // Create SFMLTexture
-    int width = 1000;
-    int height = 800;
+    int width = 1600;
+    int height = 900;
     SFMLTexture SFTex(width, height);
     
     int threads = 256;
@@ -181,10 +181,10 @@ int main() {
 
     // Creating some test triangles
     Triangle *d_triangles;
-    int triCount = 7;
+    int triCount = 11;
     cudaMalloc(&d_triangles, triCount * sizeof(Triangle));
 
-    Triangle triangles[7];
+    Triangle triangles[11];
     // Postive Z
     triangles[0].v0 = Vec3f(-10, -10, 50);
     triangles[0].v1 = Vec3f(10, -10, 50);
@@ -209,11 +209,11 @@ int main() {
     triangles[2].v2 = Vec3f(-50, 10, 0);
     triangles[2].c1 = Vec3f(0, 1, 0);
     triangles[2].c2 = Vec3f(0, 0, 1);
-    triangles[2].c3 = Vec3f(1, 0, 0);
+    triangles[2].c3 = Vec3f(1,  0, 0);
     triangles[2].uniformNormal(Vec3f(1, 0, 0));
 
     int mrWidth = 100;
-    int mrHeight = 41;
+    int mrHeight = 50;
     int mrDepth = 100;
 
     // Negative Z Mirror
@@ -223,29 +223,13 @@ int main() {
     triangles[4].v0 = Vec3f(-mrWidth, -mrHeight, -mrDepth);
     triangles[4].v1 = Vec3f(mrWidth, mrHeight, -mrDepth);
     triangles[4].v2 = Vec3f(-mrWidth, mrHeight, -mrDepth);
-    // Set the color to white
-    triangles[3].uniformColor(Vec3f(1, 1, 1));
-    triangles[4].uniformColor(Vec3f(1, 1, 1));
-    // Set the normal to positive Z 
+    // Set the normal to positive Z
     triangles[3].uniformNormal(Vec3f(0, 0, 1));
     triangles[4].uniformNormal(Vec3f(0, 0, 1));
     triangles[3].reflect = true;
     triangles[4].reflect = true;
 
-    // Negative Z Wall create a frame for the mirror
-    // triangles[5].v0 = Vec3f(-mrWidth - 1, -mrHeight - 1, -mrDepth - .1);
-    // triangles[5].v1 = Vec3f(mrWidth + 1, -mrHeight - 1, -mrDepth - .1);
-    // triangles[5].v2 = Vec3f(mrWidth + 1, mrHeight + 1, -mrDepth - .1);
-    // triangles[6].v0 = Vec3f(-mrWidth - 1, -mrHeight - 1, -mrDepth - .1);
-    // triangles[6].v1 = Vec3f(mrWidth + 1, mrHeight + 1, -mrDepth - .1);
-    // triangles[6].v2 = Vec3f(-mrWidth - 1, mrHeight + 1, -mrDepth - .1);
-    // // Set the color to white
-    // triangles[5].uniformColor(Vec3f(0, 1, 1));
-    // triangles[6].uniformColor(Vec3f(1, 1, 0));
-    // // Set the normal to positive Z
-    // triangles[5].uniformNormal(Vec3f(0, 0, 1));
-    // triangles[6].uniformNormal(Vec3f(0, 0, 1));
-    
+    // Negative Z Wall
     triangles[5].v0 = Vec3f(-200, -100, -mrDepth - .1);
     triangles[5].v1 = Vec3f(200, -100, -mrDepth - .1);
     triangles[5].v2 = Vec3f(200, 100, -mrDepth - .1);
@@ -253,17 +237,52 @@ int main() {
     triangles[6].v1 = Vec3f(200, 100, -mrDepth - .1);
     triangles[6].v2 = Vec3f(-200, 100, -mrDepth - .1);
     // Set the color to white
-    triangles[5].uniformColor(Vec3f(1, 1, 1));
-    triangles[6].uniformColor(Vec3f(1, 1, 1));
+    triangles[5].c1 = Vec3f(0.6, 1, 0.6);
+    triangles[5].c2 = Vec3f(0.6, 0.6, 1);
+    triangles[5].c3 = Vec3f(1, 0.6, 0.6);
+    triangles[6].c1 = Vec3f(0.6, 1, 0.6);
+    triangles[6].c2 = Vec3f(1, 0.6, 0.6);
+    triangles[6].c3 = Vec3f(0.6, 0.6, 1);
     // Set the normal to positive Z
     triangles[5].uniformNormal(Vec3f(0, 0, 1));
     triangles[6].uniformNormal(Vec3f(0, 0, 1));
 
+    // Positive Z Mirror
+    triangles[7].v0 = Vec3f(-mrWidth, -mrHeight, mrDepth);
+    triangles[7].v1 = Vec3f(mrWidth, -mrHeight, mrDepth);
+    triangles[7].v2 = Vec3f(mrWidth, mrHeight, mrDepth);
+    triangles[8].v0 = Vec3f(-mrWidth, -mrHeight, mrDepth);
+    triangles[8].v1 = Vec3f(mrWidth, mrHeight, mrDepth);
+    triangles[8].v2 = Vec3f(-mrWidth, mrHeight, mrDepth);
+    // Set the normal to positive Z
+    triangles[7].uniformNormal(Vec3f(0, 0, -1));
+    triangles[8].uniformNormal(Vec3f(0, 0, -1));
+    triangles[7].reflect = true;
+    triangles[8].reflect = true;
+
+    // Positive Z Wall
+    triangles[9].v0 = Vec3f(-200, -100, mrDepth + .1);
+    triangles[9].v1 = Vec3f(200, -100, mrDepth + .1);
+    triangles[9].v2 = Vec3f(200, 100, mrDepth + .1);
+    triangles[10].v0 = Vec3f(-200, -100, mrDepth + .1);
+    triangles[10].v1 = Vec3f(200, 100, mrDepth + .1);
+    triangles[10].v2 = Vec3f(-200, 100, mrDepth + .1);
+    // Set the color to gradient
+    triangles[9].c1 = Vec3f(1, 0.6, 0.6);
+    triangles[9].c2 = Vec3f(0.6, 1, 0.6);
+    triangles[9].c3 = Vec3f(0.6, 0.6, 1);
+    triangles[10].c1 = Vec3f(1, 0.6, 0.6);
+    triangles[10].c2 = Vec3f(0.6, 0.6, 1);
+    triangles[10].c3 = Vec3f(0.6, 1, 0.6);
+    // Set the normal to positive Z
+    triangles[9].uniformNormal(Vec3f(0, 0, 1));
+    triangles[10].uniformNormal(Vec3f(0, 0, 1));
+
+    // Copy to device
     cudaMemcpy(d_triangles, triangles, triCount * sizeof(Triangle), cudaMemcpyHostToDevice);   
 
+    // Create window
     sf::RenderWindow window(sf::VideoMode(width, height), "AsczEngine");
-
-    // Hide cursor
     window.setMouseCursorVisible(!CAMERA.focus);
     while (window.isOpen()) {
         // Frame start
@@ -348,6 +367,7 @@ int main() {
         cudaDeviceSynchronize();
 
         bool *hasrecursive = new bool(true);
+        int recursionCount = -1;
         while (*hasrecursive) {
             *hasrecursive = false;
             cudaMemcpy(d_hasrecursive, hasrecursive, sizeof(bool), cudaMemcpyHostToDevice); 
@@ -359,12 +379,15 @@ int main() {
             // Copy hasrecursive to host
             cudaMemcpy(hasrecursive, d_hasrecursive, sizeof(bool), cudaMemcpyDeviceToHost);
 
-            std::cout << *hasrecursive << std::endl;
+            recursionCount++;
+
+            if (recursionCount > 10) break; // Break if it's too much
         }
 
         // Log
-        LOG.addLog("Welcome to AsczEngine RTx", sf::Color::White, 1);
-        LOG.addLog("FPS: " + std::to_string(FPS.fps), sf::Color::White);
+        LOG.addLog("Welcome to AsczEngineRT v0", sf::Color::Green, 1);
+        LOG.addLog("FPS: " + std::to_string(FPS.fps), sf::Color::Green);
+        LOG.addLog("Recursion count: " + std::to_string(recursionCount), sf::Color::Red);
 
         // Draw to window
         SFTex.updateTexture(d_framebuffer, width, height, 1);
