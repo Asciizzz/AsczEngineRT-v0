@@ -56,8 +56,6 @@ __global__ void castRays(
     Ray ray = rays[idx];
 
     int curTri = -1;
-    float curU = 0;
-    float curV = 0;
     float curZ = 1000000.0f;
     // This will soon be replaced with BVH traversal method
     for (int i = 0; i < triangleCount; i++) {
@@ -94,9 +92,6 @@ __global__ void castRays(
 
             // Saving relevant data to avoid recalculating  
             curTri = i;
-            curU = u;
-            curV = v;
-            curZ = t;
         }
     }
 
@@ -108,9 +103,14 @@ __global__ void castRays(
     bool recursive = triangles[curTri].reflect;
 
     Vec3f vertex = ray.origin + ray.direction * curZ;
-    Vec3f normal = triangles[curTri].n0 * (1 - curU - curV)
-                    + triangles[curTri].n1 * curU
-                    + triangles[curTri].n2 * curV;
+    Vec3f bary = Vec3f::bary(vertex, triangles[curTri].v0, triangles[curTri].v1, triangles[curTri].v2);
+    float u = bary.x;
+    float v = bary.y;
+    float w = bary.z;
+
+    Vec3f normal = triangles[curTri].n0 * w
+                + triangles[curTri].n1 * u
+                + triangles[curTri].n2 * v;
     normal.norm();
     vertexbuffer[idx] = vertex;
     normalbuffer[idx] = normal;
@@ -118,8 +118,8 @@ __global__ void castRays(
     if (recursive) {
         // Set the recursive ray
         Ray recursiveRay;
-        recursiveRay.origin = vertex + normal * 1.0f;
         recursiveRay.direction = ray.reflect(normal);
+        recursiveRay.origin = vertex + normal * 0.001f; // To avoid self-intersection
         rays[idx] = recursiveRay;
 
         raycursive[idx] = true;
@@ -129,9 +129,9 @@ __global__ void castRays(
         raycursive[idx] = false;
 
         // Interpolate color
-        Vec3f color = triangles[curTri].c0 * (1 - curU - curV)
-                    + triangles[curTri].c1 * curU
-                    + triangles[curTri].c2 * curV;
+        Vec3f color = triangles[curTri].c0 * w
+                    + triangles[curTri].c1 * u
+                    + triangles[curTri].c2 * v;
 
         // Lighting
         Vec3f lightDir = lightPos - vertex;
@@ -247,8 +247,9 @@ int main() {
     #pragma omp parallel
     for (int i = 0; i < shape.size(); i++) {
         shape[i].reflect = true;
+        // shape[i].display = false;
 
-        int scaleFac = 1;
+        int scaleFac = 10;
         shape[i].v0.scale(Vec3f(), scaleFac);
         shape[i].v1.scale(Vec3f(), scaleFac);
         shape[i].v2.scale(Vec3f(), scaleFac);
@@ -287,6 +288,11 @@ int main() {
     // Create window
     sf::RenderWindow window(sf::VideoMode(width, height), "AsczEngine");
     window.setMouseCursorVisible(!CAMERA.focus);
+
+    // Fun settings
+    bool followLight = false;
+
+    // Main loop
     while (window.isOpen()) {
         // Frame start
         FPS.startFrame();
@@ -306,6 +312,11 @@ int main() {
                 // Hide cursor
                 window.setMouseCursorVisible(!CAMERA.focus);
             }
+
+            // Press L to toggle light follow
+            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::L) {
+                followLight = !followLight;
+            }
         }
 
         // Setting input activities
@@ -324,6 +335,11 @@ int main() {
         bool k_q = sf::Keyboard::isKeyPressed(sf::Keyboard::Q);
         bool k_e = sf::Keyboard::isKeyPressed(sf::Keyboard::E);
         bool k_t = sf::Keyboard::isKeyPressed(sf::Keyboard::T);
+
+        // Fun settings
+        if (followLight) {
+            lightSrc = CAMERA.pos;
+        }
 
         // Camera movement
         if (CAMERA.focus) {

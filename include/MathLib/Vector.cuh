@@ -62,6 +62,7 @@ struct Vec3f {
     __host__ __device__ void norm();
     // Barycentric coordinates
     __host__ __device__ static Vec3f bary(Vec2f v, Vec2f v0, Vec2f v1, Vec2f v2);
+    __host__ __device__ static Vec3f bary(Vec3f v, Vec3f v0, Vec3f v1, Vec3f v2);
     // Limit the vector
     __host__ __device__ void limit(float min, float max);
 

@@ -85,6 +85,15 @@ Vec3f Vec3f::bary(Vec2f v, Vec2f v0, Vec2f v1, Vec2f v2) {
     float c = 1 - a - b;
     return Vec3f(a, b, c);
 }
+Vec3f Vec3f::bary(Vec3f v, Vec3f v0, Vec3f v1, Vec3f v2) {
+    Vec3f v01 = v1 - v0, v02 = v2 - v0, v0v = v - v0;
+    float d00 = v01 * v01, d01 = v01 * v02, d11 = v02 * v02, d20 = v0v * v01, d21 = v0v * v02;
+    float d = d00 * d11 - d01 * d01;
+    float a = (d11 * d20 - d01 * d21) / d;
+    float b = (d00 * d21 - d01 * d20) / d;
+    float c = 1 - a - b;
+    return Vec3f(a, b, c);
+}
 void Vec3f::limit(float min, float max) {
     x = std::max(min, std::min(x, max));
     y = std::max(min, std::min(y, max));
