@@ -32,8 +32,9 @@ public:
     float velSpec = 20;
 
     bool focus = true;
-    // // Debug
-    // std::string data();
+    
+    // Debug
+    std::string data();
 };
 
 #endif

@@ -252,29 +252,30 @@ int main() {
         room[i].v2.scale(Vec3f(), scaleFac);
     }
 
-        std::vector<Triangle> shape1 = Utils::readObjFile("test", "assets/Models/Shapes/Test/test.obj");
+    std::vector<Triangle> shape1 = Utils::readObjFile("test", "assets/Models/Shapes/Test/test.obj");
     #pragma omp parallel
-    for (int i = 0; i < shape1.size(); i++) {
-        shape1[i].reflect = true;
-        // shape1[i].display = false;
+    for (Triangle &t : shape1) {
+        t.reflect = true;
+        // t.display = false;
 
-        int scaleFac = 10;
-        shape1[i].v0.scale(Vec3f(), scaleFac);
-        shape1[i].v1.scale(Vec3f(), scaleFac);
-        shape1[i].v2.scale(Vec3f(), scaleFac);
+        int scaleFac = 16;
+        t.scale(Vec3f(), scaleFac);
+        t.translate(Vec3f(0, 0, 39));
+    }
 
-        shape1[i].v0 = Vec3f::rotate(shape1[i].v0, Vec3f(), Vec3f(1, 0, 0), M_PI_2);
-        shape1[i].v1 = Vec3f::rotate(shape1[i].v1, Vec3f(), Vec3f(1, 0, 0), M_PI_2);
-        shape1[i].v2 = Vec3f::rotate(shape1[i].v2, Vec3f(), Vec3f(1, 0, 0), M_PI_2);
+    std::vector<Triangle> shape2 = Utils::readObjFile("test1", "assets/Models/Shapes/Test/test1.obj");
+    #pragma omp parallel
+    for (Triangle &t : shape2) {
+        t.reflect = true;
 
-        shape1[i].n0 = Vec3f::rotate(shape1[i].n0, Vec3f(), Vec3f(1, 0, 0), M_PI_2);
-        shape1[i].n1 = Vec3f::rotate(shape1[i].n1, Vec3f(), Vec3f(1, 0, 0), M_PI_2);
-        shape1[i].n2 = Vec3f::rotate(shape1[i].n2, Vec3f(), Vec3f(1, 0, 0), M_PI_2);
-        shape1[i].normAll();
+        int scaleFac = 16;
+        t.scale(Vec3f(), scaleFac);
+        t.translate(Vec3f(0, 0, -39));
     }
 
     std::vector<Triangle> triangles = room;
     triangles.insert(triangles.end(), shape1.begin(), shape1.end());
+    triangles.insert(triangles.end(), shape2.begin(), shape2.end());
 
     // Copy to device
     Triangle *d_triangles;
@@ -420,6 +421,7 @@ int main() {
         LOG.addLog("FPS: " + std::to_string(FPS.fps), sf::Color::Green);
         LOG.addLog("Recursion count: " + std::to_string(recursionCount), sf::Color::Red);
         LOG.addLog("Triangles count: " + std::to_string(tc), sf::Color::Red);
+        LOG.addLog(CAMERA.data(), sf::Color(160, 255, 160));
 
         // Draw to window
         SFTex.updateTexture(d_framebuffer, width, height, 1);
