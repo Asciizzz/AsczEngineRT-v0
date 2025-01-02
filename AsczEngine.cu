@@ -243,27 +243,6 @@ int main() {
     cudaMemcpy(d_hasrecursive, new bool(true), sizeof(bool), cudaMemcpyHostToDevice);
 
     // Creating some test triangles
-    std::vector<Triangle> shape = Utils::readObjFile("test", "assets/Models/Shapes/Test/test.obj");
-    #pragma omp parallel
-    for (int i = 0; i < shape.size(); i++) {
-        shape[i].reflect = true;
-        // shape[i].display = false;
-
-        int scaleFac = 10;
-        shape[i].v0.scale(Vec3f(), scaleFac);
-        shape[i].v1.scale(Vec3f(), scaleFac);
-        shape[i].v2.scale(Vec3f(), scaleFac);
-
-        shape[i].v0 = Vec3f::rotate(shape[i].v0, Vec3f(), Vec3f(1, 0, 0), M_PI_2);
-        shape[i].v1 = Vec3f::rotate(shape[i].v1, Vec3f(), Vec3f(1, 0, 0), M_PI_2);
-        shape[i].v2 = Vec3f::rotate(shape[i].v2, Vec3f(), Vec3f(1, 0, 0), M_PI_2);
-
-        shape[i].n0 = Vec3f::rotate(shape[i].n0, Vec3f(), Vec3f(1, 0, 0), M_PI_2);
-        shape[i].n1 = Vec3f::rotate(shape[i].n1, Vec3f(), Vec3f(1, 0, 0), M_PI_2);
-        shape[i].n2 = Vec3f::rotate(shape[i].n2, Vec3f(), Vec3f(1, 0, 0), M_PI_2);
-        shape[i].normAll();
-    }
-
     std::vector<Triangle> room = Utils::readObjFile("test", "assets/Models/Shapes/Cube3.obj");
     #pragma omp parallel
     for (int i = 0; i < room.size(); i++) {
@@ -273,8 +252,29 @@ int main() {
         room[i].v2.scale(Vec3f(), scaleFac);
     }
 
-    std::vector<Triangle> triangles = shape;
-    triangles.insert(triangles.end(), room.begin(), room.end());
+        std::vector<Triangle> shape1 = Utils::readObjFile("test", "assets/Models/Shapes/Test/test.obj");
+    #pragma omp parallel
+    for (int i = 0; i < shape1.size(); i++) {
+        shape1[i].reflect = true;
+        // shape1[i].display = false;
+
+        int scaleFac = 10;
+        shape1[i].v0.scale(Vec3f(), scaleFac);
+        shape1[i].v1.scale(Vec3f(), scaleFac);
+        shape1[i].v2.scale(Vec3f(), scaleFac);
+
+        shape1[i].v0 = Vec3f::rotate(shape1[i].v0, Vec3f(), Vec3f(1, 0, 0), M_PI_2);
+        shape1[i].v1 = Vec3f::rotate(shape1[i].v1, Vec3f(), Vec3f(1, 0, 0), M_PI_2);
+        shape1[i].v2 = Vec3f::rotate(shape1[i].v2, Vec3f(), Vec3f(1, 0, 0), M_PI_2);
+
+        shape1[i].n0 = Vec3f::rotate(shape1[i].n0, Vec3f(), Vec3f(1, 0, 0), M_PI_2);
+        shape1[i].n1 = Vec3f::rotate(shape1[i].n1, Vec3f(), Vec3f(1, 0, 0), M_PI_2);
+        shape1[i].n2 = Vec3f::rotate(shape1[i].n2, Vec3f(), Vec3f(1, 0, 0), M_PI_2);
+        shape1[i].normAll();
+    }
+
+    std::vector<Triangle> triangles = room;
+    triangles.insert(triangles.end(), shape1.begin(), shape1.end());
 
     // Copy to device
     Triangle *d_triangles;
