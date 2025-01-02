@@ -283,7 +283,7 @@ int main() {
     cudaMemcpy(d_triangles, triangles.data(), tc * sizeof(Triangle), cudaMemcpyHostToDevice);
 
     // Test light   
-    Vec3f lightSrc = Vec3f(10, 3, 5);
+    Vec3f lightSrc = Vec3f(0, 0, 0);
 
     // Create window
     sf::RenderWindow window(sf::VideoMode(width, height), "AsczEngine");
