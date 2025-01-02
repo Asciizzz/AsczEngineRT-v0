@@ -59,7 +59,7 @@ bool Ray::intersectAABB(Vec3f &AABBmin, Vec3f &AABBmax) {
 
 // Reflection
 Vec3f Ray::reflect(Vec3f normal) {
-    return direction - normal * 2 * (direction * normal);
+    return direction - normal * (2.0f * (direction * normal));
 }
 
 // Refraction

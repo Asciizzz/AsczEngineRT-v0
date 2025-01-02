@@ -10,13 +10,25 @@ v 1 -1 1
 v 1 1 1
 v -1 1 1
 
-# Normals (pointing outward from faces)
-vn -1 0 0
+# Normals (pointing inward from faces)
 vn 1 0 0
-vn 0 1 0
+vn -1 0 0
 vn 0 -1 0
-vn 0 0 1
+vn 0 1 0
 vn 0 0 -1
+vn 0 0 1
+
+# Colors (NOT IN STANDARD OBJ FORMAT)
+# r g b a
+
+vc 1 0 0 1
+vc 0 1 0 1
+vc 0 0 1 1
+vc 1 1 0 1
+vc 1 0 1 1
+vc 0 1 1 1
+vc 0.5 1 0.5 1
+vc 0.5 0.5 1 1
 
 # Texture coordinates (mapped to a 0-1 range on each face)
 vt 0 1

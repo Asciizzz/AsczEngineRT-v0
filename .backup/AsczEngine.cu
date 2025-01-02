@@ -24,12 +24,11 @@ __global__ void clearFramebuffer(Vec3f *framebuffer, int width, int height) {
     framebuffer[idx] = Vec3f(0, 0, 0);
 }
 
-__global__ void resetRecursive(bool *raycursive, int *recursionidx, int width, int height) {
+__global__ void resetRecursive(bool *raycursive, int width, int height) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx >= width * height) return;
 
     raycursive[idx] = true; // To kickstart the first iteration
-    recursionidx[idx] = idx;
 }
 
 __global__ void generateRays(Camera camera, Ray *rays, int width, int height) {
@@ -43,9 +42,7 @@ __global__ void generateRays(Camera camera, Ray *rays, int width, int height) {
 }
 
 __global__ void castRays(
-    Vec3f *framebuffer, Vec3f *vertexbuffer, Vec3f *normalbuffer,
-    Ray *rays, bool *raycursive, int *recursionidx, bool *hasrecursive,
-    Vec3f lightPos,
+    Vec3f *framebuffer, Ray *rays, bool *raycursive, bool *hasrecursive,
     Triangle *triangles, int width, int height, int triangleCount
 ) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -55,15 +52,17 @@ __global__ void castRays(
 
     Ray ray = rays[idx];
 
-    int curTri = -1;
-    float curU = 0;
-    float curV = 0;
-    float curZ = 1000000.0f;
+    Ray recursiveRay;
+    bool recursive = false;
+
+    Vec3f resultColor = Vec3f(0, 0, 0);
+
+    float zdepth = 1000000.0f;
     // This will soon be replaced with BVH traversal method
     for (int i = 0; i < triangleCount; i++) {
         if (!triangles[i].display) continue;
 
-        Vec3f A = triangles[i].v0;
+        Vec3f A = triangles[i].v0;  
         Vec3f B = triangles[i].v1;
         Vec3f C = triangles[i].v2;
 
@@ -89,114 +88,38 @@ __global__ void castRays(
 
         float t = f * (e2 * q);
 
-        if (t > 0.00001 && t < curZ) {
-            curZ = t;
+        if (t > 0.00001 && t < zdepth) {
+            zdepth = t;
 
-            // Saving relevant data to avoid recalculating  
-            curTri = i;
-            curU = u;
-            curV = v;
-            curZ = t;
+            // Interpolate color
+            Vec3f color = triangles[i].c1 * (1 - u - v) + triangles[i].c2 * u + triangles[i].c3 * v;
+            // Interpolate normal
+            Vec3f normal = triangles[i].n0 * (1 - u - v) + triangles[i].n1 * u + triangles[i].n2 * v;
+
+            // If reflective, the resulting ray will be the reflection of the current ray
+            if (triangles[i].reflect) {
+                recursiveRay.origin = ray.origin + ray.direction * t + normal * 1e-4;
+                recursiveRay.direction = ray.reflect(normal);
+                recursive = true;
+
+                continue;
+            }
+
+            recursive = false;
+            resultColor = color;
         }
     }
 
-    if (curTri == recursionidx[idx] && curTri != -1) {
-        raycursive[idx] = false;
-        return;
-    }
-
-    bool recursive = triangles[curTri].reflect;
-
-    Vec3f vertex = ray.origin + ray.direction * curZ;
-    Vec3f normal = triangles[curTri].n0 * (1 - curU - curV)
-                    + triangles[curTri].n1 * curU
-                    + triangles[curTri].n2 * curV;
-    normal.norm();
-    vertexbuffer[idx] = vertex;
-    normalbuffer[idx] = normal;
-
     if (recursive) {
-        // Set the recursive ray
-        Ray recursiveRay;
-        recursiveRay.origin = vertex + normal * 1.0f;
-        recursiveRay.direction = ray.reflect(normal);
         rays[idx] = recursiveRay;
-
         raycursive[idx] = true;
-        recursionidx[idx] = curTri;
         *hasrecursive = true;
     } else {
         raycursive[idx] = false;
-
-        // Interpolate color
-        Vec3f color = triangles[curTri].c0 * (1 - curU - curV)
-                    + triangles[curTri].c1 * curU
-                    + triangles[curTri].c2 * curV;
-
-        // Lighting
-        Vec3f lightDir = lightPos - vertex;
-        lightDir.norm();
-
-        float diff = fmaxf(0.0f, normal * lightDir);
-        float spec = 0.0f;
-
-        Vec3f reflectDir = lightDir - normal * 2 * (lightDir * normal);
-        spec = powf(fmaxf(0.0f, reflectDir * ray.direction), 32);
-
-        Vec3f resultColor = color * diff * 0.8 + Vec3f(1, 1, 1) * spec * 0.2;
-
-        framebuffer[idx] = resultColor;
     }
-}
 
-__global__ void applyShadow(
-    Vec3f *framebuffer, Vec3f *vertexbuffer, Vec3f *normalbuffer,
-    Vec3f lightPos,
-    Triangle *triangles, int width, int height, int triangleCount
-) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx >= width * height) return;
-
-    Ray ray;
-    ray.origin = vertexbuffer[idx];
-    ray.direction = lightPos - ray.origin;
-
-    // Check if the line connecting the point and the light source intersects with any triangle
-    for (int i = 0; i < triangleCount; i++) {
-        if (!triangles[i].display) continue;
-
-        Vec3f A = triangles[i].v0;
-        Vec3f B = triangles[i].v1;
-        Vec3f C = triangles[i].v2;
-
-        Vec3f e1 = B - A;
-        Vec3f e2 = C - A;
-
-        Vec3f h = ray.direction & e2;
-        float a = e1 * h;
-
-        // Ray is parallel to the triangle
-        if (a > -0.00001 && a < 0.00001) continue;
-
-        float f = 1.0f / a;
-        Vec3f s = ray.origin - A;
-        float u = f * (s * h);
-
-        if (u < 0.0f || u > 1.0f) continue;
-
-        Vec3f q = s & e1;
-        float v = f * (ray.direction * q);
-
-        if (v < 0.0f || u + v > 1.0f) continue;
-
-        float t = f * (e2 * q);
-
-        if (t > 0.00001 && t < 1.0f) {
-            framebuffer[idx] = framebuffer[idx] * 0.2;
-            break;
-        }
-    }
-}
+    framebuffer[idx] = resultColor; 
+}   
 
 int main() {
     /*
@@ -221,68 +144,124 @@ int main() {
     CAMERA.rot = Vec3f(0, 0, 0);
     CAMERA.updateView();
 
-    // Set up buffers
-    Vec3f *d_framebuffer; // or colorbuffer
-    Vec3f *d_vertexbuffer;
-    Vec3f *d_normalbuffer;
-    cudaMalloc(&d_framebuffer, width * height * sizeof(Vec3f));
-    cudaMalloc(&d_vertexbuffer, width * height * sizeof(Vec3f));
-    cudaMalloc(&d_normalbuffer, width * height * sizeof(Vec3f));
-
-    // Set up rays
     Ray *d_rays;
-    bool *d_raycursive; // Pun intended
-    int *d_recursionidx; // The origin of the recursive ray
-    bool *d_hasrecursive;
+    Vec3f *d_framebuffer;
     cudaMalloc(&d_rays, width * height * sizeof(Ray));
+    cudaMalloc(&d_framebuffer, width * height * sizeof(Vec3f));
+
+    // For ray recursion
+    bool *d_raycursive; // Pun intended
+    bool *d_hasrecursive;
     cudaMalloc(&d_raycursive, width * height * sizeof(bool));
-    cudaMalloc(&d_recursionidx, width * height * sizeof(int));
     cudaMalloc(&d_hasrecursive, sizeof(bool));
+
+    // Set all to true to kickstart the first iteration
+    resetRecursive<<<blocks, threads>>>(d_raycursive, width, height);
+    cudaDeviceSynchronize();
 
     // Set the hasrecursive true
     cudaMemcpy(d_hasrecursive, new bool(true), sizeof(bool), cudaMemcpyHostToDevice);
 
     // Creating some test triangles
-    std::vector<Triangle> shape = Utils::readObjFile("test", "assets/Models/Shapes/Test/test.obj");
-    #pragma omp parallel
-    for (int i = 0; i < shape.size(); i++) {
-        shape[i].reflect = true;
+    
+    int tc = 0;
+    Triangle triangles[11];
+    // Postive Z
+    triangles[tc].v0 = Vec3f(-10, -10, 50);
+    triangles[tc].v1 = Vec3f(10, -10, 50);
+    triangles[tc].v2 = Vec3f(0, 10, 50);
+    triangles[tc].c1 = Vec3f(1, 0, 0);
+    triangles[tc].c2 = Vec3f(1, 1, 1);
+    triangles[tc].c3 = Vec3f(0, 0, 1);
+    triangles[tc].uniformNormal(Vec3f(0, 0, -1));
 
-        int scaleFac = 1;
-        shape[i].v0.scale(Vec3f(), scaleFac);
-        shape[i].v1.scale(Vec3f(), scaleFac);
-        shape[i].v2.scale(Vec3f(), scaleFac);
+    // Positive X
+    triangles[++tc].v0 = Vec3f(50, -10, -10);
+    triangles[tc].v1 = Vec3f(50, -10, 10);
+    triangles[tc].v2 = Vec3f(50, 10, 0);
+    triangles[tc].c1 = Vec3f(0, 1, 0);
+    triangles[tc].c2 = Vec3f(0, 0, 1);
+    triangles[tc].c3 = Vec3f(1, 0, 0);
+    triangles[tc].uniformNormal(Vec3f(-1, 0, 0));
 
-        shape[i].v0 = Vec3f::rotate(shape[i].v0, Vec3f(), Vec3f(1, 0, 0), M_PI_2);
-        shape[i].v1 = Vec3f::rotate(shape[i].v1, Vec3f(), Vec3f(1, 0, 0), M_PI_2);
-        shape[i].v2 = Vec3f::rotate(shape[i].v2, Vec3f(), Vec3f(1, 0, 0), M_PI_2);
+    // Negative X
+    triangles[++tc].v0 = Vec3f(-50, -10, -10);
+    triangles[tc].v1 = Vec3f(-50, -10, 10);
+    triangles[tc].v2 = Vec3f(-50, 10, 0);
+    triangles[tc].c1 = Vec3f(0, 1, 0);
+    triangles[tc].c2 = Vec3f(0, 0, 1);
+    triangles[tc].c3 = Vec3f(1,  0, 0);
+    triangles[tc].uniformNormal(Vec3f(1, 0, 0));
 
-        shape[i].n0 = Vec3f::rotate(shape[i].n0, Vec3f(), Vec3f(1, 0, 0), M_PI_2);
-        shape[i].n1 = Vec3f::rotate(shape[i].n1, Vec3f(), Vec3f(1, 0, 0), M_PI_2);
-        shape[i].n2 = Vec3f::rotate(shape[i].n2, Vec3f(), Vec3f(1, 0, 0), M_PI_2);
-        shape[i].normAll();
-    }
+    int mrWidth = 100;
+    int mrHeight = 50;
+    int mrDepth = 100;
 
-    std::vector<Triangle> room = Utils::readObjFile("test", "assets/Models/Shapes/Cube3.obj");
-    #pragma omp parallel
-    for (int i = 0; i < room.size(); i++) {
-        int scaleFac = 40;
-        room[i].v0.scale(Vec3f(), scaleFac);
-        room[i].v1.scale(Vec3f(), scaleFac);
-        room[i].v2.scale(Vec3f(), scaleFac);
-    }
+    int wallWidth = 200;
+    int wallHeight = 100;
 
-    std::vector<Triangle> triangles = shape;
-    triangles.insert(triangles.end(), room.begin(), room.end());
+    // Negative Z Mirror
+    triangles[++tc].v0 = Vec3f(-mrWidth, -mrHeight, -mrDepth);
+    triangles[tc].v1 = Vec3f(mrWidth, -mrHeight, -mrDepth);
+    triangles[tc].v2 = Vec3f(mrWidth, mrHeight, -mrDepth);
+    triangles[tc].uniformNormal(Vec3f(0, 0, 1));
+    triangles[tc].reflect = true;
+    triangles[++tc].v0 = Vec3f(-mrWidth, -mrHeight, -mrDepth);
+    triangles[tc].v1 = Vec3f(mrWidth, mrHeight, -mrDepth);
+    triangles[tc].v2 = Vec3f(-mrWidth, mrHeight, -mrDepth);
+    triangles[tc].uniformNormal(Vec3f(0, 0, 1));
+    triangles[tc].reflect = true;
+
+    // Negative Z Wall
+    triangles[++tc].v0 = Vec3f(-wallWidth, -wallHeight, -mrDepth - .1);
+    triangles[tc].v1 = Vec3f(wallWidth, -wallHeight, -mrDepth - .1);
+    triangles[tc].v2 = Vec3f(wallWidth, wallHeight, -mrDepth - .1);
+    triangles[tc].c1 = Vec3f(0.6, 1, 0.6);
+    triangles[tc].c2 = Vec3f(0.6, 0.6, 1);
+    triangles[tc].c3 = Vec3f(1, 0.6, 0.6);
+    triangles[tc].uniformNormal(Vec3f(0, 0, 1));
+    triangles[++tc].v0 = Vec3f(-wallWidth, -wallHeight, -mrDepth - .1);
+    triangles[tc].v1 = Vec3f(wallWidth, wallHeight, -mrDepth - .1);
+    triangles[tc].v2 = Vec3f(-wallWidth, wallHeight, -mrDepth - .1);
+    triangles[tc].c1 = Vec3f(0.6, 1, 0.6);
+    triangles[tc].c2 = Vec3f(1, 0.6, 0.6);
+    triangles[tc].c3 = Vec3f(0.6, 0.6, 1);
+    triangles[tc].uniformNormal(Vec3f(0, 0, 1));
+
+    // Positive Z Mirror
+    triangles[++tc].v0 = Vec3f(-mrWidth, -mrHeight, mrDepth);
+    triangles[tc].v1 = Vec3f(mrWidth, -mrHeight, mrDepth);
+    triangles[tc].v2 = Vec3f(mrWidth, mrHeight, mrDepth);
+    triangles[tc].uniformNormal(Vec3f(0, 0, -1));
+    triangles[tc].reflect = true;
+    triangles[tc].display = false;
+    triangles[++tc].v0 = Vec3f(-mrWidth, -mrHeight, mrDepth);
+    triangles[tc].v1 = Vec3f(mrWidth, mrHeight, mrDepth);
+    triangles[tc].v2 = Vec3f(-mrWidth, mrHeight, mrDepth);
+    triangles[tc].uniformNormal(Vec3f(0, 0, -1));
+    triangles[tc].reflect = true;
+    triangles[tc].display = false;
+
+    // Positive Z Wall
+    triangles[++tc].v0 = Vec3f(-wallWidth, -wallHeight, mrDepth + .1);
+    triangles[tc].v1 = Vec3f(wallWidth, -wallHeight, mrDepth + .1);
+    triangles[tc].v2 = Vec3f(wallWidth, wallHeight, mrDepth + .1);
+    triangles[tc].c1 = Vec3f(1, 0.6, 0.6);;
+    triangles[tc].c2 = Vec3f(0.6, 1, 0.6);;
+    triangles[tc].c3 = Vec3f(0.6, 0.6, 1);
+    triangles[tc].uniformNormal(Vec3f(0, 0, 1));
+    triangles[++tc].v0 = Vec3f(-wallWidth, -wallHeight, mrDepth + .1);
+    triangles[tc].v1 = Vec3f(wallWidth, wallHeight, mrDepth + .1);
+    triangles[tc].v2 = Vec3f(-wallWidth, wallHeight, mrDepth + .1);
+    triangles[tc].c1 = Vec3f(1, 0.6, 0.6);
+    triangles[tc].c2 = Vec3f(0.6, 0.6, 1);
+    triangles[tc].c3 = Vec3f(0.6, 1, 0.6);
+    triangles[tc].uniformNormal(Vec3f(0, 0, 1));
 
     // Copy to device
     Triangle *d_triangles;
-    int tc = triangles.size();
-    cudaMalloc(&d_triangles, tc * sizeof(Triangle));
-    cudaMemcpy(d_triangles, triangles.data(), tc * sizeof(Triangle), cudaMemcpyHostToDevice);
-
-    // Test light   
-    Vec3f lightSrc = Vec3f(10, 3, 5);
+    cudaMalloc(&d_triangles, ++tc * sizeof(Triangle));
+    cudaMemcpy(d_triangles, triangles, tc * sizeof(Triangle), cudaMemcpyHostToDevice);   
 
     // Create window
     sf::RenderWindow window(sf::VideoMode(width, height), "AsczEngine");
@@ -365,9 +344,8 @@ int main() {
         cudaDeviceSynchronize();
 
         // Recursive ray tracing
-
         // Set all to true to kickstart the first iteration
-        resetRecursive<<<blocks, threads>>>(d_raycursive, d_recursionidx, width, height);
+        resetRecursive<<<blocks, threads>>>(d_raycursive, width, height);   
         cudaDeviceSynchronize();
 
         bool *hasrecursive = new bool(true);
@@ -377,33 +355,21 @@ int main() {
             cudaMemcpy(d_hasrecursive, hasrecursive, sizeof(bool), cudaMemcpyHostToDevice); 
 
             // Cast rays
-            castRays<<<blocks, threads>>>(
-                d_framebuffer, d_vertexbuffer, d_normalbuffer,
-                d_rays, d_raycursive, d_recursionidx, d_hasrecursive,
-                lightSrc,
-                d_triangles, width, height, tc);
+            castRays<<<blocks, threads>>>(d_framebuffer, d_rays, d_raycursive, d_hasrecursive, d_triangles, width, height, tc);
             cudaDeviceSynchronize();
-
+            
             // Copy hasrecursive to host
             cudaMemcpy(hasrecursive, d_hasrecursive, sizeof(bool), cudaMemcpyDeviceToHost);
 
             recursionCount++;
 
-            if (recursionCount == 10) break; // Break if it's too much
+            if (recursionCount > 10) break; // Break if it's too much
         }
-
-        // Apply shadow
-        applyShadow<<<blocks, threads>>>(
-            d_framebuffer, d_vertexbuffer, d_normalbuffer,
-            lightSrc,
-            d_triangles, width, height, tc);
-        cudaDeviceSynchronize();
 
         // Log
         LOG.addLog("Welcome to AsczEngineRT v0", sf::Color::Green, 1);
         LOG.addLog("FPS: " + std::to_string(FPS.fps), sf::Color::Green);
         LOG.addLog("Recursion count: " + std::to_string(recursionCount), sf::Color::Red);
-        LOG.addLog("Triangles count: " + std::to_string(tc), sf::Color::Red);
 
         // Draw to window
         SFTex.updateTexture(d_framebuffer, width, height, 1);

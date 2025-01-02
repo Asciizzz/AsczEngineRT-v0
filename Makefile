@@ -22,6 +22,7 @@ AsczEngine:
 		src/Graphic3D/SFMLTexture.cu \
 		src/System/FpsHandler.cu \
 		src/System/CsLogHandler.cu \
+		src/System/Utility.cu \
 		\
 		AsczEngine.cu \
 		\
