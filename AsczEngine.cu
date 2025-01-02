@@ -133,19 +133,21 @@ __global__ void castRays(
                     + triangles[curTri].c1 * u
                     + triangles[curTri].c2 * v;
 
-        // Lighting
+        // Lighting (with ambient, diffuse, specular and shininess)
         Vec3f lightDir = lightPos - vertex;
         lightDir.norm();
 
-        float diff = fmaxf(0.0f, normal * lightDir);
-        float spec = 0.0f;
+        float ka = triangles[curTri].ambient;
+        float kd = triangles[curTri].diffuse;
+        float ks = triangles[curTri].specular;
+        float shine = triangles[curTri].shininess;
 
-        Vec3f reflectDir = lightDir - normal * 2 * (lightDir * normal);
-        spec = powf(fmaxf(0.0f, reflectDir * ray.direction), 32);
+        float ambient = ka;
+        float diffuse = kd * fmaxf(0.0f, normal * lightDir);
+        Vec3f reflectDir = lightDir - normal * (2.0f * (lightDir * normal));
+        float specular = ks * pow(fmaxf(0.0f, ray.direction * reflectDir), shine);
 
-        Vec3f resultColor = color * diff * 0.8 + Vec3f(1, 1, 1) * spec * 0.2;
-
-        framebuffer[idx] = resultColor;
+        framebuffer[idx] = color * (ambient + diffuse + specular);
     }
 }
 
@@ -211,13 +213,13 @@ int main() {
     int width = 1600;
     int height = 900;
     SFMLTexture SFTex(width, height);
-    
+
     int threads = 256;
     int blocks = (width * height + threads - 1) / threads;
 
     // Test camera
     Camera CAMERA;
-    CAMERA.pos = Vec3f(0, 0, 0);
+    CAMERA.pos = Vec3f(0, 0, -10);
     CAMERA.rot = Vec3f(0, 0, 0);
     CAMERA.updateView();
 
@@ -273,9 +275,19 @@ int main() {
         t.translate(Vec3f(0, 0, -39));
     }
 
+    std::vector<Triangle> shape3 = Utils::readObjFile("test2", "assets/Models/Shapes/Test/test2.obj");
+    #pragma omp parallel
+    for (Triangle &t : shape3) {
+        // t.reflect = true;
+
+        int scaleFac = 5;
+        t.scale(Vec3f(), scaleFac);
+    }
+
     std::vector<Triangle> triangles = room;
     triangles.insert(triangles.end(), shape1.begin(), shape1.end());
     triangles.insert(triangles.end(), shape2.begin(), shape2.end());
+    triangles.insert(triangles.end(), shape3.begin(), shape3.end());
 
     // Copy to device
     Triangle *d_triangles;
@@ -288,10 +300,31 @@ int main() {
 
     // Create window
     sf::RenderWindow window(sf::VideoMode(width, height), "AsczEngine");
+    sf::Mouse::setPosition(sf::Vector2i(width / 2, height / 2), window);
     window.setMouseCursorVisible(!CAMERA.focus);
 
     // Fun settings
     bool followLight = false;
+    bool blackenScreen = false;
+
+    // Crosshair
+    int crosshairSize = 20;
+    int crosshairThick = 2;
+    sf::Color crosshairColor = sf::Color::Green;
+    sf::RectangleShape crosshair1(
+        sf::Vector2f(crosshairSize + crosshairThick, crosshairThick)
+    );
+    crosshair1.setPosition(width / 2 - crosshairSize / 2, height / 2);
+    crosshair1.setFillColor(crosshairColor);
+    sf::RectangleShape crosshair2(
+        sf::Vector2f(crosshairThick, crosshairSize + crosshairThick)
+    );
+    crosshair2.setPosition(width / 2, height / 2 - crosshairSize / 2);
+    crosshair2.setFillColor(crosshairColor);
+
+    // Black opaque rectangle
+    sf::RectangleShape blackScreen(sf::Vector2f(width, height));
+    blackScreen.setFillColor(sf::Color(0, 0, 0, 180));
 
     // Main loop
     while (window.isOpen()) {
@@ -317,6 +350,11 @@ int main() {
             // Press L to toggle light follow
             if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::L) {
                 followLight = !followLight;
+            }
+
+            // Press B to toggle blacken screen
+            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::B) {
+                blackenScreen = !blackenScreen;
             }
         }
 
@@ -356,7 +394,7 @@ int main() {
 
             // Camera look around
             CAMERA.rot.x -= dMy * CAMERA.mSens * FPS.dTimeSec;
-            CAMERA.rot.y -= dMx * CAMERA.mSens * FPS.dTimeSec;
+            CAMERA.rot.y += dMx * CAMERA.mSens * FPS.dTimeSec;
 
         // Csgo perspective mode movement
             float vel = CAMERA.velSpec;
@@ -416,18 +454,35 @@ int main() {
             d_triangles, width, height, tc);
         cudaDeviceSynchronize();
 
+        // Update "texture"
+        SFTex.updateTexture(d_framebuffer, width, height, 1);
+
         // Log
         LOG.addLog("Welcome to AsczEngineRT v0", sf::Color::Green, 1);
         LOG.addLog("FPS: " + std::to_string(FPS.fps), sf::Color::Green);
         LOG.addLog("Recursion count: " + std::to_string(recursionCount), sf::Color::Red);
         LOG.addLog("Triangles count: " + std::to_string(tc), sf::Color::Red);
         LOG.addLog(CAMERA.data(), sf::Color(160, 255, 160));
+        // Print the color at the dead center
+        int idx = SFTex.pixelCount / 2 + width * 2;
+        sf::Uint8 px1 = SFTex.sfPixel[idx + 0];
+        sf::Uint8 px2 = SFTex.sfPixel[idx + 1];
+        sf::Uint8 px3 = SFTex.sfPixel[idx + 2];
+        Vec3f color = Vec3f(px1, px2, px3);
+        LOG.addLog("Color: "
+            + std::to_string(color.x) + ", "
+            + std::to_string(color.y) + ", "
+            + std::to_string(color.z),
+        sf::Color(255 - px1, 255 - px2, 255 - px3)); // Contrast color for better visibility
 
         // Draw to window
-        SFTex.updateTexture(d_framebuffer, width, height, 1);
         window.clear(sf::Color::Black);
         window.draw(SFTex.sprite);
+        // To see the log better
+        if (blackenScreen) window.draw(blackScreen);
         LOG.drawLog(window);
+        window.draw(crosshair1);
+        window.draw(crosshair2);
         window.display();
 
         // Frame end

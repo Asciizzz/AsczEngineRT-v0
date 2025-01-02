@@ -27,6 +27,11 @@ struct Triangle {
     bool reflect = false; // Test reflection
     bool display = true; // For debugging
 
+    float ambient = 0.3f;
+    float diffuse = 0.9f;
+    float specular = 0.5f;
+    float shininess = 32;
+
     // Some helper functions
     void uniformColor(Vec3f color) {
         c0 = color;

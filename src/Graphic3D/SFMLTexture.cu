@@ -40,6 +40,11 @@ __global__ void updateTextureKernel(
     int y = i / b_w;
     int b_i = x + y * b_w;
 
+    // Limit the color to 0-255 
+    framebuffer[b_i].x = fminf(fmaxf(framebuffer[b_i].x, 0.0f), 1.0f);
+    framebuffer[b_i].y = fminf(fmaxf(framebuffer[b_i].y, 0.0f), 1.0f);
+    framebuffer[b_i].z = fminf(fmaxf(framebuffer[b_i].z, 0.0f), 1.0f);
+
     for (int i = 0; i < p_s; i++)
     for (int j = 0; j < p_s; j++) {
         int p_i = (x * p_s + i) + (y * p_s + j) * b_w * p_s;

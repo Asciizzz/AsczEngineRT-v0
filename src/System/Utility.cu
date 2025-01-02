@@ -148,7 +148,13 @@ std::vector<Triangle> Utils::readObjFile(std::string name, std::string path, sho
         tri.n1 = Vec3f(nx[fn[i + 1]], ny[fn[i + 1]], nz[fn[i + 1]]);
         tri.n2 = Vec3f(nx[fn[i + 2]], ny[fn[i + 2]], nz[fn[i + 2]]);
 
-        tri.uniformColor(Vec3f(1, 1, 1));
+        // tri.uniformColor(Vec3f(1, 1, 1));
+        // Give each vertex a color based on the ratio of min and max values
+        // With range from m to r + m
+        float m = 0.6, r = 0.4;
+        tri.c0 = Vec3f(tri.v0.x / maxX * r + m, tri.v0.y / maxY * r + m, tri.v0.z / maxZ * r + m);
+        tri.c1 = Vec3f(tri.v1.x / maxY * r + m, tri.v1.y / maxZ * r + m, tri.v1.z / maxX * r + m);
+        tri.c2 = Vec3f(tri.v2.x / maxZ * r + m, tri.v2.y / maxX * r + m, tri.v2.z / maxY * r + m);
 
         tris.push_back(tri);
     }

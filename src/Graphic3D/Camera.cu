@@ -14,10 +14,10 @@ void Camera::updateView() {
     forward.z = cos(rot.y) * cos(rot.x);
     forward.norm();
 
-    right = forward & Vec3f(0, 1, 0);
+    right = Vec3f(0, 1, 0) & forward;
     right.norm();
 
-    up = right & forward;
+    up = forward & right;
     up.norm();
 }
 
