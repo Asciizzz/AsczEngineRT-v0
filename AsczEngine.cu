@@ -17,6 +17,28 @@ Ray recursion: Done
 
 */
 
+__device__ float shadowMultiplier(Vec3f color) {
+    // real color = base color * shadowMultiplier
+    // Darker colors are less affected by shadows
+
+    // # Define parameters for the non-linear function
+    // a = 0.1  # Minimum multiplier for the darkest effect
+    // b = 0.8  # Maximum multiplier for the lightest effect
+    // k = 5.0  # Steepness of the transition
+
+    // # Use a logistic function to calculate the multiplier
+    // multiplier = a + (b - a) / (1 + math.exp(-k * ((avg / 255) - 0.5)))
+    // return 1 - multiplier
+
+    float a = 0.1;
+    float b = 0.8;
+    float k = 5.0;
+
+    float avg = (color.x + color.y + color.z) / 3.0f;
+    float multiplier = a + (b - a) / (1 + expf(-k * (avg - 0.5f)));
+    return 1 - multiplier;
+}
+
 __global__ void clearFramebuffer(Vec3f *framebuffer, int width, int height) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx >= width * height) return;
@@ -194,7 +216,8 @@ __global__ void applyShadow(
         float t = f * (e2 * q);
 
         if (t > 0.00001 && t < 1.0f) {
-            framebuffer[idx] = framebuffer[idx] * 0.2;
+            // The point is in shadow
+            framebuffer[idx] *= shadowMultiplier(framebuffer[idx]);
             break;
         }
     }
@@ -262,7 +285,7 @@ int main() {
 
         int scaleFac = 16;
         t.scale(Vec3f(), scaleFac);
-        t.translate(Vec3f(0, 0, 39));
+        t.translate(Vec3f(0, 0, 39.8));
     }
 
     std::vector<Triangle> shape2 = Utils::readObjFile("test1", "assets/Models/Shapes/Test/test1.obj");
@@ -272,7 +295,7 @@ int main() {
 
         int scaleFac = 16;
         t.scale(Vec3f(), scaleFac);
-        t.translate(Vec3f(0, 0, -39));
+        t.translate(Vec3f(0, 0, -39.8));
     }
 
     std::vector<Triangle> shape3 = Utils::readObjFile("test2", "assets/Models/Shapes/Test/test2.obj");
@@ -308,7 +331,7 @@ int main() {
     bool blackenScreen = false;
 
     // Crosshair
-    int crosshairSize = 20;
+    int crosshairSize = 10;
     int crosshairThick = 2;
     sf::Color crosshairColor = sf::Color::Green;
     sf::RectangleShape crosshair1(
