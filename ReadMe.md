@@ -50,3 +50,13 @@ This engine is built not just as a tool but as a learning experience. Every feat
 ### Contribute
 
 Whether you have ideas, suggestions, techniques, or just want to discuss rendering techniques, contributions are welcome.
+
+
+
+# Ignore
+
+- Geometry Processing: LOD, culling, vertex cache optimization.
+- Rasterization: Early Z-culling, triangle rasterization optimizations, tile-based rendering.
+- Fragment Shading: Early tests (Z, alpha), shader program optimizations, MSAA.
+- Post-Processing: Deferred shading, screen-space effects.
+- General: Parallelism, memory management.
