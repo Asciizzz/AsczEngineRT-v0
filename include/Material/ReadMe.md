@@ -1,5 +1,64 @@
 # **Material Attributes (MatAttrs) Explanation**
 
+Here's a table that ranks each attribute based on its **frequency of use** and **importance for ray tracing**, with ratings from 0 to 5 stars.
+
+### Table: **Material Attributes Ranking**
+
+| **Attribute** | **How Often It Is Used** | **How Important It Is for Ray Tracing** |
+|-|-|-|
+| **Ka (Ambient Color)** | ⭐⭐⭐⭐  | ⭐⭐ |
+| **Kd (Diffuse Color)** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+| **Ks (Specular Color)** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+| **Ke (Emission Color)** | ⭐⭐⭐ | ⭐⭐⭐ |
+| **map_Ka (Ambient Texture Map)** | ⭐⭐ | ⭐⭐ |
+| **map_Kd (Diffuse Texture Map)** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+| **map_Ks (Specular Texture Map)** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+| **map_Ke (Emission Texture Map)** | ⭐⭐⭐ | ⭐⭐⭐  |
+| **map_bump (Bump Map)** | ⭐⭐⭐ | ⭐⭐⭐⭐ |
+| **Ni (Index of Refraction)** | ⭐⭐⭐ | ⭐⭐⭐ |
+| **reflectivity** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+| **Refract (Refraction Color)** | ⭐⭐⭐ | ⭐⭐⭐⭐ |
+| **shiny (Shininess)** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+| **roughness** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| **clearcoat** | ⭐⭐⭐ | ⭐⭐⭐⭐ |
+| **clearcoat_gloss** | ⭐⭐⭐ | ⭐⭐⭐⭐ |
+| **Tr (Transparency)** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| **transmit (Transmission Color)** | ⭐⭐⭐ | ⭐⭐⭐⭐ |
+| **anisotropy** | ⭐⭐⭐ | ⭐⭐⭐ |
+| **illum (Illumination Model)** | ⭐⭐⭐ | ⭐⭐ |
+| **map_displace (Displacement Map)** | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| **map_reflect (Reflection Map)** | ⭐⭐⭐ | ⭐⭐⭐⭐ |
+
+---
+
+### **Explanations:**
+
+- **How Often It Is Used:**
+  - **⭐⭐⭐⭐⭐**: Commonly used across many materials, especially in real-time applications.
+  - **⭐⭐⭐⭐**: Frequently used but not always necessary in every material.
+  - **⭐⭐⭐**: Moderately used, usually for specific effects.
+  - **⭐⭐**: Rarely used in typical scenarios.
+  - **⭐**: Very uncommon and specific cases.
+
+- **How Important It Is for Ray Tracing:**
+  - **⭐⭐⭐⭐⭐**: Very important for accurate light simulation and realistic rendering.
+  - **⭐⭐⭐⭐**: Quite important for creating believable materials and interactions with light.
+  - **⭐⭐⭐**: Useful for specific effects but not crucial for every material.
+  - **⭐⭐**: Rarely used for realistic ray tracing effects.
+  - **⭐**: Minimal effect on ray tracing accuracy.
+
+---
+
+### **Notes:**
+
+- **Ka, Kd, Ks, Ke**: These define the basic material colors and are frequently used for every material. Their textures are also common but not always necessary for high-level ray tracing.
+- **Bump, Displacement Maps**: These are very important for realism, particularly for ray tracing, as they influence surface detail and light interactions.
+- **Roughness**: Extremely important for simulating surface interaction with light in ray tracing.
+- **Tr, Transparency**: Critical for simulating transparent materials and refractions.
+- **Clearcoat and Clearcoat Gloss**: Important for materials with layered effects like car paint, highly relevant in ray tracing.
+- **Anisotropy**: Used for simulating brushed metal or similar surfaces, important for high realism, though not as common as diffuse or specular maps.
+
+
 ---
 
 ### **1. Color Attributes**

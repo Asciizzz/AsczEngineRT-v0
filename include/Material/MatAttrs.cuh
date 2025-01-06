@@ -17,36 +17,37 @@
 */
 
 struct MatAttrs {
-    float Ka[3];      // Color as RGB (0.0 - 1.0)
-    float Kd[3];      // Color as RGB (0.0 - 1.0)
-    float Ks[3];      // Color as RGB (0.0 - 1.0)
-    float Ke[3];      // Color as RGB (0.0 - 1.0)
-    float Ni;         // Index of refraction (typically between 1.0 and 2.0)
-    int illum;        // Illumination model, typically 2 for diffuse+specular
+    float Ka[3];  // Color as RGB (0.0 - 1.0)
+    float Kd[3];  // Color as RGB (0.0 - 1.0)
+    float Ks[3];  // Color as RGB (0.0 - 1.0)
+    float Ke[3];  // Color as RGB (0.0 - 1.0)
 
     // Textures ID (refer to texture manager for texture IDs)
     // Note: map_K<x> will override K<x> if both are present
-    int map_Ka;       // Ambient texture map
-    int map_Kd;       // Diffuse texture map
-    int map_Ks;       // Specular texture map
-    int map_Ke;       // Emission texture map
-    int map_bump;     // Bump map
-    int map_displace; // Displacement map
-    int map_reflect;  // Reflection map
+    int map_Ka;   // Ambient texture map
+    int map_Kd;   // Diffuse texture map
+    int map_Ks;   // Specular texture map
+    int map_Ke;   // Emission texture map
+    int map_bump; // Bump map
 
+    float Ni;           // Index of refraction (typically between 1.0 and 2.0)
     float reflectivity; // Reflectivity factor (0.0 - 1.0)
     float Refract[3];   // Refraction color (RGB)
 
     float shiny;        // Shininess factor (higher values = sharper highlights)
     float roughness;    // Surface roughness (0.0 - 1.0)
+    float clearcoat;    // Clearcoat intensity (0.0 - 1.0)
+    float clearcoat_gloss; // Clearcoat glossiness (0.0 - 1.0)
 
     float Tr;           // Transparency (0.0 - 1.0)
     float transmit[3];  // Transmission color (RGB)
 
     float anisotropy;   // Anisotropy for simulating brushed metal-like surfaces
 
-    float clearcoat;    // Clearcoat intensity (0.0 - 1.0)
-    float clearcoat_gloss; // Clearcoat glossiness (0.0 - 1.0)
+    int illum;          // Illumination model, typically 2 for diffuse+specular
+
+    int map_displace;   // Displacement map
+    int map_reflect;    // Reflection map
 
     // Constructor to initialize all variables to default values
     __host__ __device__ MatAttrs();
