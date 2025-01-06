@@ -15,6 +15,12 @@ Create rays from camera: Done
 Ray casting: Done
 Ray recursion: Done
 
+Additional notes:
+
+During ray recursion, the color will become darker
+since mirror irl get darker as it reflects more
+due to the loss of light energy.
+
 */
 
 __device__ float shadowMultiplier(Vec3f color) {
@@ -259,16 +265,16 @@ int main() {
     cudaMemcpy(d_hasrecursive, new bool(true), sizeof(bool), cudaMemcpyHostToDevice);
 
     // Creating some test triangles
-    std::vector<Triangle> room = Utils::readObjFile("test", "assets/Models/Shapes/Cube3.obj");
+    std::vector<Triangle> shape0 = Utils::readObjFile("test", "assets/Models/Shapes/Test/test0.obj");
     #pragma omp parallel
-    for (int i = 0; i < room.size(); i++) {
+    for (int i = 0; i < shape0.size(); i++) {
         int scaleFac = 40;
-        room[i].v0.scale(Vec3f(), scaleFac);
-        room[i].v1.scale(Vec3f(), scaleFac);
-        room[i].v2.scale(Vec3f(), scaleFac);
+        shape0[i].v0.scale(Vec3f(), scaleFac);
+        shape0[i].v1.scale(Vec3f(), scaleFac);
+        shape0[i].v2.scale(Vec3f(), scaleFac);
     }
 
-    std::vector<Triangle> shape1 = Utils::readObjFile("test", "assets/Models/Shapes/Test/test.obj");
+    std::vector<Triangle> shape1 = Utils::readObjFile("test", "assets/Models/Shapes/Test/test1.obj");
     #pragma omp parallel
     for (Triangle &t : shape1) {
         t.reflect = true;
@@ -279,7 +285,7 @@ int main() {
         t.translate(Vec3f(0, 0, 39.8));
     }
 
-    std::vector<Triangle> shape2 = Utils::readObjFile("test1", "assets/Models/Shapes/Test/test1.obj");
+    std::vector<Triangle> shape2 = Utils::readObjFile("test1", "assets/Models/Shapes/Test/test2.obj");
     #pragma omp parallel
     for (Triangle &t : shape2) {
         t.reflect = true;
@@ -289,7 +295,7 @@ int main() {
         t.translate(Vec3f(0, 0, -39.8));
     }
 
-    std::vector<Triangle> shape3 = Utils::readObjFile("test2", "assets/Models/Shapes/Test/test2.obj");
+    std::vector<Triangle> shape3 = Utils::readObjFile("test2", "assets/Models/Shapes/Test/test3.obj");
     #pragma omp parallel
     for (Triangle &t : shape3) {
         // t.reflect = true;
@@ -298,7 +304,7 @@ int main() {
         t.scale(Vec3f(), scaleFac);
     }
 
-    std::vector<Triangle> triangles = room;
+    std::vector<Triangle> triangles = shape0;
     triangles.insert(triangles.end(), shape1.begin(), shape1.end());
     triangles.insert(triangles.end(), shape2.begin(), shape2.end());
     triangles.insert(triangles.end(), shape3.begin(), shape3.end());
