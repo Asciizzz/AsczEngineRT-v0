@@ -4,30 +4,30 @@ Here's a table that ranks each attribute based on its **frequency of use** and *
 
 ### Table: **Material Attributes Ranking**
 
-| **Attribute** | **How Often It Is Used** | **How Important It Is for Ray Tracing** |
-|-|-|-|
-| **Ka (Ambient Color)** | ⭐⭐⭐⭐  | ⭐⭐ |
-| **Kd (Diffuse Color)** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
-| **Ks (Specular Color)** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
-| **Ke (Emission Color)** | ⭐⭐⭐ | ⭐⭐⭐ |
-| **map_Ka (Ambient Texture Map)** | ⭐⭐ | ⭐⭐ |
-| **map_Kd (Diffuse Texture Map)** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
-| **map_Ks (Specular Texture Map)** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
-| **map_Ke (Emission Texture Map)** | ⭐⭐⭐ | ⭐⭐⭐  |
-| **map_bump (Bump Map)** | ⭐⭐⭐ | ⭐⭐⭐⭐ |
-| **Ni (Index of Refraction)** | ⭐⭐⭐ | ⭐⭐⭐ |
-| **reflectivity** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
-| **Refract (Refraction Color)** | ⭐⭐⭐ | ⭐⭐⭐⭐ |
-| **shiny (Shininess)** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
-| **roughness** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| **clearcoat** | ⭐⭐⭐ | ⭐⭐⭐⭐ |
-| **clearcoat_gloss** | ⭐⭐⭐ | ⭐⭐⭐⭐ |
-| **Tr (Transparency)** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| **transmit (Transmission Color)** | ⭐⭐⭐ | ⭐⭐⭐⭐ |
-| **anisotropy** | ⭐⭐⭐ | ⭐⭐⭐ |
-| **illum (Illumination Model)** | ⭐⭐⭐ | ⭐⭐ |
-| **map_displace (Displacement Map)** | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| **map_reflect (Reflection Map)** | ⭐⭐⭐ | ⭐⭐⭐⭐ |
+| **Attribute** | **How Common** | **How Important** | **How Challenging** |
+|-|-|-|-|
+| **Ka (Ambient Color)** | ⭐⭐⭐⭐| ⭐⭐| ⭐ |
+| **Kd (Diffuse Color)** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐ |
+| **Ks (Specular Color)**| ⭐⭐⭐⭐| ⭐⭐⭐⭐ | ⭐ |
+| **Ke (Emission Color)**| ⭐⭐⭐ | ⭐⭐⭐| ⭐⭐|
+| **map_Ka (Ambient Texture Map)** | ⭐⭐ | ⭐⭐| ⭐⭐|
+| **map_Kd (Diffuse Texture Map)** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐|
+| **map_Ks (Specular Texture Map)** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐|
+| **map_Ke (Emission Texture Map)** | ⭐⭐⭐| ⭐⭐⭐| ⭐⭐|
+| **map_bump (Bump Map)**| ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
+| **Ni (Index of Refraction)**| ⭐⭐⭐| ⭐⭐⭐| ⭐⭐|
+| **reflectivity**| ⭐⭐⭐⭐| ⭐⭐⭐⭐ | ⭐⭐|
+| **Refract (Refraction Color)** | ⭐⭐⭐| ⭐⭐⭐⭐ | ⭐⭐|
+| **shiny (Shininess)**| ⭐⭐⭐⭐| ⭐⭐⭐⭐ | ⭐⭐|
+| **roughness** | ⭐⭐⭐⭐| ⭐⭐⭐⭐⭐| ⭐⭐⭐ |
+| **clearcoat** | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
+| **clearcoat_gloss** | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
+| **Tr (Transparency)** | ⭐⭐⭐⭐| ⭐⭐⭐⭐⭐| ⭐⭐⭐⭐⭐|
+| **transmit (Transmission Color)** | ⭐⭐⭐| ⭐⭐⭐⭐ | ⭐⭐⭐ |
+| **anisotropy**| ⭐⭐⭐ | ⭐⭐⭐| ⭐⭐⭐ |
+| **illum (Illumination Model)** | ⭐⭐⭐| ⭐⭐| ⭐ |
+| **map_displace (Displacement Map)** | ⭐⭐⭐ | ⭐⭐⭐⭐⭐| ⭐⭐⭐⭐⭐|
+| **map_reflect (Reflection Map)** | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
 
 ---
 
@@ -46,6 +46,13 @@ Here's a table that ranks each attribute based on its **frequency of use** and *
   - **⭐⭐⭐**: Useful for specific effects but not crucial for every material.
   - **⭐⭐**: Rarely used for realistic ray tracing effects.
   - **⭐**: Minimal effect on ray tracing accuracy.
+
+- **How Challenging It Is to Implement:**
+  - **⭐ (Easy)**: Generally simple to implement and commonly used in most rendering systems.
+  - **⭐⭐ (Moderate)**: Requires some effort and understanding of material effects but not overly complex.
+  - **⭐⭐⭐ (Challenging)**: More difficult to implement due to complex computations or specialized handling (e.g., bump maps, roughness).
+  - **⭐⭐⭐⭐ (Hard)**: Difficult to implement, often requiring detailed algorithms or real-time optimizations (e.g., refraction, transmission).
+  - **⭐⭐⭐⭐⭐ (Very Hard)**: Very complex, may require advanced techniques, optimizations, or physics simulations (e.g., full transparency, displacement maps).
 
 ---
 
