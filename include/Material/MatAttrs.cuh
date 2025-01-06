@@ -17,28 +17,40 @@
 */
 
 struct MatAttrs {
-    // Color attributes
-    float kd_r, kd_g, kd_b;  // Diffuse color
-    float ka_r, ka_g, ka_b;  // Ambient color
-    float ks_r, ks_g, ks_b;  // Specular color
-    float kr_r, kr_g, kr_b;  // Reflection color
-    float ke_r, ke_g, ke_b;  // Emission color
+    float Ka[3];      // Color as RGB (0.0 - 1.0)
+    float Kd[3];      // Color as RGB (0.0 - 1.0)
+    float Ks[3];      // Color as RGB (0.0 - 1.0)
+    float Ke[3];      // Color as RGB (0.0 - 1.0)
+    float Ni;         // Index of refraction (typically between 1.0 and 2.0)
+    int illum;        // Illumination model, typically 2 for diffuse+specular
 
-    // Scalar attributes
-    float ns;                // Shininess
-    float ior;               // Index of refraction
-    float trnsprncy;         // Transparency
-    int illum_mdl;           // Illumination model
+    // Textures ID (refer to texture manager for texture IDs)
+    // Note: map_K<x> will override K<x> if both are present
+    int map_Ka;       // Ambient texture map
+    int map_Kd;       // Diffuse texture map
+    int map_Ks;       // Specular texture map
+    int map_Ke;       // Emission texture map
+    int map_bump;     // Bump map
+    int map_displace; // Displacement map
+    int map_reflect;  // Reflection map
 
-    // Texture indices (refer to the TextureManager)
-    int map_kd_txtr_idx;     // Diffuse texture index
-    int map_ks_txtr_idx;     // Specular texture index
-    int map_bump_txtr_idx;   // Bump texture index
-    int map_nrml_txtr_idx;   // Normal texture index
-    int map_alpha_txtr_idx;  // Alpha texture index
-    int map_kr_txtr_idx;     // Reflection texture index
+    float reflectivity; // Reflectivity factor (0.0 - 1.0)
+    float Refract[3];   // Refraction color (RGB)
 
-    MatAttrs();
+    float shiny;        // Shininess factor (higher values = sharper highlights)
+    float roughness;    // Surface roughness (0.0 - 1.0)
+
+    float Tr;           // Transparency (0.0 - 1.0)
+    float transmit[3];  // Transmission color (RGB)
+
+    float anisotropy;   // Anisotropy for simulating brushed metal-like surfaces
+
+    float clearcoat;    // Clearcoat intensity (0.0 - 1.0)
+    float clearcoat_gloss; // Clearcoat glossiness (0.0 - 1.0)
+
+    // Constructor to initialize all variables to default values
+    __host__ __device__ MatAttrs();
 };
+
 
 #endif

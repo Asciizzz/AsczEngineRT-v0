@@ -11,7 +11,6 @@ Material::Material(const char *name, const MatAttrs& attrs, const MatFlags& flag
     determineRtxFlags(attrs, flags);
 }
 
-
 void Material::determineRtxFlags(const MatAttrs& attrs, const MatFlags& flags) {
     // Base decisions on the illumination model
     switch (attrs.illum_mdl) {

@@ -15,8 +15,6 @@ struct Material {
     // Dynamic RtxFlags generation
     Material(const char *name, const MatAttrs& attrs, const MatFlags& flags);
     void determineRtxFlags(const MatAttrs& attrs, const MatFlags& flags);
-
-    // Important: the following attributes are mostly pointers to the device memory
 };
 
 #endif
