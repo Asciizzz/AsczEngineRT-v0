@@ -22,8 +22,6 @@ struct MatAttrs {
     float Ks[3];  // Color as RGB (0.0 - 1.0)
     float Ke[3];  // Color as RGB (0.0 - 1.0)
 
-    // Textures ID (refer to texture manager for texture IDs)
-    // Note: map_K<x> will override K<x> if both are present
     int map_Ka;   // Ambient texture map
     int map_Kd;   // Diffuse texture map
     int map_Ks;   // Specular texture map
@@ -49,7 +47,6 @@ struct MatAttrs {
     int map_displace;   // Displacement map
     int map_reflect;    // Reflection map
 
-    // Constructor to initialize all variables to default values
     __host__ __device__ MatAttrs();
 };
 

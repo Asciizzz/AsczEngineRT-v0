@@ -22,6 +22,9 @@ struct Vec2f {
     float x, y;
     __host__ __device__ Vec2f();
     __host__ __device__ Vec2f(float x, float y);
+    
+    // Bracket operator
+    __host__ __device__ float& operator[](int i);
 
     // Basic operations
     __host__ __device__ Vec2f operator+(const Vec2f &vec);
@@ -39,6 +42,9 @@ struct Vec3f {
     __host__ __device__ Vec3f(float x, float y, float z);
     __host__ __device__ Vec3f(float a);
     __host__ __device__ Vec4f toVec4f();
+
+    // Bracket operator
+    __host__ __device__ float& operator[](int i);
 
     // Basic operations
     __host__ __device__ Vec3f operator-() const;
@@ -88,6 +94,9 @@ struct Vec4f {
     __host__ __device__ Vec4f();
     __host__ __device__ Vec4f(float x, float y, float z, float w);
     __host__ __device__ Vec3f toVec3f(bool norm=true);
+    
+    // Bracket operator
+    __host__ __device__ float& operator[](int i);
 
     // Basic operations
     __host__ __device__ Vec4f operator+(const Vec4f &v);

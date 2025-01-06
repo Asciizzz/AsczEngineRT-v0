@@ -3,6 +3,11 @@
 // VEC2f
 Vec2f::Vec2f() : x(0), y(0) {}
 Vec2f::Vec2f(float x, float y) : x(x), y(y) {}
+float& Vec2f::operator[](int i) {
+    if (i == 0) return x;
+    return y;
+}
+
 Vec2f Vec2f::operator+(const Vec2f& v) {
     return Vec2f(x + v.x, y + v.y);
 }
@@ -28,6 +33,11 @@ Vec3f::Vec3f(float x, float y, float z) : x(x), y(y), z(z) {}
 Vec3f::Vec3f(float a) : x(a), y(a), z(a) {}
 Vec4f Vec3f::toVec4f() {
     return Vec4f(x, y, z, 1);
+}
+float& Vec3f::operator[](int i) {
+    if (i == 0) return x;
+    if (i == 1) return y;
+    return z;
 }
 
 Vec3f Vec3f::operator-() const {
@@ -216,6 +226,13 @@ Vec3f Vec4f::toVec3f(bool norm) {
     if (norm) return Vec3f(x / w, y / w, z / w);
     return Vec3f(x, y, z);
 }
+float& Vec4f::operator[](int i) {
+    if (i == 0) return x;
+    if (i == 1) return y;
+    if (i == 2) return z;
+    return w;
+}
+
 Vec4f Vec4f::operator+(const Vec4f& v) {
     return Vec4f(x + v.x, y + v.y, z + v.z, w + v.w);
 }
