@@ -45,12 +45,23 @@ void CsLogHandler::drawLog(sf::RenderWindow& window) {
 
         sf::Text text;
         text.setString(cslogs[i].log);
-        text.setFillColor(cslogs[i].color);
         text.setFont(fonts[cslogs[i].style]);
-        // Sizing and positioning
         text.setCharacterSize(fontSize);
-        text.setPosition(marginL, marginT + fontSize*1.5 * (i + count));
 
+        // A backdrop to highlight the text better
+        text.setFillColor(sf::Color(255 - cslogs[i].color.r, 255 - cslogs[i].color.g, 255 - cslogs[i].color.b));
+        text.setPosition(marginL + 1, marginT + fontSize*1.5 * (i + count) + 1);
+        window.draw(text);
+        text.setPosition(marginL + 1, marginT + fontSize*1.5 * (i + count) - 1);
+        window.draw(text);
+        text.setPosition(marginL - 1, marginT + fontSize*1.5 * (i + count) + 1);
+        window.draw(text);
+        text.setPosition(marginL - 1, marginT + fontSize*1.5 * (i + count) - 1);
+        window.draw(text);
+
+        // The main text
+        text.setFillColor(cslogs[i].color);
+        text.setPosition(marginL, marginT + fontSize*1.5 * (i + count));
         window.draw(text);
     }
 

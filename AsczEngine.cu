@@ -179,8 +179,8 @@ __global__ void applyShadow(
     if (idx >= width * height) return;
 
     Ray ray;
-    ray.origin = vertexbuffer[idx];
-    ray.direction = lightPos - ray.origin;
+    ray.origin = vertexbuffer[idx] + normalbuffer[idx] * 0.1f; // To avoid self-intersection
+    ray.direction = lightPos - vertexbuffer[idx];
 
     // Check if the line connecting the point and the light source intersects with any triangle
     for (int i = 0; i < triangleCount; i++) {
@@ -220,6 +220,126 @@ __global__ void applyShadow(
     }
 }
 
+__global__ void calcLuminance(float *lumabuffer, Vec3f *framebuffer, int width, int height) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= width * height) return;
+
+    Vec3f color = framebuffer[idx];
+    lumabuffer[idx] = 0.299f * color.x + 0.587f * color.y + 0.114f * color.z;
+}
+
+__global__ void maskEdge(bool *edgebuffer, float *lumabuffer, int width, int height) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= width * height) return;
+
+    int x = idx % width;
+    int y = idx / width;
+
+    // Ignore the window edges
+    if (x == 0 || x == width - 1 || y == 0 || y == height - 1) {
+        edgebuffer[idx] = false;
+        return;
+    }
+
+    // Find the 12 surrounding pixels
+
+    float luma = lumabuffer[y * width + x];
+    // Adjacent pixels
+    float lumaL = lumabuffer[y * width + x - 1];
+    float lumaU = lumabuffer[(y - 1) * width + x];
+    float lumaD = lumabuffer[(y + 1) * width + x];
+    float lumaR = lumabuffer[y * width + x + 1];
+    // Diagonal pixels
+    float lumaLU = lumabuffer[(y - 1) * width + x - 1];
+    float lumaRU = lumabuffer[(y - 1) * width + x + 1];
+    float lumaLD = lumabuffer[(y + 1) * width + x - 1];
+    float lumaRD = lumabuffer[(y + 1) * width + x + 1];
+    // Adjacent*2 pixels
+    float lumaLL = lumabuffer[y * width + x - 2];
+    float lumaUU = lumabuffer[(y - 2) * width + x];
+    float lumaDD = lumabuffer[(y + 2) * width + x];
+    float lumaRR = lumabuffer[y * width + x + 2];
+
+    float contrast = abs(luma * 4 - lumaL - lumaU - lumaD - lumaR)
+                   + abs(luma * 4 - lumaLU - lumaRU - lumaLD - lumaRD)
+                   + abs(luma * 4 - lumaLL - lumaUU - lumaDD - lumaRR);
+
+    float edgeThreshold = 0.01f;
+    edgebuffer[idx] = contrast > edgeThreshold;
+}
+
+__global__ void FXAA(Vec3f *framebuffer, bool *edgebuffer, int width, int height) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= width * height) return;
+
+    if (!edgebuffer[idx]) return;
+
+    int x = idx % width;
+    int y = idx / width;
+
+    if (x == 0 || x == width - 1 || y == 0 || y == height - 1) return;
+
+    Vec3f color = framebuffer[idx];
+
+    // Get the average of the 4 neighbors
+    Vec3f colorSum = color;
+    int count = 1;
+
+    // Adjacent pixels
+    if (edgebuffer[y * width + x - 1]) {
+        colorSum += framebuffer[y * width + x - 1];
+        count++;
+    }
+    if (edgebuffer[y * width + x + 1]) {
+        colorSum += framebuffer[y * width + x + 1];
+        count++;
+    }
+    if (edgebuffer[(y - 1) * width + x]) {
+        colorSum += framebuffer[(y - 1) * width + x];
+        count++;
+    }
+    if (edgebuffer[(y + 1) * width + x]) {
+        colorSum += framebuffer[(y + 1) * width + x];
+        count++;
+    }
+    // Diagonal pixels
+    if (edgebuffer[(y - 1) * width + x - 1]) {
+        colorSum += framebuffer[(y - 1) * width + x - 1];
+        count++;
+    }
+    if (edgebuffer[(y - 1) * width + x + 1]) {
+        colorSum += framebuffer[(y - 1) * width + x + 1];
+        count++;
+    }
+    if (edgebuffer[(y + 1) * width + x - 1]) {
+        colorSum += framebuffer[(y + 1) * width + x - 1];
+        count++;
+    }
+    if (edgebuffer[(y + 1) * width + x + 1]) {
+        colorSum += framebuffer[(y + 1) * width + x + 1];
+        count++;
+    }
+    // Adjacent*2 pixels
+    if (edgebuffer[y * width + x - 2]) {
+        colorSum += framebuffer[y * width + x - 2];
+        count++;
+    }
+    if (edgebuffer[y * width + x + 2]) {
+        colorSum += framebuffer[y * width + x + 2];
+        count++;
+    }
+    if (edgebuffer[(y - 2) * width + x]) {
+        colorSum += framebuffer[(y - 2) * width + x];
+        count++;
+    }
+    if (edgebuffer[(y + 2) * width + x]) {
+        colorSum += framebuffer[(y + 2) * width + x];
+        count++;
+    }
+
+    framebuffer[idx] = colorSum / count;
+}
+
 int main() {
     /*
     Isn't it funny how these things have been here
@@ -250,6 +370,11 @@ int main() {
     cudaMalloc(&d_framebuffer, width * height * sizeof(Vec3f));
     cudaMalloc(&d_vertexbuffer, width * height * sizeof(Vec3f));
     cudaMalloc(&d_normalbuffer, width * height * sizeof(Vec3f));
+    // Buffers for FXAA
+    float *d_lumabuffer;
+    bool *d_edgebuffer;
+    cudaMalloc(&d_lumabuffer, width * height * sizeof(float));
+    cudaMalloc(&d_edgebuffer, width * height * sizeof(bool));
 
     // Set up rays
     Ray *d_rays;
@@ -298,10 +423,15 @@ int main() {
     std::vector<Triangle> shape3 = Utils::readObjFile("test2", "assets/Models/Shapes/Test/test3.obj");
     #pragma omp parallel
     for (Triangle &t : shape3) {
-        // t.reflect = true;
+        t.reflect = true;
 
-        int scaleFac = 5;
+        float scaleFac = 4;
         t.scale(Vec3f(), scaleFac);
+
+        // // Invert normals
+        // t.n0 = -t.n0;
+        // t.n1 = -t.n1;
+        // t.n2 = -t.n2;
     }
 
     std::vector<Triangle> triangles = shape0;
@@ -326,6 +456,8 @@ int main() {
     // Fun settings
     bool followLight = false;
     bool blackenScreen = false;
+    bool hasAntiAliasing = true;
+    bool hasShadow = true;
 
     // Crosshair
     int crosshairSize = 10;
@@ -375,6 +507,16 @@ int main() {
             // Press B to toggle blacken screen
             if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::B) {
                 blackenScreen = !blackenScreen;
+            }
+
+            // Press 1 to toggle anti-aliasing
+            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Num1) {
+                hasAntiAliasing = !hasAntiAliasing;
+            }
+
+            // Press 2 to toggle shadow
+            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Num2) {
+                hasShadow = !hasShadow;
             }
         }
 
@@ -468,11 +610,25 @@ int main() {
         }
 
         // Apply shadow
-        applyShadow<<<blocks, threads>>>(
-            d_framebuffer, d_vertexbuffer, d_normalbuffer,
-            lightSrc,
-            d_triangles, width, height, tc);
-        cudaDeviceSynchronize();
+        if (hasShadow) {
+            applyShadow<<<blocks, threads>>>(
+                d_framebuffer, d_vertexbuffer, d_normalbuffer,
+                lightSrc,
+                d_triangles, width, height, tc);
+            cudaDeviceSynchronize();
+        }
+
+        // FXAA
+        if (hasAntiAliasing) {
+            calcLuminance<<<blocks, threads>>>(d_lumabuffer, d_framebuffer, width, height);
+            cudaDeviceSynchronize();
+
+            maskEdge<<<blocks, threads>>>(d_edgebuffer, d_lumabuffer, width, height);
+            cudaDeviceSynchronize();
+
+            FXAA<<<blocks, threads>>>(d_framebuffer, d_edgebuffer, width, height);
+            cudaDeviceSynchronize();
+        }
 
         // Update "texture"
         SFTex.updateTexture(d_framebuffer, width, height, 1);
@@ -483,7 +639,7 @@ int main() {
         LOG.addLog("Recursion count: " + std::to_string(recursionCount), sf::Color::Red);
         LOG.addLog("Triangles count: " + std::to_string(tc), sf::Color::Red);
         LOG.addLog(CAMERA.data(), sf::Color(160, 255, 160));
-        // Print the color at the dead center
+        // Print the pixel at the dead center
         int idx = SFTex.pixelCount / 2 + width * 2;
         sf::Uint8 px1 = SFTex.sfPixel[idx + 0];
         sf::Uint8 px2 = SFTex.sfPixel[idx + 1];
@@ -494,6 +650,13 @@ int main() {
             + std::to_string(color.y) + ", "
             + std::to_string(color.z),
         sf::Color(255 - px1, 255 - px2, 255 - px3)); // Contrast color for better visibility
+        // Settings
+        LOG.addLog("Settings:", sf::Color(255, 160, 160), 1);
+        LOG.addLog("[L] Follow light: " + std::string(followLight ? "true" : "false"), sf::Color(255, 160, 160));
+        LOG.addLog("[B] Blacken screen: " + std::string(blackenScreen ? "true" : "false"), sf::Color(255, 160, 160));
+        LOG.addLog("[1] Anti-aliasing: " + std::string(hasAntiAliasing ? "true" : "false"), sf::Color(255, 160, 160));
+        LOG.addLog("[2] Shadow: " + std::string(hasShadow ? "true" : "false"), sf::Color(255, 160, 160));
+
 
         // Draw to window
         window.clear(sf::Color::Black);
