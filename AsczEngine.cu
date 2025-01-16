@@ -110,15 +110,7 @@ int main() {
     CsLogHandler LOG = CsLogHandler();
 
     cudaFree(0);  // Force context initialization
-
-    cudaError_t err = cudaDeviceSetLimit(cudaLimitStackSize, 256 * 1024);
-    if (err != cudaSuccess) {
-        printf("Failed to set stack size: %s\n", cudaGetErrorString(err));
-        size_t currentStackSize;
-        cudaDeviceGetLimit(&currentStackSize, cudaLimitStackSize);
-        printf("Current stack size limit: %zu bytes\n", currentStackSize);
-    }
-
+    cudaDeviceSetLimit(cudaLimitStackSize, 256 * 1024);
 
     // Create SFMLTexture
     int width = 1600;
