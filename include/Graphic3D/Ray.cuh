@@ -16,7 +16,6 @@ public:
     __host__ __device__ bool intersectAABB(Vec3f &AABBmin, Vec3f &AABBmax);
 
     __host__ __device__ Vec3f reflect(Vec3f normal);
-    __host__ __device__ Vec3f refract(Vec3f normal, float eta);
 };
 
 #endif

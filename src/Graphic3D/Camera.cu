@@ -35,7 +35,7 @@ Ray Camera::castRay(float x, float y, float width, float height) {
     // tan(fov / 2) scales the direction based on the field of view.
     // Aspect ratio adjusts the direction for non-square screens (i.e., when width != height).
     float tanFov = tan(fov / 2);
-    Vec3f rayDir = forward * tanFov + right * ndc.x * tanFov * width / height + up * ndc.y * tanFov;
+    Vec3f rayDir = forward + right * ndc.x * tanFov * width / height + up * ndc.y * tanFov;
 
     // Step 3: Normalize the direction vector
     rayDir.norm();
@@ -60,4 +60,13 @@ std::string Camera::data() {
     str += "| Up: " + std::to_string(up.x) + ", " + std::to_string(up.y) + ", " + std::to_string(up.z) + "\n";
     str += "| Fov: " + std::to_string(fov * 180 / M_PI) + "\n";
     return str;
+}
+
+__global__ void castRayKernel(Camera camera, Ray *rays, int w, int h) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= w * h) return;
+
+    int x = idx % w, y = idx / w;
+
+    rays[y * w + x] = camera.castRay(x, y, w, h);
 }

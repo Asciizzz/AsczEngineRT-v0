@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: monospace;
+    }
+
+    body {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        background: #222;
+    }
+
+    #canvas {
+        position: relative;
+    }
+</style>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AsczEngineRT in HTML</title>
+</head>
+
+<body>
+    <canvas id="canvas"></canvas>
+</body>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+function resizeCanvas(width, height) {
+    canvas.width = width;
+    canvas.height = height;
+}
+
+// Event's variables
+let camSpd = 0.5;
+let mSens = 0.007;
+
+// Event where if you click on the canvas, it will move the camera (and hide the cursor)
+canvas.addEventListener('click', () => {
+    canvas.requestPointerLock();
+});
+document.addEventListener('pointerlockchange', () => {
+    if (document.pointerLockElement === canvas) {
+        canvas.addEventListener('mousemove', onMouseMove);
+    } else {
+        canvas.removeEventListener('mousemove', onMouseMove);
+    }
+});
+// Mouse movement event
+function onMouseMove(e) {
+    camera.yaw += e.movementX * mSens;
+    camera.pit -= e.movementY * mSens;
+}
+// Keyboard movement event
+const keys = {
+    // WASD keys
+    w: false, a: false, s: false, d: false,
+    // Shift and control keys
+    shift: false, ctrl: false
+}
+function cameraMove() {
+    if (keys.w) {
+        camera.pos = Vec3f.add(camera.pos, Vec3f.mult(camera.forward, camSpd));
+    } else if (keys.s) {
+        camera.pos = Vec3f.sub(camera.pos, Vec3f.mult(camera.forward, camSpd));
+    }
+
+    if (keys.a) {
+        camera.pos = Vec3f.sub(camera.pos, Vec3f.mult(camera.right, camSpd));
+    } else if (keys.d) {
+        camera.pos = Vec3f.add(camera.pos, Vec3f.mult(camera.right, camSpd));
+    }
+}
+document.addEventListener('keydown', (e) => {
+    if (e.key in keys) keys[e.key] = true;
+
+    if (e.key == "Escape") {
+        document.exitPointerLock();
+    }
+
+    // Press L to toggle following the light
+    if (e.key == "l") {
+        followLight = !followLight;
+    }
+
+    // Press Q to toggle super quality mode
+    if (e.key == "q") {
+        toggleSuperQuality();
+    }
+});
+document.addEventListener('keyup', (e) => {
+    if (e.key in keys) keys[e.key] = false;
+});
+
+class Vec3f {
+    // Basic vector operations
+    static mult(v, s) {
+        return { x: v.x * s, y: v.y * s, z: v.z * s };
+    }
+    static add(v1, v2) {
+        return { x: v1.x + v2.x, y: v1.y + v2.y, z: v1.z + v2.z };
+    }
+    static sub(v1, v2) {
+        return { x: v1.x - v2.x, y: v1.y - v2.y, z: v1.z - v2.z };
+    }
+
+    // Vector operations
+    static cross(v1, v2) {
+        return {
+            x: v1.y * v2.z - v1.z * v2.y,
+            y: v1.z * v2.x - v1.x * v2.z,
+            z: v1.x * v2.y - v1.y * v2.x
+        };
+    }
+    static dot(v1, v2) {
+        return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+    }
+    static mag(v) {
+        return Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+    }
+    static norm(v) {
+        const mag = Vec3f.mag(v);
+        return {
+            x: v.x / mag,
+            y: v.y / mag,
+            z: v.z / mag
+        };
+    }
+}
+
+class Ray {
+    constructor(origin = { x: 0, y: 0, z: 0 }, direction = { x: 0, y: 0, z: 0 }) {
+        this.origin = origin;
+        this.direction = direction;
+    }
+
+    static rayIntersect(ray, geo) {
+        // Return: {int geomID (-1 if no intersection), float z, Vec2f uv (if triangle)}
+    
+        let clstGeom = -1;
+        let clstZ = 100000;
+        let clstUV = { u: 0, v: 0 };
+    
+        for (let g = 0; g < geo.length; g++) {
+            let geom = geo[g];
+    
+            if (geom.type == 0) {
+                // Triangle
+                let e1 = Vec3f.sub(geom.v2, geom.v1);
+                let e2 = Vec3f.sub(geom.v3, geom.v1);
+                let h = Vec3f.cross(ray.direction, e2);
+                let a = Vec3f.dot(e1, h);
+    
+                if (a > -0.00001 && a < 0.00001) continue;
+    
+                let f = 1 / a;
+                let s = Vec3f.sub(ray.origin, geom.v1);
+                let u = f * Vec3f.dot(s, h);
+    
+                if (u < 0 || u > 1) continue;
+    
+                let q = Vec3f.cross(s, e1);
+                let v = f * Vec3f.dot(ray.direction, q);
+    
+                if (v < 0 || u + v > 1) continue;
+    
+                let z = f * Vec3f.dot(e2, q);
+    
+                if (z > 0.00001 && z < clstZ) {
+                    clstGeom = g;
+                    clstZ = z;
+                    clstUV = { u: u, v: v };
+                }
+            } else if (geom.type == 1) {
+                // Sphere
+                let l = Vec3f.sub(geom.pos, ray.origin);
+                let tca = Vec3f.dot(l, ray.direction);
+                let d2 = Vec3f.dot(l, l) - tca * tca;
+    
+                if (d2 > geom.radius * geom.radius) continue;
+    
+                let thc = Math.sqrt(geom.radius * geom.radius - d2);
+                let t0 = tca - thc;
+                let t1 = tca + thc;
+    
+                if (t0 < 0) t0 = t1;
+    
+                let z = t0;
+    
+                if (z > 0.00001 && z < clstZ) {
+                    clstGeom = g;
+                    clstZ = z;
+                }
+            }
+        }
+    
+        return { geomID: clstGeom, z: clstZ, uv: clstUV };
+    }
+
+    static castRay(ray, geo) {
+        let vertex = null;
+        let normal = null;
+        let color = { r: 0, g: 0, b: 0 };
+        let newRay = { recursive: false };
+    
+        let intersect = Ray.rayIntersect(ray, geo);
+        let clstGeom = intersect.geomID;
+        let clstZ = intersect.z;
+        let clstUV = intersect.uv;
+    
+        if (clstGeom == -1) return {
+            vertex: null,
+            normal: null,
+            color: { r: 0, g: 0, b: 0 },
+            newRay: { recursive: false }
+        };
+    
+        let geom = geo[clstGeom];
+    
+        vertex = Vec3f.add(ray.origin, Vec3f.mult(ray.direction, clstZ));
+    
+        if (geom.type == 0) {
+            // Interpolate normal
+            normal = Vec3f.norm(Vec3f.add(
+                Vec3f.add(
+                    Vec3f.mult(geom.n1, 1 - clstUV.u - clstUV.v),
+                    Vec3f.mult(geom.n2, clstUV.u)
+                ),
+                Vec3f.mult(geom.n3, clstUV.v)
+            ));
+    
+            // Interpolate color
+            color = {
+                r: geom.c1.r * (1 - clstUV.u - clstUV.v) + geom.c2.r * clstUV.u + geom.c3.r * clstUV.v,
+                g: geom.c1.g * (1 - clstUV.u - clstUV.v) + geom.c2.g * clstUV.u + geom.c3.g * clstUV.v,
+                b: geom.c1.b * (1 - clstUV.u - clstUV.v) + geom.c2.b * clstUV.u + geom.c3.b * clstUV.v
+            }
+        } else if (geom.type == 1) {
+            normal = Vec3f.norm(Vec3f.sub(vertex, geom.pos));
+            color = geom.color;
+        }
+
+        // If geometry is reflective, reflect the ray
+        if (geom.reflective > 0) {
+            let reflectDir = Vec3f.norm(Vec3f.sub(ray.direction, Vec3f.mult(normal, 2 * Vec3f.dot(ray.direction, normal))));
+            let origin = Vec3f.add(vertex, Vec3f.mult(normal, 0.001)); // To prevent self-shadowing
+            newRay = { recursive: true, ray: new Ray(origin, reflectDir), reflective: geom.reflective };
+        }
+
+        return {
+            vertex: vertex,
+            normal: normal,
+            color: color,
+            newRay: newRay
+        };
+    }
+}
+
+class Camera {
+    constructor() {
+        this.pos = { x: 0, y: 0, z: 0 };
+
+        this.yaw = 0;
+        this.pit = 0;
+
+        this.fov = 90;
+
+        this.forward = { x: 0, y: 0, z: 1 };
+        this.right = { x: 1, y: 0, z: 0 };
+        this.up = { x: 0, y: 1, z: 0 };
+    }
+
+    restrictRot() {
+        // Restrict pit to -PI/2 to PI/2
+        if (this.pit <= -Math.PI / 2) this.pit = -Math.PI / 2 + 0.001;
+        else if (this.pit >= Math.PI / 2) this.pit = Math.PI / 2 - 0.001;
+
+        // Restrict yaw to -2PI to 2PI
+        if (this.yaw <= -Math.PI * 2) this.yaw -= Math.PI * 2;
+        else if (this.yaw >= Math.PI * 2) this.yaw -= Math.PI * 2;
+    }
+
+    updateView() {
+        this.forward = {
+            x: Math.sin(this.yaw) * Math.cos(this.pit),
+            y: Math.sin(this.pit),
+            z: Math.cos(this.yaw) * Math.cos(this.pit)
+        };
+        this.forward = Vec3f.norm(this.forward);
+
+        this.right = Vec3f.cross({ x: 0, y: 1, z: 0 }, this.forward);
+        this.right = Vec3f.norm(this.right);
+
+        this.up = Vec3f.cross(this.forward, this.right);
+        this.up = Vec3f.norm(this.up);
+    }
+
+    update() {
+        this.restrictRot();
+        this.updateView();
+    }
+
+    getScrnNDC(x, y, w, h) {
+        return {
+            x: (2 * x - w) / w,
+            y: (h - 2 * y) / h
+        }
+    }
+
+    generateRay(x, y, w, h) {
+        let ndc = this.getScrnNDC(x, y, w, h);
+
+        let tanFov = Math.tan(this.fov * Math.PI / 180 / 2);
+        // Vec3f rayDir = forward * tanFov + right * ndc.x * tanFov * width / height + up * ndc.y * tanFov;
+        let rayDir = Vec3f.add(
+            Vec3f.mult(this.forward, tanFov),
+            Vec3f.add(
+                Vec3f.mult(this.right, ndc.x * tanFov * w / h),
+                Vec3f.mult(this.up, ndc.y * tanFov)
+            )
+        );
+
+        rayDir = Vec3f.norm(rayDir);
+
+        return new Ray(this.pos, rayDir);
+    }
+}
+
+const camera = new Camera();
+camera.pos = { x: 0, y: 0, z: -10 };
+
+/* Geometry ID:
+0: Triangle
+1: Sphere
+*/
+
+let triangle1 = {
+    type: 0,
+    v1: { x: -0.015, y: -1, z: -1 },
+    v2: { x: -0.015, y: -1, z: 1 },
+    v3: { x: -0.015, y: 1, z: 0 },
+    n1: { x: -1, y: 0, z: 0 },
+    n2: { x: -1, y: 0, z: 0 },
+    n3: { x: -1, y: 0, z: 0 },
+    c1: { r: 255, g: 0, b: 0 },
+    c2: { r: 0, g: 255, b: 0 },
+    c3: { r: 0, g: 0, b: 255 }
+};
+let triangle2 = {
+    type: 0,
+    v1: { x: 0.015, y: -1, z: -1 },
+    v2: { x: 0.015, y: -1, z: 1 },
+    v3: { x: 0.015, y: 1, z: 0 },
+    n1: { x: 1, y: 0, z: 0 },
+    n2: { x: 1, y: 0, z: 0 },
+    n3: { x: 1, y: 0, z: 0 },
+    c1: { r: 255, g: 0, b: 0 },
+    c2: { r: 0, g: 255, b: 0 },
+    c3: { r: 0, g: 0, b: 255 }
+};
+
+let spheres = [];
+// Create a sphere that is u units away from each other
+// From -n to n and -m to m with a step of 1
+let m = 0, n = 0; // m for x, n for z
+let u = 3;
+for (let i = -m; i <= m; i++) {
+    for (let j = -n; j <= n; j++) {
+        spheres.push({
+            type: 1,
+
+            pos: { x: i*u, y: 0, z: j*u },
+            radius: 1,
+
+            color: { r: 244, g: 0, b: 0 },
+        });
+    }
+}
+
+let boxColor = { r: 60, g: 60, b: 155 };
+let floorSize = 16;
+let floorY = -2;
+let floor1 = {
+    type: 0,
+    v1: { x: -floorSize, y: floorY, z: -floorSize },
+    v2: { x: floorSize, y: floorY, z: -floorSize },
+    v3: { x: floorSize, y: floorY, z: floorSize },
+    n1: { x: 0, y: 1, z: 0 },
+    n2: { x: 0, y: 1, z: 0 },
+    n3: { x: 0, y: 1, z: 0 },
+    c1: boxColor, c2: boxColor, c3: boxColor,
+    reflective: 1
+};
+let floor2 = {
+    type: 0,
+    v1: { x: -floorSize, y: floorY, z: -floorSize },
+    v2: { x: -floorSize, y: floorY, z: floorSize },
+    v3: { x: floorSize, y: floorY, z: floorSize },
+    n1: { x: 0, y: 1, z: 0 },
+    n2: { x: 0, y: 1, z: 0 },
+    n3: { x: 0, y: 1, z: 0 },
+    c1: boxColor, c2: boxColor, c3: boxColor,
+    reflective: 0.5
+};
+let wallHeight = 4;
+let ceiling1 = {
+    type: 0,
+    v1: { x: -floorSize, y: floorY + wallHeight, z: -floorSize },
+    v2: { x: floorSize, y: floorY + wallHeight, z: -floorSize },
+    v3: { x: floorSize, y: floorY + wallHeight, z: floorSize },
+    n1: { x: 0, y: -1, z: 0 },
+    n2: { x: 0, y: -1, z: 0 },
+    n3: { x: 0, y: -1, z: 0 },
+    c1: boxColor, c2: boxColor, c3: boxColor
+};
+let ceiling2 = {
+    type: 0,
+    v1: { x: -floorSize, y: floorY + wallHeight, z: -floorSize },
+    v2: { x: -floorSize, y: floorY + wallHeight, z: floorSize },
+    v3: { x: floorSize, y: floorY + wallHeight, z: floorSize },
+    n1: { x: 0, y: -1, z: 0 },
+    n2: { x: 0, y: -1, z: 0 },
+    n3: { x: 0, y: -1, z: 0 },
+    c1: boxColor, c2: boxColor, c3: boxColor
+    //c1: { r: 255, g: 0, b: 0 },
+    //c2: { r: 0, g: 255, b: 0 },
+    //c3: { r: 0, g: 0, b: 255 }
+};
+// Negative z wall
+let wall1 = {
+    type: 0,
+    v1: { x: -floorSize, y: floorY, z: -floorSize },
+    v2: { x: -floorSize, y: floorY + wallHeight, z: -floorSize },
+    v3: { x: floorSize, y: floorY + wallHeight, z: -floorSize },
+    n1: { x: 0, y: 0, z: 1 },
+    n2: { x: 0, y: 0, z: 1 },
+    n3: { x: 0, y: 0, z: 1 },
+    c1: boxColor, c2: boxColor, c3: boxColor
+};
+let wall2 = {
+    type: 0,
+    v1: { x: -floorSize, y: floorY, z: -floorSize },
+    v2: { x: floorSize, y: floorY + wallHeight, z: -floorSize },
+    v3: { x: floorSize, y: floorY, z: -floorSize },
+    n1: { x: 0, y: 0, z: 1 },
+    n2: { x: 0, y: 0, z: 1 },
+    n3: { x: 0, y: 0, z: 1 },
+    c1: boxColor, c2: boxColor, c3: boxColor
+};
+// Positive z wall
+let wall3 = {
+    type: 0,
+    v1: { x: -floorSize, y: floorY, z: floorSize },
+    v2: { x: -floorSize, y: floorY + wallHeight, z: floorSize },
+    v3: { x: floorSize, y: floorY + wallHeight, z: floorSize },
+    n1: { x: 0, y: 0, z: -1 },
+    n2: { x: 0, y: 0, z: -1 },
+    n3: { x: 0, y: 0, z: -1 },
+    c1: boxColor, c2: boxColor, c3: boxColor
+};
+let wall4 = {
+    type: 0,
+    v1: { x: -floorSize, y: floorY, z: floorSize },
+    v2: { x: floorSize, y: floorY + wallHeight, z: floorSize },
+    v3: { x: floorSize, y: floorY, z: floorSize },
+    n1: { x: 0, y: 0, z: -1 },
+    n2: { x: 0, y: 0, z: -1 },
+    n3: { x: 0, y: 0, z: -1 },
+    c1: boxColor, c2: boxColor, c3: boxColor
+};
+// Negative x wall
+let wall5 = {
+    type: 0,
+    v1: { x: -floorSize, y: floorY, z: -floorSize },
+    v2: { x: -floorSize, y: floorY + wallHeight, z: -floorSize },
+    v3: { x: -floorSize, y: floorY + wallHeight, z: floorSize },
+    n1: { x: 1, y: 0, z: 0 },
+    n2: { x: 1, y: 0, z: 0 },
+    n3: { x: 1, y: 0, z: 0 },
+    c1: boxColor, c2: boxColor, c3: boxColor
+};
+let wall6 = {
+    type: 0,
+    v1: { x: -floorSize, y: floorY, z: -floorSize },
+    v2: { x: -floorSize, y: floorY, z: floorSize },
+    v3: { x: -floorSize, y: floorY + wallHeight, z: floorSize },
+    n1: { x: 1, y: 0, z: 0 },
+    n2: { x: 1, y: 0, z: 0 },
+    n3: { x: 1, y: 0, z: 0 },
+    c1: boxColor, c2: boxColor, c3: boxColor
+};
+// Positive x wall
+let wall7 = {
+    type: 0,
+    v1: { x: floorSize, y: floorY, z: -floorSize },
+    v2: { x: floorSize, y: floorY + wallHeight, z: -floorSize },
+    v3: { x: floorSize, y: floorY + wallHeight, z: floorSize },
+    n1: { x: -1, y: 0, z: 0 },
+    n2: { x: -1, y: 0, z: 0 },
+    n3: { x: -1, y: 0, z: 0 },
+    c1: boxColor, c2: boxColor, c3: boxColor
+};
+let wall8 = {
+    type: 0,
+    v1: { x: floorSize, y: floorY, z: -floorSize },
+    v2: { x: floorSize, y: floorY, z: floorSize },
+    v3: { x: floorSize, y: floorY + wallHeight, z: floorSize },
+    n1: { x: -1, y: 0, z: 0 },
+    n2: { x: -1, y: 0, z: 0 },
+    n3: { x: -1, y: 0, z: 0 },
+    c1: boxColor, c2: boxColor, c3: boxColor
+};
+
+let geometry = [
+    // The surrounding decors
+    floor1, floor2, ceiling1, ceiling2,
+    wall1, wall2, wall3, wall4,
+    wall5, wall6, wall7, wall8
+];
+geometry = geometry.concat(spheres);
+
+// Simple light object
+let light = {
+    pos: { x: 0, y: 0, z: 14.8 }
+}
+let followLight = true;
+
+let width = 240;
+let height = 120;
+let scale = 7;
+let superQuality = false;
+resizeCanvas(width * scale, height * scale);
+
+function toggleSuperQuality() {
+    superQuality = !superQuality;
+    if (superQuality) {
+        scale = 1;
+        width = 1680;
+        height = 840;
+    } else {
+        scale = 7;
+        width = 240;
+        height = 120;
+    }
+
+    // In super quality mode, turn off the interval
+    if (superQuality) {
+        clearInterval(interval);
+        // Quality render
+        renderQuality();
+        // Automatically exit pointer lock
+        document.exitPointerLock();
+    } else {
+        interval = setInterval(renderFast, 1000 / 60);
+    }
+}
+
+// Create a width x height buffer
+let vertexBuffer = new Array(width * height); // Type: Vec3f(x,y,z)
+let normalBuffer = new Array(width * height); // Type: Vec3f(x,y,z)
+let colorBuffer = new Array(width * height); // Type: Vec3f(r,g,b)
+let rayBuffer = new Array(width * height); // Type: {bool recursive, Ray ray}
+
+function renderFast() {
+    if (followLight) {
+        let r = 0;
+        let y = 10;
+
+        light.pos = {
+            x: r * Math.sin(Date.now() / 1000),
+            y: y,
+            z: r * Math.cos(Date.now() / 1000)
+        };
+
+        light.pos = camera.pos;
+    }
+
+    // Paint everything black
+    ctx.clearRect(0, 0, width * scale, height * scale);
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, width * scale, height * scale);
+
+    let globalRecursive = false;
+    for (let x = 0; x < width; x++) {
+        for (let y = 0; y < height; y++) {
+            let ray = camera.generateRay(x, y, width, height);
+            // Reset the buffer
+            vertexBuffer[x + y * width] = null;
+            normalBuffer[x + y * width] = null;
+            colorBuffer[x + y * width] = { r: 0, g: 0, b: 0 };
+            rayBuffer[x + y * width] = { recursive: false };
+
+            let result = Ray.castRay(ray, geometry);
+
+            vertexBuffer[x + y * width] = result.vertex;
+            normalBuffer[x + y * width] = result.normal;
+            colorBuffer[x + y * width] = result.color;
+            rayBuffer[x + y * width] = result.newRay;
+            globalRecursive = globalRecursive || result.newRay.recursive;
+
+            ctx.fillStyle = `rgb(${result.color.r}, ${result.color.g}, ${result.color.b})`;
+            ctx.fillRect(x * scale, y * scale, scale, scale);
+        }
+    }
+
+    // If there is a reflective surface, cast again
+    let recursiveCount = 0;
+    while (globalRecursive) {
+        globalRecursive = false;
+
+        for (let x = 0; x < width; x++) {
+            for (let y = 0; y < height; y++) {
+                let ray = rayBuffer[x + y * width].ray;
+                let recursive = rayBuffer[x + y * width].recursive;
+                let reflective = rayBuffer[x + y * width].reflective;
+
+                if (recursive) {
+                    let result = Ray.castRay(ray, geometry);
+
+                    // Blend the color based on the reflective value
+                    let color = colorBuffer[x + y * width];
+                    color.r = color.r * (1 - reflective) + result.color.r * reflective;
+                    color.g = color.g * (1 - reflective) + result.color.g * reflective;
+                    color.b = color.b * (1 - reflective) + result.color.b * reflective;
+
+                    vertexBuffer[x + y * width] = result.vertex;
+                    normalBuffer[x + y * width] = result.normal;
+                    colorBuffer[x + y * width] = color;
+                    rayBuffer[x + y * width] = result.newRay;
+                    globalRecursive = globalRecursive || result.newRay.recursive;
+
+                    ctx.fillStyle = `rgb(${result.color.r}, ${result.color.g}, ${result.color.b})`;
+                    ctx.fillRect(x * scale, y * scale, scale, scale);
+                }
+            }
+        }
+
+        recursiveCount++;
+        if (recursiveCount > 4) break;
+    }
+
+    // Apply lighting
+    /*
+    let lightDir = Vec3f.norm(Vec3f.sub(light.pos, vertex));
+    let viewDir = Vec3f.norm(Vec3f.sub(camera.pos, vertex));
+    let reflectDir = Vec3f.norm(Vec3f.sub(Vec3f.mult(normal, 2 * Vec3f.dot(normal, lightDir)), lightDir));
+
+    let ambient = 0.2;
+    let diffuse = Math.max(Vec3f.dot(normal, lightDir), 0);
+    let specular = Math.pow(Math.max(Vec3f.dot(viewDir, reflectDir), 0), 100);
+
+    color = {
+        r: Math.min(ambient + diffuse + specular, 1) * color.r,
+        g: Math.min(ambient + diffuse + specular, 1) * color.g,
+        b: Math.min(ambient + diffuse + specular, 1) * color.b
+    }
+
+    // Clamp the color
+    color.r = Math.min(Math.max(color.r, 0), 255);
+    color.g = Math.min(Math.max(color.g, 0), 255);
+    color.b = Math.min(Math.max(color.b, 0), 255);
+    */
+
+    // Apply lighting
+    for (let x = 0; x < width; x++) {
+        for (let y = 0; y < height; y++) {
+            let vertex = vertexBuffer[x + y * width];
+            let normal = normalBuffer[x + y * width];
+            let color = colorBuffer[x + y * width];
+
+            if (vertex == null) continue;
+
+            let lightDir = Vec3f.norm(Vec3f.sub(light.pos, vertex));
+            let viewDir = Vec3f.norm(Vec3f.sub(camera.pos, vertex));
+            let reflectDir = Vec3f.norm(Vec3f.sub(Vec3f.mult(normal, 2 * Vec3f.dot(normal, lightDir)), lightDir));
+
+            let ambient = 0.2;
+            let diffuse = Math.max(Vec3f.dot(normal, lightDir), 0);
+            let specular = Math.pow(Math.max(Vec3f.dot(viewDir, reflectDir), 0), 100);
+
+            color = {
+                r: Math.min(ambient + diffuse + specular, 1) * color.r,
+                g: Math.min(ambient + diffuse + specular, 1) * color.g,
+                b: Math.min(ambient + diffuse + specular, 1) * color.b
+            }
+
+            // Clamp the color
+            color.r = Math.min(Math.max(color.r, 0), 255);
+            color.g = Math.min(Math.max(color.g, 0), 255);
+            color.b = Math.min(Math.max(color.b, 0), 255);
+
+            ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
+            ctx.fillRect(x * scale, y * scale, scale, scale);
+        }
+    }
+
+    // Shadow (check if the vertex is in shadow)
+    for (let x = 0; x < width; x++) {
+        for (let y = 0; y < height; y++) {
+            let vertex = vertexBuffer[x + y * width];
+            let normal = normalBuffer[x + y * width];
+            let color = colorBuffer[x + y * width];
+
+            if (vertex == null) continue;
+
+            let lightDir = Vec3f.norm(Vec3f.sub(light.pos, vertex));
+            let lightDist = Vec3f.mag(Vec3f.sub(light.pos, vertex));
+            let origin = Vec3f.add(vertex, Vec3f.mult(normal, 0.001)); // To prevent self-shadowing
+            let shadowRay = new Ray(origin, lightDir);
+
+            let intersect = Ray.rayIntersect(shadowRay, geometry);
+            let inShadow =  intersect.geomID != -1 &&
+                            intersect.z < lightDist;
+
+            if (inShadow) {
+                let color = colorBuffer[x + y * width];
+                color.r *= 0.4;
+                color.g *= 0.4;
+                color.b *= 0.4;
+                ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
+                ctx.fillRect(x * scale, y * scale, scale, scale);
+            }
+        }
+    }
+
+
+    // ====================================================== //
+    // Processes that mostly don't contribute to the pipeline //
+    // ====================================================== //
+
+    // Update camera
+    cameraMove();
+    camera.update();
+
+    // Write the position and rotation of the camera
+    let fontScale = 20;
+    ctx.fillStyle = 'white';
+    ctx.font = `${fontScale}px monospace`;
+
+    ctx.fillText(`Pos: (${camera.pos.x.toFixed(2)}, ${camera.pos.y.toFixed(2)}, ${camera.pos.z.toFixed(2)})`, 0, fontScale);
+    ctx.fillText(`Yaw: ${camera.yaw.toFixed(2)}`, 0, fontScale * 2);
+    ctx.fillText(`Pit: ${camera.pit.toFixed(2)}`, 0, fontScale * 3);
+
+    // Light position
+    ctx.fillText(`Light: (${light.pos.x.toFixed(2)}, ${light.pos.y.toFixed(2)}, ${light.pos.z.toFixed(2)})`, 0, fontScale * 4);
+    
+    ctx.fillText(`Guide:`, 0, fontScale * 6);
+    ctx.fillText(`Press L to make the light follow you`, 0, fontScale * 7);
+    ctx.fillText(`Press Q to toggle super quality mode`, 0, fontScale * 8);
+    ctx.fillText(`Press Esc to exit pointer lock`, 0, fontScale * 9);
+}
+
+// A renderer that isn't time sensitive
+// (Basically you can take as much time as you want)
+// (Tho still try to make it fast using acceleration structures like BVH or something)
+function renderQuality() {
+    // Paint everything black
+    ctx.clearRect(0, 0, width * scale, height * scale);
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, width * scale, height * scale);
+
+    let globalRecursive = false;
+    for (let x = 0; x < width; x++) {
+        for (let y = 0; y < height; y++) {
+            let ray = camera.generateRay(x, y, width, height);
+            // Reset the buffer
+            vertexBuffer[x + y * width] = null;
+            normalBuffer[x + y * width] = null;
+            colorBuffer[x + y * width] = { r: 0, g: 0, b: 0 };
+            rayBuffer[x + y * width] = { recursive: false };
+
+            let result = Ray.castRay(ray, geometry);
+
+            vertexBuffer[x + y * width] = result.vertex;
+            normalBuffer[x + y * width] = result.normal;
+            colorBuffer[x + y * width] = result.color;
+            rayBuffer[x + y * width] = result.newRay;
+            globalRecursive = globalRecursive || result.newRay.recursive;
+
+            ctx.fillStyle = `rgb(${result.color.r}, ${result.color.g}, ${result.color.b})`;
+            ctx.fillRect(x * scale, y * scale, scale, scale);
+        }
+    }
+
+    // If there is a reflective surface, cast again
+    let recursiveCount = 0;
+    while (globalRecursive) {
+        globalRecursive = false;
+
+        for (let x = 0; x < width; x++) {
+            for (let y = 0; y < height; y++) {
+                let ray = rayBuffer[x + y * width].ray;
+                let recursive = rayBuffer[x + y * width].recursive;
+                let reflective = rayBuffer[x + y * width].reflective;
+
+                if (recursive) {
+                    let result = Ray.castRay(ray, geometry);
+
+                    // Blend the color
+                    let color = colorBuffer[x + y * width];
+                    color.r = color.r * (1 - reflective) + result.color.r * reflective;
+                    color.g = color.g * (1 - reflective) + result.color.g * reflective;
+                    color.b = color.b * (1 - reflective) + result.color.b * reflective;
+
+                    vertexBuffer[x + y * width] = result.vertex;
+                    normalBuffer[x + y * width] = result.normal;
+                    colorBuffer[x + y * width] = color;
+                    rayBuffer[x + y * width] = result.newRay;
+                    globalRecursive = globalRecursive || result.newRay.recursive;
+
+                    ctx.fillStyle = `rgb(${result.color.r}, ${result.color.g}, ${result.color.b})`;
+                    ctx.fillRect(x * scale, y * scale, scale, scale);
+                }
+            }
+        }
+
+        recursiveCount++;
+        // Quality render allows for more recursion
+        if (recursiveCount > 24) break;
+    }
+
+    for (let x = 0; x < width; x++) {
+        for (let y = 0; y < height; y++) {
+            let vertex = vertexBuffer[x + y * width];
+            let normal = normalBuffer[x + y * width];
+            let color = colorBuffer[x + y * width];
+
+            if (vertex == null) continue;
+
+            let lightDir = Vec3f.norm(Vec3f.sub(light.pos, vertex));
+            let lightDist = Vec3f.mag(Vec3f.sub(light.pos, vertex));
+            let origin = Vec3f.add(vertex, Vec3f.mult(normal, 0.001)); // To prevent self-shadowing
+            let shadowRay = new Ray(origin, lightDir);
+
+            let intersect = Ray.rayIntersect(shadowRay, geometry);
+            let inShadow =  intersect.geomID != -1 &&
+                            intersect.z < lightDist;
+
+            if (inShadow) {
+                let color = colorBuffer[x + y * width];
+                color.r *= 0.4;
+                color.g *= 0.4;
+                color.b *= 0.4;
+                ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
+                ctx.fillRect(x * scale, y * scale, scale, scale);
+            }
+        }
+    }
+}
+
+let interval = setInterval(renderFast, 1000 / 60);
+
+</script>
+
+</html>

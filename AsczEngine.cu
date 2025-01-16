@@ -1,100 +1,38 @@
 #include <FpsHandler.cuh>
 #include <CsLogHandler.cuh>
 
-#include <cuda_runtime.h>
-
 #include <Camera.cuh>
 #include <SFMLTexture.cuh>
 #include <Utility.cuh>
 
-/* Goal:
+struct RayHit {
+    bool hit = false;
+    Vec3f vrtx;
+    Vec2f txtr;
+    Vec3f nrml;
+    Vec3f colr;
+    float t;
+};
 
-Ray intersection with AABB: Done
-Ray reflection: Done
-Create rays from camera: Done
-Ray casting: Done
-Ray recursion: Done
-
-Additional notes:
-
-During ray recursion, the color will become darker
-since mirror irl get darker as it reflects more
-due to the loss of light energy.
-
-*/
-
-__device__ float shadowMultiplier(Vec3f color) {
-    // real color = base color * shadowMultiplier
-    // Darker colors are less affected by shadows
-
-    float a = 0.1;
-    float b = 0.8;
-    float k = 5.0;
-
-    float avg = (color.x + color.y + color.z) / 3.0f;
-    float multiplier = a + (b - a) / (1 + expf(-k * (avg - 0.5f)));
-    return 1 - multiplier;
-}
-
-__global__ void clearFramebuffer(Vec3f *framebuffer, int width, int height) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx >= width * height) return;
-
-    framebuffer[idx] = Vec3f(0, 0, 0);
-}
-
-__global__ void resetRecursive(bool *raycursive, int *recursionidx, int width, int height) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx >= width * height) return;
-
-    raycursive[idx] = true; // To kickstart the first iteration
-    recursionidx[idx] = idx;
-}
-
-__global__ void generateRays(Camera camera, Ray *rays, int width, int height) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx >= width * height) return;
-
-    int x = idx % width;
-    int y = idx / width;
-
-    rays[y * width + x] = camera.castRay(x, y, width, height);
-}
-
-__global__ void castRays(
-    Vec3f *framebuffer, Vec3f *vertexbuffer, Vec3f *normalbuffer,
-    Ray *rays, bool *raycursive, int *recursionidx, bool *hasrecursive,
-    Vec3f lightPos,
-    Triangle *triangles, int width, int height, int triangleCount
+__device__ RayHit recursiveRayTracing(
+    const Ray &ray, const Triangle *triangles, int triNum, int maxDepth
 ) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx >= width * height) return;
+    // Ray intersection with triangles
+    int clstIdx = -1;
+    float clstT = INFINITY;
+    float clstU, clstV;
 
-    if (!raycursive[idx]) return;
-
-    Ray ray = rays[idx];
-
-    int curTri = -1;
-    float curZ = 1000000.0f;
-    // This will soon be replaced with BVH traversal method
-    for (int i = 0; i < triangleCount; i++) {
-        if (!triangles[i].display) continue;
-
-        Vec3f A = triangles[i].v0;
-        Vec3f B = triangles[i].v1;
-        Vec3f C = triangles[i].v2;
-
-        Vec3f e1 = B - A;
-        Vec3f e2 = C - A;
-
+    for (int i = 0; i < triNum; i++) {
+        const Triangle &tri = triangles[i];
+        Vec3f e1 = tri.v1 - tri.v0;
+        Vec3f e2 = tri.v2 - tri.v0;
         Vec3f h = ray.direction & e2;
         float a = e1 * h;
 
-        // Ray is parallel to the triangle
         if (a > -0.00001 && a < 0.00001) continue;
 
         float f = 1.0f / a;
-        Vec3f s = ray.origin - A;
+        Vec3f s = ray.origin - tri.v0;
         float u = f * (s * h);
 
         if (u < 0.0f || u > 1.0f) continue;
@@ -106,256 +44,86 @@ __global__ void castRays(
 
         float t = f * (e2 * q);
 
-        if (t > 0.00001 && t < curZ) {
-            curZ = t;
-
-            // Saving relevant data to avoid recalculating  
-            curTri = i;
+        if (t > 0.00001 && t < clstT) {
+            clstIdx = i;
+            clstT = t;
+            clstU = u;
+            clstV = v;
         }
     }
 
-    if (curTri == recursionidx[idx] && curTri != -1) {
-        raycursive[idx] = false;
-        return;
+    if (clstIdx == -1) return RayHit();
+
+    Triangle tri = triangles[clstIdx];
+    float clstW = 1 - clstU - clstV;
+
+    Vec3f vrtx = ray.origin + ray.direction * clstT;
+    Vec3f nrml = triangles[clstIdx].n0 * clstW +
+                    triangles[clstIdx].n1 * clstU +
+                    triangles[clstIdx].n2 * clstV;
+    Vec3f colr = triangles[clstIdx].c0 * clstW +
+                    triangles[clstIdx].c1 * clstU +
+                    triangles[clstIdx].c2 * clstV;
+
+    if (tri.reflect > 0) {
+        Vec3f reflDir = ray.direction - nrml * 2 * (ray.direction * nrml);
+        reflDir.norm();
+        Vec3f reflOrg = vrtx + nrml * 0.0001f; // To avoid self-intersection
+        Ray reflRay(reflOrg, reflDir);
+
+        RayHit reflHit = recursiveRayTracing(reflRay, triangles, triNum, maxDepth - 1);
+        if (reflHit.hit) colr = colr * (1 - tri.reflect) + reflHit.colr * tri.reflect;
     }
 
-    bool recursive = triangles[curTri].reflect;
-
-    Vec3f vertex = ray.origin + ray.direction * curZ;
-    Vec3f bary = Vec3f::bary(vertex, triangles[curTri].v0, triangles[curTri].v1, triangles[curTri].v2);
-    float u = bary.x;
-    float v = bary.y;
-    float w = bary.z;
-
-    Vec3f normal = triangles[curTri].n0 * w
-                + triangles[curTri].n1 * u
-                + triangles[curTri].n2 * v;
-    normal.norm();
-    vertexbuffer[idx] = vertex;
-    normalbuffer[idx] = normal;
-
-    if (recursive) {
-        // Set the recursive ray
-        Ray recursiveRay;
-        recursiveRay.direction = ray.reflect(normal);
-        recursiveRay.origin = vertex + normal * 0.001f; // To avoid self-intersection
-        rays[idx] = recursiveRay;
-
-        raycursive[idx] = true;
-        recursionidx[idx] = curTri;
-        *hasrecursive = true;
-    } else {
-        raycursive[idx] = false;
-
-        // Interpolate color
-        Vec3f color = triangles[curTri].c0 * w
-                    + triangles[curTri].c1 * u
-                    + triangles[curTri].c2 * v;
-
-        // Lighting (with ambient, diffuse, specular and shininess)
-        Vec3f lightDir = lightPos - vertex;
-        lightDir.norm();
-
-        float ka = triangles[curTri].ambient;
-        float kd = triangles[curTri].diffuse;
-        float ks = triangles[curTri].specular;
-        float shine = triangles[curTri].shininess;
-
-        float ambient = ka;
-        float diffuse = kd * fmaxf(0.0f, normal * lightDir);
-        Vec3f reflectDir = lightDir - normal * (2.0f * (lightDir * normal));
-        float specular = ks * pow(fmaxf(0.0f, ray.direction * reflectDir), shine);
-
-        framebuffer[idx] = color * (ambient + diffuse + specular);
-    }
+    RayHit finalHit;
+    finalHit.hit = true;
+    finalHit.vrtx = vrtx;
+    finalHit.nrml = nrml;
+    finalHit.colr = colr;
+    finalHit.t = clstT;
+    return finalHit;
 }
 
-__global__ void applyShadow(
-    Vec3f *framebuffer, Vec3f *vertexbuffer, Vec3f *normalbuffer,
-    Vec3f lightPos,
-    Triangle *triangles, int width, int height, int triangleCount
+
+__global__ void clearFrameBuffer(Vec3f *framebuffer, int width, int height) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < width * height) framebuffer[i] = Vec3f(0, 0, 0);
+}
+
+__global__ void renderFrameBuffer(
+    Vec3f *framebuffer, Camera camera, Triangle *triangles, int triNum, int width, int height
 ) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx >= width * height) return;
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i >= width * height) return;
 
-    Ray ray;
-    ray.origin = vertexbuffer[idx] + normalbuffer[idx] * 0.1f; // To avoid self-intersection
-    ray.direction = lightPos - vertexbuffer[idx];
+    int x = i % width;
+    int y = i / width;
 
-    // Check if the line connecting the point and the light source intersects with any triangle
-    for (int i = 0; i < triangleCount; i++) {
-        if (!triangles[i].display) continue;
+    Ray ray = camera.castRay(x, y, width, height);
+    RayHit hit = recursiveRayTracing(ray, triangles, triNum, 4);
 
-        Vec3f A = triangles[i].v0;
-        Vec3f B = triangles[i].v1;
-        Vec3f C = triangles[i].v2;
-
-        Vec3f e1 = B - A;
-        Vec3f e2 = C - A;
-
-        Vec3f h = ray.direction & e2;
-        float a = e1 * h;
-
-        // Ray is parallel to the triangle
-        if (a > -0.00001 && a < 0.00001) continue;
-
-        float f = 1.0f / a;
-        Vec3f s = ray.origin - A;
-        float u = f * (s * h);
-
-        if (u < 0.0f || u > 1.0f) continue;
-
-        Vec3f q = s & e1;
-        float v = f * (ray.direction * q);
-
-        if (v < 0.0f || u + v > 1.0f) continue;
-
-        float t = f * (e2 * q);
-
-        if (t > 0.00001 && t < 1.0f) {
-            // The point is in shadow
-            framebuffer[idx] *= shadowMultiplier(framebuffer[idx]);
-            break;
-        }
-    }
-}
-
-__global__ void calcLuminance(float *lumabuffer, Vec3f *framebuffer, int width, int height) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx >= width * height) return;
-
-    Vec3f color = framebuffer[idx];
-    lumabuffer[idx] = 0.299f * color.x + 0.587f * color.y + 0.114f * color.z;
-}
-
-__global__ void maskEdge(bool *edgebuffer, float *lumabuffer, int width, int height) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx >= width * height) return;
-
-    int x = idx % width;
-    int y = idx / width;
-
-    // Ignore the window edges
-    if (x == 0 || x == width - 1 || y == 0 || y == height - 1) {
-        edgebuffer[idx] = false;
-        return;
-    }
-
-    // Find the 12 surrounding pixels
-
-    float luma = lumabuffer[y * width + x];
-    // Adjacent pixels
-    float lumaL = lumabuffer[y * width + x - 1];
-    float lumaU = lumabuffer[(y - 1) * width + x];
-    float lumaD = lumabuffer[(y + 1) * width + x];
-    float lumaR = lumabuffer[y * width + x + 1];
-    // Diagonal pixels
-    float lumaLU = lumabuffer[(y - 1) * width + x - 1];
-    float lumaRU = lumabuffer[(y - 1) * width + x + 1];
-    float lumaLD = lumabuffer[(y + 1) * width + x - 1];
-    float lumaRD = lumabuffer[(y + 1) * width + x + 1];
-    // Adjacent*2 pixels
-    float lumaLL = lumabuffer[y * width + x - 2];
-    float lumaUU = lumabuffer[(y - 2) * width + x];
-    float lumaDD = lumabuffer[(y + 2) * width + x];
-    float lumaRR = lumabuffer[y * width + x + 2];
-
-    float contrast = abs(luma * 4 - lumaL - lumaU - lumaD - lumaR)
-                   + abs(luma * 4 - lumaLU - lumaRU - lumaLD - lumaRD)
-                   + abs(luma * 4 - lumaLL - lumaUU - lumaDD - lumaRR);
-
-    float edgeThreshold = 0.01f;
-    edgebuffer[idx] = contrast > edgeThreshold;
-}
-
-__global__ void FXAA(Vec3f *framebuffer, bool *edgebuffer, int width, int height) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx >= width * height) return;
-
-    if (!edgebuffer[idx]) return;
-
-    int x = idx % width;
-    int y = idx / width;
-
-    if (x == 0 || x == width - 1 || y == 0 || y == height - 1) return;
-
-    Vec3f color = framebuffer[idx];
-
-    // Get the average of the 4 neighbors
-    Vec3f colorSum = color;
-    int count = 1;
-
-    // Adjacent pixels
-    if (edgebuffer[y * width + x - 1]) {
-        colorSum += framebuffer[y * width + x - 1];
-        count++;
-    }
-    if (edgebuffer[y * width + x + 1]) {
-        colorSum += framebuffer[y * width + x + 1];
-        count++;
-    }
-    if (edgebuffer[(y - 1) * width + x]) {
-        colorSum += framebuffer[(y - 1) * width + x];
-        count++;
-    }
-    if (edgebuffer[(y + 1) * width + x]) {
-        colorSum += framebuffer[(y + 1) * width + x];
-        count++;
-    }
-    // Diagonal pixels
-    if (edgebuffer[(y - 1) * width + x - 1]) {
-        colorSum += framebuffer[(y - 1) * width + x - 1];
-        count++;
-    }
-    if (edgebuffer[(y - 1) * width + x + 1]) {
-        colorSum += framebuffer[(y - 1) * width + x + 1];
-        count++;
-    }
-    if (edgebuffer[(y + 1) * width + x - 1]) {
-        colorSum += framebuffer[(y + 1) * width + x - 1];
-        count++;
-    }
-    if (edgebuffer[(y + 1) * width + x + 1]) {
-        colorSum += framebuffer[(y + 1) * width + x + 1];
-        count++;
-    }
-    // Adjacent*2 pixels
-    if (edgebuffer[y * width + x - 2]) {
-        colorSum += framebuffer[y * width + x - 2];
-        count++;
-    }
-    if (edgebuffer[y * width + x + 2]) {
-        colorSum += framebuffer[y * width + x + 2];
-        count++;
-    }
-    if (edgebuffer[(y - 2) * width + x]) {
-        colorSum += framebuffer[(y - 2) * width + x];
-        count++;
-    }
-    if (edgebuffer[(y + 2) * width + x]) {
-        colorSum += framebuffer[(y + 2) * width + x];
-        count++;
-    }
-
-    framebuffer[idx] = colorSum / count;
+    if (hit.hit) framebuffer[i] = hit.colr;
 }
 
 int main() {
-    /*
-    Isn't it funny how these things have been here
-    For 3 entire versions of the engine?
-    They been through 3 "code wars"
-    */
     FpsHandler &FPS = FpsHandler::instance();
     CsLogHandler LOG = CsLogHandler();
+
+    cudaFree(0);  // Force context initialization
+
+    cudaError_t err = cudaDeviceSetLimit(cudaLimitStackSize, 256 * 1024);
+    if (err != cudaSuccess) {
+        printf("Failed to set stack size: %s\n", cudaGetErrorString(err));
+        size_t currentStackSize;
+        cudaDeviceGetLimit(&currentStackSize, cudaLimitStackSize);
+        printf("Current stack size limit: %zu bytes\n", currentStackSize);
+    }
+
 
     // Create SFMLTexture
     int width = 1600;
     int height = 900;
     SFMLTexture SFTex(width, height);
-
-    int threads = 256;
-    int blocks = (width * height + threads - 1) / threads;
 
     // Test camera
     Camera CAMERA;
@@ -363,101 +131,10 @@ int main() {
     CAMERA.rot = Vec3f(0, 0, 0);
     CAMERA.updateView();
 
-    // Set up buffers
-    Vec3f *d_framebuffer; // or colorbuffer
-    Vec3f *d_vertexbuffer;
-    Vec3f *d_normalbuffer;
-    cudaMalloc(&d_framebuffer, width * height * sizeof(Vec3f));
-    cudaMalloc(&d_vertexbuffer, width * height * sizeof(Vec3f));
-    cudaMalloc(&d_normalbuffer, width * height * sizeof(Vec3f));
-    // Buffers for FXAA
-    float *d_lumabuffer;
-    bool *d_edgebuffer;
-    cudaMalloc(&d_lumabuffer, width * height * sizeof(float));
-    cudaMalloc(&d_edgebuffer, width * height * sizeof(bool));
-
-    // Set up rays
-    Ray *d_rays;
-    bool *d_raycursive; // Pun intended
-    int *d_recursionidx; // The origin of the recursive ray
-    bool *d_hasrecursive;
-    cudaMalloc(&d_rays, width * height * sizeof(Ray));
-    cudaMalloc(&d_raycursive, width * height * sizeof(bool));
-    cudaMalloc(&d_recursionidx, width * height * sizeof(int));
-    cudaMalloc(&d_hasrecursive, sizeof(bool));
-
-    // Set the hasrecursive true
-    cudaMemcpy(d_hasrecursive, new bool(true), sizeof(bool), cudaMemcpyHostToDevice);
-
-    // Creating some test triangles
-    std::vector<Triangle> shape0 = Utils::readObjFile("test", "assets/Models/Shapes/Test/test0.obj");
-    #pragma omp parallel
-    for (int i = 0; i < shape0.size(); i++) {
-        int scaleFac = 40;
-        shape0[i].v0.scale(Vec3f(), scaleFac);
-        shape0[i].v1.scale(Vec3f(), scaleFac);
-        shape0[i].v2.scale(Vec3f(), scaleFac);
-    }
-
-    std::vector<Triangle> shape1 = Utils::readObjFile("test", "assets/Models/Shapes/Test/test1.obj");
-    #pragma omp parallel
-    for (Triangle &t : shape1) {
-        t.reflect = true;
-        // t.display = false;
-
-        int scaleFac = 16;
-        t.scale(Vec3f(), scaleFac);
-        t.translate(Vec3f(0, 0, 39.8));
-    }
-
-    std::vector<Triangle> shape2 = Utils::readObjFile("test1", "assets/Models/Shapes/Test/test2.obj");
-    #pragma omp parallel
-    for (Triangle &t : shape2) {
-        t.reflect = true;
-
-        int scaleFac = 16;
-        t.scale(Vec3f(), scaleFac);
-        t.translate(Vec3f(0, 0, -39.8));
-    }
-
-    std::vector<Triangle> shape3 = Utils::readObjFile("test2", "assets/Models/Shapes/Test/test3.obj");
-    #pragma omp parallel
-    for (Triangle &t : shape3) {
-        t.reflect = true;
-
-        float scaleFac = 4;
-        t.scale(Vec3f(), scaleFac);
-
-        // // Invert normals
-        // t.n0 = -t.n0;
-        // t.n1 = -t.n1;
-        // t.n2 = -t.n2;
-    }
-
-    std::vector<Triangle> triangles = shape0;
-    triangles.insert(triangles.end(), shape1.begin(), shape1.end());
-    triangles.insert(triangles.end(), shape2.begin(), shape2.end());
-    triangles.insert(triangles.end(), shape3.begin(), shape3.end());
-
-    // Copy to device
-    Triangle *d_triangles;
-    int tc = triangles.size();
-    cudaMalloc(&d_triangles, tc * sizeof(Triangle));
-    cudaMemcpy(d_triangles, triangles.data(), tc * sizeof(Triangle), cudaMemcpyHostToDevice);
-
-    // Test light   
-    Vec3f lightSrc = Vec3f(0, 0, 0);
-
     // Create window
     sf::RenderWindow window(sf::VideoMode(width, height), "AsczEngine");
     sf::Mouse::setPosition(sf::Vector2i(width / 2, height / 2), window);
     window.setMouseCursorVisible(!CAMERA.focus);
-
-    // Fun settings
-    bool followLight = false;
-    bool blackenScreen = false;
-    bool hasAntiAliasing = true;
-    bool hasShadow = true;
 
     // Crosshair
     int crosshairSize = 10;
@@ -474,9 +151,36 @@ int main() {
     crosshair2.setPosition(width / 2, height / 2 - crosshairSize / 2);
     crosshair2.setFillColor(crosshairColor);
 
-    // Black opaque rectangle
-    sf::RectangleShape blackScreen(sf::Vector2f(width, height));
-    blackScreen.setFillColor(sf::Color(0, 0, 0, 180));
+    int threads = 256;
+    int blocks = (width * height + threads - 1) / threads;
+    Ray *d_rays;
+    cudaMalloc(&d_rays, width * height * sizeof(Ray));
+    Vec3f *d_framebuffer;
+    cudaMalloc(&d_framebuffer, width * height * sizeof(Vec3f));
+
+    // Some test triangles
+    Triangle tri1;
+    tri1.v0 = Vec3f(-10, -10, -5);
+    tri1.v1 = Vec3f(10, -10, -5);
+    tri1.v2 = Vec3f(0, 10, -5);
+    tri1.uniformColor(Vec3f(1, 0, 0));
+    tri1.uniformNormal(Vec3f(0, 0, 1));
+    tri1.normAll();
+
+    Triangle tri2;
+    tri2.v0 = Vec3f(-10, -10, 5);
+    tri2.v1 = Vec3f(10, -10, 5);
+    tri2.v2 = Vec3f(0, 10, 5);
+    tri2.uniformColor(Vec3f(0, 0, 1));
+    tri2.uniformNormal(Vec3f(0, 0, -1));
+    tri2.normAll();
+    tri2.reflect = 0.5;
+
+    int triNum = 2;
+    Triangle *d_triangles;
+    cudaMalloc(&d_triangles, triNum * sizeof(Triangle));
+    cudaMemcpy(d_triangles, &tri1, sizeof(Triangle), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_triangles + 1, &tri2, sizeof(Triangle), cudaMemcpyHostToDevice);
 
     // Main loop
     while (window.isOpen()) {
@@ -493,30 +197,11 @@ int main() {
             // Press f1 to toggle camera focus
             if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::F1) {
                 CAMERA.focus = !CAMERA.focus;
+                // To avoid sudden camera movement when changing focus
                 sf::Mouse::setPosition(sf::Vector2i(width / 2, height / 2), window);
 
                 // Hide cursor
                 window.setMouseCursorVisible(!CAMERA.focus);
-            }
-
-            // Press L to toggle light follow
-            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::L) {
-                followLight = !followLight;
-            }
-
-            // Press B to toggle blacken screen
-            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::B) {
-                blackenScreen = !blackenScreen;
-            }
-
-            // Press 1 to toggle anti-aliasing
-            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Num1) {
-                hasAntiAliasing = !hasAntiAliasing;
-            }
-
-            // Press 2 to toggle shadow
-            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Num2) {
-                hasShadow = !hasShadow;
             }
         }
 
@@ -537,11 +222,6 @@ int main() {
         bool k_e = sf::Keyboard::isKeyPressed(sf::Keyboard::E);
         bool k_t = sf::Keyboard::isKeyPressed(sf::Keyboard::T);
 
-        // Fun settings
-        if (followLight) {
-            lightSrc = CAMERA.pos;
-        }
-
         // Camera movement
         if (CAMERA.focus) {
         // Camera look around
@@ -558,7 +238,7 @@ int main() {
             CAMERA.rot.x -= dMy * CAMERA.mSens * FPS.dTimeSec;
             CAMERA.rot.y += dMx * CAMERA.mSens * FPS.dTimeSec;
 
-        // Csgo perspective mode movement
+        // CSGO perspective movement
             float vel = CAMERA.velSpec;
             // Hold ctrl to go slow, hold shift to go fast
             if (k_ctrl && !k_shift)      vel *= CAMERA.slowFactor;
@@ -573,99 +253,28 @@ int main() {
         // Update camera
         CAMERA.update();
 
-        // Clear framebuffer
-        clearFramebuffer<<<blocks, threads>>>(d_framebuffer, width, height);    
+        // Prepare framebuffer
+        clearFrameBuffer<<<blocks, threads>>>(d_framebuffer, width, height);
         cudaDeviceSynchronize();
 
-        // Generate rays
-        generateRays<<<blocks, threads>>>(CAMERA, d_rays, width, height);
+        // Render framebuffer
+        renderFrameBuffer<<<blocks, threads>>>(d_framebuffer, CAMERA, d_triangles, triNum, width, height);
         cudaDeviceSynchronize();
 
-        // Recursive ray tracing
-
-        // Set all to true to kickstart the first iteration
-        resetRecursive<<<blocks, threads>>>(d_raycursive, d_recursionidx, width, height);
-        cudaDeviceSynchronize();
-
-        bool *hasrecursive = new bool(true);
-        int recursionCount = -1;
-        while (*hasrecursive) {
-            *hasrecursive = false;
-            cudaMemcpy(d_hasrecursive, hasrecursive, sizeof(bool), cudaMemcpyHostToDevice); 
-
-            // Cast rays
-            castRays<<<blocks, threads>>>(
-                d_framebuffer, d_vertexbuffer, d_normalbuffer,
-                d_rays, d_raycursive, d_recursionidx, d_hasrecursive,
-                lightSrc,
-                d_triangles, width, height, tc);
-            cudaDeviceSynchronize();
-
-            // Copy hasrecursive to host
-            cudaMemcpy(hasrecursive, d_hasrecursive, sizeof(bool), cudaMemcpyDeviceToHost);
-
-            recursionCount++;
-
-            if (recursionCount == 10) break; // Break if it's too much
-        }
-
-        // Apply shadow
-        if (hasShadow) {
-            applyShadow<<<blocks, threads>>>(
-                d_framebuffer, d_vertexbuffer, d_normalbuffer,
-                lightSrc,
-                d_triangles, width, height, tc);
-            cudaDeviceSynchronize();
-        }
-
-        // FXAA
-        if (hasAntiAliasing) {
-            calcLuminance<<<blocks, threads>>>(d_lumabuffer, d_framebuffer, width, height);
-            cudaDeviceSynchronize();
-
-            maskEdge<<<blocks, threads>>>(d_edgebuffer, d_lumabuffer, width, height);
-            cudaDeviceSynchronize();
-
-            FXAA<<<blocks, threads>>>(d_framebuffer, d_edgebuffer, width, height);
-            cudaDeviceSynchronize();
-        }
-
-        // Update "texture"
         SFTex.updateTexture(d_framebuffer, width, height, 1);
 
-        // Log
-        LOG.addLog("Welcome to AsczEngineRT v0", sf::Color::Green, 1);
-        LOG.addLog("FPS: " + std::to_string(FPS.fps), sf::Color::Green);
-        LOG.addLog("Recursion count: " + std::to_string(recursionCount), sf::Color::Red);
-        LOG.addLog("Triangles count: " + std::to_string(tc), sf::Color::Red);
-        LOG.addLog(CAMERA.data(), sf::Color(160, 255, 160));
-        // Print the pixel at the dead center
-        int idx = SFTex.pixelCount / 2 + width * 2;
-        sf::Uint8 px1 = SFTex.sfPixel[idx + 0];
-        sf::Uint8 px2 = SFTex.sfPixel[idx + 1];
-        sf::Uint8 px3 = SFTex.sfPixel[idx + 2];
-        Vec3f color = Vec3f(px1, px2, px3);
-        LOG.addLog("Color: "
-            + std::to_string(color.x) + ", "
-            + std::to_string(color.y) + ", "
-            + std::to_string(color.z),
-        sf::Color(255 - px1, 255 - px2, 255 - px3)); // Contrast color for better visibility
-        // Settings
-        LOG.addLog("Settings:", sf::Color(255, 160, 160), 1);
-        LOG.addLog("[L] Follow light: " + std::string(followLight ? "true" : "false"), sf::Color(255, 160, 160));
-        LOG.addLog("[B] Blacken screen: " + std::string(blackenScreen ? "true" : "false"), sf::Color(255, 160, 160));
-        LOG.addLog("[1] Anti-aliasing: " + std::string(hasAntiAliasing ? "true" : "false"), sf::Color(255, 160, 160));
-        LOG.addLog("[2] Shadow: " + std::string(hasShadow ? "true" : "false"), sf::Color(255, 160, 160));
+        LOG.addLog(CAMERA.data(), sf::Color::White, 0);
 
-
-        // Draw to window
-        window.clear(sf::Color::Black);
+        // Clear window
+        window.clear();
         window.draw(SFTex.sprite);
-        // To see the log better
-        if (blackenScreen) window.draw(blackScreen);
-        LOG.drawLog(window);
+        // Draw the crosshair
         window.draw(crosshair1);
         window.draw(crosshair2);
+
+        LOG.drawLog(window);
+
+        // For the time being just draw the window
         window.display();
 
         // Frame end

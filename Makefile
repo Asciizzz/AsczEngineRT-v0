@@ -7,6 +7,7 @@ ClearScreen:
 AsczEngine:
 	nvcc\
 		-I include/MathLib \
+		-I include/BVH \
 		-I include/Material \
 		-I include/Graphic3D \
 		-I include/System \
@@ -34,6 +35,7 @@ AsczEngine:
 		-lsfml-audio \
 		-lopenal32 \
 		\
+		-arch=sm_61 \
 		-rdc=true \
 		--expt-relaxed-constexpr \
 		--extended-lambda \

@@ -24,8 +24,7 @@ struct Triangle {
     Vec3f c0, c1, c2; // Placeholder, to test interpolation
     Vec3f n0, n1, n2;
 
-    bool reflect = false; // Test reflection
-    bool display = true; // For debugging
+    float reflect = 0; // Test reflection
 
     float ambient = 0.3f;
     float diffuse = 0.9f;
