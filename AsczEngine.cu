@@ -17,6 +17,8 @@ struct RayHit {
 __device__ RayHit recursiveRayTracing(
     const Ray &ray, const Triangle *triangles, int triNum, int maxDepth
 ) {
+    if (maxDepth <= 0) return RayHit();
+
     // Ray intersection with triangles
     int clstIdx = -1;
     float clstT = INFINITY;
@@ -100,7 +102,7 @@ __global__ void renderFrameBuffer(
     int y = i / width;
 
     Ray ray = camera.castRay(x, y, width, height);
-    RayHit hit = recursiveRayTracing(ray, triangles, triNum, 4);
+    RayHit hit = recursiveRayTracing(ray, triangles, triNum, 5);
 
     if (hit.hit) framebuffer[i] = hit.colr;
 }
@@ -158,6 +160,7 @@ int main() {
     tri1.uniformColor(Vec3f(1, 0, 0));
     tri1.uniformNormal(Vec3f(0, 0, 1));
     tri1.normAll();
+    tri1.reflect = 0.4;
 
     Triangle tri2;
     tri2.v0 = Vec3f(-10, -10, 5);
@@ -166,7 +169,7 @@ int main() {
     tri2.uniformColor(Vec3f(0, 0, 1));
     tri2.uniformNormal(Vec3f(0, 0, -1));
     tri2.normAll();
-    tri2.reflect = 0.5;
+    tri2.reflect = 0.4;
 
     int triNum = 2;
     Triangle *d_triangles;
