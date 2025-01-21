@@ -144,7 +144,7 @@ __device__ Vec3f iterativeRayTracing(
         // If the geometry is a sky, ignore the rest
         if (geom.isSky) continue;
 
-        Vec3f lightSrc(0, 2, 3);
+        Vec3f lightSrc(0, 10, 30);
 
         // Shadow ray
         Vec3f lightOrigin = vrtx[r] + nrml[r] * 0.0001;
@@ -364,17 +364,22 @@ int main() {
     // ======================= Some test geometries ===========================
     // ========================================================================
 
-    // Test obj
-    std::vector<Geom> shape = Utils::readObjFile("test",
-        "assets/Models/Shapes/Cube1.obj", 1, 0
-    );
-    int shapeNum = shape.size();
-
     // Test sphere
-    Geom sph;
-    sph.type = Geom::SPHERE;
-    sph.sphere = Sphere( Vec3f(0, 2, 0), 2.0f, Vec3f(1, 1, 1) );
-    sph.reflect = 0.8f;
+    const int m = 2;
+    const int n = 2;
+    float u = 6.0f;
+    float r = 2.0f;
+    int count = 0;
+    Geom sph[(2 * m + 1) * (2 * n + 1)];
+    for (int x = -m; x <= m; x++) {
+        for (int z = -n; z <= n; z++) {
+            int idx = count++;
+            sph[idx].type = Geom::SPHERE;
+            sph[idx].sphere = Sphere( Vec3f(x * u, r, z * u), r, Vec3f(1) );
+
+            sph[idx].reflect = 0.7f;
+        }
+    }
 
     // Test plane
     Geom pln;
@@ -384,13 +389,19 @@ int main() {
     // Test sky
     Geom sky;
     sky.type = Geom::SPHERE;
-    sky.sphere = Sphere( Vec3f(0, 0, 0), 1000.0f, Vec3f(0.5, 0.6, 1) );
+    sky.sphere = Sphere( Vec3f(0), 1000.0f, Vec3f(0.5, 0.6, 1) );
     sky.isSky = true;
+
+    // // Test obj
+    // std::vector<Geom> shape = Utils::readObjFile("test",
+    //     "assets/Models/Shapes/Cube1.obj", 1, 0
+    // );
+    // int shapeNum = shape.size();
 
     std::vector<Geom> geoms;
     geoms.push_back(sky);
     geoms.push_back(pln);
-    geoms.push_back(sph);
+    for (int i = 0; i < count; i++) geoms.push_back(sph[i]);
 
     Geom *d_geoms;
     int geomNum = geoms.size();
