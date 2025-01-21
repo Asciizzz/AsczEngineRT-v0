@@ -7,82 +7,85 @@
 
 struct RayHit {
     bool hit = false;
+    int idx = -1;
+    float t = 1e8;
+    float u = 0;
+    float v = 0;
+    float w = 0;
     Vec3f vrtx;
     Vec2f txtr;
     Vec3f nrml;
     Vec3f colr;
-    float t;
 };
 
-__device__ RayHit recursiveRayTracing(
-    const Ray &ray, const Triangle *triangles, int triNum, int maxDepth
+struct RayContribution {
+    Ray ray;
+    RayHit hit;
+};
+
+__device__ RayHit iterativeRayTracing(
+    const Ray &ray, const Triangle *triangles, int triNum
 ) {
-    if (maxDepth <= 0) return RayHit();
+    RayContribution contributions[20];
+    int contributionCount = 0;
+    bool lastHit = false;
 
-    // Ray intersection with triangles
-    int clstIdx = -1;
-    float clstT = INFINITY;
-    float clstU, clstV;
+    while (!lastHit && contributionCount < 20) {
+        RayHit hit = RayHit();
 
-    for (int i = 0; i < triNum; i++) {
-        const Triangle &tri = triangles[i];
-        Vec3f e1 = tri.v1 - tri.v0;
-        Vec3f e2 = tri.v2 - tri.v0;
-        Vec3f h = ray.direction & e2;
-        float a = e1 * h;
+        // Will be replaced with BVH
+        for (int i = 0; i < triNum; i++) {
+            const Triangle &tri = triangles[i];
+            Vec3f e1 = tri.v1 - tri.v0;
+            Vec3f e2 = tri.v2 - tri.v0;
+            Vec3f h = ray.direction & e2;
+            float a = e1 * h;
 
-        if (a > -0.00001 && a < 0.00001) continue;
+            if (a > -0.00001 && a < 0.00001) continue;
 
-        float f = 1.0f / a;
-        Vec3f s = ray.origin - tri.v0;
-        float u = f * (s * h);
+            float f = 1.0f / a;
+            Vec3f s = ray.origin - tri.v0;
+            float u = f * (s * h);
 
-        if (u < 0.0f || u > 1.0f) continue;
+            if (u < 0.0f || u > 1.0f) continue;
 
-        Vec3f q = s & e1;
-        float v = f * (ray.direction * q);
+            Vec3f q = s & e1;
+            float v = f * (ray.direction * q);
 
-        if (v < 0.0f || u + v > 1.0f) continue;
+            if (v < 0.0f || u + v > 1.0f) continue;
 
-        float t = f * (e2 * q);
+            float t = f * (e2 * q);
 
-        if (t > 0.00001 && t < clstT) {
-            clstIdx = i;
-            clstT = t;
-            clstU = u;
-            clstV = v;
+            if (t > 0.00001 && t < hit.t) {
+                hit.hit = true;
+                hit.idx = i;
+                hit.t = t;
+                hit.u = u;
+                hit.v = v;
+                hit.w = 1 - u - v;
+            }
         }
+
+        if (!hit.hit) {
+            lastHit = true;
+            break;
+        }
+
+        Triangle tri = triangles[hit.idx];
+
+        hit.vrtx = ray.origin + ray.direction * hit.t;
+        hit.nrml = tri.n0 * hit.w + tri.n1 * hit.u + tri.n2 * hit.v;
+        hit.colr = tri.c0 * hit.w + tri.c1 * hit.u + tri.c2 * hit.v;
+
+        contributions[contributionCount++] = {ray, hit};
+
+        // For the time being just break the loop
+        lastHit = true;
     }
 
-    if (clstIdx == -1) return RayHit();
+    if (contributionCount == 0) return RayHit();
 
-    Triangle tri = triangles[clstIdx];
-    float clstW = 1 - clstU - clstV;
-
-    Vec3f vrtx = ray.origin + ray.direction * clstT;
-    Vec3f nrml = triangles[clstIdx].n0 * clstW +
-                    triangles[clstIdx].n1 * clstU +
-                    triangles[clstIdx].n2 * clstV;
-    Vec3f colr = triangles[clstIdx].c0 * clstW +
-                    triangles[clstIdx].c1 * clstU +
-                    triangles[clstIdx].c2 * clstV;
-
-    if (tri.reflect > 0) {
-        Vec3f reflDir = ray.direction - nrml * 2 * (ray.direction * nrml);
-        reflDir.norm();
-        Vec3f reflOrg = vrtx + nrml * 0.0001f; // To avoid self-intersection
-        Ray reflRay(reflOrg, reflDir);
-
-        RayHit reflHit = recursiveRayTracing(reflRay, triangles, triNum, maxDepth - 1);
-        if (reflHit.hit) colr = colr * (1 - tri.reflect) + reflHit.colr * tri.reflect;
-    }
-
-    RayHit finalHit;
-    finalHit.hit = true;
-    finalHit.vrtx = vrtx;
-    finalHit.nrml = nrml;
-    finalHit.colr = colr;
-    finalHit.t = clstT;
+    RayHit finalHit = contributions[0].hit;
     return finalHit;
 }
 
@@ -102,7 +105,7 @@ __global__ void renderFrameBuffer(
     int y = i / width;
 
     Ray ray = camera.castRay(x, y, width, height);
-    RayHit hit = recursiveRayTracing(ray, triangles, triNum, 5);
+    RayHit hit = iterativeRayTracing(ray, triangles, triNum);
 
     if (hit.hit) framebuffer[i] = hit.colr;
 }
@@ -154,22 +157,23 @@ int main() {
 
     // Some test triangles
     Triangle tri1;
-    tri1.v0 = Vec3f(-10, -10, -5);
-    tri1.v1 = Vec3f(10, -10, -5);
-    tri1.v2 = Vec3f(0, 10, -5);
-    tri1.uniformColor(Vec3f(1, 0, 0));
+    tri1.v0 = Vec3f(-10, -10, -15);
+    tri1.v1 = Vec3f(10, -10, -15);
+    tri1.v2 = Vec3f(0, 10, -15);
+    tri1.c0 = Vec3f(1, 0.6, 0.6);
+    tri1.c1 = Vec3f(0.6, 1, 0.6);
+    tri1.c2 = Vec3f(0.6, 0.6, 1);
     tri1.uniformNormal(Vec3f(0, 0, 1));
     tri1.normAll();
-    tri1.reflect = 0.4;
+    tri1.reflect = 0.1;
 
     Triangle tri2;
-    tri2.v0 = Vec3f(-10, -10, 5);
-    tri2.v1 = Vec3f(10, -10, 5);
-    tri2.v2 = Vec3f(0, 10, 5);
+    tri2.v0 = Vec3f(-8, -8, 15);
+    tri2.v1 = Vec3f(8, -8, 15);
+    tri2.v2 = Vec3f(0, 8, 15);
     tri2.uniformColor(Vec3f(0, 0, 1));
     tri2.uniformNormal(Vec3f(0, 0, -1));
     tri2.normAll();
-    tri2.reflect = 0.4;
 
     int triNum = 2;
     Triangle *d_triangles;
