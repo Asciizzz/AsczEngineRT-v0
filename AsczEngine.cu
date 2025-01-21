@@ -4,6 +4,8 @@
 #include <Camera.cuh>
 #include <SFMLTexture.cuh>
 
+#include <Utility.cuh>
+
 __device__ Vec3f iterativeRayTracing(
     const Ray &primaryRay, const Triangle *triangles, int triNum
 ) {
@@ -293,10 +295,19 @@ int main() {
     tris[10].Fresnel = 0.2f;
     tris[11].Fresnel = 0.2f;
 
-    int triNum = 12;
+    // int triNum = 12;
+    // Triangle *d_triangles;
+    // cudaMalloc(&d_triangles, triNum * sizeof(Triangle));
+    // cudaMemcpy(d_triangles, tris, triNum * sizeof(Triangle), cudaMemcpyHostToDevice);
+
+    // Test obj
+    std::vector<Triangle> trisObj = Utils::readObjFile("test",
+        "assets/Models/Shapes/Cube1.obj", 1, 0
+    );
+    int triNum = trisObj.size();
     Triangle *d_triangles;
     cudaMalloc(&d_triangles, triNum * sizeof(Triangle));
-    cudaMemcpy(d_triangles, tris, triNum * sizeof(Triangle), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_triangles, trisObj.data(), triNum * sizeof(Triangle), cudaMemcpyHostToDevice);
 
     // Main loop
     while (window.isOpen()) {

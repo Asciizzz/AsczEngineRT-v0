@@ -1,4 +1,13 @@
 #include <Utility.cuh>
+#define VectF std::vector<float>
+
+#define VectI std::vector<int>
+#define VectLLI std::vector<LLInt>
+#define VectULLI std::vector<ULLInt>
+
+#define VectBool std::vector<bool>
+
+#define VectStr std::vector<std::string>
 
 std::vector<Triangle> Utils::readObjFile(std::string name, std::string path, short fIdxBased, short placement) {
     std::ifstream file(path);

@@ -1,7 +1,6 @@
 #ifndef CAMERA_CUH
 #define CAMERA_CUH
 
-#include <cuda_runtime.h>
 #include <string>
 #include <Ray.cuh>
 
