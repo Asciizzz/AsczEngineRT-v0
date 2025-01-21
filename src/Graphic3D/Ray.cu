@@ -8,7 +8,7 @@ Ray::Ray(Vec3f origin, Vec3f direction, float Ni) :
 
 // Bounding volume intersections
 
-bool Ray::intersectAABB(Vec3f &AABBmin, Vec3f &AABBmax) {
+bool Ray::intersectAABB(const Vec3f &AABBmin, const Vec3f &AABBmax) {
     float tmin = (AABBmin.x - origin.x) / direction.x;
     float tmax = (AABBmax.x - origin.x) / direction.x;
 
@@ -46,11 +46,11 @@ bool Ray::intersectAABB(Vec3f &AABBmin, Vec3f &AABBmax) {
 }
 
 // Reflection + refraction
-Vec3f Ray::reflect(Vec3f normal) {
+Vec3f Ray::reflect(const Vec3f &normal) {
     return direction - normal * (2.0f * (direction * normal));
 }
 
-Vec3f Ray::refract(Vec3f normal, float Ni2) {
+Vec3f Ray::refract(const Vec3f &normal, float Ni2) {
     float Ni1 = Ni;
     float cosI = -normal * direction;
     float cosT2 = 1.0f - Ni1 * Ni1 * (1.0f - cosI * cosI) / (Ni2 * Ni2);
@@ -61,49 +61,30 @@ Vec3f Ray::refract(Vec3f normal, float Ni2) {
 }
 
 
-// Intersection
 
-RayHit Ray::hitTriangle(Triangle tri) {
-    RayHit hit;
-
+Vec3f Ray::triParamTUV(const Triangle &tri) {
     Vec3f e1 = tri.v1 - tri.v0;
     Vec3f e2 = tri.v2 - tri.v0;
-    Vec3f h = direction & e2;
-    float a = e1 * h;
+    Vec3f p = direction & e2;
+    float a = e1 * p;
 
-    if (a > -0.00001 && a < 0.00001) return hit;
+    if (a > -1e-5 && a < 1e-5) return Vec3f();
 
     float f = 1.0f / a;
     Vec3f s = origin - tri.v0;
-    float u = f * (s * h);
+    float u = f * (s * p);
 
-    if (u < 0.0f || u > 1.0f) return hit;
+    if (u < 0.0f || u > 1.0f) return Vec3f();
 
     Vec3f q = s & e1;
     float v = f * (direction * q);
 
-    if (v < 0.0f || u + v > 1.0f) return hit;
+    if (v < 0.0f || u + v > 1.0f) return Vec3f();
 
     float t = f * (e2 * q);
 
-    if (t > 0.00001) {
-        hit.hit = true;
-        hit.t = t;
-        hit.u = u;
-        hit.v = v;
-        hit.w = 1 - u - v;
-    }
-
-    return hit;
+    return Vec3f(t, u, v);
 }
 
-RayHit Ray::hitGeom(Geom geom) {
-    RayHit hit;
-
-    switch (geom.type) {
-        case Geom::TRIANGLE: hit = hitTriangle(geom.triangle); break;
-        default: break;
-    }
-
-    return hit;
-}
+float sphParamT(const Sphere &sph);
+float plnParamT(const Plane &pln);

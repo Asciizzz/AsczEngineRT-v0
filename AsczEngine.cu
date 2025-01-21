@@ -7,9 +7,25 @@
 #include <Utility.cuh>
 #include <random>
 
-__device__ Vec3f iterativeRayTracing(
-    const Ray &primaryRay, const Geom *geoms, int geomNum
+
+__global__ void clearFrameBuffer(Vec3f *framebuffer, int width, int height) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < width * height) framebuffer[i] = Vec3f(0, 0, 0);
+}
+
+__global__ void renderFrameBuffer(
+    Vec3f *framebuffer, Camera camera, Geom *geoms, int geomNum, int width, int height
 ) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i >= width * height) return;
+
+    int x = i % width;
+    int y = i / width;
+
+    Ray primaryRay = camera.castRay(x, y, width, height);
+
+    // Iterative ray tracing
+
     Ray rays[20] = { primaryRay };
     RayHit hits[20] = { RayHit() };
     Vec3f vrtx[20], nrml[20], colr[20];
@@ -59,7 +75,6 @@ __device__ Vec3f iterativeRayTracing(
                         hit.t = t;
                         hit.u = u;
                         hit.v = v;
-                        hit.w = 1 - u - v;
                     }
                     continue;
                 }
@@ -120,8 +135,10 @@ __device__ Vec3f iterativeRayTracing(
         switch (geom.type) {
             case Geom::TRIANGLE: {
                 const Triangle &tri = geom.triangle;
-                colr[r] = tri.c0 * hit.w + tri.c1 * hit.u + tri.c2 * hit.v;
-                nrml[r] = tri.n0 * hit.w + tri.n1 * hit.u + tri.n2 * hit.v;
+                float w = 1 - hit.u - hit.v;
+
+                colr[r] = tri.c0 * w + tri.c1 * hit.u + tri.c2 * hit.v;
+                nrml[r] = tri.n0 * w + tri.n1 * hit.u + tri.n2 * hit.v;
                 nrml[r].norm();
                 break;
             }
@@ -148,8 +165,8 @@ __device__ Vec3f iterativeRayTracing(
         Vec3f lightSrc(0, 10, 30);
 
         // Shadow ray
-        Vec3f lightOrigin = vrtx[r] + nrml[r] * 0.0001;
         Vec3f lightDir = lightSrc - vrtx[r];
+        Vec3f lightOrigin = vrtx[r] + lightDir * 0.0001;
         lightDir.norm();
         Ray shadowRay(lightOrigin, lightDir);
         bool shadow = false;
@@ -232,7 +249,7 @@ __device__ Vec3f iterativeRayTracing(
 
         // Apply very basic lighting with light ray from the top
         float diff = nrml[r] * lightDir;
-        if (diff < 0) diff = -diff;
+        if (diff < 0) diff = 0;
 
         diff = 0.3 + diff * 0.7;
         colr[r] *= diff;
@@ -293,27 +310,6 @@ __device__ Vec3f iterativeRayTracing(
     for (int i = 0; i <= rnum; i++) {
         finalColr += colr[i] * weights[i];
     }
-
-    return finalColr;
-}
-
-
-__global__ void clearFrameBuffer(Vec3f *framebuffer, int width, int height) {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (i < width * height) framebuffer[i] = Vec3f(0, 0, 0);
-}
-
-__global__ void renderFrameBuffer(
-    Vec3f *framebuffer, Camera camera, Geom *geoms, int geomNum, int width, int height
-) {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (i >= width * height) return;
-
-    int x = i % width;
-    int y = i / width;
-
-    Ray ray = camera.castRay(x, y, width, height);
-    Vec3f finalColr = iterativeRayTracing(ray, geoms, geomNum);
 
     framebuffer[i] = finalColr;
 }
@@ -437,6 +433,12 @@ int main() {
                 // Hide cursor
                 window.setMouseCursorVisible(!CAMERA.focus);
             }
+
+            // Scroll to change the field of view
+            if (event.type == sf::Event::MouseWheelScrolled) {
+                if (event.mouseWheelScroll.delta > 0) CAMERA.fov += 0.1;
+                else if (event.mouseWheelScroll.delta < 0) CAMERA.fov -= 0.1;
+            }
         }
 
         // Setting input activities
@@ -497,6 +499,8 @@ int main() {
 
         SFTex.updateTexture(d_framebuffer, width, height);
 
+        LOG.addLog("Welcome to AsczEngineRT v0", sf::Color::Green, 1);
+        LOG.addLog("FPS: " + std::to_string(FPS.fps), sf::Color::Blue);
         LOG.addLog(CAMERA.data(), sf::Color::White, 0);
 
         // Clear window
