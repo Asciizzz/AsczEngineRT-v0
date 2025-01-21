@@ -24,6 +24,8 @@ __global__ void iterativeRayTracing(
 
     Ray primaryRay = camera.castRay(x, y, width, height);
 
+    double EPSILON = 0.001;
+
     // Iterative ray tracing
 
     Ray rays[20] = { primaryRay };
@@ -46,6 +48,14 @@ __global__ void iterativeRayTracing(
         for (int g = 0; g < geomNum; g++) {
             const Geom &geom = geoms[g];
 
+            /*
+            "WhY dOn'T yOu WrItE a FuNcTiOn tO dO tHe InTeRsEcTiOn?"
+
+            BECAUSE IT KILLED THE PERFORMANCE, OKAY?
+            IDK WHY, BUT IT PLUMMETED THE PERFORMANCE
+            FROM 60 FPS TO 20 FPS, SO I'M NOT GONNA DO IT
+            */
+
             switch (geom.type) {
                 case Geom::TRIANGLE: {
                     const Triangle &tri = geom.triangle;
@@ -54,7 +64,7 @@ __global__ void iterativeRayTracing(
                     Vec3f h = ray.direction & e2;
                     float a = e1 * h;
 
-                    if (a > -0.00001 && a < 0.00001) continue;
+                    if (a > -EPSILON && a < EPSILON) continue;
 
                     float f = 1.0f / a;
                     Vec3f s = ray.origin - tri.v0;
@@ -69,7 +79,7 @@ __global__ void iterativeRayTracing(
 
                     float t = f * (e2 * q);
 
-                    if (t > 0.00001 && t < hit.t) {
+                    if (t > EPSILON && t < hit.t) {
                         hit.hit = true;
                         hit.idx = g;
                         hit.t = t;
@@ -94,7 +104,7 @@ __global__ void iterativeRayTracing(
 
                     if (t0 < 0) t0 = t1;
 
-                    if (t0 > 0.00001 && t0 < hit.t) {
+                    if (t0 > EPSILON && t0 < hit.t) {
                         hit.hit = true;
                         hit.idx = g;
                         hit.t = t0;
@@ -107,11 +117,11 @@ __global__ void iterativeRayTracing(
                     const Plane &pln = geom.plane;
 
                     float denom = pln.n * ray.direction;
-                    if (denom > -0.00001 && denom < 0.00001) continue; // Parallel
+                    if (denom > -EPSILON && denom < EPSILON) continue; // Parallel
 
                     float t = -(pln.n * ray.origin + pln.d) / denom;
 
-                    if (t < hit.t && t > 0.00001) {
+                    if (t < hit.t && t > EPSILON) {
                         hit.hit = true;
                         hit.idx = g;
                         hit.t = t;
@@ -166,7 +176,7 @@ __global__ void iterativeRayTracing(
 
         // Shadow ray
         Vec3f lightDir = lightSrc - vrtx[r];
-        Vec3f lightOrigin = vrtx[r] + lightDir * 0.0001;
+        Vec3f lightOrigin = vrtx[r] + lightDir * EPSILON;
         lightDir.norm();
         Ray shadowRay(lightOrigin, lightDir);
         bool shadow = false;
@@ -174,6 +184,11 @@ __global__ void iterativeRayTracing(
         for (int g = 0; g < geomNum; g++) {
             const Geom &geom = geoms[g];
             if (geom.isSky) continue; // Ignore sky
+
+            /*
+            Highly repetitive code, but doing otherwise
+            will absolutely kill performance
+            */
 
             switch (geom.type) {
                 case Geom::TRIANGLE: {
@@ -183,7 +198,7 @@ __global__ void iterativeRayTracing(
                     Vec3f h = shadowRay.direction & e2;
                     float a = e1 * h;
 
-                    if (a > -0.00001 && a < 0.00001) continue;
+                    if (a > -EPSILON && a < EPSILON) continue;
 
                     float f = 1.0f / a;
                     Vec3f s = shadowRay.origin - tri.v0;
@@ -198,7 +213,7 @@ __global__ void iterativeRayTracing(
 
                     float t = f * (e2 * q);
 
-                    if (t > 0.00001) {
+                    if (t > EPSILON) {
                         shadow = true;
                         break;
                     }
@@ -220,7 +235,7 @@ __global__ void iterativeRayTracing(
 
                     if (t0 < 0) t0 = t1;
 
-                    if (t0 > 0.00001) {
+                    if (t0 > EPSILON) {
                         shadow = true;
                         break;
                     }
@@ -232,11 +247,11 @@ __global__ void iterativeRayTracing(
                     const Plane &pln = geom.plane;
 
                     float denom = pln.n * shadowRay.direction;
-                    if (denom > -0.00001 && denom < 0.00001) continue; // Parallel
+                    if (denom > -EPSILON && denom < EPSILON) continue; // Parallel
 
                     float t = -(pln.n * shadowRay.origin + pln.d) / denom;
 
-                    if (t > 0.00001) {
+                    if (t > EPSILON) {
                         shadow = true;
                         break;
                     }
@@ -259,7 +274,7 @@ __global__ void iterativeRayTracing(
             weights[r] *= (1 - geom.reflect);
 
             Vec3f reflDir = ray.reflect(nrml[r]);
-            Vec3f reflOrigin = vrtx[r] + nrml[r] * 0.0001;
+            Vec3f reflOrigin = vrtx[r] + nrml[r] * EPSILON;
 
             rays[++rnum] = Ray(reflOrigin, reflDir);
             hits[rnum] = RayHit();
@@ -269,7 +284,7 @@ __global__ void iterativeRayTracing(
             float weightLeft = weights[r] * geom.transmit;
             weights[r] *= (1 - geom.transmit);
 
-            Vec3f transOrg = vrtx[r] + ray.direction * 0.0001;
+            Vec3f transOrg = vrtx[r] + ray.direction * EPSILON;
 
             rays[++rnum] = Ray(transOrg, ray.direction);
             hits[rnum] = RayHit();
@@ -290,7 +305,7 @@ __global__ void iterativeRayTracing(
 
             // Refraction (for the time being just tranparent)
             Vec3f refrDir = ray.direction;
-            Vec3f refrOrigin = vrtx[r] + refrDir * 0.0001;
+            Vec3f refrOrigin = vrtx[r] + refrDir * EPSILON;
 
             rays[++rnum] = Ray(refrOrigin, refrDir);
             hits[rnum] = RayHit();
@@ -298,7 +313,7 @@ __global__ void iterativeRayTracing(
 
             // Reflection
             Vec3f reflDir = ray.reflect(nrml[r]);
-            Vec3f reflOrigin = vrtx[r] + nrml[r] * 0.0001;
+            Vec3f reflOrigin = vrtx[r] + nrml[r] * EPSILON;
 
             rays[++rnum] = Ray(reflOrigin, reflDir);
             hits[rnum] = RayHit();
@@ -328,7 +343,7 @@ int main() {
 
     // Test camera
     Camera CAMERA;
-    CAMERA.pos = Vec3f(0, 0, -10);
+    CAMERA.pos = Vec3f(0, 5, -10);
     CAMERA.rot = Vec3f(0, 0, 0);
     CAMERA.updateView();
 
@@ -364,23 +379,31 @@ int main() {
     // Test sphere
     const int m = 2;
     const int n = 2;
-    float u = 6.0f;
+    float u = 10.0f;
     float r = 2.0f;
     int count = 0;
-    Geom sph[(2 * m + 1) * (2 * n + 1)];
+    Geom sph[(2 * m + 1) * (2 * n + 1) * 2];
     for (int x = -m; x <= m; x++) {
         for (int z = -n; z <= n; z++) {
-            Vec3f rndColor = Vec3f(
-                rand() % 256 / 255.0f,
-                rand() % 256 / 255.0f,
-                rand() % 256 / 255.0f
-            );
+            for (int h = 0; h < 1; h++) {
+                // Vec3f rndColor = Vec3f(
+                //     rand() % 256 / 255.0f,
+                //     rand() % 256 / 255.0f,
+                //     rand() % 256 / 255.0f
+                // );
 
-            int idx = count++;
-            sph[idx].type = Geom::SPHERE;
-            sph[idx].sphere = Sphere( Vec3f(x * u, r, z * u), r, rndColor );
+                Vec3f rndColor = Vec3f(0.2, 0.2, 0.2);
+                rndColor.x = h == 0 ? 1 : 0.2;
+                rndColor.z = h == 0 ? 0.2 : 1;
 
-            sph[idx].reflect = 0.7f;
+                float y = h == 0 ? r : -r;
+
+                int idx = count++;
+                sph[idx].type = Geom::SPHERE;
+                sph[idx].sphere = Sphere( Vec3f(x * u, y, z * u), r, rndColor );
+
+                sph[idx].reflect = 0.7f;
+            }
         }
     }
 
@@ -388,7 +411,7 @@ int main() {
     Geom pln;
     pln.type = Geom::PLANE;
     pln.plane = Plane( Vec3f(0, 1, 0), 0, Vec3f(1) );
-    pln.Fresnel = 0.2f;
+    pln.Fresnel = 0.4f;
 
     // Test sky
     Geom sky;

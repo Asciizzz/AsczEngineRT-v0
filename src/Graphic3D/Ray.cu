@@ -59,32 +59,3 @@ Vec3f Ray::refract(const Vec3f &normal, float Ni2) {
 
     return direction * Ni1 / Ni2 + normal * (Ni1 * cosI / Ni2 - sqrt(cosT2));
 }
-
-
-
-Vec3f Ray::triParamTUV(const Triangle &tri) {
-    Vec3f e1 = tri.v1 - tri.v0;
-    Vec3f e2 = tri.v2 - tri.v0;
-    Vec3f p = direction & e2;
-    float a = e1 * p;
-
-    if (a > -1e-5 && a < 1e-5) return Vec3f();
-
-    float f = 1.0f / a;
-    Vec3f s = origin - tri.v0;
-    float u = f * (s * p);
-
-    if (u < 0.0f || u > 1.0f) return Vec3f();
-
-    Vec3f q = s & e1;
-    float v = f * (direction * q);
-
-    if (v < 0.0f || u + v > 1.0f) return Vec3f();
-
-    float t = f * (e2 * q);
-
-    return Vec3f(t, u, v);
-}
-
-float sphParamT(const Sphere &sph);
-float plnParamT(const Plane &pln);

@@ -25,11 +25,6 @@ struct Ray {
 
     __device__ Vec3f reflect(const Vec3f &normal);
     __device__ Vec3f refract(const Vec3f &normal, float Ni2);
-
-    // Special geometry intersection
-    __device__ Vec3f triParamTUV(const Triangle &tri);
-    __device__ float sphParamT(const Sphere &sph);
-    __device__ float plnParamT(const Plane &pln);
 };
 
 #endif
