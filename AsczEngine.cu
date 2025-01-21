@@ -144,11 +144,96 @@ __device__ Vec3f iterativeRayTracing(
         // If the geometry is a sky, ignore the rest
         if (geom.isSky) continue;
 
+        Vec3f lightSrc(0, 2, 3);
+
+        // Shadow ray
+        Vec3f lightOrigin = vrtx[r] + nrml[r] * 0.0001;
+        Vec3f lightDir = lightSrc - vrtx[r];
+        lightDir.norm();
+        Ray shadowRay(lightOrigin, lightDir);
+        bool shadow = false;
+
+        for (int g = 0; g < geomNum; g++) {
+            const Geom &geom = geoms[g];
+            if (geom.isSky) continue; // Ignore sky
+
+            switch (geom.type) {
+                case Geom::TRIANGLE: {
+                    const Triangle &tri = geom.triangle;
+                    Vec3f e1 = tri.v1 - tri.v0;
+                    Vec3f e2 = tri.v2 - tri.v0;
+                    Vec3f h = shadowRay.direction & e2;
+                    float a = e1 * h;
+
+                    if (a > -0.00001 && a < 0.00001) continue;
+
+                    float f = 1.0f / a;
+                    Vec3f s = shadowRay.origin - tri.v0;
+                    float u = f * (s * h);
+
+                    if (u < 0.0f || u > 1.0f) continue;
+
+                    Vec3f q = s & e1;
+                    float v = f * (shadowRay.direction * q);
+
+                    if (v < 0.0f || u + v > 1.0f) continue;
+
+                    float t = f * (e2 * q);
+
+                    if (t > 0.00001) {
+                        shadow = true;
+                        break;
+                    }
+                    continue;
+                }
+
+                case Geom::SPHERE: {
+                    const Sphere &sph = geom.sphere;
+
+                    Vec3f l = sph.o - shadowRay.origin;
+                    float tca = l * shadowRay.direction;
+                    float d2 = l * l - tca * tca;
+
+                    if (d2 > sph.r * sph.r) continue;
+
+                    float thc = sqrt(sph.r * sph.r - d2);
+                    float t0 = tca - thc;
+                    float t1 = tca + thc;
+
+                    if (t0 < 0) t0 = t1;
+
+                    if (t0 > 0.00001) {
+                        shadow = true;
+                        break;
+                    }
+
+                    continue;
+                }
+
+                case Geom::PLANE: {
+                    const Plane &pln = geom.plane;
+
+                    float denom = pln.n * shadowRay.direction;
+                    if (denom > -0.00001 && denom < 0.00001) continue; // Parallel
+
+                    float t = -(pln.n * shadowRay.origin + pln.d) / denom;
+
+                    if (t > 0.00001) {
+                        shadow = true;
+                        break;
+                    }
+                    continue;
+                }
+            }
+        }
+
+        if (shadow) weights[r] *= 0.3;
+
         // Apply very basic lighting with light ray from the top
-        float diff = nrml[r] * Vec3f(0, 1, 0);
+        float diff = nrml[r] * lightDir;
         if (diff < 0) diff = -diff;
 
-        diff = 0.2 + diff * 0.8;
+        diff = 0.3 + diff * 0.7;
         colr[r] *= diff;
 
         if (geom.reflect > 0.0f) {
