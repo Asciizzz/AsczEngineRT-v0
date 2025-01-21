@@ -3,43 +3,29 @@
 
 #include <Camera.cuh>
 #include <SFMLTexture.cuh>
-#include <Utility.cuh>
 
-struct RayHit {
-    bool hit = false;
-    int idx = -1;
-    float weight = 1.0f;
-    float t = 1e8;
-    float u = 0;
-    float v = 0;
-    float w = 0;
-    Vec3f vrtx;
-    Vec2f txtr;
-    Vec3f nrml;
-    Vec3f colr;
-
-    __device__ RayHit(float weight=1.0f) : weight(weight) {}
-};
-
-__device__ RayHit iterativeRayTracing(
+__device__ Vec3f iterativeRayTracing(
     const Ray &primaryRay, const Triangle *triangles, int triNum
 ) {
     Ray rays[20] = { primaryRay };
     RayHit hits[20] = { RayHit() };
-    int count = 0;
+    Vec3f vrtx[20], nrml[20], colr[20];
+    float weights[20] = { 1.0f };
 
-    for (int i = 0; i < count + 1; i++) {
-        if (count > 16) break;
+    int rnum = 0;
 
-        Ray &ray = rays[i];
-        RayHit &hit = hits[i];
+    for (int r = 0; r < rnum + 1; r++) {
+        if (rnum > 16) break;
+
+        Ray &ray = rays[r];
+        RayHit &hit = hits[r];
 
 // =========================================================================
 // ======================= Will be replaced with BVH =======================
 // =========================================================================
 
-        for (int i = 0; i < triNum; i++) {
-            const Triangle &tri = triangles[i];
+        for (int g = 0; g < triNum; g++) {
+            const Triangle &tri = triangles[g];
             Vec3f e1 = tri.v1 - tri.v0;
             Vec3f e2 = tri.v2 - tri.v0;
             Vec3f h = ray.direction & e2;
@@ -62,7 +48,7 @@ __device__ RayHit iterativeRayTracing(
 
             if (t > 0.00001 && t < hit.t) {
                 hit.hit = true;
-                hit.idx = i;
+                hit.idx = g;
                 hit.t = t;
                 hit.u = u;
                 hit.v = v;
@@ -78,36 +64,38 @@ __device__ RayHit iterativeRayTracing(
 
         Triangle tri = triangles[hit.idx];
 
-        hit.vrtx = ray.origin + ray.direction * hit.t;
-        hit.colr = tri.c0 * hit.w + tri.c1 * hit.u + tri.c2 * hit.v;
-        hit.nrml = tri.n0 * hit.w + tri.n1 * hit.u + tri.n2 * hit.v;
-        hit.nrml.norm();
+        vrtx[r] = ray.origin + ray.direction * hit.t;
+        colr[r] = tri.c0 * hit.w + tri.c1 * hit.u + tri.c2 * hit.v;
+        nrml[r] = tri.n0 * hit.w + tri.n1 * hit.u + tri.n2 * hit.v;
+        nrml[r].norm();
 
         if (tri.reflect > 0.0f) {
-            float weightLeft = hit.weight * tri.reflect;
-            hit.weight *= (1 - tri.reflect);
+            float weightLeft = weights[r] * tri.reflect;
+            weights[r] *= (1 - tri.reflect);
 
-            Vec3f reflDir = ray.reflect(hit.nrml);
-            Vec3f reflOrigin = hit.vrtx + hit.nrml * 0.0001;
+            Vec3f reflDir = ray.reflect(nrml[r]);
+            Vec3f reflOrigin = vrtx[r] + nrml[r] * 0.0001;
 
-            rays[++count] = Ray(reflOrigin, reflDir);
-            hits[count] = RayHit(weightLeft);
+            rays[++rnum] = Ray(reflOrigin, reflDir);
+            hits[rnum] = RayHit();
+            weights[rnum] = weightLeft;
         }
         else if (tri.transmit > 0.0f) {
-            float weightLeft = hit.weight * tri.transmit;
-            hit.weight *= (1 - tri.transmit);
+            float weightLeft = weights[r] * tri.transmit;
+            weights[r] *= (1 - tri.transmit);
 
-            Vec3f transOrg = hit.vrtx + ray.direction * 0.0001;
+            Vec3f transOrg = vrtx[r] + ray.direction * 0.0001;
 
-            rays[++count] = Ray(transOrg, ray.direction);
-            hits[count] = RayHit(weightLeft);
+            rays[++rnum] = Ray(transOrg, ray.direction);
+            hits[rnum] = RayHit();
+            weights[rnum] = weightLeft;
         }
         else if (tri.Fresnel > 0.0f) {
-            float weightLeft = hit.weight * tri.Fresnel;
-            hit.weight *= (1 - tri.Fresnel);
+            float weightLeft = weights[r] * tri.Fresnel;
+            weights[r] *= (1 - tri.Fresnel);
 
             // Schlick's approximation
-            float cosI = (-ray.direction) * hit.nrml;
+            float cosI = (-ray.direction) * nrml[r];
             if (cosI < 0) cosI = -cosI;
 
             // Find the fresnel coefficient
@@ -117,28 +105,28 @@ __device__ RayHit iterativeRayTracing(
 
             // Refraction (for the time being just tranparent)
             Vec3f refrDir = ray.direction;
-            Vec3f refrOrigin = hit.vrtx + refrDir * 0.0001;
+            Vec3f refrOrigin = vrtx[r] + refrDir * 0.0001;
 
-            rays[++count] = Ray(refrOrigin, refrDir);
-            hits[count] = RayHit(Rrefr);
+            rays[++rnum] = Ray(refrOrigin, refrDir);
+            hits[rnum] = RayHit();
+            weights[rnum] = Rrefr;
 
             // Reflection
-            Vec3f reflDir = ray.reflect(hit.nrml);
-            Vec3f reflOrigin = hit.vrtx + hit.nrml * 0.0001;
+            Vec3f reflDir = ray.reflect(nrml[r]);
+            Vec3f reflOrigin = vrtx[r] + nrml[r] * 0.0001;
 
-            rays[++count] = Ray(reflOrigin, reflDir);
-            hits[count] = RayHit(Rrefl);
+            rays[++rnum] = Ray(reflOrigin, reflDir);
+            hits[rnum] = RayHit();
+            weights[rnum] = Rrefl;
         }
     }
 
-    RayHit finalHit;
-    finalHit.hit = true;
-    for (int i = 0; i <= count; i++) {
-        RayHit &hit = hits[i];
-        finalHit.colr += hit.colr * hit.weight;
+    Vec3f finalColr(0, 0, 0);
+    for (int i = 0; i <= rnum; i++) {
+        finalColr += colr[i] * weights[i];
     }
 
-    return finalHit;
+    return finalColr;
 }
 
 
@@ -157,9 +145,9 @@ __global__ void renderFrameBuffer(
     int y = i / width;
 
     Ray ray = camera.castRay(x, y, width, height);
-    RayHit hit = iterativeRayTracing(ray, triangles, triNum);
+    Vec3f finalColr = iterativeRayTracing(ray, triangles, triNum);
 
-    if (hit.hit) framebuffer[i] = hit.colr;
+    framebuffer[i] = finalColr;
 }
 
 int main() {

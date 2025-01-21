@@ -7,8 +7,8 @@ ClearScreen:
 AsczEngine:
 	nvcc\
 		-I include/MathLib \
-		-I include/BVH \
 		-I include/Material \
+		-I include/Geometry \
 		-I include/Graphic3D \
 		-I include/System \
 		\
@@ -25,7 +25,6 @@ AsczEngine:
 		src/Material/MatAttrs.cu \
 		src/System/FpsHandler.cu \
 		src/System/CsLogHandler.cu \
-		src/System/Utility.cu \
 		\
 		AsczEngine.cu \
 		\

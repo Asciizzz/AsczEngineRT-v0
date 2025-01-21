@@ -1,10 +1,18 @@
 #ifndef RAY_CUH
 #define RAY_CUH
 
-#include <Vector.cuh>
+#include <Geom.cuh>
 
-class Ray {
-public:
+struct RayHit {
+    bool hit = false;
+    int idx = -1;
+    float t = 1e8;
+    float u = 0;
+    float v = 0;
+    float w = 0;
+};
+
+struct Ray {
     Vec3f origin;
     Vec3f direction;
     float Ni = 1.0f; // Refractive index
@@ -18,6 +26,9 @@ public:
 
     __host__ __device__ Vec3f reflect(Vec3f normal);
     __host__ __device__ Vec3f refract(Vec3f normal, float Ni2);
+
+    __host__ __device__ RayHit hitTriangle(Triangle tri);
+    __host__ __device__ RayHit hitGeom(Geom geom);
 };
 
 #endif
