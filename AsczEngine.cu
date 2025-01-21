@@ -190,8 +190,6 @@ int main() {
 
     int threads = 256;
     int blocks = (width * height + threads - 1) / threads;
-    Ray *d_rays;
-    cudaMalloc(&d_rays, width * height * sizeof(Ray));
     Vec3f *d_framebuffer;
     cudaMalloc(&d_framebuffer, width * height * sizeof(Vec3f));
 
@@ -379,7 +377,7 @@ int main() {
         renderFrameBuffer<<<blocks, threads>>>(d_framebuffer, CAMERA, d_triangles, triNum, width, height);
         cudaDeviceSynchronize();
 
-        SFTex.updateTexture(d_framebuffer, width, height, 1);
+        SFTex.updateTexture(d_framebuffer, width, height);
 
         LOG.addLog(CAMERA.data(), sf::Color::White, 0);
 
