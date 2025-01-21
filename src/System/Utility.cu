@@ -9,7 +9,7 @@
 
 #define VectStr std::vector<std::string>
 
-std::vector<Triangle> Utils::readObjFile(std::string name, std::string path, short fIdxBased, short placement) {
+std::vector<Geom> Utils::readObjFile(std::string name, std::string path, short fIdxBased, short placement) {
     std::ifstream file(path);
     if (!file.is_open()) return {};
 
@@ -145,7 +145,7 @@ std::vector<Triangle> Utils::readObjFile(std::string name, std::string path, sho
     }
 
     // For every face, we will create a triangle
-    std::vector<Triangle> tris;
+    std::vector<Geom> geoms;
     for (size_t i = 0; i < fw.size(); i += 3) {
         Triangle tri;
 
@@ -165,8 +165,13 @@ std::vector<Triangle> Utils::readObjFile(std::string name, std::string path, sho
         tri.c1 = Vec3f(tri.v1.x / maxY * r + m, tri.v1.y / maxZ * r + m, tri.v1.z / maxX * r + m);
         tri.c2 = Vec3f(tri.v2.x / maxZ * r + m, tri.v2.y / maxX * r + m, tri.v2.z / maxY * r + m);
 
-        tris.push_back(tri);
+        Geom geom;
+
+        geom.type = Geom::TRIANGLE;
+        geom.triangle = tri;
+
+        geoms.push_back(geom);
     }
 
-    return tris;
+    return geoms;
 }

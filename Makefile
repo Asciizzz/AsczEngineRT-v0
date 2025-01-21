@@ -25,6 +25,7 @@ AsczEngine:
 		src/Material/MatAttrs.cu \
 		src/System/FpsHandler.cu \
 		src/System/CsLogHandler.cu \
+		src/System/Utility.cu \
 		\
 		AsczEngine.cu \
 		\

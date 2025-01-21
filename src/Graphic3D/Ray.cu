@@ -101,7 +101,7 @@ RayHit Ray::hitGeom(Geom geom) {
     RayHit hit;
 
     switch (geom.type) {
-        case GeomType::TRIANGLE: hit = hitTriangle(geom.triangle); break;
+        case Geom::TRIANGLE: hit = hitTriangle(geom.triangle); break;
         default: break;
     }
 

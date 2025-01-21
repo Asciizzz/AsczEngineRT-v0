@@ -9,13 +9,6 @@ struct Triangle {
     Vec3f n0, n1, n2;
     Vec3f c0, c1, c2; // Color
 
-    // Test material attributes
-    float reflect = 0.0f;
-    float transmit = 0.0f;
-
-    float Fresnel = 0.0f;
-    float Ni = 1.0f;
-
     // Some helper functions
     void uniformColor(Vec3f color) {
         c0 = color;

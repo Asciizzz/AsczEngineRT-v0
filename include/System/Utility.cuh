@@ -10,7 +10,7 @@
 
 class Utils {
 public:
-    static std::vector<Triangle> readObjFile(std::string name, std::string path, short fIdxBased=1, short placement=0);
+    static std::vector<Geom> readObjFile(std::string name, std::string path, short fIdxBased=1, short placement=0);
 };
 
 #endif
