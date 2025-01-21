@@ -60,7 +60,7 @@ __device__ Vec3f iterativeRayTracing(
 // =========================================================================
 // =========================================================================
 
-        if (!hit.hit) break;
+        if (!hit.hit) continue;
 
         Triangle tri = triangles[hit.idx];
 
@@ -196,44 +196,109 @@ int main() {
     cudaMalloc(&d_framebuffer, width * height * sizeof(Vec3f));
 
     // Some test triangles
-    Triangle tri1;
-    tri1.v0 = Vec3f(-20, -20, -15);
-    tri1.v1 = Vec3f(20, -20, -15);
-    tri1.v2 = Vec3f(0, 20, -15);
-    // tri1.c0 = Vec3f(1, 0.6, 0.6);
-    // tri1.c1 = Vec3f(0.6, 1, 0.6);
-    // tri1.c2 = Vec3f(0.6, 0.6, 1);
-    tri1.uniformColor(Vec3f(1, 1, 1));
-    tri1.uniformNormal(Vec3f(0, 0, 1));
-    tri1.normAll();
-    tri1.Fresnel = 1.0f;
+    Triangle tris[12];
+    float boxXw = 20; // X width (x2)
+    float boxYh = 10; // Y height (x2)
+    float boxZw = 20; // Z width (x2)
 
-    Triangle tri2;
-    tri2.v0 = Vec3f(-180, -180, 10);
-    tri2.v1 = Vec3f(180, -180, 10);
-    tri2.v2 = Vec3f(0, 180, 11);
-    tri2.c0 = Vec3f(1, 0, 0);
-    tri2.c1 = Vec3f(0, 1, 0);
-    tri2.c2 = Vec3f(0, 0, 1);
-    tri2.uniformNormal(Vec3f(0, 0, -1));
-    tri2.normAll();
+    // Front
+    tris[0].v0 = Vec3f(-boxXw, -boxYh, -boxZw);
+    tris[0].v1 = Vec3f(boxXw, -boxYh, -boxZw);
+    tris[0].v2 = Vec3f(boxXw, boxYh, -boxZw);
+    tris[0].uniformColor(Vec3f(1, 0, 0));
+    tris[0].uniformNormal(Vec3f(0, 0, 1));
+    tris[0].normAll();
 
-    Triangle tri3;
-    tri3.v0 = Vec3f(-5, -5, -32);
-    tri3.v1 = Vec3f(5, -5, -32);
-    tri3.v2 = Vec3f(0, 5, -32);
-    tri3.c0 = Vec3f(1, 1, 0);
-    tri3.c1 = Vec3f(0, 1, 1);
-    tri3.c2 = Vec3f(1, 0, 1);
-    tri3.uniformNormal(Vec3f(0, 0, 1));
-    tri3.normAll();
+    tris[1].v0 = Vec3f(-boxXw, -boxYh, -boxZw);
+    tris[1].v1 = Vec3f(boxXw, boxYh, -boxZw);
+    tris[1].v2 = Vec3f(-boxXw, boxYh, -boxZw);
+    tris[1].uniformColor(Vec3f(1, 0, 0));
+    tris[1].uniformNormal(Vec3f(0, 0, 1));
+    tris[1].normAll();
 
-    int triNum = 3;
+    // Back
+    tris[2].v0 = Vec3f(-boxXw, -boxYh, boxZw);
+    tris[2].v1 = Vec3f(boxXw, -boxYh, boxZw);
+    tris[2].v2 = Vec3f(boxXw, boxYh, boxZw);
+    tris[2].uniformColor(Vec3f(0, 1, 0));
+    tris[2].uniformNormal(Vec3f(0, 0, -1));
+    tris[2].normAll();
+
+    tris[3].v0 = Vec3f(-boxXw, -boxYh, boxZw);
+    tris[3].v1 = Vec3f(boxXw, boxYh, boxZw);
+    tris[3].v2 = Vec3f(-boxXw, boxYh, boxZw);
+    tris[3].uniformColor(Vec3f(0, 1, 0));
+    tris[3].uniformNormal(Vec3f(0, 0, -1));
+    tris[3].normAll();
+
+    // Left
+    tris[4].v0 = Vec3f(-boxXw, -boxYh, -boxZw);
+    tris[4].v1 = Vec3f(-boxXw, -boxYh, boxZw);
+    tris[4].v2 = Vec3f(-boxXw, boxYh, boxZw);
+    tris[4].uniformColor(Vec3f(0, 0, 1));
+    tris[4].uniformNormal(Vec3f(1, 0, 0));
+    tris[4].normAll();
+
+    tris[5].v0 = Vec3f(-boxXw, -boxYh, -boxZw);
+    tris[5].v1 = Vec3f(-boxXw, boxYh, boxZw);
+    tris[5].v2 = Vec3f(-boxXw, boxYh, -boxZw);
+    tris[5].uniformColor(Vec3f(0, 0, 1));
+    tris[5].uniformNormal(Vec3f(1, 0, 0));
+    tris[5].normAll();
+
+    // Right
+    tris[6].v0 = Vec3f(boxXw, -boxYh, -boxZw);
+    tris[6].v1 = Vec3f(boxXw, -boxYh, boxZw);
+    tris[6].v2 = Vec3f(boxXw, boxYh, boxZw);
+    tris[6].uniformColor(Vec3f(1, 1, 0));
+    tris[6].uniformNormal(Vec3f(-1, 0, 0));
+    tris[6].normAll();
+    
+    tris[7].v0 = Vec3f(boxXw, -boxYh, -boxZw);
+    tris[7].v1 = Vec3f(boxXw, boxYh, boxZw);
+    tris[7].v2 = Vec3f(boxXw, boxYh, -boxZw);
+    tris[7].uniformColor(Vec3f(1, 1, 0));
+    tris[7].uniformNormal(Vec3f(-1, 0, 0));
+    tris[7].normAll();
+
+    // Top (ceiling)
+    tris[8].v0 = Vec3f(-boxXw, boxYh, -boxZw);
+    tris[8].v1 = Vec3f(boxXw, boxYh, -boxZw);
+    tris[8].v2 = Vec3f(boxXw, boxYh, boxZw);
+    tris[8].uniformColor(Vec3f(1, 0, 1));
+    tris[8].uniformNormal(Vec3f(0, -1, 0));
+    tris[8].normAll();
+
+    tris[9].v0 = Vec3f(-boxXw, boxYh, -boxZw);
+    tris[9].v1 = Vec3f(boxXw, boxYh, boxZw);
+    tris[9].v2 = Vec3f(-boxXw, boxYh, boxZw);
+    tris[9].uniformColor(Vec3f(1, 0, 1));
+    tris[9].uniformNormal(Vec3f(0, -1, 0));
+    tris[9].normAll();
+
+    // Bottom (floor)
+    tris[10].v0 = Vec3f(-boxXw, -boxYh, -boxZw);
+    tris[10].v1 = Vec3f(boxXw, -boxYh, -boxZw);
+    tris[10].v2 = Vec3f(boxXw, -boxYh, boxZw);
+    tris[10].uniformColor(Vec3f(0, 1, 1));
+    tris[10].uniformNormal(Vec3f(0, 1, 0));
+    tris[10].normAll();
+
+    tris[11].v0 = Vec3f(-boxXw, -boxYh, -boxZw);
+    tris[11].v1 = Vec3f(boxXw, -boxYh, boxZw);
+    tris[11].v2 = Vec3f(-boxXw, -boxYh, boxZw);
+    tris[11].uniformColor(Vec3f(0, 1, 1));
+    tris[11].uniformNormal(Vec3f(0, 1, 0));
+    tris[11].normAll();
+
+    // Fun floor stuff
+    tris[10].Fresnel = 0.4f;
+    tris[11].Fresnel = 0.4f;
+
+    int triNum = 12;
     Triangle *d_triangles;
     cudaMalloc(&d_triangles, triNum * sizeof(Triangle));
-    cudaMemcpy(d_triangles, &tri1, sizeof(Triangle), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_triangles + 1, &tri2, sizeof(Triangle), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_triangles + 2, &tri3, sizeof(Triangle), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_triangles, tris, triNum * sizeof(Triangle), cudaMemcpyHostToDevice);
 
     // Main loop
     while (window.isOpen()) {
