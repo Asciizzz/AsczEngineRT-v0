@@ -280,20 +280,20 @@ int main() {
     tris[10].v0 = Vec3f(-boxXw, -boxYh, -boxZw);
     tris[10].v1 = Vec3f(boxXw, -boxYh, -boxZw);
     tris[10].v2 = Vec3f(boxXw, -boxYh, boxZw);
-    tris[10].uniformColor(Vec3f(0, 1, 1));
+    tris[10].uniformColor(Vec3f(1, 1, 1));
     tris[10].uniformNormal(Vec3f(0, 1, 0));
     tris[10].normAll();
 
     tris[11].v0 = Vec3f(-boxXw, -boxYh, -boxZw);
     tris[11].v1 = Vec3f(boxXw, -boxYh, boxZw);
     tris[11].v2 = Vec3f(-boxXw, -boxYh, boxZw);
-    tris[11].uniformColor(Vec3f(0, 1, 1));
+    tris[11].uniformColor(Vec3f(1, 1, 1));
     tris[11].uniformNormal(Vec3f(0, 1, 0));
     tris[11].normAll();
 
     // Fun floor stuff
-    tris[10].Fresnel = 0.4f;
-    tris[11].Fresnel = 0.4f;
+    tris[10].Fresnel = 0.2f;
+    tris[11].Fresnel = 0.2f;
 
     int triNum = 12;
     Triangle *d_triangles;
