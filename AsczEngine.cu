@@ -13,7 +13,7 @@ __global__ void clearFrameBuffer(Vec3f *framebuffer, int width, int height) {
     if (i < width * height) framebuffer[i] = Vec3f(0, 0, 0);
 }
 
-__global__ void renderFrameBuffer(
+__global__ void iterativeRayTracing(
     Vec3f *framebuffer, Camera camera, Geom *geoms, int geomNum, int width, int height
 ) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -494,7 +494,7 @@ int main() {
         cudaDeviceSynchronize();
 
         // Render framebuffer
-        renderFrameBuffer<<<blocks, threads>>>(d_framebuffer, CAMERA, d_geoms, geomNum, width, height);
+        iterativeRayTracing<<<blocks, threads>>>(d_framebuffer, CAMERA, d_geoms, geomNum, width, height);
         cudaDeviceSynchronize();
 
         SFTex.updateTexture(d_framebuffer, width, height);
