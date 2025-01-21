@@ -5,17 +5,17 @@
 
 struct Mat4f {
     float data[4][4] = {0};
-    __host__ __device__ Mat4f();
-    __host__ __device__ Mat4f(float data[4][4]);
+    _hst_dev_ Mat4f();
+    _hst_dev_ Mat4f(float data[4][4]);
 
     // Basic operations
-    __host__ __device__ Mat4f operator+(const Mat4f &mat);
-    __host__ __device__ Mat4f operator-(const Mat4f &mat);
-    __host__ __device__ Mat4f operator*(const float scl);
+    _hst_dev_ Mat4f operator+(const Mat4f &mat);
+    _hst_dev_ Mat4f operator-(const Mat4f &mat);
+    _hst_dev_ Mat4f operator*(const float scl);
     // Advanced operations
-    __host__ __device__ Vec4f operator*(const Vec4f &vec);
-    __host__ __device__ Mat4f operator*(const Mat4f &mat);
-    __host__ __device__ float det(); // Determinant
+    _hst_dev_ Vec4f operator*(const Vec4f &vec);
+    _hst_dev_ Mat4f operator*(const Mat4f &mat);
+    _hst_dev_ float det(); // Determinant
 };
 
 #endif

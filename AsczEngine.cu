@@ -330,27 +330,20 @@ __global__ void iterativeRayTracing(
 }
 
 int main() {
+    // =================== Initialize FPS and Log ==============
     FpsHandler &FPS = FpsHandler::instance();
     CsLogHandler LOG = CsLogHandler();
+    LOG.fontSize = 24;
 
-    cudaFree(0);  // Force context initialization
-    cudaDeviceSetLimit(cudaLimitStackSize, 256 * 1024);
+    // =================== Initialize window ===================
 
-    // Create SFMLTexture
-    int width = 1600;
-    int height = 900;
-    SFMLTexture SFTex(width, height);
+    // Create window (set to fullscreen)
+    int winW = sf::VideoMode::getDesktopMode().width;
+    int winH = sf::VideoMode::getDesktopMode().height;
 
-    // Test camera
-    Camera CAMERA;
-    CAMERA.pos = Vec3f(0, 5, -10);
-    CAMERA.rot = Vec3f(0, 0, 0);
-    CAMERA.updateView();
-
-    // Create window
-    sf::RenderWindow window(sf::VideoMode(width, height), "AsczEngine");
-    sf::Mouse::setPosition(sf::Vector2i(width / 2, height / 2), window);
-    window.setMouseCursorVisible(!CAMERA.focus);
+    sf::RenderWindow window(sf::VideoMode(winW, winH), "AsczEngine");
+    sf::Mouse::setPosition(sf::Vector2i(winW / 2, winH / 2), window);
+    window.setMouseCursorVisible(false);
 
     // Crosshair
     int crosshairSize = 10;
@@ -359,18 +352,32 @@ int main() {
     sf::RectangleShape crosshair1(
         sf::Vector2f(crosshairSize + crosshairThick, crosshairThick)
     );
-    crosshair1.setPosition(width / 2 - crosshairSize / 2, height / 2);
+    crosshair1.setPosition(winW / 2 - crosshairSize / 2, winH / 2);
     crosshair1.setFillColor(crosshairColor);
     sf::RectangleShape crosshair2(
         sf::Vector2f(crosshairThick, crosshairSize + crosshairThick)
     );
-    crosshair2.setPosition(width / 2, height / 2 - crosshairSize / 2);
+    crosshair2.setPosition(winW / 2, winH / 2 - crosshairSize / 2);
     crosshair2.setFillColor(crosshairColor);
 
+    // =============== Initialize Important Variables ==============
+
+    // Create SFMLTexture
+    int frmW = winW / 2;
+    int frmH = winH / 2;
+    SFMLTexture SFTex(frmW, frmH);
+    SFTex.sprite.setScale(2, 2);
+
+    // Create Camera
+    Camera CAMERA;
+    CAMERA.pos = Vec3f(0, 5, -10);
+    CAMERA.rot = Vec3f(0, 0, 0);
+    CAMERA.updateView();
+
     int threads = 256;
-    int blocks = (width * height + threads - 1) / threads;
+    int blocks = (frmW * frmH + threads - 1) / threads;
     Vec3f *d_framebuffer;
-    cudaMalloc(&d_framebuffer, width * height * sizeof(Vec3f));
+    cudaMalloc(&d_framebuffer, frmW * frmH * sizeof(Vec3f));
 
     // ======================================================================== 
     // ======================= Some test geometries ===========================
@@ -385,25 +392,19 @@ int main() {
     Geom sph[(2 * m + 1) * (2 * n + 1) * 2];
     for (int x = -m; x <= m; x++) {
         for (int z = -n; z <= n; z++) {
-            for (int h = 0; h < 1; h++) {
-                // Vec3f rndColor = Vec3f(
-                //     rand() % 256 / 255.0f,
-                //     rand() % 256 / 255.0f,
-                //     rand() % 256 / 255.0f
-                // );
+            Vec3f rndColor = Vec3f(
+                rand() % 256 / 255.0f,
+                rand() % 256 / 255.0f,
+                rand() % 256 / 255.0f
+            );
 
-                Vec3f rndColor = Vec3f(0.2, 0.2, 0.2);
-                rndColor.x = h == 0 ? 1 : 0.2;
-                rndColor.z = h == 0 ? 0.2 : 1;
+            int idx = count++;
+            sph[idx].type = Geom::SPHERE;
+            sph[idx].sphere = Sphere(
+                Vec3f(x * u, r, z * u), r, rndColor
+            );
 
-                float y = h == 0 ? r : -r;
-
-                int idx = count++;
-                sph[idx].type = Geom::SPHERE;
-                sph[idx].sphere = Sphere( Vec3f(x * u, y, z * u), r, rndColor );
-
-                sph[idx].reflect = 0.7f;
-            }
+            sph[idx].reflect = 0.7f;
         }
     }
 
@@ -451,7 +452,7 @@ int main() {
             if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::F1) {
                 CAMERA.focus = !CAMERA.focus;
                 // To avoid sudden camera movement when changing focus
-                sf::Mouse::setPosition(sf::Vector2i(width / 2, height / 2), window);
+                sf::Mouse::setPosition(sf::Vector2i(winW / 2, winH / 2), window);
 
                 // Hide cursor
                 window.setMouseCursorVisible(!CAMERA.focus);
@@ -461,6 +462,9 @@ int main() {
             if (event.type == sf::Event::MouseWheelScrolled) {
                 if (event.mouseWheelScroll.delta > 0) CAMERA.fov += 0.1;
                 else if (event.mouseWheelScroll.delta < 0) CAMERA.fov -= 0.1;
+
+                if (CAMERA.fov < 0.1) CAMERA.fov += 0.1;
+                if (CAMERA.fov > M_PI - 0.1) CAMERA.fov -= 0.1;
             }
         }
 
@@ -485,13 +489,11 @@ int main() {
         if (CAMERA.focus) {
         // Camera look around
             sf::Vector2i mousepos = sf::Mouse::getPosition(window);
-            sf::Mouse::setPosition(sf::Vector2i(
-                width / 2, height / 2
-            ), window);
+            sf::Mouse::setPosition(sf::Vector2i(winW / 2, winH / 2), window);
 
             // Move from center
-            int dMx = mousepos.x - width / 2;
-            int dMy = mousepos.y - height / 2;
+            int dMx = mousepos.x - winW / 2;
+            int dMy = mousepos.y - winH / 2;
 
             // Camera look around
             CAMERA.rot.x -= dMy * CAMERA.mSens * FPS.dTimeSec;
@@ -513,14 +515,14 @@ int main() {
         CAMERA.update();
 
         // Prepare framebuffer
-        clearFrameBuffer<<<blocks, threads>>>(d_framebuffer, width, height);
+        clearFrameBuffer<<<blocks, threads>>>(d_framebuffer, frmW, frmH);
         cudaDeviceSynchronize();
 
         // Render framebuffer
-        iterativeRayTracing<<<blocks, threads>>>(d_framebuffer, CAMERA, d_geoms, geomNum, width, height);
+        iterativeRayTracing<<<blocks, threads>>>(d_framebuffer, CAMERA, d_geoms, geomNum, frmW, frmH);
         cudaDeviceSynchronize();
 
-        SFTex.updateTexture(d_framebuffer, width, height);
+        SFTex.updateTexture(d_framebuffer, frmW, frmH);
 
         LOG.addLog("Welcome to AsczEngineRT v0", sf::Color::Green, 1);
         LOG.addLog("FPS: " + std::to_string(FPS.fps), sf::Color::Blue);
@@ -528,7 +530,9 @@ int main() {
 
         // Clear window
         window.clear();
+
         window.draw(SFTex.sprite);
+
         // Draw the crosshair
         window.draw(crosshair1);
         window.draw(crosshair2);

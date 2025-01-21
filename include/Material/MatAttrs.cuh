@@ -15,6 +15,7 @@
 10. Casts shadows onto invisible surfaces
 
 */
+#include <Vector.cuh>
 
 struct MatAttrs {
     float Ka[3];  // Color as RGB (0.0 - 1.0)
@@ -47,7 +48,7 @@ struct MatAttrs {
     int map_displace;   // Displacement map
     int map_reflect;    // Reflection map
 
-    __host__ __device__ MatAttrs();
+    _hst_dev_ MatAttrs();
 };
 
 

@@ -15,9 +15,9 @@ public:
     void updateView();
 
     // Ray generation
-    __host__ __device__
+    _hst_dev_
     Vec2f getScrnNDC(float x, float y, float width, float height);
-    __host__ __device__
+    _hst_dev_
     Ray castRay(float x, float y, float width, float height);
 
     void update();

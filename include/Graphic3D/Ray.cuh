@@ -16,15 +16,15 @@ struct Ray {
     Vec3f direction;
     float Ni = 1.0f; // Refractive index
 
-    __host__ __device__ Ray();
-    __host__ __device__ Ray(Vec3f direction, float Ni=1.0f); // Origin at (0, 0, 0)
-    __host__ __device__ Ray(Vec3f origin, Vec3f direction, float Ni=1.0f);
+    _hst_dev_ Ray();
+    _hst_dev_ Ray(Vec3f direction, float Ni=1.0f); // Origin at (0, 0, 0)
+    _hst_dev_ Ray(Vec3f origin, Vec3f direction, float Ni=1.0f);
 
     // AABB intersection
-    __device__ bool intersectAABB(const Vec3f &AABBmin, const Vec3f &AABBmax);
+    _hst_dev_ bool intersectAABB(const Vec3f &AABBmin, const Vec3f &AABBmax);
 
-    __device__ Vec3f reflect(const Vec3f &normal);
-    __device__ Vec3f refract(const Vec3f &normal, float Ni2);
+    _hst_dev_ Vec3f reflect(const Vec3f &normal);
+    _hst_dev_ Vec3f refract(const Vec3f &normal, float Ni2);
 };
 
 #endif
