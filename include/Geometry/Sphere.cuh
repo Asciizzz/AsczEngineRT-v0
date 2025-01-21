@@ -7,9 +7,12 @@ struct Sphere {
     Vec3f o;
     float r;
 
+    Vec3f color;
     bool invert = false; // Invert the normal
 
-    Vec3f color;
+    Sphere() {}
+    Sphere(Vec3f o, float r, Vec3f color) :
+        o(o), r(r), color(color) {}
 };
 
 #endif

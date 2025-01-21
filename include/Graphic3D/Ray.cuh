@@ -6,7 +6,7 @@
 struct RayHit {
     bool hit = false;
     int idx = -1;
-    float t = 1e8;
+    float t = 1e9;
     float u = 0;
     float v = 0;
     float w = 0;

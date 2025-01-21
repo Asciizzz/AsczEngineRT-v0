@@ -22,42 +22,13 @@ __device__ Vec3f iterativeRayTracing(
         Ray &ray = rays[r];
         RayHit &hit = hits[r];
 
-// =========================================================================
-// ======================= Will be replaced with BVH =======================
-// =========================================================================
+    // =========================================================================
+    // ======================= Will be replaced with BVH =======================
+    // =========================================================================
 
         for (int g = 0; g < geomNum; g++) {
-            // const Triangle &tri = geoms[g].triangle;
-            // Vec3f e1 = tri.v1 - tri.v0;
-            // Vec3f e2 = tri.v2 - tri.v0;
-            // Vec3f h = ray.direction & e2;
-            // float a = e1 * h;
-
-            // if (a > -0.00001 && a < 0.00001) continue;
-
-            // float f = 1.0f / a;
-            // Vec3f s = ray.origin - tri.v0;
-            // float u = f * (s * h);
-
-            // if (u < 0.0f || u > 1.0f) continue;
-
-            // Vec3f q = s & e1;
-            // float v = f * (ray.direction * q);
-
-            // if (v < 0.0f || u + v > 1.0f) continue;
-
-            // float t = f * (e2 * q);
-
-            // if (t > 0.00001 && t < hit.t) {
-            //     hit.hit = true;
-            //     hit.idx = g;
-            //     hit.t = t;
-            //     hit.u = u;
-            //     hit.v = v;
-            //     hit.w = 1 - u - v;
-            // }
-
             const Geom &geom = geoms[g];
+
             switch (geom.type) {
                 case Geom::TRIANGLE: {
                     const Triangle &tri = geom.triangle;
@@ -89,43 +60,65 @@ __device__ Vec3f iterativeRayTracing(
                         hit.v = v;
                         hit.w = 1 - u - v;
                     }
-                    break;
+                    continue;
                 }
-                
+
                 case Geom::SPHERE: {
                     const Sphere &sph = geom.sphere;
-                    Vec3f oc = ray.origin - sph.o;
-                    float a = ray.direction * ray.direction;
-                    float b = 2.0f * (oc * ray.direction);
-                    float c = oc * oc - sph.r * sph.r;
-                    float d = b * b - 4 * a * c;
 
-                    if (d < 0) continue;
+                    Vec3f l = sph.o - ray.origin;
+                    float tca = l * ray.direction;
+                    float d2 = l * l - tca * tca;
 
-                    float t = (-b - sqrt(d)) / (2 * a);
-                    if (t < 0.00001) continue;
+                    if (d2 > sph.r * sph.r) continue;
 
-                    if (t < hit.t) {
+                    float thc = sqrt(sph.r * sph.r - d2);
+                    float t0 = tca - thc;
+                    float t1 = tca + thc;
+
+                    if (t0 < 0) t0 = t1;
+
+                    if (t0 > 0.00001 && t0 < hit.t) {
+                        hit.hit = true;
+                        hit.idx = g;
+                        hit.t = t0;
+                    }
+
+                    continue;
+                }
+
+                case Geom::PLANE: {
+                    const Plane &pln = geom.plane;
+
+                    float denom = pln.n * ray.direction;
+                    if (denom > -0.00001 && denom < 0.00001) continue; // Parallel
+
+                    float t = -(pln.n * ray.origin + pln.d) / denom;
+
+                    if (t < hit.t && t > 0.00001) {
                         hit.hit = true;
                         hit.idx = g;
                         hit.t = t;
                     }
-                    break;
+                    continue;
                 }
             }
         }
 
-// =========================================================================
-// =========================================================================
-// =========================================================================
+    // =========================================================================
+    // =========================================================================
+    // =========================================================================
 
         if (!hit.hit) continue;
 
+        // Interpolate the hit point
         const Geom &geom = geoms[hit.idx];
+
+        vrtx[r] = ray.origin + ray.direction * hit.t;
+
         switch (geom.type) {
             case Geom::TRIANGLE: {
                 const Triangle &tri = geom.triangle;
-                vrtx[r] = ray.origin + ray.direction * hit.t;
                 colr[r] = tri.c0 * hit.w + tri.c1 * hit.u + tri.c2 * hit.v;
                 nrml[r] = tri.n0 * hit.w + tri.n1 * hit.u + tri.n2 * hit.v;
                 nrml[r].norm();
@@ -134,14 +127,29 @@ __device__ Vec3f iterativeRayTracing(
 
             case Geom::SPHERE: {
                 const Sphere &sph = geom.sphere;
-                vrtx[r] = ray.origin + ray.direction * hit.t;
                 colr[r] = sph.color;
                 nrml[r] = (vrtx[r] - sph.o) / sph.r;
                 if (sph.invert) nrml[r] = -nrml[r];
-                nrml[r].norm();
+                break;
+            }
+
+            case Geom::PLANE: {
+                const Plane &pln = geom.plane;
+                colr[r] = pln.color;
+                nrml[r] = pln.n;
                 break;
             }
         }
+
+        // If the geometry is a sky, ignore the rest
+        if (geom.isSky) continue;
+
+        // Apply very basic lighting with light ray from the top
+        float diff = nrml[r] * Vec3f(0, 1, 0);
+        if (diff < 0) diff = -diff;
+
+        diff = 0.2 + diff * 0.8;
+        colr[r] *= diff;
 
         if (geom.reflect > 0.0f) {
             float weightLeft = weights[r] * geom.reflect;
@@ -267,113 +275,40 @@ int main() {
     Vec3f *d_framebuffer;
     cudaMalloc(&d_framebuffer, width * height * sizeof(Vec3f));
 
-    // Some test triangles
-    Triangle tris[12];
-    float boxXw = 20; // X width (x2)
-    float boxYh = 10; // Y height (x2)
-    float boxZw = 20; // Z width (x2)
-
-    // Front
-    tris[0].v0 = Vec3f(-boxXw, -boxYh, -boxZw);
-    tris[0].v1 = Vec3f(boxXw, -boxYh, -boxZw);
-    tris[0].v2 = Vec3f(boxXw, boxYh, -boxZw);
-    tris[0].uniformColor(Vec3f(1, 0, 0));
-    tris[0].uniformNormal(Vec3f(0, 0, 1));
-    tris[0].normAll();
-
-    tris[1].v0 = Vec3f(-boxXw, -boxYh, -boxZw);
-    tris[1].v1 = Vec3f(boxXw, boxYh, -boxZw);
-    tris[1].v2 = Vec3f(-boxXw, boxYh, -boxZw);
-    tris[1].uniformColor(Vec3f(1, 0, 0));
-    tris[1].uniformNormal(Vec3f(0, 0, 1));
-    tris[1].normAll();
-
-    // Back
-    tris[2].v0 = Vec3f(-boxXw, -boxYh, boxZw);
-    tris[2].v1 = Vec3f(boxXw, -boxYh, boxZw);
-    tris[2].v2 = Vec3f(boxXw, boxYh, boxZw);
-    tris[2].uniformColor(Vec3f(0, 1, 0));
-    tris[2].uniformNormal(Vec3f(0, 0, -1));
-    tris[2].normAll();
-
-    tris[3].v0 = Vec3f(-boxXw, -boxYh, boxZw);
-    tris[3].v1 = Vec3f(boxXw, boxYh, boxZw);
-    tris[3].v2 = Vec3f(-boxXw, boxYh, boxZw);
-    tris[3].uniformColor(Vec3f(0, 1, 0));
-    tris[3].uniformNormal(Vec3f(0, 0, -1));
-    tris[3].normAll();
-
-    // Left
-    tris[4].v0 = Vec3f(-boxXw, -boxYh, -boxZw);
-    tris[4].v1 = Vec3f(-boxXw, -boxYh, boxZw);
-    tris[4].v2 = Vec3f(-boxXw, boxYh, boxZw);
-    tris[4].uniformColor(Vec3f(0, 0, 1));
-    tris[4].uniformNormal(Vec3f(1, 0, 0));
-    tris[4].normAll();
-
-    tris[5].v0 = Vec3f(-boxXw, -boxYh, -boxZw);
-    tris[5].v1 = Vec3f(-boxXw, boxYh, boxZw);
-    tris[5].v2 = Vec3f(-boxXw, boxYh, -boxZw);
-    tris[5].uniformColor(Vec3f(0, 0, 1));
-    tris[5].uniformNormal(Vec3f(1, 0, 0));
-    tris[5].normAll();
-
-    // Right
-    tris[6].v0 = Vec3f(boxXw, -boxYh, -boxZw);
-    tris[6].v1 = Vec3f(boxXw, -boxYh, boxZw);
-    tris[6].v2 = Vec3f(boxXw, boxYh, boxZw);
-    tris[6].uniformColor(Vec3f(1, 1, 0));
-    tris[6].uniformNormal(Vec3f(-1, 0, 0));
-    tris[6].normAll();
-    
-    tris[7].v0 = Vec3f(boxXw, -boxYh, -boxZw);
-    tris[7].v1 = Vec3f(boxXw, boxYh, boxZw);
-    tris[7].v2 = Vec3f(boxXw, boxYh, -boxZw);
-    tris[7].uniformColor(Vec3f(1, 1, 0));
-    tris[7].uniformNormal(Vec3f(-1, 0, 0));
-    tris[7].normAll();
-
-    // Top (ceiling)
-    tris[8].v0 = Vec3f(-boxXw, boxYh, -boxZw);
-    tris[8].v1 = Vec3f(boxXw, boxYh, -boxZw);
-    tris[8].v2 = Vec3f(boxXw, boxYh, boxZw);
-    tris[8].uniformColor(Vec3f(1, 0, 1));
-    tris[8].uniformNormal(Vec3f(0, -1, 0));
-    tris[8].normAll();
-
-    tris[9].v0 = Vec3f(-boxXw, boxYh, -boxZw);
-    tris[9].v1 = Vec3f(boxXw, boxYh, boxZw);
-    tris[9].v2 = Vec3f(-boxXw, boxYh, boxZw);
-    tris[9].uniformColor(Vec3f(1, 0, 1));
-    tris[9].uniformNormal(Vec3f(0, -1, 0));
-    tris[9].normAll();
-
-    // Bottom (floor)
-    tris[10].v0 = Vec3f(-boxXw, -boxYh, -boxZw);
-    tris[10].v1 = Vec3f(boxXw, -boxYh, -boxZw);
-    tris[10].v2 = Vec3f(boxXw, -boxYh, boxZw);
-    tris[10].uniformColor(Vec3f(1, 1, 1));
-    tris[10].uniformNormal(Vec3f(0, 1, 0));
-    tris[10].normAll();
-
-    tris[11].v0 = Vec3f(-boxXw, -boxYh, -boxZw);
-    tris[11].v1 = Vec3f(boxXw, -boxYh, boxZw);
-    tris[11].v2 = Vec3f(-boxXw, -boxYh, boxZw);
-    tris[11].uniformColor(Vec3f(1, 1, 1));
-    tris[11].uniformNormal(Vec3f(0, 1, 0));
-    tris[11].normAll();
-
-    // int triNum = 12;
-    // Triangle *d_triangles;
-    // cudaMalloc(&d_triangles, triNum * sizeof(Triangle));
-    // cudaMemcpy(d_triangles, tris, triNum * sizeof(Triangle), cudaMemcpyHostToDevice);
+    // ======================================================================== 
+    // ======================= Some test geometries ===========================
+    // ========================================================================
 
     // Test obj
-    std::vector<Geom> geoms = Utils::readObjFile("test",
+    std::vector<Geom> shape = Utils::readObjFile("test",
         "assets/Models/Shapes/Cube1.obj", 1, 0
     );
-    int geomNum = geoms.size();
+    int shapeNum = shape.size();
+
+    // Test sphere
+    Geom sph;
+    sph.type = Geom::SPHERE;
+    sph.sphere = Sphere( Vec3f(0, 2, 0), 2.0f, Vec3f(1, 1, 1) );
+    sph.reflect = 0.8f;
+
+    // Test plane
+    Geom pln;
+    pln.type = Geom::PLANE;
+    pln.plane = Plane( Vec3f(0, 1, 0), 0, Vec3f(1) );
+
+    // Test sky
+    Geom sky;
+    sky.type = Geom::SPHERE;
+    sky.sphere = Sphere( Vec3f(0, 0, 0), 1000.0f, Vec3f(0.5, 0.6, 1) );
+    sky.isSky = true;
+
+    std::vector<Geom> geoms;
+    geoms.push_back(sky);
+    geoms.push_back(pln);
+    geoms.push_back(sph);
+
     Geom *d_geoms;
+    int geomNum = geoms.size();
     cudaMalloc(&d_geoms, geomNum * sizeof(Geom));
     cudaMemcpy(d_geoms, geoms.data(), geomNum * sizeof(Geom), cudaMemcpyHostToDevice);
 

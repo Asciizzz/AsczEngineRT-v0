@@ -3,12 +3,14 @@
 
 #include <Triangle.cuh>
 #include <Sphere.cuh>
+#include <Plane.cuh>
 
 struct Geom {
-    enum GeomType { TRIANGLE, SPHERE } type;
+    enum GeomType { TRIANGLE, SPHERE, PLANE } type;
     union {
         Triangle triangle;
         Sphere sphere;
+        Plane plane;
     };
 
     // Test material attributes
@@ -17,6 +19,9 @@ struct Geom {
 
     float Fresnel = 0.0f;
     float Ni = 1.0f;
+
+    // Some special attributes
+    bool isSky = false;
 
     Geom() {}
 };

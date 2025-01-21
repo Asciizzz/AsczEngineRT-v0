@@ -9,6 +9,10 @@ struct Triangle {
     Vec3f n0, n1, n2;
     Vec3f c0, c1, c2; // Color
 
+    Triangle() {}
+    Triangle(Vec3f v1, Vec3f v2, Vec3f v3) :
+        v0(v1), v1(v2), v2(v3) {}
+
     // Some helper functions
     void uniformColor(Vec3f color) {
         c0 = color;
