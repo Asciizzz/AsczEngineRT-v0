@@ -11,7 +11,7 @@ struct Sphere {
     bool invert = false; // Invert the normal
 
     Sphere() {}
-    Sphere(Vec3f o, float r, Vec3f color) :
+    Sphere(Vec3f o, float r, Vec3f color=Vec3f()) :
         o(o), r(r), color(color) {}
 };
 

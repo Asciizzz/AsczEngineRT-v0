@@ -5,6 +5,7 @@
 #include <SFMLTexture.cuh>
 
 #include <Utility.cuh>
+#include <random>
 
 __device__ Vec3f iterativeRayTracing(
     const Ray &primaryRay, const Geom *geoms, int geomNum
@@ -373,9 +374,15 @@ int main() {
     Geom sph[(2 * m + 1) * (2 * n + 1)];
     for (int x = -m; x <= m; x++) {
         for (int z = -n; z <= n; z++) {
+            Vec3f rndColor = Vec3f(
+                rand() % 256 / 255.0f,
+                rand() % 256 / 255.0f,
+                rand() % 256 / 255.0f
+            );
+
             int idx = count++;
             sph[idx].type = Geom::SPHERE;
-            sph[idx].sphere = Sphere( Vec3f(x * u, r, z * u), r, Vec3f(1) );
+            sph[idx].sphere = Sphere( Vec3f(x * u, r, z * u), r, rndColor );
 
             sph[idx].reflect = 0.7f;
         }
@@ -385,6 +392,7 @@ int main() {
     Geom pln;
     pln.type = Geom::PLANE;
     pln.plane = Plane( Vec3f(0, 1, 0), 0, Vec3f(1) );
+    pln.Fresnel = 0.2f;
 
     // Test sky
     Geom sky;
