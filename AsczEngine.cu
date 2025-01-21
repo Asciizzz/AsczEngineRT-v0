@@ -8,6 +8,7 @@
 struct RayHit {
     bool hit = false;
     int idx = -1;
+    float weight = 1.0f;
     float t = 1e8;
     float u = 0;
     float v = 0;
@@ -16,22 +17,22 @@ struct RayHit {
     Vec2f txtr;
     Vec3f nrml;
     Vec3f colr;
-};
 
-struct RayContribution {
-    Ray ray;
-    RayHit hit;
+    __device__ RayHit(float weight=1.0f) : weight(weight) {}
 };
 
 __device__ RayHit iterativeRayTracing(
-    const Ray &ray, const Triangle *triangles, int triNum
+    const Ray &primaryRay, const Triangle *triangles, int triNum
 ) {
-    RayContribution contributions[20];
-    int contributionCount = 0;
-    bool lastHit = false;
+    Ray rays[20] = { primaryRay };
+    RayHit hits[20] = { RayHit() };
+    int count = 0;
 
-    while (!lastHit && contributionCount < 20) {
-        RayHit hit = RayHit();
+    for (int i = 0; i < count + 1; i++) {
+        if (count > 16) break;
+
+        Ray &ray = rays[i];
+        RayHit &hit = hits[i];
 
         // Will be replaced with BVH
         for (int i = 0; i < triNum; i++) {
@@ -66,26 +67,70 @@ __device__ RayHit iterativeRayTracing(
             }
         }
 
-        if (!hit.hit) {
-            lastHit = true;
-            break;
-        }
+        if (!hit.hit) break;
 
         Triangle tri = triangles[hit.idx];
 
         hit.vrtx = ray.origin + ray.direction * hit.t;
-        hit.nrml = tri.n0 * hit.w + tri.n1 * hit.u + tri.n2 * hit.v;
         hit.colr = tri.c0 * hit.w + tri.c1 * hit.u + tri.c2 * hit.v;
+        hit.nrml = tri.n0 * hit.w + tri.n1 * hit.u + tri.n2 * hit.v;
+        hit.nrml.norm();
 
-        contributions[contributionCount++] = {ray, hit};
+        if (tri.reflect > 0.0f) {
+            float weightLeft = hit.weight * tri.reflect;
+            hit.weight *= (1 - tri.reflect);
 
-        // For the time being just break the loop
-        lastHit = true;
+            Vec3f reflDir = ray.reflect(hit.nrml);
+            Vec3f reflOrigin = hit.vrtx + hit.nrml * 0.0001;
+
+            rays[++count] = Ray(reflOrigin, reflDir);
+            hits[count] = RayHit(weightLeft);
+        }
+        else if (tri.transmit > 0.0f) {
+            float weightLeft = hit.weight * tri.transmit;
+            hit.weight *= (1 - tri.transmit);
+
+            Vec3f transOrg = hit.vrtx + ray.direction * 0.0001;
+
+            rays[++count] = Ray(transOrg, ray.direction);
+            hits[count] = RayHit(weightLeft);
+        }
+        else if (tri.Fresnel > 0.0f) {
+            float weightLeft = hit.weight * tri.Fresnel;
+            hit.weight *= (1 - tri.Fresnel);
+
+            // Schlick's approximation
+            float cosI = (-ray.direction) * hit.nrml;
+            if (cosI < 0) cosI = -cosI;
+
+            // Find the fresnel coefficient
+            float R = pow(1 - cosI, 5);
+            float Rrefl = R * weightLeft;
+            float Rrefr = (1 - R) * weightLeft;
+
+            // Refraction (for the time being just tranparent)
+            Vec3f refrDir = ray.direction;
+            Vec3f refrOrigin = hit.vrtx + refrDir * 0.0001;
+
+            rays[++count] = Ray(refrOrigin, refrDir);
+            hits[count] = RayHit(Rrefr);
+
+            // Reflection
+            Vec3f reflDir = ray.reflect(hit.nrml);
+            Vec3f reflOrigin = hit.vrtx + hit.nrml * 0.0001;
+
+            rays[++count] = Ray(reflOrigin, reflDir);
+            hits[count] = RayHit(Rrefl);
+        }
     }
 
-    if (contributionCount == 0) return RayHit();
+    RayHit finalHit;
+    finalHit.hit = true;
+    for (int i = 0; i <= count; i++) {
+        RayHit &hit = hits[i];
+        finalHit.colr += hit.colr * hit.weight;
+    }
 
-    RayHit finalHit = contributions[0].hit;
     return finalHit;
 }
 
@@ -157,29 +202,43 @@ int main() {
 
     // Some test triangles
     Triangle tri1;
-    tri1.v0 = Vec3f(-10, -10, -15);
-    tri1.v1 = Vec3f(10, -10, -15);
-    tri1.v2 = Vec3f(0, 10, -15);
-    tri1.c0 = Vec3f(1, 0.6, 0.6);
-    tri1.c1 = Vec3f(0.6, 1, 0.6);
-    tri1.c2 = Vec3f(0.6, 0.6, 1);
+    tri1.v0 = Vec3f(-20, -20, -15);
+    tri1.v1 = Vec3f(20, -20, -15);
+    tri1.v2 = Vec3f(0, 20, -15);
+    // tri1.c0 = Vec3f(1, 0.6, 0.6);
+    // tri1.c1 = Vec3f(0.6, 1, 0.6);
+    // tri1.c2 = Vec3f(0.6, 0.6, 1);
+    tri1.uniformColor(Vec3f(1, 1, 1));
     tri1.uniformNormal(Vec3f(0, 0, 1));
     tri1.normAll();
-    tri1.reflect = 0.1;
+    tri1.Fresnel = 1.0f;
 
     Triangle tri2;
-    tri2.v0 = Vec3f(-8, -8, 15);
-    tri2.v1 = Vec3f(8, -8, 15);
-    tri2.v2 = Vec3f(0, 8, 15);
-    tri2.uniformColor(Vec3f(0, 0, 1));
+    tri2.v0 = Vec3f(-180, -180, 10);
+    tri2.v1 = Vec3f(180, -180, 10);
+    tri2.v2 = Vec3f(0, 180, 11);
+    tri2.c0 = Vec3f(1, 0, 0);
+    tri2.c1 = Vec3f(0, 1, 0);
+    tri2.c2 = Vec3f(0, 0, 1);
     tri2.uniformNormal(Vec3f(0, 0, -1));
     tri2.normAll();
 
-    int triNum = 2;
+    Triangle tri3;
+    tri3.v0 = Vec3f(-5, -5, -32);
+    tri3.v1 = Vec3f(5, -5, -32);
+    tri3.v2 = Vec3f(0, 5, -32);
+    tri3.c0 = Vec3f(1, 1, 0);
+    tri3.c1 = Vec3f(0, 1, 1);
+    tri3.c2 = Vec3f(1, 0, 1);
+    tri3.uniformNormal(Vec3f(0, 0, 1));
+    tri3.normAll();
+
+    int triNum = 3;
     Triangle *d_triangles;
     cudaMalloc(&d_triangles, triNum * sizeof(Triangle));
     cudaMemcpy(d_triangles, &tri1, sizeof(Triangle), cudaMemcpyHostToDevice);
     cudaMemcpy(d_triangles + 1, &tri2, sizeof(Triangle), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_triangles + 2, &tri3, sizeof(Triangle), cudaMemcpyHostToDevice);
 
     // Main loop
     while (window.isOpen()) {

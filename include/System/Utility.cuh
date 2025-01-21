@@ -24,12 +24,12 @@ struct Triangle {
     Vec3f c0, c1, c2; // Placeholder, to test interpolation
     Vec3f n0, n1, n2;
 
-    float reflect = 0; // Test reflection
+    // Test material attributes
+    float reflect = 0.0f;
+    float transmit = 0.0f;
 
-    float ambient = 0.3f;
-    float diffuse = 0.9f;
-    float specular = 0.5f;
-    float shininess = 32;
+    float Fresnel = 0.0f;
+    float Ni = 1.0f;
 
     // Some helper functions
     void uniformColor(Vec3f color) {

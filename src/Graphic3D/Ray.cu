@@ -1,9 +1,10 @@
 #include <Ray.cuh>
 
 // Constructors
-Ray::Ray() : origin(Vec3f(0, 0, 0)), direction(Vec3f(0, 0, 0)) {}   
-Ray::Ray(Vec3f direction) : origin(Vec3f(0, 0, 0)), direction(direction) {}
-Ray::Ray(Vec3f origin, Vec3f direction) : origin(origin), direction(direction) {}
+Ray::Ray() : origin(Vec3f()), direction(Vec3f()) {}   
+Ray::Ray(Vec3f direction, float Ni) : direction(direction), Ni(Ni) {}
+Ray::Ray(Vec3f origin, Vec3f direction, float Ni) :
+    origin(origin), direction(direction), Ni(Ni) {}
 
 // Bounding volume intersections
 
@@ -47,4 +48,14 @@ bool Ray::intersectAABB(Vec3f &AABBmin, Vec3f &AABBmax) {
 // Reflection
 Vec3f Ray::reflect(Vec3f normal) {
     return direction - normal * (2.0f * (direction * normal));
+}
+
+Vec3f Ray::refract(Vec3f normal, float Ni2) {
+    float Ni1 = Ni;
+    float cosI = -normal * direction;
+    float cosT2 = 1.0f - Ni1 * Ni1 * (1.0f - cosI * cosI) / (Ni2 * Ni2);
+
+    if (cosT2 < 0.0f) return Vec3f(); // Total internal reflection
+
+    return direction * Ni1 / Ni2 + normal * (Ni1 * cosI / Ni2 - sqrt(cosT2));
 }
