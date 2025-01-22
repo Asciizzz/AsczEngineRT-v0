@@ -18,10 +18,10 @@
 #include <Vector.cuh>
 
 struct MatAttrs {
-    float Ka[3];  // Color as RGB (0.0 - 1.0)
-    float Kd[3];  // Color as RGB (0.0 - 1.0)
-    float Ks[3];  // Color as RGB (0.0 - 1.0)
-    float Ke[3];  // Color as RGB (0.0 - 1.0)
+    Vec3f Ka;     // Ambient color
+    Vec3f Kd;     // Diffuse color
+    Vec3f Ks;     // Specular color
+    Vec3f Ke;     // Emission color
 
     int map_Ka;   // Ambient texture map
     int map_Kd;   // Diffuse texture map
@@ -31,7 +31,7 @@ struct MatAttrs {
 
     float Ni;           // Index of refraction (typically between 1.0 and 2.0)
     float reflectivity; // Reflectivity factor (0.0 - 1.0)
-    float Refract[3];   // Refraction color (RGB)
+    Vec3f Refract;      // Refraction color (RGB)
 
     float shiny;        // Shininess factor (higher values = sharper highlights)
     float roughness;    // Surface roughness (0.0 - 1.0)
@@ -39,14 +39,11 @@ struct MatAttrs {
     float clearcoat_gloss; // Clearcoat glossiness (0.0 - 1.0)
 
     float Tr;           // Transparency (0.0 - 1.0)
-    float transmit[3];  // Transmission color (RGB)
+    Vec3f transmit;     // Transmission filter (RGB)
 
     float anisotropy;   // Anisotropy for simulating brushed metal-like surfaces
 
     int illum;          // Illumination model, typically 2 for diffuse+specular
-
-    int map_displace;   // Displacement map
-    int map_reflect;    // Reflection map
 
     _hst_dev_ MatAttrs();
 };

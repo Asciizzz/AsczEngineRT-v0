@@ -13,6 +13,9 @@ struct Geom {
         Plane plane;
     };
 
+    Geom() {}
+    Geom(GeomType type) : type(type) {}
+
     // === Test material attributes ===
 
     float reflect = 0.0f;
@@ -26,7 +29,6 @@ struct Geom {
     // Some special attributes
     bool isSky = false;
 
-    Geom() {}
 };
 
 #endif

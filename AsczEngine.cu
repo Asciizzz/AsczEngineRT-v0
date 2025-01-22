@@ -42,7 +42,7 @@ int main() {
 
     TxtrManager TxtrMgr;
     // Load some test texture
-    TxtrMgr.appendTexture("assets/Textures/Dirt.png");
+    TxtrMgr.appendTexture("assets/Textures/Yellow.png");
     TxtrMgr.hostToDevice();
 
     // Create SFMLTexture
@@ -72,7 +72,7 @@ int main() {
     float u = 10.0f;
     float r = 2.0f;
     int count = 0;
-    Geom sph[(2 * m + 1) * (2 * n + 1) * 2];
+    Geom sphs[(2 * m + 1) * (2 * n + 1) * 2];
     for (int x = -m; x <= m; x++) {
         for (int z = -n; z <= n; z++) {
             Vec3f rndColor = Vec3f(
@@ -82,38 +82,40 @@ int main() {
             );
 
             int idx = count++;
-            sph[idx].type = Geom::SPHERE;
-            sph[idx].sphere = Sphere(
+            sphs[idx].type = Geom::SPHERE;
+            sphs[idx].sphere = Sphere(
                 Vec3f(x * u, r, z * u), r, rndColor
             );
 
-            sph[idx].reflect = 0.7f;
+            sphs[idx].reflect = 0.7f;
         }
     }
 
     // Test plane
-    Geom pln;
-    pln.type = Geom::PLANE;
+    Geom pln(Geom::PLANE);
     pln.plane = Plane( Vec3f(0, 1, 0), 0, Vec3f(1) );
     pln.Fresnel = 0.4f;
 
     // Test sky
-    Geom sky;
-    sky.type = Geom::SPHERE;
+    Geom sky(Geom::SPHERE);
     sky.sphere = Sphere( Vec3f(0), 9000.0f, Vec3f(0.5, 0.6, 1) );
     sky.isSky = true;
     sky.txtrIdx = 0;
 
-    // // Test obj
-    // std::vector<Geom> shape = Utils::readObjFile("test",
-    //     "assets/Models/Shapes/Cube1.obj", 1, 0
-    // );
-    // int shapeNum = shape.size();
+    // Test obj
+    std::vector<Geom> shape = Utils::readObjFile("test",
+        "assets/Models/BlueArchive/CherinoR8/CherinoR8.obj", 1, 2
+    );
+    int shapeNum = shape.size();
 
     std::vector<Geom> geoms;
     geoms.push_back(sky);
     geoms.push_back(pln);
-    for (int i = 0; i < count; i++) geoms.push_back(sph[i]);
+    // geoms.insert(geoms.end(), sphs, sphs + count);
+    // geoms.insert(geoms.end(), shape.begin(), shape.end());
+
+    // ========================================================================
+    // ========================================================================
 
     Geom *d_geoms;
     int geomNum = geoms.size();
