@@ -8,9 +8,9 @@
 struct Geom {
     enum GeomType { TRIANGLE, SPHERE, PLANE } type;
     union {
-        Triangle triangle;
-        Sphere sphere;
-        Plane plane;
+        Triangle tri;
+        Sphere sph;
+        Plane pln;
     };
 
     Geom() {}
@@ -28,7 +28,6 @@ struct Geom {
 
     // Some special attributes
     bool isSky = false;
-
 };
 
 #endif

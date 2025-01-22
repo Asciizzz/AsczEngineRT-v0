@@ -83,7 +83,7 @@ int main() {
 
             int idx = count++;
             sphs[idx].type = Geom::SPHERE;
-            sphs[idx].sphere = Sphere(
+            sphs[idx].sph = Sphere(
                 Vec3f(x * u, r, z * u), r, rndColor
             );
 
@@ -93,12 +93,12 @@ int main() {
 
     // Test plane
     Geom pln(Geom::PLANE);
-    pln.plane = Plane( Vec3f(0, 1, 0), 0, Vec3f(1) );
+    pln.pln = Plane( Vec3f(0, 1, 0), 0, Vec3f(1) );
     pln.Fresnel = 0.4f;
 
     // Test sky
     Geom sky(Geom::SPHERE);
-    sky.sphere = Sphere( Vec3f(0), 9000.0f, Vec3f(0.5, 0.6, 1) );
+    sky.sph = Sphere( Vec3f(0), 9000.0f, Vec3f(0.5, 0.6, 1) );
     sky.isSky = true;
     sky.txtrIdx = 0;
 

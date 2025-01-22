@@ -57,13 +57,13 @@ __global__ void iterativeRayTracing(
 
             switch (geom.type) {
                 case Geom::TRIANGLE: {
-                    const Triangle &tri = geom.triangle;
+                    const Triangle &tri = geom.tri;
                     Vec3f e1 = tri.v1 - tri.v0;
                     Vec3f e2 = tri.v2 - tri.v0;
                     Vec3f h = ray.direction & e2;
                     float a = e1 * h;
 
-                    if (a > -EPSILON && a < EPSILON) continue;
+                    if (a > -0.00001 && a < 0.00001) continue;
 
                     float f = 1.0f / a;
                     Vec3f s = ray.origin - tri.v0;
@@ -78,7 +78,7 @@ __global__ void iterativeRayTracing(
 
                     float t = f * (e2 * q);
 
-                    if (t > EPSILON && t < hit.t) {
+                    if (t > 0.00001 && t < hit.t) {
                         hit.hit = true;
                         hit.idx = g;
                         hit.t = t;
@@ -89,7 +89,7 @@ __global__ void iterativeRayTracing(
                 }
 
                 case Geom::SPHERE: {
-                    const Sphere &sph = geom.sphere;
+                    const Sphere &sph = geom.sph;
 
                     Vec3f l = sph.o - ray.origin;
                     float tca = l * ray.direction;
@@ -108,12 +108,11 @@ __global__ void iterativeRayTracing(
                         hit.idx = g;
                         hit.t = t0;
                     }
-
                     continue;
                 }
 
                 case Geom::PLANE: {
-                    const Plane &pln = geom.plane;
+                    const Plane &pln = geom.pln;
 
                     float denom = pln.n * ray.direction;
                     if (denom > -EPSILON && denom < EPSILON) continue; // Parallel
@@ -143,7 +142,7 @@ __global__ void iterativeRayTracing(
 
         switch (geom.type) {
             case Geom::TRIANGLE: {
-                const Triangle &tri = geom.triangle;
+                const Triangle &tri = geom.tri;
                 float w = 1 - hit.u - hit.v;
 
                 nrml[r] = tri.n0 * w + tri.n1 * hit.u + tri.n2 * hit.v;
@@ -151,9 +150,9 @@ __global__ void iterativeRayTracing(
 
                 if (geom.txtrIdx > -1 && txtrCount > 0) {
                     txtr[r] = tri.t0 * w + tri.t1 * hit.u + tri.t2 * hit.v;
-                    // Modulo 1
-                    txtr[r].x -= floor(txtr[r].x);
-                    txtr[r].y -= floor(txtr[r].y);
+                    // // Modulo 1
+                    // txtr[r].x -= floor(txtr[r].x);
+                    // txtr[r].y -= floor(txtr[r].y);
 
                     int txtrIdx = geom.txtrIdx;
                     int w = txtrPtr[txtrIdx].w;
@@ -168,10 +167,12 @@ __global__ void iterativeRayTracing(
                 } else {
                     colr[r] = tri.c0 * w + tri.c1 * hit.u + tri.c2 * hit.v;
                 }
+
+                break;
             }
 
             case Geom::SPHERE: {
-                const Sphere &sph = geom.sphere;
+                const Sphere &sph = geom.sph;
                 nrml[r] = (vrtx[r] - sph.o) / sph.r;
                 if (sph.invert) nrml[r] = -nrml[r];
 
@@ -201,7 +202,7 @@ __global__ void iterativeRayTracing(
             }
 
             case Geom::PLANE: {
-                const Plane &pln = geom.plane;
+                const Plane &pln = geom.pln;
                 colr[r] = pln.color;
                 nrml[r] = pln.n;
                 break;
@@ -211,7 +212,8 @@ __global__ void iterativeRayTracing(
         // If the geometry is a sky, ignore the rest
         if (geom.isSky) continue;
 
-        Vec3f lightSrc(0, 10, 30);
+        // Test light source
+        Vec3f lightSrc(10, 10, 10);
 
         // Shadow ray
         Vec3f lightDir = lightSrc - vrtx[r];
@@ -229,38 +231,36 @@ __global__ void iterativeRayTracing(
             will absolutely kill performance
             */
 
-            switch (geom.type) {
-                case Geom::TRIANGLE: {
-                    const Triangle &tri = geom.triangle;
-                    Vec3f e1 = tri.v1 - tri.v0;
-                    Vec3f e2 = tri.v2 - tri.v0;
-                    Vec3f h = shadowRay.direction & e2;
-                    float a = e1 * h;
+            // Triangle
+            if (geom.type == Geom::TRIANGLE) {
+                const Triangle &tri = geom.tri;
+                Vec3f e1 = tri.v1 - tri.v0;
+                Vec3f e2 = tri.v2 - tri.v0;
+                Vec3f h = shadowRay.direction & e2;
+                float a = e1 * h;
 
-                    if (a > -EPSILON && a < EPSILON) continue;
+                if (a > -EPSILON && a < EPSILON) continue;
 
-                    float f = 1.0f / a;
-                    Vec3f s = shadowRay.origin - tri.v0;
-                    float u = f * (s * h);
+                float f = 1.0f / a;
+                Vec3f s = shadowRay.origin - tri.v0;
+                float u = f * (s * h);
 
-                    if (u < 0.0f || u > 1.0f) continue;
+                if (u < 0.0f || u > 1.0f) continue;
 
-                    Vec3f q = s & e1;
-                    float v = f * (shadowRay.direction * q);
+                Vec3f q = s & e1;
+                float v = f * (shadowRay.direction * q);
 
-                    if (v < 0.0f || u + v > 1.0f) continue;
+                if (v < 0.0f || u + v > 1.0f) continue;
 
-                    float t = f * (e2 * q);
+                float t = f * (e2 * q);
 
-                    if (t > EPSILON) {
-                        shadow = true;
-                        break;
-                    }
-                    continue;
+                if (t > EPSILON) {
+                    shadow = true;
+                    break;
                 }
-
-                case Geom::SPHERE: {
-                    const Sphere &sph = geom.sphere;
+            // Sphere
+            } else if (geom.type == Geom::SPHERE) {
+                    const Sphere &sph = geom.sph;
 
                     Vec3f l = sph.o - shadowRay.origin;
                     float tca = l * shadowRay.direction;
@@ -278,23 +278,18 @@ __global__ void iterativeRayTracing(
                         shadow = true;
                         break;
                     }
+            // Plane
+            } else if (geom.type == Geom::PLANE) {
+                const Plane &pln = geom.pln;
 
-                    continue;
-                }
+                float denom = pln.n * shadowRay.direction;
+                if (denom > -EPSILON && denom < EPSILON) continue; // Parallel
 
-                case Geom::PLANE: {
-                    const Plane &pln = geom.plane;
+                float t = -(pln.n * shadowRay.origin + pln.d) / denom;
 
-                    float denom = pln.n * shadowRay.direction;
-                    if (denom > -EPSILON && denom < EPSILON) continue; // Parallel
-
-                    float t = -(pln.n * shadowRay.origin + pln.d) / denom;
-
-                    if (t > EPSILON) {
-                        shadow = true;
-                        break;
-                    }
-                    continue;
+                if (t > EPSILON) {
+                    shadow = true;
+                    break;
                 }
             }
         }

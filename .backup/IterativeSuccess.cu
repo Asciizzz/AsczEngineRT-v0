@@ -27,7 +27,7 @@ __device__ Vec3f iterativeRayTracing(
 // =========================================================================
 
         for (int g = 0; g < geomNum; g++) {
-            // const Triangle &tri = geoms[g].triangle;
+            // const Triangle &tri = geoms[g].tri;
             // Vec3f e1 = tri.v1 - tri.v0;
             // Vec3f e2 = tri.v2 - tri.v0;
             // Vec3f h = ray.direction & e2;
@@ -60,7 +60,7 @@ __device__ Vec3f iterativeRayTracing(
             const Geom &geom = geoms[g];
             switch (geom.type) {
                 case Geom::TRIANGLE: {
-                    const Triangle &tri = geom.triangle;
+                    const Triangle &tri = geom.tri;
                     Vec3f e1 = tri.v1 - tri.v0;
                     Vec3f e2 = tri.v2 - tri.v0;
                     Vec3f h = ray.direction & e2;
@@ -93,7 +93,7 @@ __device__ Vec3f iterativeRayTracing(
                 }
                 
                 case Geom::SPHERE: {
-                    const Sphere &sph = geom.sphere;
+                    const Sphere &sph = geom.sph;
                     Vec3f oc = ray.origin - sph.o;
                     float a = ray.direction * ray.direction;
                     float b = 2.0f * (oc * ray.direction);
@@ -124,7 +124,7 @@ __device__ Vec3f iterativeRayTracing(
         const Geom &geom = geoms[hit.idx];
         switch (geom.type) {
             case Geom::TRIANGLE: {
-                const Triangle &tri = geom.triangle;
+                const Triangle &tri = geom.tri;
                 vrtx[r] = ray.origin + ray.direction * hit.t;
                 colr[r] = tri.c0 * hit.w + tri.c1 * hit.u + tri.c2 * hit.v;
                 nrml[r] = tri.n0 * hit.w + tri.n1 * hit.u + tri.n2 * hit.v;
@@ -133,7 +133,7 @@ __device__ Vec3f iterativeRayTracing(
             }
 
             case Geom::SPHERE: {
-                const Sphere &sph = geom.sphere;
+                const Sphere &sph = geom.sph;
                 vrtx[r] = ray.origin + ray.direction * hit.t;
                 colr[r] = sph.color;
                 nrml[r] = (vrtx[r] - sph.o) / sph.r;

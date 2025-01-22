@@ -40,10 +40,8 @@ int main() {
 
     // =============== Initialize Important Variables ==============
 
+    // Texture manager
     TxtrManager TxtrMgr;
-    // Load some test texture
-    TxtrMgr.appendTexture("assets/Textures/Yellow.png");
-    TxtrMgr.hostToDevice();
 
     // Create SFMLTexture
     int frmW = winW / 2;
@@ -83,36 +81,73 @@ int main() {
 
             int idx = count++;
             sphs[idx].type = Geom::SPHERE;
-            sphs[idx].sphere = Sphere(
+            sphs[idx].sph = Sphere(
                 Vec3f(x * u, r, z * u), r, rndColor
             );
 
-            sphs[idx].reflect = 0.7f;
+            // sphs[idx].reflect = 0.7f;
         }
     }
 
     // Test plane
     Geom pln(Geom::PLANE);
-    pln.plane = Plane( Vec3f(0, 1, 0), 0, Vec3f(1) );
-    pln.Fresnel = 0.4f;
+    pln.pln = Plane( Vec3f(0, 1, 0), 0, Vec3f(1) );
+    // pln.Fresnel = 0.4f;
 
     // Test sky
     Geom sky(Geom::SPHERE);
-    sky.sphere = Sphere( Vec3f(0), 9000.0f, Vec3f(0.5, 0.6, 1) );
+    sky.sph = Sphere( Vec3f(0, 100, 0), 9000.0f, Vec3f(0.5, 0.6, 1) );
     sky.isSky = true;
     sky.txtrIdx = 0;
+    TxtrMgr.appendTexture("assets/Textures/Yellow.png"); // Sky texture
 
     // Test obj
     std::vector<Geom> shape = Utils::readObjFile("test",
-        "assets/Models/BlueArchive/CherinoR8/CherinoR8.obj", 1, 2
+        // "assets/Models/Shapes/Cornell/Cornell-Box.obj", 1, 2
+        "assets/Models/Shapes/Cube2.obj", 1, 2
     );
     int shapeNum = shape.size();
+    for (int i = 0; i < shapeNum; i++) {
+        // Custom settings
+        shape[i].Fresnel = 0.3f;
+    }
+
+    // Test a wall with texture
+    Vec2f minXZ = Vec2f(-5, -5);
+    Vec2f maxXZ = Vec2f(5, 5); 
+
+    Geom wall1(Geom::TRIANGLE);
+    wall1.tri.v0 = Vec3f(minXZ.x, 0, minXZ.y);
+    wall1.tri.v1 = Vec3f(maxXZ.x, 0, minXZ.y);
+    wall1.tri.v2 = Vec3f(minXZ.x, 0, maxXZ.y);
+    wall1.tri.t0 = Vec2f(0, 0);
+    wall1.tri.t1 = Vec2f(1, 0);
+    wall1.tri.t2 = Vec2f(0, 1);
+    wall1.tri.uniformNormal(Vec3f(0, 1, 0));
+
+    Geom wall2(Geom::TRIANGLE);
+    wall2.tri.v0 = Vec3f(maxXZ.x, 0, maxXZ.y);
+    wall2.tri.v1 = Vec3f(minXZ.x, 0, maxXZ.y);
+    wall2.tri.v2 = Vec3f(maxXZ.x, 0, minXZ.y);
+    wall2.tri.t0 = Vec2f(1, 1);
+    wall2.tri.t1 = Vec2f(0, 1);
+    wall2.tri.t2 = Vec2f(1, 0);
+    wall2.tri.uniformNormal(Vec3f(0, 1, 0));
+
+    wall1.txtrIdx = 1;
+    wall2.txtrIdx = 1;
+    TxtrMgr.appendTexture("assets/Textures/Night.png"); // Wall texture 
+
+    TxtrMgr.hostToDevice();
 
     std::vector<Geom> geoms;
     geoms.push_back(sky);
     geoms.push_back(pln);
+    // geoms.push_back(wall1);
+    // geoms.push_back(wall2);
+
     // geoms.insert(geoms.end(), sphs, sphs + count);
-    // geoms.insert(geoms.end(), shape.begin(), shape.end());
+    geoms.insert(geoms.end(), shape.begin(), shape.end());
 
     // ========================================================================
     // ========================================================================

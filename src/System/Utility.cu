@@ -31,17 +31,11 @@ std::vector<Geom> Utils::readObjFile(std::string name, std::string path, short f
         lines.push_back(line);
     }
 
-    bool off = false; // Mostly for debugging purposes
-
     #pragma omp parallel for collapse(2)
     for (size_t i = 0; i < lines.size(); i++) {
         std::stringstream ss(lines[i]);
         std::string type;
         ss >> type;
-
-        if (type == "off") off = true;
-        if (type == "on") off = false;
-        if (off) continue;
 
         if (type == "v") {
             Vec3f v;
@@ -157,18 +151,19 @@ std::vector<Geom> Utils::readObjFile(std::string name, std::string path, short f
         tri.n1 = Vec3f(nx[fn[i + 1]], ny[fn[i + 1]], nz[fn[i + 1]]);
         tri.n2 = Vec3f(nx[fn[i + 2]], ny[fn[i + 2]], nz[fn[i + 2]]);
 
-        // tri.uniformColor(Vec3f(1, 1, 1));
         // Give each vertex a color based on the ratio of min and max values
         // With range from m to r + m
+        
         float m = 0.6, r = 0.4;
         tri.c0 = Vec3f(tri.v0.x / maxX * r + m, tri.v0.y / maxY * r + m, tri.v0.z / maxZ * r + m);
         tri.c1 = Vec3f(tri.v1.x / maxY * r + m, tri.v1.y / maxZ * r + m, tri.v1.z / maxX * r + m);
         tri.c2 = Vec3f(tri.v2.x / maxZ * r + m, tri.v2.y / maxX * r + m, tri.v2.z / maxY * r + m);
 
-        Geom geom;
+        // // Set color to white
+        // tri.c0.uniformColor(Vec3f(1));
 
-        geom.type = Geom::TRIANGLE;
-        geom.triangle = tri;
+        Geom geom(Geom::TRIANGLE);
+        geom.tri = tri;
 
         geoms.push_back(geom);
     }
