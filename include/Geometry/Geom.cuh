@@ -13,12 +13,15 @@ struct Geom {
         Plane plane;
     };
 
-    // Test material attributes
+    // === Test material attributes ===
+
     float reflect = 0.0f;
     float transmit = 0.0f;
 
     float Fresnel = 0.0f;
     float Ni = 1.0f;
+
+    int txtrIdx = -1;
 
     // Some special attributes
     bool isSky = false;

@@ -2,27 +2,30 @@
 #include <CsLogHandler.cuh>
 
 #include <Camera.cuh>
+
 #include <SFMLTexture.cuh>
+#include <TextureManager.cuh>
 
 #include <Utility.cuh>
 #include <random>
 
-
-__global__ void clearFrameBuffer(Vec3f *framebuffer, int width, int height) {
+__global__ void clearFrameBuffer(Vec3f *framebuffer, int frmW, int frmH) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (i < width * height) framebuffer[i] = Vec3f(0, 0, 0);
+    if (i < frmW * frmH) framebuffer[i] = Vec3f(0, 0, 0);
 }
 
 __global__ void iterativeRayTracing(
-    Vec3f *framebuffer, Camera camera, Geom *geoms, int geomNum, int width, int height
+    Camera camera, Vec3f *framebuffer,
+    Geom *geoms, int geomNum, int frmW, int frmH,
+    Vec3f *txtr, int *txtrW, int *txtrH, int *txtrOff, int txtrCount
 ) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (i >= width * height) return;
+    if (i >= frmW * frmH) return;   
 
-    int x = i % width;
-    int y = i / width;
+    int x = i % frmW;
+    int y = i / frmW;
 
-    Ray primaryRay = camera.castRay(x, y, width, height);
+    Ray primaryRay = camera.castRay(x, y, frmW, frmH);
 
     double EPSILON = 0.001;
 
@@ -155,9 +158,30 @@ __global__ void iterativeRayTracing(
 
             case Geom::SPHERE: {
                 const Sphere &sph = geom.sphere;
-                colr[r] = sph.color;
                 nrml[r] = (vrtx[r] - sph.o) / sph.r;
                 if (sph.invert) nrml[r] = -nrml[r];
+
+                if (geom.txtrIdx != -1 && txtrCount > 0) {
+                    Vec3f p = (vrtx[r] - sph.o) / sph.r;
+                    float phi = atan2(p.z, p.x);
+                    float theta = asin(p.y);
+
+                    float u = 1 - (phi + M_PI) / (2 * M_PI);
+                    float v = (theta + M_PI_2) / M_PI;
+
+                    int txtrIdx = geom.txtrIdx;
+                    int w = txtrW[txtrIdx];
+                    int h = txtrH[txtrIdx];
+                    int off = txtrOff[txtrIdx];
+
+                    int txtrX = u * w;
+                    int txtrY = v * h;
+
+                    int idx = off + txtrX + txtrY * w;
+                    colr[r] = txtr[idx];
+                }
+                else colr[r] = sph.color;
+
                 break;
             }
 
@@ -362,6 +386,11 @@ int main() {
 
     // =============== Initialize Important Variables ==============
 
+    TextureManager TxtrMgr;
+    // Load some test texture
+    TxtrMgr.appendTexture("assets/Textures/Lake.png");
+    TxtrMgr.hostToDevice();
+
     // Create SFMLTexture
     int frmW = winW / 2;
     int frmH = winH / 2;
@@ -417,8 +446,9 @@ int main() {
     // Test sky
     Geom sky;
     sky.type = Geom::SPHERE;
-    sky.sphere = Sphere( Vec3f(0), 1000.0f, Vec3f(0.5, 0.6, 1) );
+    sky.sphere = Sphere( Vec3f(0), 9000.0f, Vec3f(0.5, 0.6, 1) );
     sky.isSky = true;
+    sky.txtrIdx = 0;
 
     // // Test obj
     // std::vector<Geom> shape = Utils::readObjFile("test",
@@ -519,7 +549,11 @@ int main() {
         cudaDeviceSynchronize();
 
         // Render framebuffer
-        iterativeRayTracing<<<blocks, threads>>>(d_framebuffer, CAMERA, d_geoms, geomNum, frmW, frmH);
+        iterativeRayTracing<<<blocks, threads>>>(
+            CAMERA, d_framebuffer,
+            d_geoms, geomNum, frmW, frmH,
+            TxtrMgr.d_txtr, TxtrMgr.d_w, TxtrMgr.d_h, TxtrMgr.d_off, TxtrMgr.txtrCount
+        );
         cudaDeviceSynchronize();
 
         SFTex.updateTexture(d_framebuffer, frmW, frmH);
