@@ -8,22 +8,22 @@ float& Vec2f::operator[](int i) {
     return y;
 }
 
-Vec2f Vec2f::operator+(const Vec2f& v) {
+Vec2f Vec2f::operator+(const Vec2f& v) const {
     return Vec2f(x + v.x, y + v.y);
 }
-Vec2f Vec2f::operator+(const float t) {
+Vec2f Vec2f::operator+(const float t) const {
     return Vec2f(x + t, y + t);
 }
-Vec2f Vec2f::operator-(const Vec2f& v) {
+Vec2f Vec2f::operator-(const Vec2f& v) const {
     return Vec2f(x - v.x, y - v.y);
 }
-Vec2f Vec2f::operator-(const float t) {
+Vec2f Vec2f::operator-(const float t) const {
     return Vec2f(x - t, y - t);
 }
-Vec2f Vec2f::operator*(const float scl) {
+Vec2f Vec2f::operator*(const float scl) const {
     return Vec2f(x * scl, y * scl);
 }
-Vec2f Vec2f::operator/(const float scl) {
+Vec2f Vec2f::operator/(const float scl) const {
     return Vec2f(x / scl, y / scl);
 }
 

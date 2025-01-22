@@ -151,16 +151,15 @@ __global__ void iterativeRayTracing(
                 const Triangle &tri = geom.triangle;
                 float w = 1 - hit.u - hit.v;
 
-                colr[r] = tri.c0 * w + tri.c1 * hit.u + tri.c2 * hit.v;
                 nrml[r] = tri.n0 * w + tri.n1 * hit.u + tri.n2 * hit.v;
                 nrml[r].norm();
 
-                txtr[r] = tri.t0 * w + tri.t1 * hit.u + tri.t2 * hit.v;
-                // Modulo 1
-                txtr[r].x -= floor(txtr[r].x);
-                txtr[r].y -= floor(txtr[r].y);
+                if (geom.txtrIdx > -1 && txtrCount > 0) {
+                    txtr[r] = tri.t0 * w + tri.t1 * hit.u + tri.t2 * hit.v;
+                    // Modulo 1
+                    txtr[r].x -= floor(txtr[r].x);
+                    txtr[r].y -= floor(txtr[r].y);
 
-                if (geom.txtrIdx != -1 && txtrCount > 0) {
                     int txtrIdx = geom.txtrIdx;
                     int w = txtrPtr[txtrIdx].w;
                     int h = txtrPtr[txtrIdx].h;
@@ -171,9 +170,9 @@ __global__ void iterativeRayTracing(
 
                     int txtrIdx2 = txtrX + txtrY * w + off;
                     colr[r] = txtrFlat[txtrIdx2];
+                } else {
+                    colr[r] = tri.c0 * w + tri.c1 * hit.u + tri.c2 * hit.v;
                 }
-
-                break;
             }
 
             case Geom::SPHERE: {
@@ -181,7 +180,7 @@ __global__ void iterativeRayTracing(
                 nrml[r] = (vrtx[r] - sph.o) / sph.r;
                 if (sph.invert) nrml[r] = -nrml[r];
 
-                if (geom.txtrIdx != -1 && txtrCount > 0) {
+                if (geom.txtrIdx > -1 && txtrCount > 0) {
                     Vec3f p = (vrtx[r] - sph.o) / sph.r;
                     float phi = atan2(p.z, p.x);
                     float theta = asin(p.y);
@@ -199,8 +198,9 @@ __global__ void iterativeRayTracing(
 
                     int txtrIdx2 = txtrX + txtrY * w + off;
                     colr[r] = txtrFlat[txtrIdx2];
+                } else {
+                    colr[r] = sph.color;
                 }
-                else colr[r] = sph.color;
 
                 break;
             }
