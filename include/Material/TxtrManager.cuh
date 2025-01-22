@@ -1,5 +1,5 @@
-#ifndef TEXTUREMANAGER_CUH
-#define TEXTUREMANAGER_CUH
+#ifndef TXTRMANAGER_CUH
+#define TXTRMANAGER_CUH
 
 #include <cuda_runtime.h>
 #include <SFML/Graphics.hpp>
@@ -9,7 +9,7 @@ struct TxtrPtr {
     int w, h, off;
 };
 
-class TextureManager {
+class TxtrManager {
 public:
     // Host memory
     std::vector<Vec3f> h_txtrFlat;
