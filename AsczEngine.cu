@@ -17,7 +17,7 @@ __global__ void clearFrameBuffer(Vec3f *framebuffer, int frmW, int frmH) {
 __global__ void iterativeRayTracing(
     Camera camera, Vec3f *framebuffer,
     Geom *geoms, int geomNum, int frmW, int frmH,
-    Vec3f *txtr, int *txtrW, int *txtrH, int *txtrOff, int txtrCount
+    Vec3f *txtrFlat, TxtrPtr *txtrPtr, int txtrCount
 ) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i >= frmW * frmH) return;   
@@ -33,7 +33,8 @@ __global__ void iterativeRayTracing(
 
     Ray rays[20] = { primaryRay };
     RayHit hits[20] = { RayHit() };
-    Vec3f vrtx[20], nrml[20], colr[20];
+    Vec3f vrtx[20], colr[20], nrml[20];
+    Vec2f txtr[20];
     float weights[20] = { 1.0f };
 
     int rnum = 0;
@@ -153,6 +154,25 @@ __global__ void iterativeRayTracing(
                 colr[r] = tri.c0 * w + tri.c1 * hit.u + tri.c2 * hit.v;
                 nrml[r] = tri.n0 * w + tri.n1 * hit.u + tri.n2 * hit.v;
                 nrml[r].norm();
+
+                txtr[r] = tri.t0 * w + tri.t1 * hit.u + tri.t2 * hit.v;
+                // Modulo 1
+                txtr[r].x -= floor(txtr[r].x);
+                txtr[r].y -= floor(txtr[r].y);
+
+                if (geom.txtrIdx != -1 && txtrCount > 0) {
+                    int txtrIdx = geom.txtrIdx;
+                    int w = txtrPtr[txtrIdx].w;
+                    int h = txtrPtr[txtrIdx].h;
+                    int off = txtrPtr[txtrIdx].off;
+
+                    int txtrX = txtr[r].x * w;
+                    int txtrY = txtr[r].y * h;
+
+                    int txtrIdx2 = txtrX + txtrY * w + off;
+                    colr[r] = txtrFlat[txtrIdx2];
+                }
+
                 break;
             }
 
@@ -170,15 +190,15 @@ __global__ void iterativeRayTracing(
                     float v = (theta + M_PI_2) / M_PI;
 
                     int txtrIdx = geom.txtrIdx;
-                    int w = txtrW[txtrIdx];
-                    int h = txtrH[txtrIdx];
-                    int off = txtrOff[txtrIdx];
+                    int w = txtrPtr[txtrIdx].w;
+                    int h = txtrPtr[txtrIdx].h;
+                    int off = txtrPtr[txtrIdx].off;
 
                     int txtrX = u * w;
                     int txtrY = v * h;
 
-                    int idx = off + txtrX + txtrY * w;
-                    colr[r] = txtr[idx];
+                    int txtrIdx2 = txtrX + txtrY * w + off;
+                    colr[r] = txtrFlat[txtrIdx2];
                 }
                 else colr[r] = sph.color;
 
@@ -552,7 +572,7 @@ int main() {
         iterativeRayTracing<<<blocks, threads>>>(
             CAMERA, d_framebuffer,
             d_geoms, geomNum, frmW, frmH,
-            TxtrMgr.d_txtr, TxtrMgr.d_w, TxtrMgr.d_h, TxtrMgr.d_off, TxtrMgr.txtrCount
+            TxtrMgr.d_txtrFlat, TxtrMgr.d_txtrPtr, TxtrMgr.txtrCount
         );
         cudaDeviceSynchronize();
 

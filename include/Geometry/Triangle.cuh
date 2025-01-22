@@ -5,7 +5,7 @@
 
 struct Triangle {
     Vec3f v0, v1, v2;
-    // Vec2f t0, t1, t2; // Ignore for now
+    Vec2f t0, t1, t2;
     Vec3f n0, n1, n2;
     Vec3f c0, c1, c2; // Color
 

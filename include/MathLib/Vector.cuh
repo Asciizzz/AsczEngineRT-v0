@@ -29,12 +29,12 @@ struct Vec2f {
     _hst_dev_ float& operator[](int i);
 
     // Basic operations
-    _hst_dev_ Vec2f operator+(const Vec2f &vec);
-    _hst_dev_ Vec2f operator+(const float t);
-    _hst_dev_ Vec2f operator-(const Vec2f &vec);
-    _hst_dev_ Vec2f operator-(const float t);
-    _hst_dev_ Vec2f operator*(const float scl);
-    _hst_dev_ Vec2f operator/(const float scl);
+    _hst_dev_ Vec2f operator+(const Vec2f &vec) const;
+    _hst_dev_ Vec2f operator+(const float t) const;
+    _hst_dev_ Vec2f operator-(const Vec2f &vec) const;
+    _hst_dev_ Vec2f operator-(const float t) const;
+    _hst_dev_ Vec2f operator*(const float scl) const;
+    _hst_dev_ Vec2f operator/(const float scl) const;
 };
 
 struct Vec4f; // Forward declaration

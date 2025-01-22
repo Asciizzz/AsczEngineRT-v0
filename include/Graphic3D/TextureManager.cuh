@@ -5,12 +5,15 @@
 #include <SFML/Graphics.hpp>
 #include <Vector.cuh>
 
+struct TxtrPtr {
+    int w, h, off;
+};
+
 class TextureManager {
 public:
     // Host memory
-    std::vector<Vec3f> h_txtr;
-    std::vector<int> h_w, h_h;
-    std::vector<int> h_off;
+    std::vector<Vec3f> h_txtrFlat;
+    std::vector<TxtrPtr> h_txtrPtr;
     std::vector<const char *> h_paths;
 
     void appendTexture(const char *path) {
@@ -20,25 +23,24 @@ public:
         int w = img.getSize().x;
         int h = img.getSize().y;
 
-        h_w.push_back(w);
-        h_h.push_back(h);
-        h_off.push_back(txtrSize);
+        TxtrPtr txtrPtr = {w, h, txtrSize};
+        h_txtrPtr.push_back(txtrPtr);
         h_paths.push_back(path);
+
+        txtrSize += w * h;
+        txtrCount++;
 
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
                 sf::Color c = img.getPixel(x, h - y - 1);
-                h_txtr.push_back(Vec3f(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f));
+                h_txtrFlat.push_back(Vec3f(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f));
             }
         }
-
-        txtrSize += w * h;
-        txtrCount++;
     }
 
     // Device memory
-    Vec3f *d_txtr; // A flat array of all textures
-    int *d_w, *d_h, *d_off; // Pointers to that texture
+    Vec3f *d_txtrFlat;
+    TxtrPtr *d_txtrPtr;
 
     int txtrSize = 0;
     int txtrCount = 0;
@@ -46,24 +48,18 @@ public:
     void freeDevice() {
         if (txtrSize == 0) return;
 
-        cudaFree(d_txtr);
-        cudaFree(d_w);
-        cudaFree(d_h);
-        cudaFree(d_off);
+        cudaFree(d_txtrFlat);
+        cudaFree(d_txtrPtr);
     }
 
     void hostToDevice() {
         freeDevice();
 
-        cudaMalloc(&d_txtr, txtrSize * sizeof(Vec3f));
-        cudaMalloc(&d_w, txtrCount * sizeof(int));
-        cudaMalloc(&d_h, txtrCount * sizeof(int));
-        cudaMalloc(&d_off, txtrCount * sizeof(int));
+        cudaMalloc(&d_txtrFlat, txtrSize * sizeof(Vec3f));
+        cudaMalloc(&d_txtrPtr, txtrCount * sizeof(TxtrPtr));
 
-        cudaMemcpy(d_txtr, h_txtr.data(), txtrSize * sizeof(Vec3f), cudaMemcpyHostToDevice);
-        cudaMemcpy(d_w, h_w.data(), txtrCount * sizeof(int), cudaMemcpyHostToDevice);
-        cudaMemcpy(d_h, h_h.data(), txtrCount * sizeof(int), cudaMemcpyHostToDevice);
-        cudaMemcpy(d_off, h_off.data(), txtrCount * sizeof(int), cudaMemcpyHostToDevice);
+        cudaMemcpy(d_txtrFlat, h_txtrFlat.data(), txtrSize * sizeof(Vec3f), cudaMemcpyHostToDevice);
+        cudaMemcpy(d_txtrPtr, h_txtrPtr.data(), txtrCount * sizeof(TxtrPtr), cudaMemcpyHostToDevice);
     }
 };
 
