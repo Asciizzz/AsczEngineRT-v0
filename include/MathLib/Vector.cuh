@@ -14,6 +14,8 @@
 #define Vecs3f std::vector<Vec3f>
 #define Vecs4f std::vector<Vec4f>
 
+#define Vecs3i std::vector<Vec3i>
+
 #define M_PI 3.14159265358979323846 // 180 degrees
 #define M_PI_2 1.57079632679489661923 // 90 degrees
 #define M_2_PI 6.28318530717958647692 // 360 degrees
@@ -101,15 +103,36 @@ struct Vec4f {
     _hst_dev_ float& operator[](int i);
 
     // Basic operations
-    _hst_dev_ Vec4f operator+(const Vec4f &v);
-    _hst_dev_ Vec4f operator+(const float t);
-    _hst_dev_ Vec4f operator-(const Vec4f &v);
-    _hst_dev_ Vec4f operator-(const float t);
-    _hst_dev_ Vec4f operator*(const float scl);
-    _hst_dev_ Vec4f operator/(const float scl);
+    _hst_dev_ Vec4f operator+(const Vec4f &v) const;
+    _hst_dev_ Vec4f operator+(const float t) const;
+    _hst_dev_ Vec4f operator-(const Vec4f &v) const;
+    _hst_dev_ Vec4f operator-(const float t) const;
+    _hst_dev_ Vec4f operator*(const float scl) const;
+    _hst_dev_ Vec4f operator/(const float scl) const;
 
     // Limit the vector
     _hst_dev_ void limit(float min, float max);
+};
+
+
+struct Vec3i {
+    int x, y, z;
+    _hst_dev_ Vec3i();
+    _hst_dev_ Vec3i(int x, int y, int z);
+    _hst_dev_ Vec3i(int a);
+
+    // Bracket operator
+    _hst_dev_ int& operator[](int i);
+
+    _hst_dev_ Vec3i operator+(const Vec3i &v) const;
+    _hst_dev_ Vec3i operator+(const int t) const;
+    _hst_dev_ void operator+=(const Vec3i &v);
+    _hst_dev_ void operator+=(const int t);
+
+    _hst_dev_ Vec3i operator-(const Vec3i &v) const;
+    _hst_dev_ Vec3i operator-(const int t) const;
+    _hst_dev_ void operator-=(const Vec3i &v);
+    _hst_dev_ void operator-=(const int t);
 };
 
 #endif

@@ -1,8 +1,20 @@
 #ifndef MATMANAGER_CUH
 #define MATMANAGER_CUH
 
-#include <Material.cuh>
 #include <Vector.cuh>
+
+struct Material {
+    float reflect = 0.0f;
+    float transmit = 0.0f;
+
+    float Fresnel = 0.0f;
+    float Ni = 1.0f;
+
+    int txtrIdx = -1;
+
+    // Some special attributes
+    bool isSky = false;
+};
 
 class MatManager {
 public:

@@ -2,7 +2,22 @@
 #include <SFML/Graphics.hpp>
 #include <cuda_runtime.h>
 
+#include <iostream>
+
 int TxtrManager::appendTexture(const char *path) {
+    // Check if the texture is already loaded
+    if (txtrMap.find(path) != txtrMap.end()) {
+        std::cout << "Texture already loaded: " << path << std::endl;
+
+        return txtrMap[path];
+    // If not, load it and add it to the map
+    } else {
+        txtrMap[path] = txtrCount;
+
+        std::cout << "Loading texture: " << path << std::endl;
+        std::cout << "Texture index: " << txtrMap[path] << std::endl;
+    }
+
     sf::Image img;
     img.loadFromFile(path);
 
@@ -14,7 +29,6 @@ int TxtrManager::appendTexture(const char *path) {
     h_paths.push_back(path);
 
     txtrSize += w * h;
-    txtrCount++;
 
     for (int y = 0; y < h; y++) {
         for (int x = 0; x < w; x++) {
@@ -24,7 +38,7 @@ int TxtrManager::appendTexture(const char *path) {
     }
 
     // Return the index of the texture
-    return txtrCount - 1;
+    return txtrCount++;
 }
 
 void TxtrManager::freeDevice() {

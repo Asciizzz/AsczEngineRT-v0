@@ -5,8 +5,6 @@
 #include <Sphere.cuh>
 #include <Plane.cuh>
 
-#include <Material.cuh>
-
 struct Geom {
     enum GeomType { TRIANGLE, SPHERE, PLANE } type;
     union {

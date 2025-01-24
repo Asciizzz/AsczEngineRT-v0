@@ -97,7 +97,7 @@ int main() {
 
     // Test plane
     Material PlaneMat;
-    PlaneMat.Fresnel = 0.4f;
+    PlaneMat.Fresnel = 0.05f;
 
     Geom pln(Geom::PLANE);
     pln.pln = Plane( Vec3f(0, 1, 0), 0, Vec3f(1) );
@@ -123,30 +123,31 @@ int main() {
         // shape[i].Fresnel = 0.3f;
     }
 
-    // Test a wall with texture
-    Vec2f minXZ = Vec2f(-5, -5);
-    Vec2f maxXZ = Vec2f(5, 5); 
+    // // Test a wall with texture
+    // Vec2f minXZ = Vec2f(-5, -5);
+    // Vec2f maxXZ = Vec2f(5, 5); 
 
-    Geom wall1(Geom::TRIANGLE);
-    wall1.tri.v0 = Vec3f(minXZ.x, 0, minXZ.y);
-    wall1.tri.v1 = Vec3f(maxXZ.x, 0, minXZ.y);
-    wall1.tri.v2 = Vec3f(minXZ.x, 0, maxXZ.y);
-    wall1.tri.t0 = Vec2f(0, 0);
-    wall1.tri.t1 = Vec2f(1, 0);
-    wall1.tri.t2 = Vec2f(0, 1);
-    wall1.tri.uniformNormal(Vec3f(0, 1, 0));
+    // Geom wall1(Geom::TRIANGLE);
+    // wall1.tri.v0 = Vec3f(minXZ.x, 0, minXZ.y);
+    // wall1.tri.v1 = Vec3f(maxXZ.x, 0, minXZ.y);
+    // wall1.tri.v2 = Vec3f(minXZ.x, 0, maxXZ.y);
+    // wall1.tri.t0 = Vec2f(0, 0);
+    // wall1.tri.t1 = Vec2f(1, 0);
+    // wall1.tri.t2 = Vec2f(0, 1);
+    // wall1.tri.uniformNormal(Vec3f(0, 1, 0));
 
-    Geom wall2(Geom::TRIANGLE);
-    wall2.tri.v0 = Vec3f(maxXZ.x, 0, maxXZ.y);
-    wall2.tri.v1 = Vec3f(minXZ.x, 0, maxXZ.y);
-    wall2.tri.v2 = Vec3f(maxXZ.x, 0, minXZ.y);
-    wall2.tri.t0 = Vec2f(1, 1);
-    wall2.tri.t1 = Vec2f(0, 1);
-    wall2.tri.t2 = Vec2f(1, 0);
-    wall2.tri.uniformNormal(Vec3f(0, 1, 0));
+    // Geom wall2(Geom::TRIANGLE);
+    // wall2.tri.v0 = Vec3f(maxXZ.x, 0, maxXZ.y);
+    // wall2.tri.v1 = Vec3f(minXZ.x, 0, maxXZ.y);
+    // wall2.tri.v2 = Vec3f(maxXZ.x, 0, minXZ.y);
+    // wall2.tri.t0 = Vec2f(1, 1);
+    // wall2.tri.t1 = Vec2f(0, 1);
+    // wall2.tri.t2 = Vec2f(1, 0);
+    // wall2.tri.uniformNormal(Vec3f(0, 1, 0));
 
-    // TxtrMgr.appendTexture("assets/Textures/Sunset.png"); // Wall texture 
+    TxtrMgr.appendTexture("assets/Textures/Sunset.png"); // Test repeating texture
 
+    // Copy to device memory
     TxtrMgr.hostToDevice();
     MatMgr.hostToDevice();
 

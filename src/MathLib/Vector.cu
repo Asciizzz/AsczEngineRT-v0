@@ -233,22 +233,22 @@ float& Vec4f::operator[](int i) {
     return w;
 }
 
-Vec4f Vec4f::operator+(const Vec4f& v) {
+Vec4f Vec4f::operator+(const Vec4f& v) const {
     return Vec4f(x + v.x, y + v.y, z + v.z, w + v.w);
 }
-Vec4f Vec4f::operator+(const float t) {
+Vec4f Vec4f::operator+(const float t) const {
     return Vec4f(x + t, y + t, z + t, w + t);
 }
-Vec4f Vec4f::operator-(const Vec4f& v) {
+Vec4f Vec4f::operator-(const Vec4f& v) const {
     return Vec4f(x - v.x, y - v.y, z - v.z, w - v.w);
 }
-Vec4f Vec4f::operator-(const float t) {
+Vec4f Vec4f::operator-(const float t) const {
     return Vec4f(x - t, y - t, z - t, w - t);
 }
-Vec4f Vec4f::operator*(const float scl) {
+Vec4f Vec4f::operator*(const float scl) const {
     return Vec4f(x * scl, y * scl, z * scl, w * scl);
 }
-Vec4f Vec4f::operator/(const float scl) {
+Vec4f Vec4f::operator/(const float scl) const {
     return Vec4f(x / scl, y / scl, z / scl, w / scl);
 }
 void Vec4f::limit(float min, float max) {
@@ -256,4 +256,42 @@ void Vec4f::limit(float min, float max) {
     y = std::max(min, std::min(y, max));
     z = std::max(min, std::min(z, max));
     w = std::max(min, std::min(w, max));
+}
+
+
+// VEC3i
+Vec3i::Vec3i() : x(0), y(0), z(0) {}
+Vec3i::Vec3i(int x, int y, int z) : x(x), y(y), z(z) {}
+Vec3i::Vec3i(int a) : x(a), y(a), z(a) {}
+
+int& Vec3i::operator[](int i) {
+    if (i == 0) return x;
+    if (i == 1) return y;
+    return z;
+}
+
+Vec3i Vec3i::operator+(const Vec3i& v) const {
+    return Vec3i(x + v.x, y + v.y, z + v.z);
+}
+Vec3i Vec3i::operator+(const int t) const {
+    return Vec3i(x + t, y + t, z + t);
+}
+void Vec3i::operator+=(const Vec3i& v) {
+    x += v.x; y += v.y; z += v.z;
+}
+void Vec3i::operator+=(const int t) {
+    x += t; y += t; z += t;
+}
+
+Vec3i Vec3i::operator-(const Vec3i& v) const {
+    return Vec3i(x - v.x, y - v.y, z - v.z);
+}
+Vec3i Vec3i::operator-(const int t) const {
+    return Vec3i(x - t, y - t, z - t);
+}
+void Vec3i::operator-=(const Vec3i& v) {
+    x -= v.x; y -= v.y; z -= v.z;
+}
+void Vec3i::operator-=(const int t) {
+    x -= t; y -= t; z -= t;
 }
