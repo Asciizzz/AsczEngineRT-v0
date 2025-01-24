@@ -1,3 +1,9 @@
+### TODO:
+
+- Implement SAH BVH traversal
+
+---
+
 # AsczEngineRT_v0: A very Skibidy 3D Graphics Engine
 
 **AsczEngineRT_v0** is the absolute Gyatt, it combines raste**rizz**ation and ray tracing (supposedly) to achieve both visual fidelity and real-time performance. The engine is built from scratch in C++ and uses only CUDA for parallel processing, oh and SFML for the goddamn window lol. Since you're here anyway, I suppose you can learn a thing or two on how and/or how not to create an engine. Suggestions are appreciated my fellow fanum taxers.
