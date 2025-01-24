@@ -127,7 +127,7 @@ __global__ void iterativeRayTracing(
         }
 
         // Test light source
-        Vec3f lightSrc(0, 20, 0);
+        Vec3f lightSrc(6, 20, 6);
 
         // Shadow ray
         Vec3f lightDir = lightSrc - vrtx[r];
