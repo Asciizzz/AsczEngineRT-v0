@@ -19,7 +19,7 @@ public:
     std::vector<TxtrPtr> h_txtrPtr;
     std::vector<const char *> h_paths;
 
-    void appendTexture(const char *path);
+    int appendTexture(const char *path);
 
     // Device memory
     Vec3f *d_txtrFlat;

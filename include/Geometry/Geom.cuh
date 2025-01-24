@@ -5,6 +5,8 @@
 #include <Sphere.cuh>
 #include <Plane.cuh>
 
+#include <Material.cuh>
+
 struct Geom {
     enum GeomType { TRIANGLE, SPHERE, PLANE } type;
     union {
@@ -18,16 +20,7 @@ struct Geom {
 
     // === Test material attributes ===
 
-    float reflect = 0.0f;
-    float transmit = 0.0f;
-
-    float Fresnel = 0.0f;
-    float Ni = 1.0f;
-
-    int txtrIdx = -1;
-
-    // Some special attributes
-    bool isSky = false;
+    int mat = 0; // Material index
 };
 
 #endif

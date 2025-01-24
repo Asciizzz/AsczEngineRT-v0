@@ -40,8 +40,10 @@ int main() {
 
     // =============== Initialize Important Variables ==============
 
-    // Texture manager
+    // Texture and material manager
     TxtrManager TxtrMgr;
+    MatManager MatMgr;
+    MatMgr.appendMaterial(Material()); // Default material
 
     // Create SFMLTexture
     int frmW = winW / 2;
@@ -64,6 +66,10 @@ int main() {
     // ======================= Some test geometries ===========================
     // ========================================================================
 
+    Material sphereMat;
+    sphereMat.reflect = 0.5f;
+    int sphMatIdx = MatMgr.appendMaterial(sphereMat);
+
     // Test sphere
     const int m = 2;
     const int n = 2;
@@ -85,21 +91,26 @@ int main() {
                 Vec3f(x * u, r, z * u), r, rndColor
             );
 
-            // sphs[idx].reflect = 0.7f;
+            sphs[idx].mat = sphMatIdx;
         }
     }
 
     // Test plane
+    Material PlaneMat;
+    PlaneMat.Fresnel = 0.4f;
+
     Geom pln(Geom::PLANE);
     pln.pln = Plane( Vec3f(0, 1, 0), 0, Vec3f(1) );
-    // pln.Fresnel = 0.4f;
+    pln.mat = MatMgr.appendMaterial(PlaneMat);
 
     // Test sky
+    Material skyMat;
+    skyMat.isSky = true;
+    skyMat.txtrIdx = TxtrMgr.appendTexture("assets/Textures/Sunset.png"); // Sky texture
+
     Geom sky(Geom::SPHERE);
     sky.sph = Sphere( Vec3f(0, 100, 0), 9000.0f, Vec3f(0.5, 0.6, 1) );
-    sky.isSky = true;
-    sky.txtrIdx = 0;
-    TxtrMgr.appendTexture("assets/Textures/Yellow.png"); // Sky texture
+    sky.mat = MatMgr.appendMaterial(skyMat);
 
     // Test obj
     std::vector<Geom> shape = Utils::readObjFile("test",
@@ -109,7 +120,7 @@ int main() {
     int shapeNum = shape.size();
     for (int i = 0; i < shapeNum; i++) {
         // Custom settings
-        shape[i].Fresnel = 0.3f;
+        // shape[i].Fresnel = 0.3f;
     }
 
     // Test a wall with texture
@@ -134,11 +145,10 @@ int main() {
     wall2.tri.t2 = Vec2f(1, 0);
     wall2.tri.uniformNormal(Vec3f(0, 1, 0));
 
-    wall1.txtrIdx = 1;
-    wall2.txtrIdx = 1;
-    TxtrMgr.appendTexture("assets/Textures/Night.png"); // Wall texture 
+    // TxtrMgr.appendTexture("assets/Textures/Sunset.png"); // Wall texture 
 
     TxtrMgr.hostToDevice();
+    MatMgr.hostToDevice();
 
     std::vector<Geom> geoms;
     geoms.push_back(sky);
@@ -146,8 +156,8 @@ int main() {
     // geoms.push_back(wall1);
     // geoms.push_back(wall2);
 
-    // geoms.insert(geoms.end(), sphs, sphs + count);
-    geoms.insert(geoms.end(), shape.begin(), shape.end());
+    geoms.insert(geoms.end(), sphs, sphs + count);
+    // geoms.insert(geoms.end(), shape.begin(), shape.end());
 
     // ========================================================================
     // ========================================================================
@@ -241,9 +251,10 @@ int main() {
 
         // Render framebuffer
         iterativeRayTracing<<<blocks, threads>>>(
-            CAMERA, d_framebuffer,
-            d_geoms, geomNum, frmW, frmH,
-            TxtrMgr.d_txtrFlat, TxtrMgr.d_txtrPtr, TxtrMgr.txtrCount
+            CAMERA, d_framebuffer, frmW, frmH,
+            d_geoms, geomNum,
+            TxtrMgr.d_txtrFlat, TxtrMgr.d_txtrPtr,
+            MatMgr.d_mats
         );
         cudaDeviceSynchronize();
 

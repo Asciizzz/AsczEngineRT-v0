@@ -23,8 +23,9 @@ AsczEngine:
 		src/Graphic3D/Camera.cu \
 		src/Graphic3D/SFMLTexture.cu \
 		src/Graphic3D/RayTrace.cu \
-		src/Material/TxtrManager.cu \
 		src/Material/MatAttrs.cu \
+		src/Material/TxtrManager.cu \
+		src/Material/MatManager.cu \
 		src/System/FpsHandler.cu \
 		src/System/CsLogHandler.cu \
 		src/System/Utility.cu \

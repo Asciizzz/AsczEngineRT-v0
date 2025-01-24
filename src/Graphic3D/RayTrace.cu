@@ -6,12 +6,13 @@ __global__ void clearFrameBuffer(Vec3f *framebuffer, int frmW, int frmH) {
 }
 
 __global__ void iterativeRayTracing(
-    Camera camera, Vec3f *framebuffer,
-    Geom *geoms, int geomNum, int frmW, int frmH,
-    Vec3f *txtrFlat, TxtrPtr *txtrPtr, int txtrCount
+    Camera camera, Vec3f *framebuffer, int frmW, int frmH, // In-out
+    Geom *geoms, int geomNum, // Will be replaced with BVH
+    Vec3f *txtrFlat, TxtrPtr *txtrPtr, // Textures
+    Material *mats // Materials
 ) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (i >= frmW * frmH) return;   
+    if (i >= frmW * frmH) return;
 
     int x = i % frmW;
     int y = i / frmW;
@@ -137,6 +138,7 @@ __global__ void iterativeRayTracing(
 
         // Interpolate the hit point
         const Geom &geom = geoms[hit.idx];
+        const Material &mat = mats[geom.mat];
 
         vrtx[r] = ray.origin + ray.direction * hit.t;
 
@@ -148,13 +150,13 @@ __global__ void iterativeRayTracing(
                 nrml[r] = tri.n0 * w + tri.n1 * hit.u + tri.n2 * hit.v;
                 nrml[r].norm();
 
-                if (geom.txtrIdx > -1 && txtrCount > 0) {
+                if (mat.txtrIdx > -1) {
                     txtr[r] = tri.t0 * w + tri.t1 * hit.u + tri.t2 * hit.v;
                     // // Modulo 1
                     // txtr[r].x -= floor(txtr[r].x);
                     // txtr[r].y -= floor(txtr[r].y);
 
-                    int txtrIdx = geom.txtrIdx;
+                    int txtrIdx = mat.txtrIdx;
                     int w = txtrPtr[txtrIdx].w;
                     int h = txtrPtr[txtrIdx].h;
                     int off = txtrPtr[txtrIdx].off;
@@ -176,7 +178,7 @@ __global__ void iterativeRayTracing(
                 nrml[r] = (vrtx[r] - sph.o) / sph.r;
                 if (sph.invert) nrml[r] = -nrml[r];
 
-                if (geom.txtrIdx > -1 && txtrCount > 0) {
+                if (mat.txtrIdx > -1) {
                     Vec3f p = (vrtx[r] - sph.o) / sph.r;
                     float phi = atan2(p.z, p.x);
                     float theta = asin(p.y);
@@ -184,7 +186,7 @@ __global__ void iterativeRayTracing(
                     float u = 1 - (phi + M_PI) / (2 * M_PI);
                     float v = (theta + M_PI_2) / M_PI;
 
-                    int txtrIdx = geom.txtrIdx;
+                    int txtrIdx = mat.txtrIdx;
                     int w = txtrPtr[txtrIdx].w;
                     int h = txtrPtr[txtrIdx].h;
                     int off = txtrPtr[txtrIdx].off;
@@ -210,7 +212,7 @@ __global__ void iterativeRayTracing(
         }
 
         // If the geometry is a sky, ignore the rest
-        if (geom.isSky) continue;
+        if (mat.isSky) continue;
 
         // Test light source
         Vec3f lightSrc(10, 10, 10);
@@ -224,7 +226,9 @@ __global__ void iterativeRayTracing(
 
         for (int g = 0; g < geomNum; g++) {
             const Geom &geom = geoms[g];
-            if (geom.isSky) continue; // Ignore sky
+            const Material &mat = mats[geom.mat];
+
+            if (mat.isSky) continue;
 
             /*
             Highly repetitive code, but doing otherwise
@@ -303,9 +307,9 @@ __global__ void iterativeRayTracing(
         diff = 0.3 + diff * 0.7;
         colr[r] *= diff;
 
-        if (geom.reflect > 0.0f) {
-            float weightLeft = weights[r] * geom.reflect;
-            weights[r] *= (1 - geom.reflect);
+        if (mat.reflect > 0.0f) {
+            float weightLeft = weights[r] * mat.reflect;
+            weights[r] *= (1 - mat.reflect);
 
             Vec3f reflDir = ray.reflect(nrml[r]);
             Vec3f reflOrigin = vrtx[r] + nrml[r] * EPSILON;
@@ -314,9 +318,9 @@ __global__ void iterativeRayTracing(
             hits[rnum] = RayHit();
             weights[rnum] = weightLeft;
         }
-        else if (geom.transmit > 0.0f) {
-            float weightLeft = weights[r] * geom.transmit;
-            weights[r] *= (1 - geom.transmit);
+        else if (mat.transmit > 0.0f) {
+            float weightLeft = weights[r] * mat.transmit;
+            weights[r] *= (1 - mat.transmit);
 
             Vec3f transOrg = vrtx[r] + ray.direction * EPSILON;
 
@@ -324,9 +328,9 @@ __global__ void iterativeRayTracing(
             hits[rnum] = RayHit();
             weights[rnum] = weightLeft;
         }
-        else if (geom.Fresnel > 0.0f) {
-            float weightLeft = weights[r] * geom.Fresnel;
-            weights[r] *= (1 - geom.Fresnel);
+        else if (mat.Fresnel > 0.0f) {
+            float weightLeft = weights[r] * mat.Fresnel;
+            weights[r] *= (1 - mat.Fresnel);
 
             // Schlick's approximation
             float cosI = (-ray.direction) * nrml[r];

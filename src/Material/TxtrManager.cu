@@ -2,7 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include <cuda_runtime.h>
 
-void TxtrManager::appendTexture(const char *path) {
+int TxtrManager::appendTexture(const char *path) {
     sf::Image img;
     img.loadFromFile(path);
 
@@ -22,6 +22,9 @@ void TxtrManager::appendTexture(const char *path) {
             h_txtrFlat.push_back(Vec3f(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f));
         }
     }
+
+    // Return the index of the texture
+    return txtrCount - 1;
 }
 
 void TxtrManager::freeDevice() {
