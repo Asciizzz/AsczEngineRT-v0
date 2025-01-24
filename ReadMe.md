@@ -24,8 +24,8 @@ Whether you have ideas, suggestions, techniques, or just want to discuss renderi
 - Fragment Shading: Early tests (Z, alpha), shader program optimizations, MSAA.
 - Post-Processing: Deferred shading, screen-space effects.
 - General: Parallelism, memory management.
-- BVH traversal: Stackless traversal, Surface Area Herobrine
-- Ray tracing: recursive vs iterative (recommended)
-- Spaghetti: onion, garlic powder, tomato, meatball
+- BVH traversal: Stackless traversal, Surface Area Herobrine.
+- Ray tracing: recursive vs iterative (recommended).
+- Spaghetti: onion, garlic powder, tomato, meatball.
 
 ![](assets/Textures/Seia.png)
