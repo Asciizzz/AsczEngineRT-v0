@@ -20,3 +20,5 @@ Whether you have ideas, suggestions, techniques, or just want to discuss renderi
 - General: Parallelism, memory management.
 - BVH traversal: Stackless traversal, Surface Area Herobrine
 - Ray tracing: recursive vs iterative (recommended)
+
+![](assets/Textures/Seia.png)

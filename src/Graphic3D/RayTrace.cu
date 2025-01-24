@@ -204,12 +204,12 @@ __global__ void iterativeRayTracing(
 
         if (shadow) weights[r] *= 0.3;
 
-        // // Apply very basic lighting with light ray from the top
-        // float diff = nrml[r] * lightDir;
-        // if (diff < 0) diff = 0;
+        // Apply very basic lighting with light ray from the top
+        float diff = nrml[r] * lightDir;
+        if (diff < 0) diff = 0;
 
-        // diff = 0.3 + diff * 0.7;
-        // colr[r] *= diff;
+        diff = 0.3 + diff * 0.7;
+        colr[r] *= diff;
 
         if (mat.reflect > 0.0f) {
             float weightLeft = weights[r] * mat.reflect;
