@@ -49,8 +49,6 @@ __global__ void iterativeRayTracing(
 
         for (int i = 0; i < fNum; i++) {
             Vec3i &fv = mfv[i];
-            Vec3i &ft = mft[i];
-            Vec3i &fn = mfn[i];
 
             // Get the vertices
             Vec3f v0 = mv[fv.x];
@@ -99,7 +97,7 @@ __global__ void iterativeRayTracing(
         Vec2f &t0 = mt[ft.x], &t1 = mt[ft.y], &t2 = mt[ft.z];
         Vec3f &n0 = mn[fn.x], &n1 = mn[fn.y], &n2 = mn[fn.z];
 
-        const Material &mat = mats[mfm[fIdx]];
+        const Material &mat = mats[fm];
 
         vrtx[r] = ray.origin + ray.direction * hit.t;
 
@@ -140,8 +138,6 @@ __global__ void iterativeRayTracing(
             if (i == fIdx) continue;
 
             Vec3i &fv = mfv[i];
-            Vec3i &ft = mft[i];
-            Vec3i &fn = mfn[i];
 
             // Get the vertices
             Vec3f v0 = mv[fv.x];

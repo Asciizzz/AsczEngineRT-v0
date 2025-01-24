@@ -74,6 +74,13 @@ void Vec3f::operator/=(const float scl) {
     x /= scl; y /= scl; z /= scl;
 }
 
+bool Vec3f::operator==(const Vec3f& v) const {
+    return x == v.x && y == v.y && z == v.z;
+}
+bool Vec3f::operator!=(const Vec3f& v) const {
+    return x != v.x || y != v.y || z != v.z;
+}
+
 float Vec3f::operator*(const Vec3f& v) const {
     return x * v.x + y * v.y + z * v.z;
 }

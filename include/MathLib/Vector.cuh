@@ -62,6 +62,9 @@ struct Vec3f {
     _hst_dev_ void operator-=(const Vec3f &v);
     _hst_dev_ void operator*=(const float scl);
     _hst_dev_ void operator/=(const float scl);
+    // Comparison
+    _hst_dev_ bool operator==(const Vec3f &v) const;
+    _hst_dev_ bool operator!=(const Vec3f &v) const;
     // Dot product
     _hst_dev_ float operator*(const Vec3f &v) const;
     // Cross product 

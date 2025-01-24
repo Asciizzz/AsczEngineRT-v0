@@ -71,19 +71,23 @@ int main() {
     // ========================================================================
 
     // Test object loading
-    // Load object file
-    
-    Utils::appendObj(MeshMgr, MatMgr, TxtrMgr,
-        "assets/Models/Shapes/Test/Test1/Test1.obj", 1, 2
-    );
+    // Load object file from .model
+    std::ifstream objsFile(".model");
+    std::string objLine;
 
-    Utils::appendObj(MeshMgr, MatMgr, TxtrMgr,
-        "assets/Models/Shapes/Test/Test2/Test2.obj", 1, 2
-    );
+    while (std::getline(objsFile, objLine)) {
+        if (objLine.size() == 0 || objLine[0] == '#') continue;
+        if (objLine[0] == '~') break;
 
-    Utils::appendObj(MeshMgr, MatMgr, TxtrMgr,
-        "assets/Models/Shapes/Test/Test3/Test3.obj", 1, 2
-    );
+        std::stringstream ss(objLine);
+
+        std::string objPath;
+        short objPlacement;
+
+        ss >> objPath >> objPlacement;
+
+        Utils::appendObj(MeshMgr, MatMgr, TxtrMgr, objPath.c_str(), objPlacement);
+    }
 
     // ======================= Copy to device memory ==========================
 
@@ -94,6 +98,9 @@ int main() {
 
     // ========================================================================
     // ========================================================================
+
+    Vec3f prevPos = CAMERA.pos + 1;
+    Vec3f prevRot = CAMERA.rot + 1;
 
     // Main loop
     while (window.isOpen()) {
@@ -173,22 +180,28 @@ int main() {
         // Update camera
         CAMERA.update();
 
-        // Prepare framebuffer
-        clearFrameBuffer<<<blocks, threads>>>(d_framebuffer, frmW, frmH);
-        cudaDeviceSynchronize();
+        if (prevPos != CAMERA.pos || prevRot != CAMERA.rot)
+        {
+            // Prepare framebuffer
+            clearFrameBuffer<<<blocks, threads>>>(d_framebuffer, frmW, frmH);
+            cudaDeviceSynchronize();
 
-        // Render framebuffer
-        iterativeRayTracing<<<blocks, threads>>>(
-            CAMERA, d_framebuffer, frmW, frmH,
-            TxtrMgr.d_txtrFlat, TxtrMgr.d_txtrPtr,
-            MatMgr.d_mats,
-            MeshMgr.d_v, MeshMgr.d_t, MeshMgr.d_n,
-            MeshMgr.d_fv, MeshMgr.d_ft, MeshMgr.d_fn, MeshMgr.d_fm,
-            MeshMgr.fNum
-        );
-        cudaDeviceSynchronize();
+            // Render framebuffer
+            iterativeRayTracing<<<blocks, threads>>>(
+                CAMERA, d_framebuffer, frmW, frmH,
+                TxtrMgr.d_txtrFlat, TxtrMgr.d_txtrPtr,
+                MatMgr.d_mats,
+                MeshMgr.d_v, MeshMgr.d_t, MeshMgr.d_n,
+                MeshMgr.d_fv, MeshMgr.d_ft, MeshMgr.d_fn, MeshMgr.d_fm,
+                MeshMgr.fNum
+            );
+            cudaDeviceSynchronize();
 
-        SFTex.updateTexture(d_framebuffer, frmW, frmH);
+            SFTex.updateTexture(d_framebuffer, frmW, frmH);
+        }
+
+        prevPos = CAMERA.pos;
+        prevRot = CAMERA.rot;
 
         LOG.addLog("Welcome to AsczEngineRT v0", sf::Color::Green, 1);
         LOG.addLog("FPS: " + std::to_string(FPS.fps), sf::Color::Blue);

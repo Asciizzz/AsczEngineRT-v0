@@ -1,11 +1,4 @@
 #include <Utility.cuh>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <vector>
-#include <string>
-#include <omp.h>
-#include <unordered_map>
 
 #define VectF std::vector<float>
 
@@ -19,7 +12,7 @@
 
 void Utils::appendObj(
     MeshManager &meshMgr, MatManager &matMgr, TxtrManager &txtrMgr,
-    const char *objPath, short fIdxBased, short placement
+    const char *objPath, short placement, short fIdxBased 
 ) {
     std::ifstream file(objPath);
     if (!file.is_open()) return;
@@ -38,7 +31,7 @@ void Utils::appendObj(
     an obj file to contain materials, but not
     using them, like what's the point of that?
     */
-    int matIdx = -1;
+    int matIdx = 0;
     std::unordered_map<std::string, int> matMap;
 
     std::string path(objPath);

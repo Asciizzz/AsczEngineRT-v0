@@ -5,11 +5,17 @@
 #include <MatManager.cuh>
 #include <MeshManager.cuh>
 
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <omp.h>
+#include <unordered_map>
+
 class Utils {
 public:
     static void appendObj(
         MeshManager &meshMgr, MatManager &matMgr, TxtrManager &txtrMgr,
-        const char *objPath, short fIdxBased=1, short placement=0
+        const char *objPath, short placement=0, short fIdxBased=1
     );
 };
 
