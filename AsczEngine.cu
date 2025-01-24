@@ -58,7 +58,7 @@ int main() {
     Camera CAMERA;
 
     // Create SFMLTexture
-    float frmScl = 1;
+    float frmScl = 2;
     int frmW = winW / frmScl;
     int frmH = winH / frmScl;
     SFMLTexture SFTex(frmW, frmH);

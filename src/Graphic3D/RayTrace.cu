@@ -131,17 +131,17 @@ __global__ void iterativeRayTracing(
 
         const Material &mat = mats[fm];
 
-        float w = 1 - hit.u - hit.v;
+        float hitw = 1 - hit.u - hit.v;
         vrtx[r] = ray.origin + ray.direction * hit.t;
 
         if (fn.x > -1) {
             Vec3f &n0 = mn[fn.x], &n1 = mn[fn.y], &n2 = mn[fn.z];
-            nrml[r] = n0 * w + n1 * hit.u + n2 * hit.v;
+            nrml[r] = n0 * hitw + n1 * hit.u + n2 * hit.v;
         }
 
         if (mat.mapKd > -1) {
             Vec2f &t0 = mt[ft.x], &t1 = mt[ft.y], &t2 = mt[ft.z];
-            txtr[r] = t0 * w + t1 * hit.u + t2 * hit.v;
+            txtr[r] = t0 * hitw + t1 * hit.u + t2 * hit.v;
             // Modulo 1
             txtr[r].x -= floor(txtr[r].x);
             txtr[r].y -= floor(txtr[r].y);
@@ -162,8 +162,8 @@ __global__ void iterativeRayTracing(
 
         // Shadow ray
         Vec3f lightDir = lightSrc - vrtx[r]; lightDir.norm();
-        Vec3f lightOrigin = vrtx[r] + lightDir * EPSILON_1;
-        Ray shadowRay(lightOrigin, lightDir);
+        Vec3f lightOrigin = vrtx[r] + nrml[r] * EPSILON_1;
+        Ray lightRay(lightOrigin, lightDir);
         bool shadow = false;
 
         for (int i = 0; i < fNum; i++) {
@@ -178,19 +178,19 @@ __global__ void iterativeRayTracing(
 
             Vec3f e1 = v1 - v0;
             Vec3f e2 = v2 - v0;
-            Vec3f h = shadowRay.direction & e2;
+            Vec3f h = lightRay.direction & e2;
             float a = e1 * h;
 
             if (a > -EPSILON_2 && a < EPSILON_2) continue;
 
             float f = 1.0f / a;
-            Vec3f s = shadowRay.origin - v0;
+            Vec3f s = lightRay.origin - v0;
             float u = f * (s * h);
 
             if (u < 0.0f || u > 1.0f) continue;
 
             Vec3f q = s & e1;
-            float v = f * (shadowRay.direction * q);
+            float v = f * (lightRay.direction * q);
 
             if (v < 0.0f || u + v > 1.0f) continue;
 
@@ -206,7 +206,7 @@ __global__ void iterativeRayTracing(
 
         // Apply very basic lighting with light ray from the top
         float diff = nrml[r] * lightDir;
-        if (diff < 0) diff = 0;
+        diff = diff < 0 ? 0 : diff;
 
         diff = 0.3 + diff * 0.7;
         colr[r] *= diff;
