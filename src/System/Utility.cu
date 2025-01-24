@@ -100,6 +100,17 @@ void Utils::appendObj(
                 // Additional attributes can be added here
                 // Even those that do no exist in a typical .mtl file
                 // for debugging of course
+
+                // Those that do not exist in a typical .mtl file
+                if (mtlType == "refl") {
+                    float refl; mtlSS >> refl;
+                    matMgr.h_mats[matIdx].reflect = refl;
+                }
+
+                if (mtlType == "Fresnel") {
+                    float fresnel; mtlSS >> fresnel;
+                    matMgr.h_mats[matIdx].Fresnel = fresnel;
+                }
             }
         }
 

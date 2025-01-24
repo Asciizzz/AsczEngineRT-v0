@@ -73,15 +73,16 @@ int main() {
     // Test object loading
     // Load object file
     
-    Utils::appendObj(
-        MeshMgr, MatMgr, TxtrMgr,
-        "assets/Models/Shapes/Test/Floor/Floor.obj", 1, 2
+    Utils::appendObj(MeshMgr, MatMgr, TxtrMgr,
+        "assets/Models/Shapes/Test/Test1/Test1.obj", 1, 2
     );
-    MatMgr.getLastMaterial().Fresnel = 0.1;
 
-    Utils::appendObj(
-        MeshMgr, MatMgr, TxtrMgr,
-        "assets/Models/Shapes/Test/Paimon/Paimon.obj", 1, 2
+    Utils::appendObj(MeshMgr, MatMgr, TxtrMgr,
+        "assets/Models/Shapes/Test/Test2/Test2.obj", 1, 2
+    );
+
+    Utils::appendObj(MeshMgr, MatMgr, TxtrMgr,
+        "assets/Models/Shapes/Test/Test3/Test3.obj", 1, 2
     );
 
     // ======================= Copy to device memory ==========================

@@ -193,6 +193,23 @@ __global__ void iterativeRayTracing(
             rays[++rnum] = Ray(reflOrigin, reflDir);
             hits[rnum] = RayHit();
             weights[rnum] = weightLeft;
+        } else if (mat.reflect == -1) {
+            // Schlick's approximation
+            float cosI = (-ray.direction) * nrml[r];
+            if (cosI < 0) cosI = -cosI;
+
+            // Find the fresnel coefficient
+            float R = pow(1 - cosI, 5);
+
+            float weightLeft = weights[r] * R;
+            weights[r] *= (1 - R);
+
+            Vec3f reflDir = ray.reflect(nrml[r]);
+            Vec3f reflOrigin = vrtx[r] + nrml[r] * EPSILON_1;
+
+            rays[++rnum] = Ray(reflOrigin, reflDir);
+            hits[rnum] = RayHit();
+            weights[rnum] = weightLeft;
         }
         else if (mat.transmit > 0.0f) {
             float weightLeft = weights[r] * mat.transmit;
@@ -215,15 +232,15 @@ __global__ void iterativeRayTracing(
             // Find the fresnel coefficient
             float R = pow(1 - cosI, 5);
             float Rrefl = R * weightLeft;
-            // float Rrefr = (1 - R) * weightLeft;
+            float Rrefr = (1 - R) * weightLeft;
 
-            // // Refraction (for the time being just tranparent)
-            // Vec3f refrDir = ray.direction;
-            // Vec3f refrOrigin = vrtx[r] + refrDir * EPSILON_1;
+            // Refraction (for the time being just tranparent)
+            Vec3f refrDir = ray.direction;
+            Vec3f refrOrigin = vrtx[r] + refrDir * EPSILON_1;
 
-            // rays[++rnum] = Ray(refrOrigin, refrDir);
-            // hits[rnum] = RayHit();
-            // weights[rnum] = Rrefr;
+            rays[++rnum] = Ray(refrOrigin, refrDir);
+            hits[rnum] = RayHit();
+            weights[rnum] = Rrefr;
 
             // Reflection
             Vec3f reflDir = ray.reflect(nrml[r]);
