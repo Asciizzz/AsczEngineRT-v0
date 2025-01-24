@@ -50,8 +50,8 @@ int main() {
     // By logic, then this is CameraManager?
     // Idk, just a funny thought
     Camera CAMERA;
-    CAMERA.pos = Vec3f(0, 5, -10);
-    CAMERA.rot = Vec3f(0, 0, 0);
+    CAMERA.pos = Vec3f(0, 5, 14);
+    CAMERA.rot = Vec3f(0, M_PI, 0);
     CAMERA.updateView();
 
     // Create SFMLTexture
@@ -72,9 +72,16 @@ int main() {
 
     // Test object loading
     // Load object file
+    
     Utils::appendObj(
         MeshMgr, MatMgr, TxtrMgr,
-        "assets/Models/Shapes/Test/Test.obj", 1, 2
+        "assets/Models/Shapes/Test/Floor/Floor.obj", 1, 2
+    );
+    MatMgr.getLastMaterial().Fresnel = 0.1;
+
+    Utils::appendObj(
+        MeshMgr, MatMgr, TxtrMgr,
+        "assets/Models/Shapes/Test/Paimon/Paimon.obj", 1, 2
     );
 
     // ======================= Copy to device memory ==========================
@@ -203,6 +210,12 @@ int main() {
         // Frame end
         FPS.endFrame();
     }
+
+    // Free device memory
+    cudaFree(d_framebuffer);
+    TxtrMgr.freeDevice();
+    MatMgr.freeDevice();
+    MeshMgr.freeDevice();
 
     return 0;
 }

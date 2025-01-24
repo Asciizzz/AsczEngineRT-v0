@@ -24,6 +24,8 @@ public:
     std::vector<Material> h_mats;
     // Append material and return the index
     int appendMaterial(Material mat);
+    // Get the last mesh
+    Material &getLastMaterial() { return h_mats.back(); }
 
     // Device memory
     Material *d_mats = nullptr;

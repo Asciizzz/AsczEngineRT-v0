@@ -24,7 +24,8 @@ __global__ void iterativeRayTracing(
 
     Ray primaryRay = camera.castRay(x, y, frmW, frmH);
 
-    const double EPSILON = 0.001;
+    const double EPSILON_1 = 0.001;
+    const double EPSILON_2 = 0.00001;
     const int MAX_RAYS = 10;
 
     // Iterative ray tracing
@@ -46,10 +47,6 @@ __global__ void iterativeRayTracing(
         Ray &ray = rays[r];
         RayHit &hit = hits[r];
 
-    // =========================================================================
-    // ======================= Will be replaced with BVH =======================
-    // =========================================================================
-
         for (int i = 0; i < fNum; i++) {
             Vec3i &fv = mfv[i];
             Vec3i &ft = mft[i];
@@ -65,7 +62,7 @@ __global__ void iterativeRayTracing(
             Vec3f h = ray.direction & e2;
             float a = e1 * h;
 
-            if (a > -EPSILON && a < EPSILON) continue;
+            if (a > -EPSILON_2 && a < EPSILON_2) continue;
 
             float f = 1.0f / a;
             Vec3f s = ray.origin - v0;
@@ -80,7 +77,7 @@ __global__ void iterativeRayTracing(
 
             float t = f * (e2 * q);
 
-            if (t > EPSILON && t < hit.t) {
+            if (t > EPSILON_2 && t < hit.t) {
                 hit.hit = true;
                 hit.idx = i;
                 hit.t = t;
@@ -96,22 +93,18 @@ __global__ void iterativeRayTracing(
         if (!hit.hit) continue;
 
         // Get the face data
-        int fIdx = hit.idx;
-        Vec3i &fv = mfv[fIdx], &ft = mft[fIdx], &fn = mfn[fIdx];
-        int &fm = mfm[fIdx];
+        int fIdx = hit.idx; int &fm = mfm[fIdx];
+        Vec3i &ft = mft[fIdx], &fn = mfn[fIdx];
 
-        Vec3f &v0 = mv[fv.x], &v1 = mv[fv.y], &v2 = mv[fv.z];
         Vec2f &t0 = mt[ft.x], &t1 = mt[ft.y], &t2 = mt[ft.z];
         Vec3f &n0 = mn[fn.x], &n1 = mn[fn.y], &n2 = mn[fn.z];
 
         const Material &mat = mats[mfm[fIdx]];
-        // Interpolate the hit point
+
         vrtx[r] = ray.origin + ray.direction * hit.t;
 
         float w = 1 - hit.u - hit.v;
-
         nrml[r] = n0 * w + n1 * hit.u + n2 * hit.v;
-        nrml[r].norm();
 
         if (mat.mapKd > -1) {
             txtr[r] = t0 * w + t1 * hit.u + t2 * hit.v;
@@ -134,16 +127,18 @@ __global__ void iterativeRayTracing(
         }
 
         // Test light source
-        Vec3f lightSrc(10, 10, 10);
+        Vec3f lightSrc(0, 20, 0);
 
         // Shadow ray
         Vec3f lightDir = lightSrc - vrtx[r];
-        Vec3f lightOrigin = vrtx[r] + lightDir * EPSILON;
+        Vec3f lightOrigin = vrtx[r] + nrml[r] * EPSILON_2;
         lightDir.norm();
         Ray shadowRay(lightOrigin, lightDir);
         bool shadow = false;
 
         for (int i = 0; i < fNum; i++) {
+            if (i == fIdx) continue;
+
             Vec3i &fv = mfv[i];
             Vec3i &ft = mft[i];
             Vec3i &fn = mfn[i];
@@ -158,7 +153,7 @@ __global__ void iterativeRayTracing(
             Vec3f h = shadowRay.direction & e2;
             float a = e1 * h;
 
-            if (a > -EPSILON && a < EPSILON) continue;
+            if (a > -EPSILON_2 && a < EPSILON_2) continue;
 
             float f = 1.0f / a;
             Vec3f s = shadowRay.origin - v0;
@@ -173,7 +168,7 @@ __global__ void iterativeRayTracing(
 
             float t = f * (e2 * q);
 
-            if (t > EPSILON) {
+            if (t > EPSILON_2) {
                 shadow = true;
                 break;
             }
@@ -181,19 +176,19 @@ __global__ void iterativeRayTracing(
 
         if (shadow) weights[r] *= 0.3;
 
-        // Apply very basic lighting with light ray from the top
-        float diff = nrml[r] * lightDir;
-        if (diff < 0) diff = 0;
+        // // Apply very basic lighting with light ray from the top
+        // float diff = nrml[r] * lightDir;
+        // if (diff < 0) diff = 0;
 
-        diff = 0.3 + diff * 0.7;
-        colr[r] *= diff;
+        // diff = 0.3 + diff * 0.7;
+        // colr[r] *= diff;
 
         if (mat.reflect > 0.0f) {
             float weightLeft = weights[r] * mat.reflect;
             weights[r] *= (1 - mat.reflect);
 
             Vec3f reflDir = ray.reflect(nrml[r]);
-            Vec3f reflOrigin = vrtx[r] + nrml[r] * EPSILON;
+            Vec3f reflOrigin = vrtx[r] + nrml[r] * EPSILON_1;
 
             rays[++rnum] = Ray(reflOrigin, reflDir);
             hits[rnum] = RayHit();
@@ -203,7 +198,7 @@ __global__ void iterativeRayTracing(
             float weightLeft = weights[r] * mat.transmit;
             weights[r] *= (1 - mat.transmit);
 
-            Vec3f transOrg = vrtx[r] + ray.direction * EPSILON;
+            Vec3f transOrg = vrtx[r] + ray.direction * EPSILON_1;
 
             rays[++rnum] = Ray(transOrg, ray.direction);
             hits[rnum] = RayHit();
@@ -220,19 +215,19 @@ __global__ void iterativeRayTracing(
             // Find the fresnel coefficient
             float R = pow(1 - cosI, 5);
             float Rrefl = R * weightLeft;
-            float Rrefr = (1 - R) * weightLeft;
+            // float Rrefr = (1 - R) * weightLeft;
 
-            // Refraction (for the time being just tranparent)
-            Vec3f refrDir = ray.direction;
-            Vec3f refrOrigin = vrtx[r] + refrDir * EPSILON;
+            // // Refraction (for the time being just tranparent)
+            // Vec3f refrDir = ray.direction;
+            // Vec3f refrOrigin = vrtx[r] + refrDir * EPSILON_1;
 
-            rays[++rnum] = Ray(refrOrigin, refrDir);
-            hits[rnum] = RayHit();
-            weights[rnum] = Rrefr;
+            // rays[++rnum] = Ray(refrOrigin, refrDir);
+            // hits[rnum] = RayHit();
+            // weights[rnum] = Rrefr;
 
             // Reflection
             Vec3f reflDir = ray.reflect(nrml[r]);
-            Vec3f reflOrigin = vrtx[r] + nrml[r] * EPSILON;
+            Vec3f reflOrigin = vrtx[r] + nrml[r] * EPSILON_1;
 
             rays[++rnum] = Ray(reflOrigin, reflDir);
             hits[rnum] = RayHit();

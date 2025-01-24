@@ -80,10 +80,13 @@ void Utils::appendObj(
 
                 if (mtlType == "newmtl") {
                     matIdx = matMgr.appendMaterial(Material());
-
                     std::string matName; mtlSS >> matName;
-
                     matMap[matName] = matIdx;
+                }
+
+                if (mtlType == "Kd") {
+                    Vec3f Kd; mtlSS >> Kd.x >> Kd.y >> Kd.z;
+                    matMgr.h_mats[matIdx].Kd = Kd;
                 }
 
                 if (mtlType == "map_Kd") {
@@ -92,11 +95,6 @@ void Utils::appendObj(
                     matMgr.h_mats[matIdx].mapKd = txtrMgr.appendTexture(
                         (mtlDir + txtrPath).c_str()
                     );
-
-                    std::cout << "Texture path: " << txtrPath << std::endl;
-                    std::cout << "w: " << txtrMgr.h_txtrPtr[matMgr.h_mats[matIdx].mapKd].w << std::endl;
-                    std::cout << "h: " << txtrMgr.h_txtrPtr[matMgr.h_mats[matIdx].mapKd].h << std::endl;
-                    std::cout << "off: " << txtrMgr.h_txtrPtr[matMgr.h_mats[matIdx].mapKd].off << std::endl;
                 }
 
                 // Additional attributes can be added here

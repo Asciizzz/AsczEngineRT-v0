@@ -1,0 +1,17 @@
+newmtl test0
+Kd 1.000 0 0
+
+newmtl test1
+Kd 0 1.000 0
+
+newmtl test2
+Kd 0 0 1.000
+
+newmtl test3
+Kd 1.000 1.000 0
+
+newmtl test4
+Kd 1.000 0 1.000
+
+newmtl test5
+Kd 0 1.000 1.000
