@@ -1,5 +1,7 @@
 # Cube with corrected texture mapping
 
+mtllib test.mtl
+
 # Vertices (8 corners of the cube)
 v -1 -1 -1
 v 1 -1 -1
@@ -10,13 +12,13 @@ v 1 -1 1
 v 1 1 1
 v -1 1 1
 
-# Normals (pointing inward from faces)
-vn 1 0 0
+# Normals (pointing outward from faces)
 vn -1 0 0
-vn 0 -1 0
+vn 1 0 0
 vn 0 1 0
-vn 0 0 -1
+vn 0 -1 0
 vn 0 0 1
+vn 0 0 -1
 
 # Texture coordinates (mapped to a 0-1 range on each face)
 vt 0 1
@@ -25,6 +27,8 @@ vt 1 0
 vt 0 0
 
 # Faces with corrected texture mapping
+
+usemtl test
 
 # Left
 f 5/1/1 1/2/1 4/3/1

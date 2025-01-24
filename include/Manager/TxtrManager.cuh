@@ -2,7 +2,6 @@
 #define TXTRMANAGER_CUH
 
 #include <Vector.cuh>
-#include <unordered_map>
 
 struct TxtrPtr {
     int w, h, off;
@@ -10,9 +9,6 @@ struct TxtrPtr {
 
 class TxtrManager {
 public:
-    // A map, to avoid repeated textures
-    std::unordered_map<const char *, int> txtrMap;
-
     // Host memory
     std::vector<Vec3f> h_txtrFlat;
     std::vector<TxtrPtr> h_txtrPtr;

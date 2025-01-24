@@ -10,16 +10,19 @@ struct Material {
     float Fresnel = 0.0f;
     float Ni = 1.0f;
 
-    int txtrIdx = -1;
-
     // Some special attributes
     bool isSky = false;
+
+    // Some actually real attributes
+    Vec3f Kd = Vec3f(0.5f);
+    int mapKd = -1;
 };
 
 class MatManager {
 public:
     // Host memory
     std::vector<Material> h_mats;
+    // Append material and return the index
     int appendMaterial(Material mat);
 
     // Device memory

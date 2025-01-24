@@ -5,19 +5,6 @@
 #include <iostream>
 
 int TxtrManager::appendTexture(const char *path) {
-    // Check if the texture is already loaded
-    if (txtrMap.find(path) != txtrMap.end()) {
-        std::cout << "Texture already loaded: " << path << std::endl;
-
-        return txtrMap[path];
-    // If not, load it and add it to the map
-    } else {
-        txtrMap[path] = txtrCount;
-
-        std::cout << "Loading texture: " << path << std::endl;
-        std::cout << "Texture index: " << txtrMap[path] << std::endl;
-    }
-
     sf::Image img;
     img.loadFromFile(path);
 

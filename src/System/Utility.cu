@@ -1,4 +1,12 @@
 #include <Utility.cuh>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <string>
+#include <omp.h>
+#include <unordered_map>
+
 #define VectF std::vector<float>
 
 #define VectI std::vector<int>
@@ -9,23 +17,38 @@
 
 #define VectStr std::vector<std::string>
 
-std::vector<Geom> Utils::readObjFile(std::string name, std::string path, short fIdxBased, short placement) {
-    std::ifstream file(path);
-    if (!file.is_open()) return {};
+void Utils::appendObj(
+    MeshManager &meshMgr, MatManager &matMgr, TxtrManager &txtrMgr,
+    const char *objPath, short fIdxBased, short placement
+) {
+    std::ifstream file(objPath);
+    if (!file.is_open()) return;
 
-    std::string line;
+    Vecs3f mv;
+    Vecs2f mt;
+    Vecs3f mn;
 
-    VectF wx, wy, wz;
-    VectF tu, tv;
-    VectF nx, ny, nz;
-    VectULLI fw; VectLLI ft, fn; // x3
+    Vecs3i mfv;
+    Vecs3i mft;
+    Vecs3i mfn;
+    VectI mfm;
 
-    // We will use these value to shift the mesh to the origin
+    /*
+    Idk but there is a REALLY rare chance for
+    an obj file to contain materials, but not
+    using them, like what's the point of that?
+    */
+    int matIdx = -1;
+    std::unordered_map<std::string, int> matMap;
+
+    std::string path(objPath);
+
+    // We will use these value to shift the mesh to desired position
     float minX = INFINITY, minY = INFINITY, minZ = INFINITY;
     float maxX = -INFINITY, maxY = -INFINITY, maxZ = -INFINITY;
 
-    // Extract the lines from the file
     VectStr lines;
+    std::string line;
     while (std::getline(file, line)) {
         if (line.size() == 0 || line[0] == '#') continue;
         lines.push_back(line);
@@ -37,11 +60,63 @@ std::vector<Geom> Utils::readObjFile(std::string name, std::string path, short f
         std::string type;
         ss >> type;
 
-        if (type == "v") {
-            Vec3f v;
-            ss >> v.x >> v.y >> v.z;
+        // READ MTL FILE
 
-            // Update the min and max values
+        if (type == "mtllib") {
+            std::string mtlPath;
+            ss >> mtlPath;
+
+            std::string mtlDir = path.substr(0, path.find_last_of("/\\") + 1);
+            std::ifstream mtlFile(mtlDir + mtlPath);
+            if (!mtlFile.is_open()) continue;
+
+            std::string mtlLine;
+            while (std::getline(mtlFile, mtlLine)) {
+                if (mtlLine.size() == 0 || mtlLine[0] == '#') continue;
+
+                std::stringstream mtlSS(mtlLine);
+                std::string mtlType;
+                mtlSS >> mtlType;
+
+                if (mtlType == "newmtl") {
+                    matIdx = matMgr.appendMaterial(Material());
+
+                    std::string matName; mtlSS >> matName;
+
+                    matMap[matName] = matIdx;
+                }
+
+                if (mtlType == "map_Kd") {
+                    std::string txtrPath; mtlSS >> txtrPath;
+
+                    matMgr.h_mats[matIdx].mapKd = txtrMgr.appendTexture(
+                        (mtlDir + txtrPath).c_str()
+                    );
+
+                    std::cout << "Texture path: " << txtrPath << std::endl;
+                    std::cout << "w: " << txtrMgr.h_txtrPtr[matMgr.h_mats[matIdx].mapKd].w << std::endl;
+                    std::cout << "h: " << txtrMgr.h_txtrPtr[matMgr.h_mats[matIdx].mapKd].h << std::endl;
+                    std::cout << "off: " << txtrMgr.h_txtrPtr[matMgr.h_mats[matIdx].mapKd].off << std::endl;
+                }
+
+                // Additional attributes can be added here
+                // Even those that do no exist in a typical .mtl file
+                // for debugging of course
+            }
+        }
+
+        if (type == "usemtl") {
+            std::string matName;
+            ss >> matName;
+
+            matIdx = matMap[matName];
+        }
+
+        // ACTUAL OBJ FILE READING
+
+        if (type == "v") {
+            Vec3f v; ss >> v.x >> v.y >> v.z;
+
             minX = std::min(minX, v.x);
             minY = std::min(minY, v.y);
             minZ = std::min(minZ, v.z);
@@ -49,32 +124,29 @@ std::vector<Geom> Utils::readObjFile(std::string name, std::string path, short f
             maxY = std::max(maxY, v.y);
             maxZ = std::max(maxZ, v.z);
 
-            wx.push_back(v.x);
-            wy.push_back(v.y);
-            wz.push_back(v.z);
-        } else if (type == "vt") {
-            Vec2f t;
-            ss >> t.x >> t.y;
-            tu.push_back(t.x);
-            tv.push_back(t.y);
-        } else if (type == "vn") {
-            Vec3f n;
-            ss >> n.x >> n.y >> n.z;
-            n.norm();
+            mv.push_back(v);
+        }
 
-            nx.push_back(n.x);
-            ny.push_back(n.y);
-            nz.push_back(n.z);
-        } else if (type == "f") {
-            VectULLI vs;
-            VectLLI ts, ns;
+        if (type == "vt") {
+            Vec2f t; ss >> t.x >> t.y;
+            mt.push_back(t);
+        }
+
+        if (type == "vn") {
+            Vec3f n; ss >> n.x >> n.y >> n.z;
+            n.norm(); // Just in case
+            mn.push_back(n);
+        }
+
+        if (type == "f") {
+            Vec3i fv, ft, fn;
+
+            VectI vs, ts, ns;
             while (ss.good()) {
-                std::string vtn;
-                ss >> vtn;
-
-                ULLInt v;
-                LLInt t = 0, n = 0;
+                std::string vtn; ss >> vtn;
                 std::stringstream ss2(vtn);
+
+                int v, t, n;
 
                 // Read vertex index
                 ss2 >> v;
@@ -99,74 +171,51 @@ std::vector<Geom> Utils::readObjFile(std::string name, std::string path, short f
                     n = fIdxBased - 1 ; // No normal index provided
                 }
 
-                vs.push_back(v - fIdxBased); // Adjust to 0-based index
-                ts.push_back(t - fIdxBased); // Adjust to 0-based index
-                ns.push_back(n - fIdxBased); // Adjust to 0-based index
+                // Note, setting it to fIdxBased - 1
+                // Helps the operation below to work
+                // Not exist = -1
+
+                vs.push_back(v - fIdxBased);
+                ts.push_back(t - fIdxBased);
+                ns.push_back(n - fIdxBased);
             }
 
-            /* For n points, we will construct n - 2 triangles
-            
-            Example: (A B C D E F):
-            - Use A as anchor point
-                => (A B C), (A C D), (A D E), (A E F)
-
-            Note:  .obj files are assumed to organized the points
-                    in a clockwise (or counter-clockwise) order
-                    If they don't, well, sucks to be you
-            */
-
+            // Triangulate the face
             for (int i = 1; i < vs.size() - 1; i++) {
-                fw.push_back(vs[0]); fw.push_back(vs[i]); fw.push_back(vs[i + 1]);
-                ft.push_back(ts[0]); ft.push_back(ts[i]); ft.push_back(ts[i + 1]);
-                fn.push_back(ns[0]); fn.push_back(ns[i]); fn.push_back(ns[i + 1]);
+                fv = Vec3i(vs[0], vs[i], vs[i + 1]);
+                ft = Vec3i(ts[0], ts[i], ts[i + 1]);
+                fn = Vec3i(ns[0], ns[i], ns[i + 1]);
+
+                mfv.push_back(fv);
+                mft.push_back(ft);
+                mfn.push_back(fn);
+                mfm.push_back(matIdx);
             }
         }
     }
 
     #pragma omp parallel for
-    for (size_t i = 0; i < wx.size(); i++) {
+    for (size_t i = 0; i < mv.size(); i++) {
         // Shift to center of xz plane
         if (placement > 0) {
-            wx[i] -= (minX + maxX) / 2;
-            wz[i] -= (minZ + maxZ) / 2;
+            mv[i].x -= (minX + maxX) / 2;
+            mv[i].z -= (minZ + maxZ) / 2;
         }
 
-        if (placement == 1) { // Shift to center
-            wy[i] -= (minY + maxY) / 2;
-        } else if (placement == 2) { // Shift to floor
-            wy[i] -= minY;
-        }
+        // Shift to center
+        if (placement == 1) mv[i].y -= minY;
+        // Shift to floor (y = 0)
+        else if (placement == 2) mv[i].y -= minY;
     }
 
-    // For every face, we will create a triangle
-    std::vector<Geom> geoms;
-    for (size_t i = 0; i < fw.size(); i += 3) {
-        Triangle tri;
+    MeshStruct mesh;
+    mesh.v = mv;
+    mesh.t = mt;
+    mesh.n = mn;
+    mesh.fv = mfv;
+    mesh.ft = mft;
+    mesh.fn = mfn;
+    mesh.fm = mfm;
 
-        tri.v0 = Vec3f(wx[fw[i]], wy[fw[i]], wz[fw[i]]);
-        tri.v1 = Vec3f(wx[fw[i + 1]], wy[fw[i + 1]], wz[fw[i + 1]]);
-        tri.v2 = Vec3f(wx[fw[i + 2]], wy[fw[i + 2]], wz[fw[i + 2]]);
-
-        tri.n0 = Vec3f(nx[fn[i]], ny[fn[i]], nz[fn[i]]);
-        tri.n1 = Vec3f(nx[fn[i + 1]], ny[fn[i + 1]], nz[fn[i + 1]]);
-        tri.n2 = Vec3f(nx[fn[i + 2]], ny[fn[i + 2]], nz[fn[i + 2]]);
-
-        // Give each vertex a color based on the ratio of min and max values
-        // With range from m to r + m
-        
-        float m = 0.6, r = 0.4;
-        tri.c0 = Vec3f(tri.v0.x / maxX * r + m, tri.v0.y / maxY * r + m, tri.v0.z / maxZ * r + m);
-        tri.c1 = Vec3f(tri.v1.x / maxY * r + m, tri.v1.y / maxZ * r + m, tri.v1.z / maxX * r + m);
-        tri.c2 = Vec3f(tri.v2.x / maxZ * r + m, tri.v2.y / maxX * r + m, tri.v2.z / maxY * r + m);
-
-        // // Set color to white
-        // tri.c0.uniformColor(Vec3f(1));
-
-        Geom geom(Geom::TRIANGLE);
-        geom.tri = tri;
-
-        geoms.push_back(geom);
-    }
-
-    return geoms;
+    meshMgr.appendMesh(mesh);
 }

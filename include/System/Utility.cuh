@@ -1,16 +1,16 @@
 #ifndef UTILITY_CUH
 #define UTILITY_CUH
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <vector>
-#include <string>
-#include <Geom.cuh>
+#include <TxtrManager.cuh>
+#include <MatManager.cuh>
+#include <MeshManager.cuh>
 
 class Utils {
 public:
-    static std::vector<Geom> readObjFile(std::string name, std::string path, short fIdxBased=1, short placement=0);
+    static void appendObj(
+        MeshManager &meshMgr, MatManager &matMgr, TxtrManager &txtrMgr,
+        const char *objPath, short fIdxBased=1, short placement=0
+    );
 };
 
 #endif

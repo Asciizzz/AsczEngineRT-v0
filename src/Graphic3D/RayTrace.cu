@@ -7,9 +7,14 @@ __global__ void clearFrameBuffer(Vec3f *framebuffer, int frmW, int frmH) {
 
 __global__ void iterativeRayTracing(
     Camera camera, Vec3f *framebuffer, int frmW, int frmH, // In-out
-    Geom *geoms, int geomNum, // Will be replaced with BVH
     Vec3f *txtrFlat, TxtrPtr *txtrPtr, // Textures
-    Material *mats // Materials
+    Material *mats, // Materials
+    // Mesh data
+    Vec3f *mv, Vec2f *mt, Vec3f *mn, // Primitive data
+    Vec3i *mfv, Vec3i *mft, Vec3i *mfn, int *mfm, // Face data
+    int fNum // Number of faces
+
+    // BVH in the near future
 ) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i >= frmW * frmH) return;
@@ -45,88 +50,42 @@ __global__ void iterativeRayTracing(
     // ======================= Will be replaced with BVH =======================
     // =========================================================================
 
-        for (int g = 0; g < geomNum; g++) {
-            const Geom &geom = geoms[g];
+        for (int i = 0; i < fNum; i++) {
+            Vec3i &fv = mfv[i];
+            Vec3i &ft = mft[i];
+            Vec3i &fn = mfn[i];
 
-            /*
-            "WhY dOn'T yOu WrItE a FuNcTiOn tO dO tHe InTeRsEcTiOn?"
+            // Get the vertices
+            Vec3f v0 = mv[fv.x];
+            Vec3f v1 = mv[fv.y];
+            Vec3f v2 = mv[fv.z];
 
-            BECAUSE IT KILLED THE PERFORMANCE, OKAY?
-            IDK WHY, BUT IT PLUMMETED THE PERFORMANCE
-            FROM 60 FPS TO 20 FPS, SO I'M NOT GONNA DO IT
-            */
+            Vec3f e1 = v1 - v0;
+            Vec3f e2 = v2 - v0;
+            Vec3f h = ray.direction & e2;
+            float a = e1 * h;
 
-            switch (geom.type) {
-                case Geom::TRIANGLE: {
-                    const Triangle &tri = geom.tri;
-                    Vec3f e1 = tri.v1 - tri.v0;
-                    Vec3f e2 = tri.v2 - tri.v0;
-                    Vec3f h = ray.direction & e2;
-                    float a = e1 * h;
+            if (a > -EPSILON && a < EPSILON) continue;
 
-                    if (a > -0.00001 && a < 0.00001) continue;
+            float f = 1.0f / a;
+            Vec3f s = ray.origin - v0;
+            float u = f * (s * h);
 
-                    float f = 1.0f / a;
-                    Vec3f s = ray.origin - tri.v0;
-                    float u = f * (s * h);
+            if (u < 0.0f || u > 1.0f) continue;
 
-                    if (u < 0.0f || u > 1.0f) continue;
+            Vec3f q = s & e1;
+            float v = f * (ray.direction * q);
 
-                    Vec3f q = s & e1;
-                    float v = f * (ray.direction * q);
+            if (v < 0.0f || u + v > 1.0f) continue;
 
-                    if (v < 0.0f || u + v > 1.0f) continue;
+            float t = f * (e2 * q);
 
-                    float t = f * (e2 * q);
-
-                    if (t > 0.00001 && t < hit.t) {
-                        hit.hit = true;
-                        hit.idx = g;
-                        hit.t = t;
-                        hit.u = u;
-                        hit.v = v;
-                    }
-                    continue;
-                }
-
-                case Geom::SPHERE: {
-                    const Sphere &sph = geom.sph;
-
-                    Vec3f l = sph.o - ray.origin;
-                    float tca = l * ray.direction;
-                    float d2 = l * l - tca * tca;
-
-                    if (d2 > sph.r * sph.r) continue;
-
-                    float thc = sqrt(sph.r * sph.r - d2);
-                    float t0 = tca - thc;
-                    float t1 = tca + thc;
-
-                    if (t0 < 0) t0 = t1;
-
-                    if (t0 > EPSILON && t0 < hit.t) {
-                        hit.hit = true;
-                        hit.idx = g;
-                        hit.t = t0;
-                    }
-                    continue;
-                }
-
-                case Geom::PLANE: {
-                    const Plane &pln = geom.pln;
-
-                    float denom = pln.n * ray.direction;
-                    if (denom > -EPSILON && denom < EPSILON) continue; // Parallel
-
-                    float t = -(pln.n * ray.origin + pln.d) / denom;
-
-                    if (t < hit.t && t > EPSILON) {
-                        hit.hit = true;
-                        hit.idx = g;
-                        hit.t = t;
-                    }
-                    continue;
-                }
+            if (t > EPSILON && t < hit.t) {
+                hit.hit = true;
+                hit.idx = i;
+                hit.t = t;
+                hit.u = u;
+                hit.v = v;
             }
         }
 
@@ -136,83 +95,43 @@ __global__ void iterativeRayTracing(
 
         if (!hit.hit) continue;
 
-        // Interpolate the hit point
-        const Geom &geom = geoms[hit.idx];
-        const Material &mat = mats[geom.mat];
+        // Get the face data
+        int fIdx = hit.idx;
+        Vec3i &fv = mfv[fIdx], &ft = mft[fIdx], &fn = mfn[fIdx];
+        int &fm = mfm[fIdx];
 
+        Vec3f &v0 = mv[fv.x], &v1 = mv[fv.y], &v2 = mv[fv.z];
+        Vec2f &t0 = mt[ft.x], &t1 = mt[ft.y], &t2 = mt[ft.z];
+        Vec3f &n0 = mn[fn.x], &n1 = mn[fn.y], &n2 = mn[fn.z];
+
+        const Material &mat = mats[mfm[fIdx]];
+        // Interpolate the hit point
         vrtx[r] = ray.origin + ray.direction * hit.t;
 
-        switch (geom.type) {
-            case Geom::TRIANGLE: {
-                const Triangle &tri = geom.tri;
-                float w = 1 - hit.u - hit.v;
+        float w = 1 - hit.u - hit.v;
 
-                nrml[r] = tri.n0 * w + tri.n1 * hit.u + tri.n2 * hit.v;
-                nrml[r].norm();
+        nrml[r] = n0 * w + n1 * hit.u + n2 * hit.v;
+        nrml[r].norm();
 
-                if (mat.txtrIdx > -1) {
-                    txtr[r] = tri.t0 * w + tri.t1 * hit.u + tri.t2 * hit.v;
-                    // // Modulo 1
-                    // txtr[r].x -= floor(txtr[r].x);
-                    // txtr[r].y -= floor(txtr[r].y);
+        if (mat.mapKd > -1) {
+            txtr[r] = t0 * w + t1 * hit.u + t2 * hit.v;
+            // Modulo 1
+            txtr[r].x -= floor(txtr[r].x);
+            txtr[r].y -= floor(txtr[r].y);
 
-                    int txtrIdx = mat.txtrIdx;
-                    int w = txtrPtr[txtrIdx].w;
-                    int h = txtrPtr[txtrIdx].h;
-                    int off = txtrPtr[txtrIdx].off;
+            int mapKd = mat.mapKd;
+            int w = txtrPtr[mapKd].w;
+            int h = txtrPtr[mapKd].h;
+            int off = txtrPtr[mapKd].off;
 
-                    int txtrX = txtr[r].x * w;
-                    int txtrY = txtr[r].y * h;
+            int txtrX = txtr[r].x * w;
+            int txtrY = txtr[r].y * h;
 
-                    int txtrIdx2 = txtrX + txtrY * w + off;
-                    colr[r] = txtrFlat[txtrIdx2];
-                } else {
-                    colr[r] = tri.c0 * w + tri.c1 * hit.u + tri.c2 * hit.v;
-                }
-
-                break;
-            }
-
-            case Geom::SPHERE: {
-                const Sphere &sph = geom.sph;
-                nrml[r] = (vrtx[r] - sph.o) / sph.r;
-                if (sph.invert) nrml[r] = -nrml[r];
-
-                if (mat.txtrIdx > -1) {
-                    Vec3f p = (vrtx[r] - sph.o) / sph.r;
-                    float phi = atan2(p.z, p.x);
-                    float theta = asin(p.y);
-
-                    float u = 1 - (phi + M_PI) / (2 * M_PI);
-                    float v = (theta + M_PI_2) / M_PI;
-
-                    int txtrIdx = mat.txtrIdx;
-                    int w = txtrPtr[txtrIdx].w;
-                    int h = txtrPtr[txtrIdx].h;
-                    int off = txtrPtr[txtrIdx].off;
-
-                    int txtrX = u * w;
-                    int txtrY = v * h;
-
-                    int txtrIdx2 = txtrX + txtrY * w + off;
-                    colr[r] = txtrFlat[txtrIdx2];
-                } else {
-                    colr[r] = sph.color;
-                }
-
-                break;
-            }
-
-            case Geom::PLANE: {
-                const Plane &pln = geom.pln;
-                colr[r] = pln.color;
-                nrml[r] = pln.n;
-                break;
-            }
+            int mapKd2 = txtrX + txtrY * w + off;
+            colr[r] = txtrFlat[mapKd2];
+        } else {
+            colr[r] = mat.Kd;
         }
-
-        // If the geometry is a sky, ignore the rest
-        if (mat.isSky) continue;
 
         // Test light source
         Vec3f lightSrc(10, 10, 10);
@@ -224,77 +143,39 @@ __global__ void iterativeRayTracing(
         Ray shadowRay(lightOrigin, lightDir);
         bool shadow = false;
 
-        for (int g = 0; g < geomNum; g++) {
-            const Geom &geom = geoms[g];
-            const Material &mat = mats[geom.mat];
+        for (int i = 0; i < fNum; i++) {
+            Vec3i &fv = mfv[i];
+            Vec3i &ft = mft[i];
+            Vec3i &fn = mfn[i];
 
-            if (mat.isSky) continue;
+            // Get the vertices
+            Vec3f v0 = mv[fv.x];
+            Vec3f v1 = mv[fv.y];
+            Vec3f v2 = mv[fv.z];
 
-            /*
-            Highly repetitive code, but doing otherwise
-            will absolutely kill performance
-            */
+            Vec3f e1 = v1 - v0;
+            Vec3f e2 = v2 - v0;
+            Vec3f h = shadowRay.direction & e2;
+            float a = e1 * h;
 
-            // Triangle
-            if (geom.type == Geom::TRIANGLE) {
-                const Triangle &tri = geom.tri;
-                Vec3f e1 = tri.v1 - tri.v0;
-                Vec3f e2 = tri.v2 - tri.v0;
-                Vec3f h = shadowRay.direction & e2;
-                float a = e1 * h;
+            if (a > -EPSILON && a < EPSILON) continue;
 
-                if (a > -EPSILON && a < EPSILON) continue;
+            float f = 1.0f / a;
+            Vec3f s = shadowRay.origin - v0;
+            float u = f * (s * h);
 
-                float f = 1.0f / a;
-                Vec3f s = shadowRay.origin - tri.v0;
-                float u = f * (s * h);
+            if (u < 0.0f || u > 1.0f) continue;
 
-                if (u < 0.0f || u > 1.0f) continue;
+            Vec3f q = s & e1;
+            float v = f * (shadowRay.direction * q);
 
-                Vec3f q = s & e1;
-                float v = f * (shadowRay.direction * q);
+            if (v < 0.0f || u + v > 1.0f) continue;
 
-                if (v < 0.0f || u + v > 1.0f) continue;
+            float t = f * (e2 * q);
 
-                float t = f * (e2 * q);
-
-                if (t > EPSILON) {
-                    shadow = true;
-                    break;
-                }
-            // Sphere
-            } else if (geom.type == Geom::SPHERE) {
-                    const Sphere &sph = geom.sph;
-
-                    Vec3f l = sph.o - shadowRay.origin;
-                    float tca = l * shadowRay.direction;
-                    float d2 = l * l - tca * tca;
-
-                    if (d2 > sph.r * sph.r) continue;
-
-                    float thc = sqrt(sph.r * sph.r - d2);
-                    float t0 = tca - thc;
-                    float t1 = tca + thc;
-
-                    if (t0 < 0) t0 = t1;
-
-                    if (t0 > EPSILON) {
-                        shadow = true;
-                        break;
-                    }
-            // Plane
-            } else if (geom.type == Geom::PLANE) {
-                const Plane &pln = geom.pln;
-
-                float denom = pln.n * shadowRay.direction;
-                if (denom > -EPSILON && denom < EPSILON) continue; // Parallel
-
-                float t = -(pln.n * shadowRay.origin + pln.d) / denom;
-
-                if (t > EPSILON) {
-                    shadow = true;
-                    break;
-                }
+            if (t > EPSILON) {
+                shadow = true;
+                break;
             }
         }
 

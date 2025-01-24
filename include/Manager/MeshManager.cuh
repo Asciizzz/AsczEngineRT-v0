@@ -2,6 +2,7 @@
 #define MESHMANAGER_CUH
 
 #include <Vector.cuh>
+#define VectI std::vector<int>
 
 struct MeshStruct {
     Vecs3f v;
@@ -11,7 +12,7 @@ struct MeshStruct {
     Vecs3i fv;
     Vecs3i ft;
     Vecs3i fn;
-    Vecs3i fm;
+    VectI fm;
 };
 
 class MeshManager {
@@ -24,7 +25,7 @@ public:
     Vecs3i h_fv;
     Vecs3i h_ft;
     Vecs3i h_fn;
-    Vecs3i h_fm;
+    VectI h_fm;
 
     void appendMesh(MeshStruct mesh);
 
@@ -33,9 +34,9 @@ public:
     Vec2f *d_t = nullptr; int tNum = 0;
     Vec3f *d_n = nullptr; int nNum = 0;
 
-    int *d_fv = nullptr;
-    int *d_ft = nullptr;
-    int *d_fn = nullptr;
+    Vec3i *d_fv = nullptr;
+    Vec3i *d_ft = nullptr;
+    Vec3i *d_fn = nullptr;
     int *d_fm = nullptr;
     int fNum = 0;
 

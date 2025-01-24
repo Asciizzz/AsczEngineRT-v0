@@ -38,17 +38,17 @@ void MeshManager::hostToDevice() {
     cudaMalloc(&d_t, tNum * sizeof(Vec2f));
     cudaMalloc(&d_n, nNum * sizeof(Vec3f));
 
-    cudaMalloc(&d_fv, fNum * sizeof(int));
-    cudaMalloc(&d_ft, fNum * sizeof(int));
-    cudaMalloc(&d_fn, fNum * sizeof(int));
+    cudaMalloc(&d_fv, fNum * sizeof(Vec3i));
+    cudaMalloc(&d_ft, fNum * sizeof(Vec3i));
+    cudaMalloc(&d_fn, fNum * sizeof(Vec3i));
     cudaMalloc(&d_fm, fNum * sizeof(int));
 
     cudaMemcpy(d_v, h_v.data(), vNum * sizeof(Vec3f), cudaMemcpyHostToDevice);
     cudaMemcpy(d_t, h_t.data(), tNum * sizeof(Vec2f), cudaMemcpyHostToDevice);
     cudaMemcpy(d_n, h_n.data(), nNum * sizeof(Vec3f), cudaMemcpyHostToDevice);
 
-    cudaMemcpy(d_fv, h_fv.data(), fNum * sizeof(int), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_ft, h_ft.data(), fNum * sizeof(int), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_fn, h_fn.data(), fNum * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_fv, h_fv.data(), fNum * sizeof(Vec3i), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_ft, h_ft.data(), fNum * sizeof(Vec3i), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_fn, h_fn.data(), fNum * sizeof(Vec3i), cudaMemcpyHostToDevice);
     cudaMemcpy(d_fm, h_fm.data(), fNum * sizeof(int), cudaMemcpyHostToDevice);
 }

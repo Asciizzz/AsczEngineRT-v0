@@ -38,7 +38,7 @@ int main() {
     crosshair2.setPosition(winW / 2, winH / 2 - crosshairSize / 2);
     crosshair2.setFillColor(crosshairColor);
 
-    // =============== Initialize Important Managers ================
+    // =============== Initialize Important Variables ==============
 
     // All managers
     MeshManager MeshMgr;
@@ -46,21 +46,18 @@ int main() {
     MatManager MatMgr;
     MatMgr.appendMaterial(Material()); // Default material
 
-    // Create Camera
-    // By logic, then this is CameraManager?
-    // Idk, just a funny thought
-    Camera CAMERA;
-    CAMERA.pos = Vec3f(0, 5, -10);
-    CAMERA.rot = Vec3f(0, 0, 0);
-    CAMERA.updateView();
-
     // Create SFMLTexture
     int frmW = winW / 2;
     int frmH = winH / 2;
     SFMLTexture SFTex(frmW, frmH);
     SFTex.sprite.setScale(2, 2);
 
-    // Allocate framebuffer
+    // Create Camera
+    Camera CAMERA;
+    CAMERA.pos = Vec3f(0, 5, -10);
+    CAMERA.rot = Vec3f(0, 0, 0);
+    CAMERA.updateView();
+
     int threads = 256;
     int blocks = (frmW * frmH + threads - 1) / threads;
     Vec3f *d_framebuffer;
@@ -70,14 +67,58 @@ int main() {
     // ======================= Some test geometries ===========================
     // ========================================================================
 
+    Material sphereMat;
+    sphereMat.reflect = 0.5f;
+    int sphMatIdx = MatMgr.appendMaterial(sphereMat);
+
+    // Test sphere
+    const int m = 2;
+    const int n = 2;
+    float u = 10.0f;
+    float r = 2.0f;
+    int count = 0;
+    Geom sphs[(2 * m + 1) * (2 * n + 1) * 2];
+    for (int x = -m; x <= m; x++) {
+        for (int z = -n; z <= n; z++) {
+            Vec3f rndColor = Vec3f(
+                rand() % 256 / 255.0f,
+                rand() % 256 / 255.0f,
+                rand() % 256 / 255.0f
+            );
+
+            int idx = count++;
+            sphs[idx].type = Geom::SPHERE;
+            sphs[idx].sph = Sphere(
+                Vec3f(x * u, r, z * u), r, rndColor
+            );
+
+            sphs[idx].mat = sphMatIdx;
+        }
+    }
+
+    // Test plane
+    Material PlaneMat;
+    PlaneMat.Fresnel = 0.05f;
+
+    Geom pln(Geom::PLANE);
+    pln.pln = Plane( Vec3f(0, 1, 0), 0, Vec3f(1) );
+    pln.mat = MatMgr.appendMaterial(PlaneMat);
+
+    // Test sky
+    Material skyMat;
+    skyMat.isSky = true;
+    skyMat.mapKd = TxtrMgr.appendTexture("assets/Textures/Sunset.png"); // Sky texture
+
+    Geom sky(Geom::SPHERE);
+    sky.sph = Sphere( Vec3f(0, 100, 0), 9000.0f, Vec3f(0.5, 0.6, 1) );
+    sky.mat = MatMgr.appendMaterial(skyMat);
+
     // Test object loading
     // Load object file
     Utils::appendObj(
         MeshMgr, MatMgr, TxtrMgr,
         "assets/Models/Shapes/Test/Test.obj", 1, 2
     );
-
-    // ======================= Copy to device memory ==========================
 
     // Copy to device memory
     MeshMgr.hostToDevice();
