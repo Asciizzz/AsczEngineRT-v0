@@ -15,7 +15,7 @@ class Utils {
 public:
     static void appendObj(
         MeshManager &meshMgr, MatManager &matMgr, TxtrManager &txtrMgr,
-        const char *objPath, short placement=0, short fIdxBased=1
+        const char *objPath, short placement=0, float scale=1.0f, short fIdxBased=1
     );
 };
 

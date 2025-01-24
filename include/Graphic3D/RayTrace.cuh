@@ -15,9 +15,11 @@ __global__ void iterativeRayTracing(
     // Mesh data
     Vec3f *mv, Vec2f *mt, Vec3f *mn, // Primitive data
     Vec3i *mfv, Vec3i *mft, Vec3i *mfn, int *mfm, // Face data
-    int fNum // Number of faces
+    int fNum, // Number of faces
 
     // BVH in the near future
+
+    Vec3f lightSrc
 );
 
 #endif

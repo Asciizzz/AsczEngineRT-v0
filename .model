@@ -1,2 +1,12 @@
-assets/Models/Genshin/Paimon/Paimon.obj 2
-assets/Models/Shapes/Test/Test1/Test1.obj 2
+assets/Models/Shapes/Test/Test1/Test1.obj 2 2
+#assets/Models/Genshin/Paimon/Paimon.obj 2 1
+#assets/Models/Genshin/Navia/Navia.obj 2 10
+
+#assets/Models/BlueArchive/Arisu/Arisu.obj 2 1
+#assets/Models/BlueArchive/Shiroko/Shiroko.obj 2 1
+#assets/Models/BlueArchive/Yuuka/Yuuka.obj 2 10
+
+#assets/Models/City/Building001.obj 2 1
+#assets/Models/Nature/Tree.obj 2 1
+
+assets/Models/Structure/PeachsCastle/PeachsCastle.obj 2 1

@@ -1,16 +1,36 @@
 #include <MeshManager.cuh>
 #include <cuda_runtime.h>
+#include <omp.h>
+#include <iostream>
 
 void MeshManager::appendMesh(MeshStruct mesh) {
+    #pragma omp parallel for
     for (int i = 0; i < mesh.fv.size(); i++) {
         // Offset the indices
         h_fv.push_back(mesh.fv[i] + h_v.size());
         h_ft.push_back(mesh.ft[i] + h_t.size());
         h_fn.push_back(mesh.fn[i] + h_n.size());
         h_fm.push_back(mesh.fm[i]);
+
+        h_fi.push_back(h_fi.size());
     }
 
-    h_v.insert(h_v.end(), mesh.v.begin(), mesh.v.end());
+    #pragma omp parallel for
+    for (int i = 0; i < mesh.v.size(); i++) {
+        Vec3f &v = mesh.v[i];
+        h_v.push_back(v);
+
+        // Update the AABB
+
+        ABmin.x = fminf(ABmin.x, v.x);
+        ABmin.y = fminf(ABmin.y, v.y);
+        ABmin.z = fminf(ABmin.z, v.z);
+
+        ABmax.x = fmaxf(ABmax.x, v.x);
+        ABmax.y = fmaxf(ABmax.y, v.y);
+        ABmax.z = fmaxf(ABmax.z, v.z);
+    }
+
     h_t.insert(h_t.end(), mesh.t.begin(), mesh.t.end());
     h_n.insert(h_n.end(), mesh.n.begin(), mesh.n.end());
 

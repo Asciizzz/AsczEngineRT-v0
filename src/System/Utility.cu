@@ -12,7 +12,7 @@
 
 void Utils::appendObj(
     MeshManager &meshMgr, MatManager &matMgr, TxtrManager &txtrMgr,
-    const char *objPath, short placement, short fIdxBased 
+    const char *objPath, short placement, float scale, short fIdxBased 
 ) {
     std::ifstream file(objPath);
     if (!file.is_open()) return;
@@ -118,6 +118,7 @@ void Utils::appendObj(
 
         if (type == "v") {
             Vec3f v; ss >> v.x >> v.y >> v.z;
+            v.scale(Vec3f(), scale);
 
             minX = std::min(minX, v.x);
             minY = std::min(minY, v.y);

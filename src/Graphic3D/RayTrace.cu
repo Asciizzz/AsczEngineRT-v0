@@ -12,9 +12,11 @@ __global__ void iterativeRayTracing(
     // Mesh data
     Vec3f *mv, Vec2f *mt, Vec3f *mn, // Primitive data
     Vec3i *mfv, Vec3i *mft, Vec3i *mfn, int *mfm, // Face data
-    int fNum // Number of faces
+    int fNum, // Number of faces
 
     // BVH in the near future
+
+    Vec3f lightSrc
 ) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i >= frmW * frmH) return;
@@ -28,8 +30,12 @@ __global__ void iterativeRayTracing(
     const double EPSILON_2 = 0.00001;
     const int MAX_RAYS = 10;
 
-    // Iterative ray tracing
+    // Very important note:
+    // If mfv.z = -2, the face is a Sphere!
+    // The mv[mfv.x] is the center of the sphere
+    // The mv[mfv.y].x is the radius of the sphere
 
+    // Iterative ray tracing
 
     Ray rays[MAX_RAYS] = { primaryRay };
     RayHit hits[MAX_RAYS] = { RayHit() };
@@ -54,6 +60,35 @@ __global__ void iterativeRayTracing(
             Vec3f v0 = mv[fv.x];
             Vec3f v1 = mv[fv.y];
             Vec3f v2 = mv[fv.z];
+
+            if (fv.z == -2) {
+                // Sphere
+                Vec3f center = v0;
+                float radius = v1.x;
+
+                Vec3f l = center - ray.origin;
+                float tca = l * ray.direction;
+                float d2 = l * l - tca * tca;
+
+                float rSq = radius * radius;
+
+                if (d2 > rSq) continue;
+
+                float thc = sqrt(rSq - d2);
+                float t0 = tca - thc;
+                float t1 = tca + thc;
+
+                if (t0 < 0) t0 = t1;
+
+                if (t0 > EPSILON_2 && t0 < hit.t) {
+                    hit.hit = true;
+                    hit.idx = i;
+                    hit.t = t0;
+                }
+
+                continue;
+            }
+
 
             Vec3f e1 = v1 - v0;
             Vec3f e2 = v2 - v0;
@@ -92,19 +127,20 @@ __global__ void iterativeRayTracing(
 
         // Get the face data
         int fIdx = hit.idx; int &fm = mfm[fIdx];
-        Vec3i &ft = mft[fIdx], &fn = mfn[fIdx];
-
-        Vec2f &t0 = mt[ft.x], &t1 = mt[ft.y], &t2 = mt[ft.z];
-        Vec3f &n0 = mn[fn.x], &n1 = mn[fn.y], &n2 = mn[fn.z];
+        Vec3i &ft = mft[fIdx]; Vec3i &fn = mfn[fIdx];
 
         const Material &mat = mats[fm];
 
+        float w = 1 - hit.u - hit.v;
         vrtx[r] = ray.origin + ray.direction * hit.t;
 
-        float w = 1 - hit.u - hit.v;
-        nrml[r] = n0 * w + n1 * hit.u + n2 * hit.v;
+        if (fn.x > -1) {
+            Vec3f &n0 = mn[fn.x], &n1 = mn[fn.y], &n2 = mn[fn.z];
+            nrml[r] = n0 * w + n1 * hit.u + n2 * hit.v;
+        }
 
         if (mat.mapKd > -1) {
+            Vec2f &t0 = mt[ft.x], &t1 = mt[ft.y], &t2 = mt[ft.z];
             txtr[r] = t0 * w + t1 * hit.u + t2 * hit.v;
             // Modulo 1
             txtr[r].x -= floor(txtr[r].x);
@@ -124,13 +160,9 @@ __global__ void iterativeRayTracing(
             colr[r] = mat.Kd;
         }
 
-        // Test light source
-        Vec3f lightSrc(6, 20, 6);
-
         // Shadow ray
-        Vec3f lightDir = lightSrc - vrtx[r];
-        Vec3f lightOrigin = vrtx[r] + nrml[r] * EPSILON_2;
-        lightDir.norm();
+        Vec3f lightDir = lightSrc - vrtx[r]; lightDir.norm();
+        Vec3f lightOrigin = vrtx[r] + lightDir * EPSILON_1;
         Ray shadowRay(lightOrigin, lightDir);
         bool shadow = false;
 

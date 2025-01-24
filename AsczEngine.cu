@@ -4,6 +4,11 @@
 #include <Utility.cuh>
 #include <random>
 
+#include <TxtrManager.cuh>
+#include <MatManager.cuh>
+#include <MeshManager.cuh>
+#include <BvhManager.cuh>
+
 #include <RayTrace.cuh>
 #include <SFMLTexture.cuh>
 
@@ -41,6 +46,7 @@ int main() {
     // =============== Initialize Important Managers ================
 
     // All managers
+    BvhManager BvhMgr;
     MeshManager MeshMgr;
     TxtrManager TxtrMgr;
     MatManager MatMgr;
@@ -50,21 +56,45 @@ int main() {
     // By logic, then this is CameraManager?
     // Idk, just a funny thought
     Camera CAMERA;
-    CAMERA.pos = Vec3f(0, 5, 14);
-    CAMERA.rot = Vec3f(0, M_PI, 0);
-    CAMERA.updateView();
 
     // Create SFMLTexture
-    int frmW = winW / 2;
-    int frmH = winH / 2;
+    float frmScl = 1;
+    int frmW = winW / frmScl;
+    int frmH = winH / frmScl;
     SFMLTexture SFTex(frmW, frmH);
-    SFTex.sprite.setScale(2, 2);
+    SFTex.sprite.setScale(frmScl, frmScl);
 
     // Allocate framebuffer
     int threads = 256;
     int blocks = (frmW * frmH + threads - 1) / threads;
     Vec3f *d_framebuffer;
     cudaMalloc(&d_framebuffer, frmW * frmH * sizeof(Vec3f));
+
+
+    Vec3f lightSrc = Vec3f(0, 10, 0);
+
+    // ====================== Some very scuffed init ==========================
+    
+    std::ifstream cfgFile(".cfg");
+    std::string cfgLine;
+    while (std::getline(cfgFile, cfgLine)) {
+        std::stringstream ss(cfgLine);
+        std::string type; ss >> type;
+
+        if (type == "CameraPos") {
+            ss >> CAMERA.pos.x >> CAMERA.pos.y >> CAMERA.pos.z;
+        }
+        else if (type == "CameraRot") {
+            ss >> CAMERA.rot.x >> CAMERA.rot.y >> CAMERA.rot.z;
+        }
+        else if (type == "CameraFov") {
+            ss >> CAMERA.fov;
+        }
+
+        if (type == "LightSrc") {
+            ss >> lightSrc.x >> lightSrc.y >> lightSrc.z;
+        }
+    };
 
     // ======================================================================== 
     // ======================= Some test geometries ===========================
@@ -83,11 +113,23 @@ int main() {
 
         std::string objPath;
         short objPlacement;
+        float objScale;
 
-        ss >> objPath >> objPlacement;
+        ss >> objPath >> objPlacement >> objScale;
 
-        Utils::appendObj(MeshMgr, MatMgr, TxtrMgr, objPath.c_str(), objPlacement);
+        Utils::appendObj(
+            MeshMgr, MatMgr, TxtrMgr,
+            objPath.c_str(), objPlacement, objScale
+        );
     }
+
+    // ================ Terrible attemp at building a BVH =====================
+
+    // NodeHst *node = new NodeHst();
+    // BvhManager::buildBvh(
+    //     node, MeshMgr.ABmin, MeshMgr.ABmax,
+    //     MeshMgr.h_v, MeshMgr.h_fv, MeshMgr.h_fi
+    // );
 
     // ======================= Copy to device memory ==========================
 
@@ -193,7 +235,9 @@ int main() {
                 MatMgr.d_mats,
                 MeshMgr.d_v, MeshMgr.d_t, MeshMgr.d_n,
                 MeshMgr.d_fv, MeshMgr.d_ft, MeshMgr.d_fn, MeshMgr.d_fm,
-                MeshMgr.fNum
+                MeshMgr.fNum,
+
+                lightSrc
             );
             cudaDeviceSynchronize();
 
