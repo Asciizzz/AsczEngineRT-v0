@@ -127,19 +127,22 @@ __global__ void iterativeRayTracing(
 
         // Get the face data
         int fIdx = hit.idx; int &fm = mfm[fIdx];
-        Vec3i &ft = mft[fIdx]; Vec3i &fn = mfn[fIdx];
-
         const Material &mat = mats[fm];
-
         float hitw = 1 - hit.u - hit.v;
+
+        // Vertex interpolation
         vrtx[r] = ray.origin + ray.direction * hit.t;
 
+        // Normal interpolation
+        Vec3i &fn = mfn[fIdx];
         if (fn.x > -1) {
             Vec3f &n0 = mn[fn.x], &n1 = mn[fn.y], &n2 = mn[fn.z];
             nrml[r] = n0 * hitw + n1 * hit.u + n2 * hit.v;
         }
 
+        // Color/Texture interpolation
         if (mat.mapKd > -1) {
+            Vec3i &ft = mft[fIdx];
             Vec2f &t0 = mt[ft.x], &t1 = mt[ft.y], &t2 = mt[ft.z];
             txtr[r] = t0 * hitw + t1 * hit.u + t2 * hit.v;
             // Modulo 1
@@ -147,24 +150,27 @@ __global__ void iterativeRayTracing(
             txtr[r].y -= floor(txtr[r].y);
 
             int mapKd = mat.mapKd;
-            int w = txtrPtr[mapKd].w;
-            int h = txtrPtr[mapKd].h;
-            int off = txtrPtr[mapKd].off;
+            int tw = txtrPtr[mapKd].w;
+            int th = txtrPtr[mapKd].h;
+            int toff = txtrPtr[mapKd].off;
 
-            int txtrX = txtr[r].x * w;
-            int txtrY = txtr[r].y * h;
+            int txtrX = txtr[r].x * tw;
+            int txtrY = txtr[r].y * th;
 
-            int mapKd2 = txtrX + txtrY * w + off;
+            int mapKd2 = txtrX + txtrY * tw + toff;
             colr[r] = txtrFlat[mapKd2];
         } else {
             colr[r] = mat.Kd;
         }
 
-        // Shadow ray
+        // Light ray
         Vec3f lightDir = lightSrc - vrtx[r]; lightDir.norm();
         Vec3f lightOrigin = vrtx[r] + nrml[r] * EPSILON_1;
         Ray lightRay(lightOrigin, lightDir);
-        bool shadow = false;
+
+        Vec3f shadwColor(0, 0, 0);
+        float lightIntens = 1.0f;
+        int lightPass = 0;
 
         for (int i = 0; i < fNum; i++) {
             if (i == fIdx) continue;
@@ -197,19 +203,60 @@ __global__ void iterativeRayTracing(
             float t = f * (e2 * q);
 
             if (t > EPSILON_2) {
-                shadow = true;
-                break;
+                const Material &mat = mats[mfm[i]];
+
+                if (mat.transmit > 0.0f) {
+                    lightPass++;
+                    lightIntens *= mat.transmit;
+
+                    // Perform interpolation to get the color
+                    if (mat.mapKd > -1) {
+                        Vec3i &ft = mft[i];
+                        float w = 1 - u - v;
+
+                        Vec2f &t0 = mt[ft.x], &t1 = mt[ft.y], &t2 = mt[ft.z];
+                        Vec2f txtr = t0 * w + t1 * u + t2 * v;
+                        // Modulo 1
+                        txtr.x -= floor(txtr.x);
+                        txtr.y -= floor(txtr.y);
+
+                        int mapKd = mat.mapKd;
+                        int tw = txtrPtr[mapKd].w;
+                        int th = txtrPtr[mapKd].h;
+                        int toff = txtrPtr[mapKd].off;
+
+                        int txtrX = txtr.x * tw;
+                        int txtrY = txtr.y * th;
+
+                        int mapKd2 = txtrX + txtrY * tw + toff;
+
+                        shadwColor += txtrFlat[mapKd2] * mat.transmit;
+                    } else {
+                        shadwColor += mat.Kd * mat.transmit;
+                    }
+                } else {
+                    lightIntens = 0.0f;
+                    shadwColor = Vec3f(0, 0, 0);
+                    break;
+                }
             }
         }
 
-        if (shadow) weights[r] *= 0.3;
+        if (lightPass > 0) shadwColor /= lightPass;
+
+        // Limit light intesnse to 0.3 - 1.0
+        lightIntens = 0.3 + lightIntens * 0.7;
+
+        colr[r] = colr[r] * lightIntens + shadwColor * (1 - lightIntens);
 
         // Apply very basic lighting with light ray from the top
-        float diff = nrml[r] * lightDir;
-        diff = diff < 0 ? 0 : diff;
+        if (mat.Phong) {
+            float diff = nrml[r] * lightDir;
+            diff = diff < 0 ? 0 : diff;
 
-        diff = 0.3 + diff * 0.7;
-        colr[r] *= diff;
+            diff = 0.3 + diff * 0.7;
+            colr[r] *= diff;
+        }
 
         if (mat.reflect > 0.0f) {
             float weightLeft = weights[r] * mat.reflect;

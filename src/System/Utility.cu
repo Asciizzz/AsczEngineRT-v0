@@ -98,11 +98,15 @@ void Utils::appendObj(
                 if (mtlType == "refl") {
                     float refl; mtlSS >> refl;
                     matMgr.h_mats[matIdx].reflect = refl;
-                }
-
-                if (mtlType == "Fresnel") {
+                } else if (mtlType == "transm") {
+                    float transm; mtlSS >> transm;
+                    matMgr.h_mats[matIdx].transmit = transm;
+                } else if (mtlType == "Fresnel") {
                     float fresnel; mtlSS >> fresnel;
                     matMgr.h_mats[matIdx].Fresnel = fresnel;
+                } else if (mtlType == "Phong") { // 0: no, 1: yes
+                    int phong; mtlSS >> phong;
+                    matMgr.h_mats[matIdx].Phong = phong;
                 }
             }
         }

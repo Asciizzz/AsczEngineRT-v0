@@ -58,11 +58,9 @@ int main() {
     Camera CAMERA;
 
     // Create SFMLTexture
-    float frmScl = 2;
+    float frmScl = 1;
     int frmW = winW / frmScl;
     int frmH = winH / frmScl;
-    SFMLTexture SFTex(frmW, frmH);
-    SFTex.sprite.setScale(frmScl, frmScl);
 
     // Allocate framebuffer
     int threads = 256;
@@ -94,7 +92,22 @@ int main() {
         if (type == "LightSrc") {
             ss >> lightSrc.x >> lightSrc.y >> lightSrc.z;
         }
+
+        if (type == "FrameScl") {
+            ss >> frmScl;
+            frmW = winW / frmScl;
+            frmH = winH / frmScl;
+
+            cudaFree(d_framebuffer);
+            cudaMalloc(&d_framebuffer, frmW * frmH * sizeof(Vec3f));
+
+            blocks = (frmW * frmH + threads - 1) / threads;
+        }
     };
+
+
+    SFMLTexture SFTex(frmW, frmH);
+    SFTex.sprite.setScale(frmScl, frmScl);
 
     // ======================================================================== 
     // ======================= Some test geometries ===========================

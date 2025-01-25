@@ -4,18 +4,18 @@
 #include <Vector.cuh>
 
 struct Material {
+    // True mtl attributes
+    Vec3f Kd = Vec3f(0.5f);
+    int mapKd = -1;
+
+    // Not in a usual mtl file
     float reflect = 0.0f;
     float transmit = 0.0f;
 
     float Fresnel = 0.0f;
     float Ni = 1.0f;
 
-    // Some special attributes
-    bool isSky = false;
-
-    // Some actually real attributes
-    Vec3f Kd = Vec3f(0.5f);
-    int mapKd = -1;
+    bool Phong = false;
 };
 
 class MatManager {
