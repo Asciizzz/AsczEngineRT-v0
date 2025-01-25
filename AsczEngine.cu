@@ -12,6 +12,16 @@
 #include <RayTrace.cuh>
 #include <SFMLTexture.cuh>
 
+__global__ void calcLuminance(float *d_luminance, Vec3f *d_framebuffer, int frmW, int frmH) {
+    int idx = threadIdx.x + blockIdx.x * blockDim.x;
+    if (idx >= frmW * frmH) return;
+
+    Vec3f color = d_framebuffer[idx];
+    d_luminance[idx] = 0.299f * color.x + 0.587f * color.y + 0.114f * color.z;
+}
+
+
+
 int main() {
     // =================== Initialize FPS and Log ==============
     FpsHandler &FPS = FpsHandler::instance();
@@ -57,17 +67,10 @@ int main() {
     // Idk, just a funny thought
     Camera CAMERA;
 
-    // Create SFMLTexture
+    // Set frame buffer properties
     float frmScl = 1;
     int frmW = winW / frmScl;
     int frmH = winH / frmScl;
-
-    // Allocate framebuffer
-    int threads = 256;
-    int blocks = (frmW * frmH + threads - 1) / threads;
-    Vec3f *d_framebuffer;
-    cudaMalloc(&d_framebuffer, frmW * frmH * sizeof(Vec3f));
-
 
     Vec3f lightSrc = Vec3f(0, 10, 0);
 
@@ -97,15 +100,20 @@ int main() {
             ss >> frmScl;
             frmW = winW / frmScl;
             frmH = winH / frmScl;
-
-            cudaFree(d_framebuffer);
-            cudaMalloc(&d_framebuffer, frmW * frmH * sizeof(Vec3f));
-
-            blocks = (frmW * frmH + threads - 1) / threads;
         }
     };
 
+    // Allocate framebuffer
+    int threads = 256;
+    int blocks = (frmW * frmH + threads - 1) / threads;
+    Vec3f *d_framebuffer;
+    cudaMalloc(&d_framebuffer, frmW * frmH * sizeof(Vec3f));
 
+    // Allocate luminance buffer
+    float *d_luminance;
+    cudaMalloc(&d_luminance, frmW * frmH * sizeof(float));
+
+    // Create SFML texture
     SFMLTexture SFTex(frmW, frmH);
     SFTex.sprite.setScale(frmScl, frmScl);
 
