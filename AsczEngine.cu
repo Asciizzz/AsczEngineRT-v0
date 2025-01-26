@@ -310,11 +310,13 @@ int main() {
     }
 
     // Free device memory
-    cudaFree(d_frmbuffer1);
-    cudaFree(d_frmbuffer2);
     TxtrMgr.freeDevice();
     MatMgr.freeDevice();
     MeshMgr.freeDevice();
+    cudaFree(d_frmbuffer1);
+    cudaFree(d_frmbuffer2);
+    cudaFree(d_luminance);
+    cudaFree(d_edge);
 
     return 0;
 }

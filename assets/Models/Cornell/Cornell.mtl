@@ -1,37 +1,36 @@
 newmtl rightWall
+Phong 1
 Ns 10.0000
 Ni 1.0000
-illum 2
 Kd 1 0 0
 refl 0.7
-Phong 1
 
 
 newmtl leftWall
+Phong 1
 Ns 10.0000
 Ni 1.0000
 Kd 0 1 0
-Phong 1
+refl 0.7
 
 
 newmtl floor
+Phong 1
 Ns 10.0000
 Ni 1.0000
 Kd 1 1 1 # White
 refl -1
-Phong 1
 
 
 newmtl ceiling
+Phong 1
 Ns 10.0000
 Ni 1.0000
 Kd 1 1 1 # White
-Phong 1
 
 
 newmtl backWall
+Phong 1
 Ns 10.0000
 Ni 1.0000
-illum 2
 Kd 1 1 1 # White
-Phong 1

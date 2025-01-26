@@ -10,7 +10,6 @@ Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
-illum 3
 
 newmtl Book
 Phong 1
@@ -21,7 +20,6 @@ Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
-illum 2
 #map_Kd Texture\\5b106c26cc7e5c429ba4e5de573d0dce.jpg
 
 newmtl Book2
@@ -33,7 +31,6 @@ Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
-illum 2
 #map_Kd Texture\\finalimage.jpg
 
 newmtl Carpet
@@ -45,7 +42,6 @@ Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
-illum 2
 #map_Kd Texture\\drive-download-20210610T021657Z-001\\Fabric_Rug_006_COLOR.jpg
 
 newmtl Cermin
@@ -57,7 +53,7 @@ Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
-illum 3
+refl 0.4
 
 newmtl Cusion
 Phong 1
@@ -68,7 +64,6 @@ Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
-illum 2
 
 newmtl Emmision
 Phong 1
@@ -79,7 +74,6 @@ Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
-illum 2
 
 newmtl Floor
 Phong 1
@@ -90,8 +84,7 @@ Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
-illum 2
-#map_Kd Texture\\ParquetFlooring05_MR_2K\\ParquetFlooring05_2K_BaseColor.png
+#map_Kd floor.png
 
 newmtl Gelas
 Phong 1
@@ -102,7 +95,6 @@ Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
-illum 2
 #map_Kd Texture\\Marble09_MR_2K\\Marble09_2K_BaseColor.png
 
 newmtl InsideBook
@@ -114,7 +106,6 @@ Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
-illum 2
 
 newmtl Jam
 Phong 1
@@ -125,7 +116,6 @@ Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
-illum 2
 #map_Kd Texture\\png-clipart-black-analog-clock-at-11-55-clock-face-clocks-angle-text.png
 
 newmtl Kaca
@@ -137,7 +127,6 @@ Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
-illum 2
 
 newmtl KerangkaLemari
 Phong 1
@@ -148,7 +137,6 @@ Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
-illum 3
 
 newmtl Lemari
 Phong 1
@@ -159,7 +147,6 @@ Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
-illum 2
 #map_Kd Texture\\Wood09_MR_2K\\Wood09_2K_BaseColor.png
 
 newmtl Meja
@@ -171,7 +158,6 @@ Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
-illum 2
 #map_Kd Texture\\Wood09_MR_2K\\Wood09_2K_BaseColor.png
 
 newmtl Netflix
@@ -183,7 +169,6 @@ Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
-illum 2
 map_Kd Seia.png
 
 newmtl None
@@ -193,7 +178,6 @@ Ka 0.8 0.8 0.8
 Kd 0.8 0.8 0.8
 Ks 0.8 0.8 0.8
 d 1
-illum 2
 
 newmtl Picture
 Phong 1
@@ -204,7 +188,7 @@ Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
-illum 2
+refl 0.4
 #map_Kd Texture\\Best-Abstract-Art-course-tutorial-class-certification-training-online-scaled.jpg
 
 newmtl Picture2
@@ -216,7 +200,7 @@ Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
-illum 2
+refl 0.4
 #map_Kd Texture\\639170_18090338_3255399_0cc8cc8e_image.jpg
 
 newmtl Picture3
@@ -228,7 +212,7 @@ Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
-illum 2
+refl 0.4
 #map_Kd Texture\\Ocean_Dreams_-_Contemporary_Abstract_Painting_7aa795bd-f372-40cf-b6c0-99a7b985aae4.jpg
 
 newmtl Picture4
@@ -240,7 +224,7 @@ Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
-illum 2
+refl 0.4
 #map_Kd Texture\\On-Impulse-36x36-1-1200x1200.jpeg
 
 newmtl PictureBorder
@@ -252,7 +236,6 @@ Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
-illum 3
 
 newmtl Roof
 Phong 1
@@ -263,7 +246,6 @@ Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
-illum 2
 
 newmtl SideTegel
 Phong 1
@@ -274,7 +256,6 @@ Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
-illum 2
 
 newmtl Side_Wall
 Phong 1
@@ -285,7 +266,6 @@ Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
-illum 2
 #map_Kd Texture\\Concrete_Wall\\Concrete_Wall_009_basecolor.jpg
 
 newmtl Sofa
@@ -297,7 +277,6 @@ Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
-illum 2
 
 newmtl Sofa_Kecil
 Phong 1
@@ -308,7 +287,6 @@ Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
-illum 2
 
 newmtl TV
 Phong 1
@@ -319,7 +297,6 @@ Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
-illum 3
 
 newmtl TiangMeja
 Phong 1
@@ -330,7 +307,6 @@ Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
-illum 2
 
 newmtl Tree
 Phong 1
@@ -341,7 +317,6 @@ Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
-illum 2
 map_Bump Texture\\Mapple\\Maple_Bark\\Maple_Bark_2_NRM.png
 map_Ks Texture\\Mapple\\Maple_Bark\\Maple_Bark_2_SPEC.png
 
@@ -354,7 +329,6 @@ Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
-illum 2
 #map_Kd Texture\\Tree07_4K.png
 map_d Texture\\Tree07_4K.png
 
@@ -367,7 +341,6 @@ Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
-illum 2
 #map_Kd Texture\\Mapple\\Tree Branch.png
 map_d Texture\\Mapple\\Tree Branch.png
 
@@ -380,7 +353,6 @@ Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
-illum 2
 
 newmtl Wall_Down
 Phong 1
@@ -391,5 +363,4 @@ Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
-illum 2
 #map_Kd Seia.png
