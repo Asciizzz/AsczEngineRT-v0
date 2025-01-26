@@ -799,6 +799,7 @@ Ni 1.000000
 d 1.000000
 illum 2
 map_Kd 6DAF90F6_c.png
+transm 0.6
 
 newmtl Shape_259
 Ns 0.000000
@@ -810,3 +811,4 @@ Ni 1.000000
 d 1.000000
 illum 2
 map_Kd 6DAF90F6_c.png
+transm 0.6

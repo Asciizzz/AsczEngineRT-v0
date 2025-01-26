@@ -116,6 +116,11 @@ void Vec3f::limit(float min, float max) {
     y = std::max(min, std::min(y, max));
     z = std::max(min, std::min(z, max));
 }
+void Vec3f::abs() {
+    x = x < 0 ? -x : x;
+    y = y < 0 ? -y : y;
+    z = z < 0 ? -z : z;
+}
 
 // Transformations
 Vec3f Vec3f::translate(Vec3f& v, const Vec3f& t) {

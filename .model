@@ -1,4 +1,4 @@
-assets/Models/Shapes/Test/Test1.obj 0 2
+#assets/Models/Shapes/Test/Test1.obj 0 2
 assets/Models/Shapes/Cube/Cube1.obj 2 10
 
 #assets/Models/Genshin/Paimon/Paimon.obj 2 1
@@ -11,6 +11,6 @@ assets/Models/Shapes/Cube/Cube1.obj 2 10
 #assets/Models/City/Building001.obj 2 1
 #assets/Models/Nature/Tree.obj 2 1
 
-#assets/Models/Structure/PeachsCastle/PeachsCastle.obj 2 1
+assets/Models/Structure/PeachsCastle/PeachsCastle.obj 2 1
 
-assets/Models/Shapes/Cornell/Cornell-Box.obj 2 1
+#assets/Models/Shapes/Cornell/Cornell.obj 2 20

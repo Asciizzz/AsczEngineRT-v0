@@ -19,11 +19,11 @@ void SFMLTexture::resize(int width, int height) {
     blockNum = (width * height + blockSize - 1) / blockSize;
 }
 
-void SFMLTexture::updateTexture(Vec3f *framebuffer, int b_w, int b_h) {
+void SFMLTexture::updateTexture(Vec3f *frmbuffer, int b_w, int b_h) {
     int bCount = (b_w * b_h + blockSize - 1) / blockSize;
 
     updateTextureKernel<<<bCount, blockSize>>>(
-        d_sfPixel, framebuffer, b_w, b_h
+        d_sfPixel, frmbuffer, b_w, b_h
     );
     cudaMemcpy(sfPixel, d_sfPixel, pixelCount * sizeof(sf::Uint8), cudaMemcpyDeviceToHost);
     texture.update(sfPixel);
@@ -31,7 +31,7 @@ void SFMLTexture::updateTexture(Vec3f *framebuffer, int b_w, int b_h) {
 
 // Kernel for updating the texture
 __global__ void updateTextureKernel(
-    sf::Uint8 *d_sfPixel, Vec3f *framebuffer, int b_w, int b_h
+    sf::Uint8 *d_sfPixel, Vec3f *frmbuffer, int b_w, int b_h
 ) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i >= b_w * b_h) return;
@@ -41,13 +41,13 @@ __global__ void updateTextureKernel(
     int b_i = x + y * b_w;
 
     // Limit the color to 0-255 
-    framebuffer[b_i].x = fminf(fmaxf(framebuffer[b_i].x, 0.0f), 1.0f);
-    framebuffer[b_i].y = fminf(fmaxf(framebuffer[b_i].y, 0.0f), 1.0f);
-    framebuffer[b_i].z = fminf(fmaxf(framebuffer[b_i].z, 0.0f), 1.0f);
+    frmbuffer[b_i].x = fminf(fmaxf(frmbuffer[b_i].x, 0.0f), 1.0f);
+    frmbuffer[b_i].y = fminf(fmaxf(frmbuffer[b_i].y, 0.0f), 1.0f);
+    frmbuffer[b_i].z = fminf(fmaxf(frmbuffer[b_i].z, 0.0f), 1.0f);
 
     int p_i = b_i * 4;
-    d_sfPixel[p_i + 0] = (sf::Uint8)(framebuffer[b_i].x * 255);
-    d_sfPixel[p_i + 1] = (sf::Uint8)(framebuffer[b_i].y * 255);
-    d_sfPixel[p_i + 2] = (sf::Uint8)(framebuffer[b_i].z * 255);
+    d_sfPixel[p_i + 0] = (sf::Uint8)(frmbuffer[b_i].x * 255);
+    d_sfPixel[p_i + 1] = (sf::Uint8)(frmbuffer[b_i].y * 255);
+    d_sfPixel[p_i + 2] = (sf::Uint8)(frmbuffer[b_i].z * 255);
     d_sfPixel[p_i + 3] = 255;
 }

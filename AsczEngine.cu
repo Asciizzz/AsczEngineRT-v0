@@ -9,18 +9,10 @@
 #include <MeshManager.cuh>
 #include <BvhManager.cuh>
 
+#include <FXAA.cuh>
+
 #include <RayTrace.cuh>
 #include <SFMLTexture.cuh>
-
-__global__ void calcLuminance(float *d_luminance, Vec3f *d_framebuffer, int frmW, int frmH) {
-    int idx = threadIdx.x + blockIdx.x * blockDim.x;
-    if (idx >= frmW * frmH) return;
-
-    Vec3f color = d_framebuffer[idx];
-    d_luminance[idx] = 0.299f * color.x + 0.587f * color.y + 0.114f * color.z;
-}
-
-
 
 int main() {
     // =================== Initialize FPS and Log ==============
@@ -72,13 +64,19 @@ int main() {
     int frmW = winW / frmScl;
     int frmH = winH / frmScl;
 
+    // Some debugging values
+
     Vec3f lightSrc = Vec3f(0, 10, 0);
+
+    bool hasFXAA = true;
 
     // ====================== Some very scuffed init ==========================
     
     std::ifstream cfgFile(".cfg");
     std::string cfgLine;
     while (std::getline(cfgFile, cfgLine)) {
+        if (cfgLine.size() == 0 || cfgLine[0] == '#') continue;
+
         std::stringstream ss(cfgLine);
         std::string type; ss >> type;
 
@@ -101,17 +99,23 @@ int main() {
             frmW = winW / frmScl;
             frmH = winH / frmScl;
         }
+
+        if (type == "FXAA") {
+            ss >> hasFXAA;
+        }
     };
 
-    // Allocate framebuffer
+    // Allocate frame buffer
     int threads = 256;
     int blocks = (frmW * frmH + threads - 1) / threads;
-    Vec3f *d_framebuffer;
-    cudaMalloc(&d_framebuffer, frmW * frmH * sizeof(Vec3f));
+    Vec3f *d_frmbuffer1, *d_frmbuffer2;
+    cudaMalloc(&d_frmbuffer1, frmW * frmH * sizeof(Vec3f));
+    cudaMalloc(&d_frmbuffer2, frmW * frmH * sizeof(Vec3f));
 
     // Allocate luminance buffer
-    float *d_luminance;
+    float *d_luminance; bool *d_edge;
     cudaMalloc(&d_luminance, frmW * frmH * sizeof(float));
+    cudaMalloc(&d_edge, frmW * frmH * sizeof(bool));
 
     // Create SFML texture
     SFMLTexture SFTex(frmW, frmH);
@@ -245,13 +249,13 @@ int main() {
 
         if (prevPos != CAMERA.pos || prevRot != CAMERA.rot)
         {
-            // Prepare framebuffer
-            clearFrameBuffer<<<blocks, threads>>>(d_framebuffer, frmW, frmH);
+            // Prepare frmbuffer
+            clearFrameBuffer<<<blocks, threads>>>(d_frmbuffer1, frmW, frmH);
             cudaDeviceSynchronize();
 
-            // Render framebuffer
+            // Render frmbuffer
             iterativeRayTracing<<<blocks, threads>>>(
-                CAMERA, d_framebuffer, frmW, frmH,
+                CAMERA, d_frmbuffer1, frmW, frmH,
                 TxtrMgr.d_txtrFlat, TxtrMgr.d_txtrPtr,
                 MatMgr.d_mats,
                 MeshMgr.d_v, MeshMgr.d_t, MeshMgr.d_n,
@@ -262,7 +266,22 @@ int main() {
             );
             cudaDeviceSynchronize();
 
-            SFTex.updateTexture(d_framebuffer, frmW, frmH);
+            // FXAA
+            if (hasFXAA)
+            {
+                // FXAA
+                calcLuminance<<<blocks, threads>>>(d_luminance, d_frmbuffer1, frmW, frmH);
+                cudaDeviceSynchronize();
+
+                edgeMask<<<blocks, threads>>>(d_edge, d_luminance, frmW, frmH);
+                cudaDeviceSynchronize();
+
+                applyFXAAtoBuffer<<<blocks, threads>>>(d_luminance, d_edge, d_frmbuffer1, d_frmbuffer2, frmW, frmH);
+                cudaDeviceSynchronize();
+
+                SFTex.updateTexture(d_frmbuffer2, frmW, frmH);
+            } else
+                SFTex.updateTexture(d_frmbuffer1, frmW, frmH);
         }
 
         prevPos = CAMERA.pos;
@@ -291,7 +310,8 @@ int main() {
     }
 
     // Free device memory
-    cudaFree(d_framebuffer);
+    cudaFree(d_frmbuffer1);
+    cudaFree(d_frmbuffer2);
     TxtrMgr.freeDevice();
     MatMgr.freeDevice();
     MeshMgr.freeDevice();

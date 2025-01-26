@@ -6,10 +6,10 @@
 #include <MatManager.cuh>
 #include <MeshManager.cuh>
 
-__global__ void clearFrameBuffer(Vec3f *framebuffer, int frmW, int frmH);
+__global__ void clearFrameBuffer(Vec3f *frmbuffer, int frmW, int frmH);
 
 __global__ void iterativeRayTracing(
-    Camera camera, Vec3f *framebuffer, int frmW, int frmH, // In-out
+    Camera camera, Vec3f *frmbuffer, int frmW, int frmH, // In-out
     Vec3f *txtrFlat, TxtrPtr *txtrPtr, // Textures
     Material *mats, // Materials
     // Mesh data

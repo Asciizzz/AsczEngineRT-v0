@@ -56,7 +56,7 @@ struct ContextSettings
     /// \param major        Major number of the context version
     /// \param minor        Minor number of the context version
     /// \param attributes   Attribute flags of the context
-    /// \param sRgb         sRGB capable framebuffer
+    /// \param sRgb         sRGB capable frmbuffer
     ///
     ////////////////////////////////////////////////////////////
     explicit ContextSettings(unsigned int depth = 0, unsigned int stencil = 0, unsigned int antialiasing = 0, unsigned int major = 1, unsigned int minor = 1, unsigned int attributes = Default, bool sRgb = false) :
@@ -79,7 +79,7 @@ struct ContextSettings
     unsigned int majorVersion;      //!< Major number of the context version to create
     unsigned int minorVersion;      //!< Minor number of the context version to create
     Uint32       attributeFlags;    //!< The attribute flags to create the context with
-    bool         sRgbCapable;       //!< Whether the context framebuffer is sRGB capable
+    bool         sRgbCapable;       //!< Whether the context frmbuffer is sRGB capable
 };
 
 } // namespace sf

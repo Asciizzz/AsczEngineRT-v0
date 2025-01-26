@@ -1,0 +1,35 @@
+newmtl leftWall
+Ns 10.0000
+Ni 1.0000
+illum 2
+Kd 1 0 0 # Red
+Phong 0
+
+
+newmtl rightWall
+Ns 10.0000
+Ni 1.0000
+Kd 0 1 0 # Green
+Phong 0
+
+
+newmtl floor
+Ns 10.0000
+Ni 1.0000
+Kd 1 1 1 # White
+Phong 0
+
+
+newmtl ceiling
+Ns 10.0000
+Ni 1.0000
+Kd 1 1 1 # White
+Phong 0
+
+
+newmtl backWall
+Ns 10.0000
+Ni 1.0000
+illum 2
+Kd 1 1 1 # White
+Phong 0

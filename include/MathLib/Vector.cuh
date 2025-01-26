@@ -78,6 +78,8 @@ struct Vec3f {
     _hst_dev_ static Vec3f bary(Vec3f v, Vec3f v0, Vec3f v1, Vec3f v2);
     // Limit the vector
     _hst_dev_ void limit(float min, float max);
+    // Absolute value
+    _hst_dev_ void abs();
 
     // Transformations
     _hst_dev_ static Vec3f translate(Vec3f &v, const Vec3f &t);

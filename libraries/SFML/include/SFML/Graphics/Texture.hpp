@@ -424,13 +424,13 @@ public:
     /// being processed by the hardware. The hardware can automatically
     /// convert it from the sRGB color space to a linear color space when
     /// it gets sampled. When the rendered image gets output to the final
-    /// framebuffer, it gets converted back to sRGB.
+    /// frmbuffer, it gets converted back to sRGB.
     ///
     /// After enabling or disabling sRGB conversion, make sure to reload
     /// the texture data in order for the setting to take effect.
     ///
     /// This option is only useful in conjunction with an sRGB capable
-    /// framebuffer. This can be requested during window creation.
+    /// frmbuffer. This can be requested during window creation.
     ///
     /// \param sRgb True to enable sRGB conversion, false to disable it
     ///
@@ -623,7 +623,7 @@ private:
     bool         m_sRgb;          //!< Should the texture source be converted from sRGB?
     bool         m_isRepeated;    //!< Is the texture in repeat mode?
     mutable bool m_pixelsFlipped; //!< To work around the inconsistency in Y orientation
-    bool         m_fboAttachment; //!< Is this texture owned by a framebuffer object?
+    bool         m_fboAttachment; //!< Is this texture owned by a frmbuffer object?
     bool         m_hasMipmap;     //!< Has the mipmap been generated?
     Uint64       m_cacheId;       //!< Unique number that identifies the texture to the render target's cache
 };
