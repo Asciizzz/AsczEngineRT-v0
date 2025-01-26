@@ -223,7 +223,7 @@ __global__ void iterativeRayTracing(
         colr[r] = colr[r] * lightIntens + shadwColor * (1 - lightIntens);
 
         if (mat.Phong) {
-            float diff = nrml[r] * lightDir;
+            float diff = -lightDir * nrml[r];
             diff = diff < 0 ? 0 : diff;
 
             diff = 0.3 + diff * 0.7;
