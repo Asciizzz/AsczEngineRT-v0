@@ -28,7 +28,6 @@ public:
     VectI h_fm;
 
     Vec3f ABmin, ABmax;
-    VectI h_fi; // Just simply an array containing the face indices (0 -> fNum - 1)
 
     void appendMesh(MeshStruct mesh);
 

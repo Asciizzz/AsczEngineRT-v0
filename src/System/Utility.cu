@@ -11,7 +11,8 @@
 #define VectStr std::vector<std::string>
 
 void Utils::appendObj(
-    MeshManager &meshMgr, MatManager &matMgr, TxtrManager &txtrMgr,
+    MeshManager &meshMgr, BvhManager &bvhMgr,
+    MatManager &matMgr, TxtrManager &txtrMgr,
     const char *objPath, short placement, float scale, short fIdxBased 
 ) {
     std::ifstream file(objPath);
@@ -26,13 +27,10 @@ void Utils::appendObj(
     Vecs3i mfn;
     VectI mfm;
 
-    /*
-    Idk but there is a REALLY rare chance for
-    an obj file to contain materials, but not
-    using them, like what's the point of that?
-    */
     int matIdx = 0;
     std::unordered_map<std::string, int> matMap;
+
+    int bvhIdx = -1;
 
     std::string path(objPath);
 
@@ -119,10 +117,21 @@ void Utils::appendObj(
         }
 
         // ACTUAL OBJ FILE READING
+        if (type == "o") {
+            bvhIdx = bvhMgr.appendNode(BvhNode());
+            bvhMgr.h_nodes[bvhIdx].fl = mfv.size();
+
+            if (bvhIdx > 0) {
+                bvhMgr.h_nodes[bvhIdx - 1].fr = mfv.size();
+            }
+        }
+
 
         if (type == "v") {
             Vec3f v; ss >> v.x >> v.y >> v.z;
             v.scale(Vec3f(), scale);
+
+            bvhMgr.h_nodes[bvhIdx].recalc(v);
 
             minX = std::min(minX, v.x);
             minY = std::min(minY, v.y);

@@ -2,40 +2,40 @@ newmtl mat0
 Ns 0
 Ni 1.0
 Kd 1 0 0
-transm 0.6
+transm 0.3
 map_Kd Gradient1.png
 
 newmtl mat1
 Ns 0
 Ni 1.0
 Kd 1 0 0
-transm 0.6
-#map_Kd Gradient1.png
+transm 0.3
+map_Kd Gradient1.png
 
 newmtl mat2
 Ns 0
 Ni 1.0
 Kd 1 0 0
-transm 0.6
-#map_Kd Gradient1.png
+transm 0.3
+map_Kd Gradient1.png
 
 newmtl mat3
 Ns 0
 Ni 1.0
 Kd 1 0 0
-transm 0.6
-#map_Kd ThisIsSoAss.png
+transm 0.3
+map_Kd Gradient1.png
 
 newmtl mat4
 Ns 0
 Ni 1.0
 Kd 1 0 0
-transm 0.6
-#map_Kd Gradient1.png
+transm 0.3
+map_Kd Gradient1.png
 
 newmtl mat5
 Ns 0
 Ni 1.0
 Kd 1 0 0
-transm 0.6
-#map_Kd Gradient1.png
+transm 0.3
+map_Kd Gradient1.png

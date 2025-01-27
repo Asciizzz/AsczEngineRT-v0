@@ -2,23 +2,23 @@ newmtl rightWall
 Phong 1
 Ns 10.0000
 Ni 1.0000
-Kd 1 0 0
-refl 0.7
+Kd 0.8 0 0
+#refl 0.7
 
 
 newmtl leftWall
 Phong 1
 Ns 10.0000
 Ni 1.0000
-Kd 0 1 0
-refl 0.7
+Kd 0 0.8 0
+#refl 0.7
 
 
 newmtl floor
 Phong 1
 Ns 10.0000
 Ni 1.0000
-Kd 1 1 1 # White
+Kd 0.8 0.8 0.8
 refl -1
 
 
@@ -26,11 +26,11 @@ newmtl ceiling
 Phong 1
 Ns 10.0000
 Ni 1.0000
-Kd 1 1 1 # White
+Kd 0.8 0.8 0.8
 
 
 newmtl backWall
 Phong 1
 Ns 10.0000
 Ni 1.0000
-Kd 1 1 1 # White
+Kd 0.8 0.8 0.8

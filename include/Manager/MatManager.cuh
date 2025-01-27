@@ -21,7 +21,7 @@ struct Material {
 class MatManager {
 public:
     // Host memory
-    std::vector<Material> h_mats;
+    std::vector<Material> h_mats = { Material() };
     // Append material and return the index
     int appendMaterial(Material mat);
     // Get the last mesh

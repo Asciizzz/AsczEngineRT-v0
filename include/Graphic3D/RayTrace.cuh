@@ -5,6 +5,7 @@
 #include <TxtrManager.cuh>
 #include <MatManager.cuh>
 #include <MeshManager.cuh>
+#include <BvhManager.cuh>
 
 __global__ void clearFrameBuffer(Vec3f *frmbuffer, int frmW, int frmH);
 
@@ -17,7 +18,8 @@ __global__ void iterativeRayTracing(
     Vec3i *mfv, Vec3i *mft, Vec3i *mfn, int *mfm, // Face data
     int fNum, // Number of faces
 
-    // BVH in the near future
+    // "Correct" BVH in the near future
+    BvhNode *nodes, int nNum,
 
     Vec3f lightSrc
 );

@@ -52,7 +52,6 @@ int main() {
     MeshManager MeshMgr;
     TxtrManager TxtrMgr;
     MatManager MatMgr;
-    MatMgr.appendMaterial(Material()); // Default material
 
     // Create Camera
     // By logic, then this is CameraManager?
@@ -143,7 +142,7 @@ int main() {
         ss >> objPath >> objPlacement >> objScale;
 
         Utils::appendObj(
-            MeshMgr, MatMgr, TxtrMgr,
+            MeshMgr, BvhMgr, MatMgr, TxtrMgr,
             objPath.c_str(), objPlacement, objScale
         );
     }
@@ -160,6 +159,7 @@ int main() {
 
     // Copy to device memory
     MeshMgr.hostToDevice();
+    BvhMgr.hostToDevice();
     TxtrMgr.hostToDevice();
     MatMgr.hostToDevice();
 
@@ -261,6 +261,7 @@ int main() {
                 MeshMgr.d_v, MeshMgr.d_t, MeshMgr.d_n,
                 MeshMgr.d_fv, MeshMgr.d_ft, MeshMgr.d_fn, MeshMgr.d_fm,
                 MeshMgr.fNum,
+                BvhMgr.d_nodes, BvhMgr.num,
 
                 lightSrc
             );

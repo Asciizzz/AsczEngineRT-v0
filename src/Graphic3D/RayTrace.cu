@@ -14,7 +14,8 @@ __global__ void iterativeRayTracing(
     Vec3i *mfv, Vec3i *mft, Vec3i *mfn, int *mfm, // Face data
     int fNum, // Number of faces
 
-    // BVH in the near future
+    // "Correct" BVH in the near future
+    BvhNode *nodes, int nNum,
 
     Vec3f lightSrc
 ) {
@@ -53,40 +54,47 @@ __global__ void iterativeRayTracing(
         Ray &ray = rays[r];
         RayHit &hit = hits[r];
 
-        for (int i = 0; i < fNum; i++) {
-            Vec3i &fv = mfv[i];
+        for (int nd = 0; nd < nNum; nd++) {
+            const BvhNode &node = nodes[nd];
 
-            // Get the vertices
-            Vec3f v0 = mv[fv.x];
-            Vec3f v1 = mv[fv.y];
-            Vec3f v2 = mv[fv.z];
+            bool hitAABB = node.hitAABB(ray.origin, ray.direction);
+            if (!hitAABB) continue;
 
-            Vec3f e1 = v1 - v0;
-            Vec3f e2 = v2 - v0;
-            Vec3f h = ray.direction & e2;
-            float a = e1 * h;
+            for (int i = node.fl; i < node.fr; i++) {
+                Vec3i &fv = mfv[i];
 
-            if (a > -EPSILON_2 && a < EPSILON_2) continue;
+                // Get the vertices
+                Vec3f v0 = mv[fv.x];
+                Vec3f v1 = mv[fv.y];
+                Vec3f v2 = mv[fv.z];
 
-            float f = 1.0f / a;
-            Vec3f s = ray.origin - v0;
-            float u = f * (s * h);
+                Vec3f e1 = v1 - v0;
+                Vec3f e2 = v2 - v0;
+                Vec3f h = ray.direction & e2;
+                float a = e1 * h;
 
-            if (u < 0.0f || u > 1.0f) continue;
+                if (a > -EPSILON_2 && a < EPSILON_2) continue;
 
-            Vec3f q = s & e1;
-            float v = f * (ray.direction * q);
+                float f = 1.0f / a;
+                Vec3f s = ray.origin - v0;
+                float u = f * (s * h);
 
-            if (v < 0.0f || u + v > 1.0f) continue;
+                if (u < 0.0f || u > 1.0f) continue;
 
-            float t = f * (e2 * q);
+                Vec3f q = s & e1;
+                float v = f * (ray.direction * q);
 
-            if (t > EPSILON_2 && t < hit.t) {
-                hit.hit = true;
-                hit.idx = i;
-                hit.t = t;
-                hit.u = u;
-                hit.v = v;
+                if (v < 0.0f || u + v > 1.0f) continue;
+
+                float t = f * (e2 * q);
+
+                if (t > EPSILON_2 && t < hit.t) {
+                    hit.hit = true;
+                    hit.idx = i;
+                    hit.t = t;
+                    hit.u = u;
+                    hit.v = v;
+                }
             }
         }
 
@@ -144,73 +152,80 @@ __global__ void iterativeRayTracing(
         float lightIntens = 1.0f;
         int lightPass = 0;
 
-        for (int i = 0; i < fNum; i++) {
-            if (i == fIdx) continue;
+        for (int nd = 0; nd < nNum; nd++) {
+            const BvhNode &node = nodes[nd];
 
-            Vec3i &fv = mfv[i];
+            bool hitAABB = node.hitAABB(vrtx[r], lightDir);
+            if (!hitAABB) continue;
 
-            // Get the vertices
-            Vec3f v0 = mv[fv.x];
-            Vec3f v1 = mv[fv.y];
-            Vec3f v2 = mv[fv.z];
+            for (int i = node.fl; i < node.fr; i++) {
+                if (i == fIdx) continue;
 
-            Vec3f e1 = v1 - v0;
-            Vec3f e2 = v2 - v0;
-            Vec3f h = lightDir & e2;
-            float a = e1 * h;
+                Vec3i &fv = mfv[i];
 
-            if (a > -EPSILON_2 && a < EPSILON_2) continue;
+                // Get the vertices
+                Vec3f v0 = mv[fv.x];
+                Vec3f v1 = mv[fv.y];
+                Vec3f v2 = mv[fv.z];
 
-            float f = 1.0f / a;
-            Vec3f s = lightSrc - v0;
-            float u = f * (s * h);
+                Vec3f e1 = v1 - v0;
+                Vec3f e2 = v2 - v0;
+                Vec3f h = lightDir & e2;
+                float a = e1 * h;
 
-            if (u < 0.0f || u > 1.0f) continue;
+                if (a > -EPSILON_2 && a < EPSILON_2) continue;
 
-            Vec3f q = s & e1;
-            float v = f * (lightDir * q);
+                float f = 1.0f / a;
+                Vec3f s = lightSrc - v0;
+                float u = f * (s * h);
 
-            if (v < 0.0f || u + v > 1.0f) continue;
+                if (u < 0.0f || u > 1.0f) continue;
 
-            float t = f * (e2 * q);
+                Vec3f q = s & e1;
+                float v = f * (lightDir * q);
 
-            if (t > EPSILON_2 && t < lightDist) {
-                const Material &mat = mats[mfm[i]];
+                if (v < 0.0f || u + v > 1.0f) continue;
 
-                if (mat.transmit > 0.0f) {
-                    lightPass++;
-                    lightIntens *= mat.transmit;
+                float t = f * (e2 * q);
 
-                    // Perform interpolation to get the color
-                    if (mat.mapKd > -1) {
-                        Vec3i &ft = mft[i];
-                        float w = 1 - u - v;
+                if (t > EPSILON_2 && t < lightDist) {
+                    const Material &mat = mats[mfm[i]];
 
-                        Vec2f &t0 = mt[ft.x], &t1 = mt[ft.y], &t2 = mt[ft.z];
-                        Vec2f txtr = t0 * w + t1 * u + t2 * v;
-                        // Modulo 1
-                        txtr.x -= floor(txtr.x);
-                        txtr.y -= floor(txtr.y);
+                    if (mat.transmit > 0.0f) {
+                        lightPass++;
+                        lightIntens *= mat.transmit;
 
-                        int mapKd = mat.mapKd;
-                        int tw = txtrPtr[mapKd].w;
-                        int th = txtrPtr[mapKd].h;
-                        int toff = txtrPtr[mapKd].off;
+                        // Perform interpolation to get the color
+                        if (mat.mapKd > -1) {
+                            Vec3i &ft = mft[i];
+                            float w = 1 - u - v;
 
-                        int txtrX = txtr.x * tw;
-                        int txtrY = txtr.y * th;
+                            Vec2f &t0 = mt[ft.x], &t1 = mt[ft.y], &t2 = mt[ft.z];
+                            Vec2f txtr = t0 * w + t1 * u + t2 * v;
+                            // Modulo 1
+                            txtr.x -= floor(txtr.x);
+                            txtr.y -= floor(txtr.y);
 
-                        int mapKd2 = txtrX + txtrY * tw + toff;
+                            int mapKd = mat.mapKd;
+                            int tw = txtrPtr[mapKd].w;
+                            int th = txtrPtr[mapKd].h;
+                            int toff = txtrPtr[mapKd].off;
 
-                        shadwColor += txtrFlat[mapKd2] * mat.transmit;
+                            int txtrX = txtr.x * tw;
+                            int txtrY = txtr.y * th;
+
+                            int mapKd2 = txtrX + txtrY * tw + toff;
+
+                            shadwColor += txtrFlat[mapKd2] * mat.transmit;
+                        } else {
+                            shadwColor += mat.Kd * mat.transmit;
+                        }
                     } else {
-                        shadwColor += mat.Kd * mat.transmit;
+                        lightPass = 0;
+                        lightIntens = 0.0f;
+                        shadwColor = Vec3f(0, 0, 0);
+                        break;
                     }
-                } else {
-                    lightPass = 0;
-                    lightIntens = 0.0f;
-                    shadwColor = Vec3f(0, 0, 0);
-                    break;
                 }
             }
         }
