@@ -22,7 +22,6 @@ __global__ void edgeMask(bool *edge, float *lumi, int frmW, int frmH) {
         return;
     }
 
-    float lumiC = lumi[idx];
     float lumiL = lumi[idx - 1];
     float lumiR = lumi[idx + 1];
     float lumiT = lumi[idx - frmW];
@@ -43,7 +42,6 @@ __global__ void applyFXAAtoBuffer(float *lumi, bool *edge, Vec3f *frmbuffer1, Ve
         return;
     }
 
-    Vec3f colrC = frmbuffer1[idx];
     Vec3f colrL = frmbuffer1[idx - 1];
     Vec3f colrR = frmbuffer1[idx + 1];
     Vec3f colrT = frmbuffer1[idx - frmW];

@@ -109,7 +109,7 @@ void Utils::appendObj(
             }
         }
 
-        if (type == "usemtl") {
+        else if (type == "usemtl") {
             std::string matName;
             ss >> matName;
 
@@ -117,7 +117,7 @@ void Utils::appendObj(
         }
 
         // ACTUAL OBJ FILE READING
-        if (type == "o") {
+        else if (type == "o") {
             bvhIdx = bvhMgr.appendNode(BvhNode());
             bvhMgr.h_nodes[bvhIdx].fl = mfv.size();
 
@@ -126,12 +126,9 @@ void Utils::appendObj(
             }
         }
 
-
-        if (type == "v") {
+        else if (type == "v") {
             Vec3f v; ss >> v.x >> v.y >> v.z;
             v.scale(Vec3f(), scale);
-
-            bvhMgr.h_nodes[bvhIdx].recalc(v);
 
             minX = std::min(minX, v.x);
             minY = std::min(minY, v.y);
@@ -143,18 +140,18 @@ void Utils::appendObj(
             mv.push_back(v);
         }
 
-        if (type == "vt") {
+        else if (type == "vt") {
             Vec2f t; ss >> t.x >> t.y;
             mt.push_back(t);
         }
 
-        if (type == "vn") {
+        else if (type == "vn") {
             Vec3f n; ss >> n.x >> n.y >> n.z;
             n.norm(); // Just in case
             mn.push_back(n);
         }
-
-        if (type == "f") {
+        
+        else if (type == "f") {
             Vec3i fv, ft, fn;
 
             VectI vs, ts, ns;
@@ -209,6 +206,7 @@ void Utils::appendObj(
             }
         }
     }
+    bvhMgr.h_nodes.back().fr = mfv.size();
 
     #pragma omp parallel for
     for (size_t i = 0; i < mv.size(); i++) {
@@ -222,6 +220,19 @@ void Utils::appendObj(
         if (placement == 1) mv[i].y -= minY;
         // Shift to floor (y = 0)
         else if (placement == 2) mv[i].y -= minY;
+    }
+
+    #pragma omp parallel for
+    for (int n = 0; n < bvhMgr.num; n++) {
+        BvhNode &node = bvhMgr.h_nodes[n];
+
+        for (int i = node.fl; i < node.fr; i++) {
+            Vec3i fv = mfv[i];
+
+            node.recalc(mv[fv.x]);
+            node.recalc(mv[fv.y]);
+            node.recalc(mv[fv.z]);
+        }
     }
 
     MeshStruct mesh;
