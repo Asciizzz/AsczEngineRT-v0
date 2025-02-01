@@ -42,93 +42,14 @@ void Utils::appendObj(
     std::string line;
     while (std::getline(file, line)) {
         if (line.size() == 0 || line[0] == '#') continue;
-        lines.push_back(line);
-    }
 
-    #pragma omp parallel for collapse(2)
-    for (size_t i = 0; i < lines.size(); i++) {
-        std::stringstream ss(lines[i]);
-        std::string type;
-        ss >> type;
+        std::stringstream ss(line);
+        std::string type; ss >> type;
 
-        // READ MTL FILE
-
-        if (type == "mtllib") {
-            std::string mtlPath;
-            ss >> mtlPath;
-
-            std::string mtlDir = path.substr(0, path.find_last_of("/\\") + 1);
-            std::ifstream mtlFile(mtlDir + mtlPath);
-            if (!mtlFile.is_open()) continue;
-
-            std::string mtlLine;
-            while (std::getline(mtlFile, mtlLine)) {
-                if (mtlLine.size() == 0 || mtlLine[0] == '#') continue;
-
-                std::stringstream mtlSS(mtlLine);
-                std::string mtlType;
-                mtlSS >> mtlType;
-
-                if (mtlType == "newmtl") {
-                    matIdx = matMgr.appendMaterial(Material());
-                    std::string matName; mtlSS >> matName;
-                    matMap[matName] = matIdx;
-                }
-
-                if (mtlType == "Kd") {
-                    Vec3f Kd; mtlSS >> Kd.x >> Kd.y >> Kd.z;
-                    matMgr.h_mats[matIdx].Kd = Kd;
-                }
-
-                if (mtlType == "map_Kd") {
-                    std::string txtrPath; mtlSS >> txtrPath;
-
-                    matMgr.h_mats[matIdx].mapKd = txtrMgr.appendTexture(
-                        (mtlDir + txtrPath).c_str()
-                    );
-                }
-
-                // Additional attributes can be added here
-                // Even those that do no exist in a typical .mtl file
-                // for debugging of course
-
-                // Those that do not exist in a typical .mtl file
-                if (mtlType == "refl") {
-                    float refl; mtlSS >> refl;
-                    matMgr.h_mats[matIdx].reflect = refl;
-                } else if (mtlType == "transm") {
-                    float transm; mtlSS >> transm;
-                    matMgr.h_mats[matIdx].transmit = transm;
-                } else if (mtlType == "Fresnel") {
-                    float fresnel; mtlSS >> fresnel;
-                    matMgr.h_mats[matIdx].Fresnel = fresnel;
-                } else if (mtlType == "Phong") { // 0: no, 1: yes
-                    int phong; mtlSS >> phong;
-                    matMgr.h_mats[matIdx].Phong = phong;
-                }
-            }
-        }
-
-        else if (type == "usemtl") {
-            std::string matName;
-            ss >> matName;
-
-            matIdx = matMap[matName];
-        }
-
-        // ACTUAL OBJ FILE READING
-        else if (type == "o") {
-            bvhIdx = bvhMgr.appendNode(BvhNode());
-            bvhMgr.h_nodes[bvhIdx].fl = mfv.size();
-
-            if (bvhIdx > 0) {
-                bvhMgr.h_nodes[bvhIdx - 1].fr = mfv.size();
-            }
-        }
-
-        else if (type == "v") {
+        if (type == "v") {
             Vec3f v; ss >> v.x >> v.y >> v.z;
             v.scale(Vec3f(), scale);
+            mv.push_back(v);
 
             minX = std::min(minX, v.x);
             minY = std::min(minY, v.y);
@@ -136,21 +57,8 @@ void Utils::appendObj(
             maxX = std::max(maxX, v.x);
             maxY = std::max(maxY, v.y);
             maxZ = std::max(maxZ, v.z);
-
-            mv.push_back(v);
         }
 
-        else if (type == "vt") {
-            Vec2f t; ss >> t.x >> t.y;
-            mt.push_back(t);
-        }
-
-        else if (type == "vn") {
-            Vec3f n; ss >> n.x >> n.y >> n.z;
-            n.norm(); // Just in case
-            mn.push_back(n);
-        }
-        
         else if (type == "f") {
             Vec3i fv, ft, fn;
 
@@ -203,6 +111,89 @@ void Utils::appendObj(
                 mft.push_back(ft);
                 mfn.push_back(fn);
                 mfm.push_back(matIdx);
+            }
+        }
+
+        else if (type == "vt") {
+            Vec2f t; ss >> t.x >> t.y;
+            mt.push_back(t);
+        }
+
+        else if (type == "vn") {
+            Vec3f n; ss >> n.x >> n.y >> n.z;
+            n.norm(); // Just in case
+            mn.push_back(n);
+        }
+
+        else if (type == "o") {
+            bvhIdx = bvhMgr.appendNode(BvhNode());
+            bvhMgr.h_nodes[bvhIdx].fl = mfv.size();
+
+            if (bvhIdx > 0) {
+                bvhMgr.h_nodes[bvhIdx - 1].fr = mfv.size();
+            }
+        }
+
+        else if (type == "usemtl") {
+            std::string matName;
+            ss >> matName;
+
+            matIdx = matMap[matName];
+        }
+
+        else if (type == "mtllib") {
+            std::string mtlPath;
+            ss >> mtlPath;
+
+            std::string mtlDir = path.substr(0, path.find_last_of("/\\") + 1);
+            std::ifstream mtlFile(mtlDir + mtlPath);
+            if (!mtlFile.is_open()) continue;
+
+            std::string mtlLine;
+            while (std::getline(mtlFile, mtlLine)) {
+                if (mtlLine.size() == 0 || mtlLine[0] == '#') continue;
+
+                std::stringstream mtlSS(mtlLine);
+                std::string mtlType;
+                mtlSS >> mtlType;
+
+                if (mtlType == "newmtl") {
+                    matIdx = matMgr.appendMaterial(Material());
+                    std::string matName; mtlSS >> matName;
+                    matMap[matName] = matIdx;
+                }
+
+                if (mtlType == "Kd") {
+                    Vec3f Kd; mtlSS >> Kd.x >> Kd.y >> Kd.z;
+                    matMgr.h_mats[matIdx].Kd = Kd;
+                }
+
+                if (mtlType == "map_Kd") {
+                    std::string txtrPath; mtlSS >> txtrPath;
+
+                    matMgr.h_mats[matIdx].mapKd = txtrMgr.appendTexture(
+                        (mtlDir + txtrPath).c_str()
+                    );
+                }
+
+                // Additional attributes can be added here
+                // Even those that do no exist in a typical .mtl file
+                // for debugging of course
+
+                // Those that do not exist in a typical .mtl file
+                if (mtlType == "refl") {
+                    float refl; mtlSS >> refl;
+                    matMgr.h_mats[matIdx].reflect = refl;
+                } else if (mtlType == "transm") {
+                    float transm; mtlSS >> transm;
+                    matMgr.h_mats[matIdx].transmit = transm;
+                } else if (mtlType == "Fresnel") {
+                    float fresnel; mtlSS >> fresnel;
+                    matMgr.h_mats[matIdx].Fresnel = fresnel;
+                } else if (mtlType == "Phong") { // 0: no, 1: yes
+                    int phong; mtlSS >> phong;
+                    matMgr.h_mats[matIdx].Phong = phong;
+                }
             }
         }
     }
