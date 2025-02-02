@@ -5,6 +5,11 @@
 
 void MeshManager::appendMesh(MeshStruct mesh) {
     #pragma omp parallel for
+    for (int i = 0; i < mesh.fo.size(); i++) {
+        h_fo.push_back(mesh.fo[i] + h_fv.size());
+    }
+
+    #pragma omp parallel for
     for (int i = 0; i < mesh.fv.size(); i++) {
         // Offset the indices
         h_fv.push_back(mesh.fv[i] + h_v.size());
@@ -32,22 +37,24 @@ void MeshManager::freeDevice() {
     if (d_ft) { cudaFree(d_ft); d_ft = nullptr; }
     if (d_fn) { cudaFree(d_fn); d_fn = nullptr; }
     if (d_fm) { cudaFree(d_fm); d_fm = nullptr; }
-
-    if (d_fmin) { cudaFree(d_fmin); d_fmin = nullptr; } 
-    if (d_fmax) { cudaFree(d_fmax); d_fmax = nullptr; }
 }
 
-void MeshManager::computeAABB() {
+void MeshManager::computeData() {
+    // These data will be useful for BVH construction
+
     h_fmin.resize(fNum);
     h_fmax.resize(fNum);
+    h_fc.resize(fNum);
 
     #pragma omp parallel for
     for (int i = 0; i < fNum; i++) {
         Vec3f minV = Vec3f(INFINITY);
         Vec3f maxV = Vec3f(-INFINITY);
+        Vec3f center = Vec3f();
 
         for (int j = 0; j < 3; j++) {
             Vec3f v = h_v[h_fv[i][j]];
+
             minV.x = fminf(minV.x, v.x);
             minV.y = fminf(minV.y, v.y);
             minV.z = fminf(minV.z, v.z);    
@@ -55,16 +62,25 @@ void MeshManager::computeAABB() {
             maxV.x = fmaxf(maxV.x, v.x);
             maxV.y = fmaxf(maxV.y, v.y);
             maxV.z = fmaxf(maxV.z, v.z);
+
+            center += v;
         }
 
         h_fmin[i] = minV;
         h_fmax[i] = maxV;
+        h_fc[i] = center / 3.0f;
     }
 }
 
 void MeshManager::hostToDevice() {
     freeDevice();
-    computeAABB();
+    computeData();
+
+    // -------------------------------------- //
+
+    // for (int i = 1; i < h_fo.size(); i++) {
+    //     std::cout << h_fo[i] - h_fo[i - 1] << std::endl;
+    // }
 
     // -------------------------------------- //    
 
@@ -77,9 +93,6 @@ void MeshManager::hostToDevice() {
     cudaMalloc(&d_fn, fNum * sizeof(Vec3i));
     cudaMalloc(&d_fm, fNum * sizeof(int));
 
-    cudaMalloc(&d_fmin, fNum * sizeof(Vec3f));
-    cudaMalloc(&d_fmax, fNum * sizeof(Vec3f));
-
     // -------------------------------------- //
 
     cudaMemcpy(d_v, h_v.data(), vNum * sizeof(Vec3f), cudaMemcpyHostToDevice);
@@ -90,7 +103,4 @@ void MeshManager::hostToDevice() {
     cudaMemcpy(d_ft, h_ft.data(), fNum * sizeof(Vec3i), cudaMemcpyHostToDevice);
     cudaMemcpy(d_fn, h_fn.data(), fNum * sizeof(Vec3i), cudaMemcpyHostToDevice);
     cudaMemcpy(d_fm, h_fm.data(), fNum * sizeof(int), cudaMemcpyHostToDevice);
-
-    cudaMemcpy(d_fmin, h_fmin.data(), fNum * sizeof(Vec3f), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_fmax, h_fmax.data(), fNum * sizeof(Vec3f), cudaMemcpyHostToDevice);
 }

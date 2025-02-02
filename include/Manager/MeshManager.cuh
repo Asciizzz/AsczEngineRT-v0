@@ -13,6 +13,8 @@ struct MeshStruct {
     Vecs3i ft;
     Vecs3i fn;
     VectI fm;
+
+    VectI fo;
 };
 
 class MeshManager {
@@ -25,16 +27,20 @@ public:
     Vecs3i h_fv;
     Vecs3i h_ft;
     Vecs3i h_fn;
-    // Material index
     VectI h_fm;
-    // Precomputed AABB
+
+    // Object start index
+    VectI h_fo = {0};
+
+    // Useful for BVH
     Vecs3f h_fmin;
     Vecs3f h_fmax;
+    Vecs3f h_fc; // Face center
 
     Vec3f ABmin, ABmax;
 
     void appendMesh(MeshStruct mesh);
-    void computeAABB();
+    void computeData();
 
     // Device memory
     Vec3f *d_v = nullptr; int vNum = 0;
@@ -45,8 +51,6 @@ public:
     Vec3i *d_ft = nullptr;
     Vec3i *d_fn = nullptr;
     int *d_fm = nullptr;
-    Vec3f *d_fmin = nullptr;
-    Vec3f *d_fmax = nullptr;
     int fNum = 0;
 
     void freeDevice();

@@ -26,6 +26,7 @@ void Utils::appendObj(
     Vecs3i mft;
     Vecs3i mfn;
     VectI mfm;
+    VectI mfo;
 
     int matIdx = 0;
     std::unordered_map<std::string, int> matMap;
@@ -45,6 +46,17 @@ void Utils::appendObj(
 
         std::stringstream ss(line);
         std::string type; ss >> type;
+
+        // The datatype has been sorted by their frequency
+        /* Ranking:
+            * v: 1 - most frequent
+            * f: 2 - very frequent
+            * vt: 3 - quite frequent
+            * vn: 4 - quite frequent
+            * o: 5 - not so frequent
+            * usemtl: 6 - not so frequent
+            * mtllib: 7 - only once
+        */
 
         if (type == "v") {
             Vec3f v; ss >> v.x >> v.y >> v.z;
@@ -126,6 +138,8 @@ void Utils::appendObj(
         }
 
         else if (type == "o") {
+            mfo.push_back(mfv.size());
+
             bvhIdx = bvhMgr.appendNode(BvhNode());
             bvhMgr.h_nodes[bvhIdx].fl = mfv.size();
 
@@ -197,6 +211,9 @@ void Utils::appendObj(
             }
         }
     }
+    mfo.push_back(mfv.size());
+    mfo.erase(mfo.begin());
+
     bvhMgr.h_nodes.back().fr = mfv.size();
 
     #pragma omp parallel for
@@ -234,6 +251,7 @@ void Utils::appendObj(
     mesh.ft = mft;
     mesh.fn = mfn;
     mesh.fm = mfm;
+    mesh.fo = mfo;
 
     meshMgr.appendMesh(mesh);
 }

@@ -41,9 +41,9 @@ __global__ void iterativeRayTracing(
     Ray rays[MAX_RAYS] = { primaryRay };
     RayHit hits[MAX_RAYS] = { RayHit() };
     float weights[MAX_RAYS] = { 1.0f };
+    Vec3f colr[MAX_RAYS];
     Vec3f vrtx[MAX_RAYS];
     Vec2f txtr[MAX_RAYS];
-    Vec3f colr[MAX_RAYS];
     Vec3f nrml[MAX_RAYS];
 
     int rnum = 0;
