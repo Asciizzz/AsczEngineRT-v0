@@ -48,10 +48,10 @@ int main() {
     // =============== Initialize Important Managers ================
 
     // All managers
-    BvhManager BvhMgr;
-    MeshManager MeshMgr;
     TxtrManager TxtrMgr;
     MatManager MatMgr;
+    MeshManager MeshMgr;
+    BvhManager BvhMgr;
 
     // Create Camera
     // By logic, then this is CameraManager?
@@ -142,7 +142,7 @@ int main() {
         ss >> objPath >> objPlacement >> objScale;
 
         Utils::appendObj(
-            MeshMgr, BvhMgr, MatMgr, TxtrMgr,
+            MeshMgr, MatMgr, TxtrMgr,
             objPath.c_str(), objPlacement, objScale
         );
     }
@@ -158,10 +158,11 @@ int main() {
     // ======================= Copy to device memory ==========================
 
     // Copy to device memory
-    MeshMgr.hostToDevice();
-    BvhMgr.hostToDevice();
     TxtrMgr.hostToDevice();
     MatMgr.hostToDevice();
+    MeshMgr.hostToDevice();
+    BvhMgr.bvh(MeshMgr.h_fo, MeshMgr.h_fm, MeshMgr.h_fmin, MeshMgr.h_fmax, MeshMgr.h_fc);
+    BvhMgr.hostToDevice();
 
     // ========================================================================
     // ========================================================================

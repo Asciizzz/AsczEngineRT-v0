@@ -6,15 +6,16 @@
 struct BvhNode {
     Vec3f min = Vec3f(INFINITY);
     Vec3f max = Vec3f(-INFINITY);
-    int fl, fr; // [fl, fr)
+    int fl, fr; // [face left, face right)
 
     void recalc(Vec3f v) {
-        min.x = std::min(min.x, v.x);
-        min.y = std::min(min.y, v.y);
-        min.z = std::min(min.z, v.z);
-        max.x = std::max(max.x, v.x);
-        max.y = std::max(max.y, v.y);
-        max.z = std::max(max.z, v.z);
+        min.x = fminf(min.x, v.x);
+        min.y = fminf(min.y, v.y);
+        min.z = fminf(min.z, v.z);
+
+        max.x = fmaxf(max.x, v.x);
+        max.y = fmaxf(max.y, v.y);
+        max.z = fmaxf(max.z, v.z);
     }
 
     // Ray hit AABB
@@ -69,6 +70,19 @@ public:
     void hostToDevice() {
         cudaMalloc(&d_nodes, num * sizeof(BvhNode));
         cudaMemcpy(d_nodes, h_nodes.data(), num * sizeof(BvhNode), cudaMemcpyHostToDevice);
+    }
+
+    void bvh(VectI &h_fo, VectI &h_fm, Vecs3f &h_fmin, Vecs3f &h_fmax, Vecs3f &h_fc) {
+        for (int i = 0; i < h_fo.size() - 1; i++) {
+            BvhNode node;
+            node.fl = h_fo[i];
+            node.fr = h_fo[i + 1];
+            for (int j = h_fo[i]; j < h_fo[i + 1]; j++) {
+                node.recalc(h_fmin[j]);
+                node.recalc(h_fmax[j]);
+            }
+            appendNode(node);
+        }
     }
 };
 

@@ -4,7 +4,6 @@
 #include <TxtrManager.cuh>
 #include <MatManager.cuh>
 #include <MeshManager.cuh>
-#include <BvhManager.cuh>
 
 #include <fstream>
 #include <sstream>
@@ -16,8 +15,7 @@
 class Utils {
 public:
     static void appendObj(
-        MeshManager &meshMgr, BvhManager &bvhMgr,
-        MatManager &matMgr, TxtrManager &txtrMgr,
+        MeshManager &meshMgr, MatManager &matMgr, TxtrManager &txtrMgr,
         const char *objPath, short placement=0, float scale=1.0f, short fIdxBased=1
     );
 };

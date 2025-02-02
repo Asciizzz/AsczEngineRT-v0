@@ -57,7 +57,7 @@ void MeshManager::computeData() {
 
             minV.x = fminf(minV.x, v.x);
             minV.y = fminf(minV.y, v.y);
-            minV.z = fminf(minV.z, v.z);    
+            minV.z = fminf(minV.z, v.z);
 
             maxV.x = fmaxf(maxV.x, v.x);
             maxV.y = fmaxf(maxV.y, v.y);
@@ -78,9 +78,9 @@ void MeshManager::hostToDevice() {
 
     // -------------------------------------- //
 
-    // for (int i = 1; i < h_fo.size(); i++) {
-    //     std::cout << h_fo[i] - h_fo[i - 1] << std::endl;
-    // }
+    for (int i = 1; i < h_fo.size(); i++) {
+        std::cout << h_fo[i] - h_fo[i - 1] << std::endl;
+    }
 
     // -------------------------------------- //    
 

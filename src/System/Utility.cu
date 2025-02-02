@@ -11,8 +11,7 @@
 #define VectStr std::vector<std::string>
 
 void Utils::appendObj(
-    MeshManager &meshMgr, BvhManager &bvhMgr,
-    MatManager &matMgr, TxtrManager &txtrMgr,
+    MeshManager &meshMgr, MatManager &matMgr, TxtrManager &txtrMgr,
     const char *objPath, short placement, float scale, short fIdxBased 
 ) {
     std::ifstream file(objPath);
@@ -139,13 +138,6 @@ void Utils::appendObj(
 
         else if (type == "o") {
             mfo.push_back(mfv.size());
-
-            bvhIdx = bvhMgr.appendNode(BvhNode());
-            bvhMgr.h_nodes[bvhIdx].fl = mfv.size();
-
-            if (bvhIdx > 0) {
-                bvhMgr.h_nodes[bvhIdx - 1].fr = mfv.size();
-            }
         }
 
         else if (type == "usemtl") {
@@ -214,8 +206,6 @@ void Utils::appendObj(
     mfo.push_back(mfv.size());
     mfo.erase(mfo.begin());
 
-    bvhMgr.h_nodes.back().fr = mfv.size();
-
     #pragma omp parallel for
     for (size_t i = 0; i < mv.size(); i++) {
         // Shift to center of xz plane
@@ -228,19 +218,6 @@ void Utils::appendObj(
         if (placement == 1) mv[i].y -= minY;
         // Shift to floor (y = 0)
         else if (placement == 2) mv[i].y -= minY;
-    }
-
-    #pragma omp parallel for
-    for (int n = 0; n < bvhMgr.num; n++) {
-        BvhNode &node = bvhMgr.h_nodes[n];
-
-        for (int i = node.fl; i < node.fr; i++) {
-            Vec3i fv = mfv[i];
-
-            node.recalc(mv[fv.x]);
-            node.recalc(mv[fv.y]);
-            node.recalc(mv[fv.z]);
-        }
     }
 
     MeshStruct mesh;
