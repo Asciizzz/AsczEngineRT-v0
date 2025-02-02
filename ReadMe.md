@@ -6,7 +6,7 @@
 
 The idea behind ray tracing is simple: you trace ray.
 
-But instead of tracing pretty-much-infinite-number of rays from *light* $\rightarrow$ *surface* $\rightarrow$ *camera* (like how light would irl), you trace a finite number of ray from the *camera* $\rightarrow$ *surface* $\rightarrow$ *light* and do the math in reverese. This may seem quite counter-intuitive, but the performace gain is GYATTDAMN massive since $x\rightarrow \infin$ of rays from the light doesn't even reach the camera in the first place.
+But instead of tracing pretty-much-infinite-number of rays from *light* $\rightarrow$ *surface* $\rightarrow$ *camera* (like how light would irl), you trace a finite number of ray from the *camera* $\rightarrow$ *surface* $\rightarrow$ *light* and do the math in reverese. This may seem quite counter-intuitive, but the performace gain is GYATTDAMN massive since $x\rightarrow \inf$ of rays from the light doesn't even reach the camera in the first place.
 
 Ray tracing allow for graphically complex and graphically beutiful grapich, since rays can bounces around, which allow for stuff like reflection or refraction to be possible. To handle ray tracing, 2 methods were proposed (by the great me ofc):
 
