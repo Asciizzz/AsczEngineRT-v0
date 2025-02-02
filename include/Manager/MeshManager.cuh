@@ -25,11 +25,16 @@ public:
     Vecs3i h_fv;
     Vecs3i h_ft;
     Vecs3i h_fn;
+    // Material index
     VectI h_fm;
+    // Precomputed AABB
+    Vecs3f h_fmin;
+    Vecs3f h_fmax;
 
     Vec3f ABmin, ABmax;
 
     void appendMesh(MeshStruct mesh);
+    void computeAABB();
 
     // Device memory
     Vec3f *d_v = nullptr; int vNum = 0;
@@ -40,6 +45,8 @@ public:
     Vec3i *d_ft = nullptr;
     Vec3i *d_fn = nullptr;
     int *d_fm = nullptr;
+    Vec3f *d_fmin = nullptr;
+    Vec3f *d_fmax = nullptr;
     int fNum = 0;
 
     void freeDevice();
