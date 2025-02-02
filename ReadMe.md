@@ -10,7 +10,7 @@ But instead of tracing pretty-much-infinite-number of rays from *light* $\righta
 
 Ray tracing allow for graphically complex and graphically beutiful grapich, since rays can bounces around, which allow for stuff like reflection or refraction to be possible. To handle ray tracing, 2 methods were proposed (by the great me ofc):
 
-- **Recursive Ray Tracing**: the idea is the result of the next ray will influence the result of the current ray, so you trace the next ray and the next ray and the next ray... until you reach the limit of the recursion. This method is simple to implement, but stack overflow is a b*tch, so it's not recommended.
+- **Recursive Ray Tracing**: the idea is the result of the next ray will influence the result of the current ray, so you trace the next ray and the next ray and the next ray... until you reach the end, or the limit of the recursion. This method is simple to implement, but stack overflow is a b*tch, so it's not recommended.
 
 - **Weight Based Ray Tracing**: this is similar to Monte Carlo's path tracing, but deterministic instead of stochastic. Each ray has a weight, the next ray will influence the weight of the current ray, but the total weight of every ray will always be the same (sum = 1).
   - Example: 
@@ -22,12 +22,11 @@ Ray tracing allow for graphically complex and graphically beutiful grapich, sinc
 
 ### How to Use
 
-Just run the `AsczEngineRT_v0.exe` file, easy as that.
+Just run the `AsczEngineRT_v0.exe` file, easy as that (I lied).
 
 ### Contribute
 
 Whether you have ideas, suggestions, techniques, or just want to discuss rendering techniques, contributions are welcome.
-
 
 # Ignore
 
