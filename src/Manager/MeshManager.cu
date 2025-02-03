@@ -41,20 +41,6 @@ void MeshManager::freeDevice() {
 }
 
 void MeshManager::computeData() {
-    // Debug: print OrSO and SOrF
-    for (int i = 0; i < OrSO.size(); i++) {
-        std::cout << OrSO[i] << std::endl;
-    }
-
-    std::cout << "----------------" << std::endl;
-
-    for (int i = 0; i < SOrF.size(); i++) {
-        std::cout << SOrF[i] << std::endl;
-    }   
-
-
-    // These data will be useful for BVH construction
-
     h_fABmin.resize(fNum);
     h_fABmax.resize(fNum);
     h_fABcen.resize(fNum);
