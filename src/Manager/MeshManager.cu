@@ -1,7 +1,6 @@
 #include <MeshManager.cuh>
 #include <cuda_runtime.h>
 #include <omp.h>
-#include <iostream>
 
 void MeshManager::appendMesh(MeshStruct mesh) {
     #pragma omp parallel for
@@ -56,28 +55,33 @@ void MeshManager::computeData() {
 
     // These data will be useful for BVH construction
 
-    h_fmin.resize(fNum);
-    h_fmax.resize(fNum);
+    h_fABmin.resize(fNum);
+    h_fABmax.resize(fNum);
+    h_fABcen.resize(fNum);
 
     #pragma omp parallel for
     for (int i = 0; i < fNum; i++) {
-        Vec3f minV = Vec3f(INFINITY);
-        Vec3f maxV = Vec3f(-INFINITY);
+        Vec3f fABmin = Vec3f(INFINITY);
+        Vec3f fABmax = Vec3f(-INFINITY);
+        Vec3f fABcen = Vec3f();
 
         for (int j = 0; j < 3; j++) {
             Vec3f v = h_v[h_fv[i][j]];
 
-            minV.x = fminf(minV.x, v.x);
-            minV.y = fminf(minV.y, v.y);
-            minV.z = fminf(minV.z, v.z);
+            fABmin.x = fminf(fABmin.x, v.x);
+            fABmin.y = fminf(fABmin.y, v.y);
+            fABmin.z = fminf(fABmin.z, v.z);
 
-            maxV.x = fmaxf(maxV.x, v.x);
-            maxV.y = fmaxf(maxV.y, v.y);
-            maxV.z = fmaxf(maxV.z, v.z);
+            fABmax.x = fmaxf(fABmax.x, v.x);
+            fABmax.y = fmaxf(fABmax.y, v.y);
+            fABmax.z = fmaxf(fABmax.z, v.z);
+
+            fABcen += v;
         }
 
-        h_fmin[i] = minV;
-        h_fmax[i] = maxV;
+        h_fABmin[i] = fABmin;
+        h_fABmax[i] = fABmax;
+        h_fABcen[i] = fABcen / 3;
     }
 }
 
@@ -96,6 +100,10 @@ void MeshManager::hostToDevice() {
     cudaMalloc(&d_fn, fNum * sizeof(Vec3i));
     cudaMalloc(&d_fm, fNum * sizeof(int));
 
+    cudaMalloc(&d_fABmin, fNum * sizeof(Vec3f));
+    cudaMalloc(&d_fABmax, fNum * sizeof(Vec3f));
+    cudaMalloc(&d_fABcen, fNum * sizeof(Vec3f));
+
     // -------------------------------------- //
 
     cudaMemcpy(d_v, h_v.data(), vNum * sizeof(Vec3f), cudaMemcpyHostToDevice);
@@ -106,4 +114,8 @@ void MeshManager::hostToDevice() {
     cudaMemcpy(d_ft, h_ft.data(), fNum * sizeof(Vec3i), cudaMemcpyHostToDevice);
     cudaMemcpy(d_fn, h_fn.data(), fNum * sizeof(Vec3i), cudaMemcpyHostToDevice);
     cudaMemcpy(d_fm, h_fm.data(), fNum * sizeof(int), cudaMemcpyHostToDevice);
+
+    cudaMemcpy(d_fABmin, h_fABmin.data(), fNum * sizeof(Vec3f), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_fABmax, h_fABmax.data(), fNum * sizeof(Vec3f), cudaMemcpyHostToDevice);    
+    cudaMemcpy(d_fABcen, h_fABcen.data(), fNum * sizeof(Vec3f), cudaMemcpyHostToDevice);
 }

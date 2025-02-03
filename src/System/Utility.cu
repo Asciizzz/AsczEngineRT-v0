@@ -1,15 +1,5 @@
 #include <Utility.cuh>
 
-#define VectF std::vector<float>
-
-#define VectI std::vector<int>
-#define VectLLI std::vector<LLInt>
-#define VectULLI std::vector<ULLInt>
-
-#define VectBool std::vector<bool>
-
-#define VectStr std::vector<std::string>
-
 void Utils::appendObj(
     MeshManager &meshMgr, MatManager &matMgr, TxtrManager &txtrMgr,
     const char *objPath, short placement, float scale, short fIdxBased 
@@ -24,13 +14,11 @@ void Utils::appendObj(
     Vecs3i mfv;
     Vecs3i mft;
     Vecs3i mfn;
-    VectI mfm;
-    VectI mSOrF;
+    VecsI mfm;
+    VecsI mSOrF;
 
     int matIdx = 0;
     std::unordered_map<std::string, int> matMap;
-
-    int bvhIdx = -1;
 
     std::string path(objPath);
 
@@ -38,7 +26,6 @@ void Utils::appendObj(
     float minX = INFINITY, minY = INFINITY, minZ = INFINITY;
     float maxX = -INFINITY, maxY = -INFINITY, maxZ = -INFINITY;
 
-    VectStr lines;
     std::string line;
     while (std::getline(file, line)) {
         if (line.size() == 0 || line[0] == '#') continue;
@@ -73,7 +60,7 @@ void Utils::appendObj(
         else if (type == "f") {
             Vec3i fv, ft, fn;
 
-            VectI vs, ts, ns;
+            VecsI vs, ts, ns;
             while (ss.good()) {
                 std::string vtn; ss >> vtn;
                 std::stringstream ss2(vtn);

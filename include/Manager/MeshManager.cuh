@@ -2,14 +2,13 @@
 #define MESHMANAGER_CUH
 
 #include <Vector.cuh>
-#define VectI std::vector<int>
 
 /* OrSO and SOrF explanation:
 
 The idea: .obj file can contain multiple o <object_name>, which we will called sub-objects.
 To handle this, I have came up with a way to handle objects as well as their sub-objects.
 
-== OrSO: Object reference sub-objects ==
+== OrSO: Object references sub-objects ==
 
 - This array will store the ptr to the sub-objects
 - Example: 3 objects: Human, Animal and Tree
@@ -21,7 +20,7 @@ To handle this, I have came up with a way to handle objects as well as their sub
     => SO = {head, body, legs, head, body, trunk, leaves, roots, branches}
     => OrSO = {0, 3, 5, 9}, OrSO[i] = OrSO[i-1] + number of sub-objects in O[i-1]
 
-== SOrF: Sub-object reference faces ==
+== SOrF: Sub-object references faces ==
 
 - This array will store the ptr to the faces
 - Example: Object Human contain 3 sub-objects: head, body, and legs
@@ -51,9 +50,9 @@ struct MeshStruct {
     Vecs3i fv;
     Vecs3i ft;
     Vecs3i fn;
-    VectI fm;
+    VecsI fm;
 
-    VectI SOrF; // Sub-object start index
+    VecsI SOrF; // Sub-objects
 };
 
 class MeshManager {
@@ -66,13 +65,14 @@ public:
     Vecs3i h_fv;
     Vecs3i h_ft;
     Vecs3i h_fn;
-    VectI h_fm;
+    VecsI  h_fm; // Face's material index
+    Vecs3f h_fABmin; // Face's AABB min
+    Vecs3f h_fABmax; // Face's AABB max
+    Vecs3f h_fABcen; // Face's AABB center (not to be confused with face's center)
 
-    VectI OrSO = {0}; // Object reference sub-objects
-    VectI SOrF = {0}; // Sub-object reference faces
+    VecsI OrSO = {0}; // Object references sub-objects
+    VecsI SOrF = {0}; // Sub-object references faces
 
-    Vecs3f h_fmin; // Face's AABB min
-    Vecs3f h_fmax; // Face's AABB max
 
     Vec3f ABmin, ABmax;
 
@@ -87,7 +87,10 @@ public:
     Vec3i *d_fv = nullptr;
     Vec3i *d_ft = nullptr;
     Vec3i *d_fn = nullptr;
-    int *d_fm = nullptr;
+    int   *d_fm = nullptr;
+    Vec3f *d_fABmin = nullptr;
+    Vec3f *d_fABmax = nullptr;
+    Vec3f *d_fABcen = nullptr;
     int fNum = 0;
 
     void freeDevice();

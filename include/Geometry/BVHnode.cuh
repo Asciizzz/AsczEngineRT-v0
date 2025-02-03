@@ -1,9 +1,9 @@
-#ifndef BVHNODE_H
-#define BVHNODE_H
+#ifndef HstNode_H
+#define HstNode_H
 
 #include <Geom.cuh>
 
-struct BVHnode {
+struct HstNode {
     Vec3f min;
     Vec3f max;
     int l;

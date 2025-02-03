@@ -10,7 +10,6 @@
 #include <string>
 #include <omp.h>
 #include <unordered_map>
-#include <iostream>
 
 class Utils {
 public:

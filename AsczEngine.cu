@@ -161,7 +161,8 @@ int main() {
     TxtrMgr.hostToDevice();
     MatMgr.hostToDevice();
     MeshMgr.hostToDevice();
-    BvhMgr.bvh(MeshMgr.SOrF, MeshMgr.h_fv, MeshMgr.h_fmin, MeshMgr.h_fmax);
+
+    BvhMgr.designBVH(MeshMgr);
     BvhMgr.hostToDevice();
 
     // ========================================================================
@@ -262,7 +263,7 @@ int main() {
                 MeshMgr.d_v, MeshMgr.d_t, MeshMgr.d_n,
                 MeshMgr.d_fv, MeshMgr.d_ft, MeshMgr.d_fn, MeshMgr.d_fm,
                 MeshMgr.fNum,
-                BvhMgr.d_nodes, BvhMgr.num,
+                // BvhMgr.d_nodes, BvhMgr.num,
 
                 lightSrc
             );

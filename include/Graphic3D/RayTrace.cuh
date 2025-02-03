@@ -18,8 +18,8 @@ __global__ void iterativeRayTracing(
     Vec3i *mfv, Vec3i *mft, Vec3i *mfn, int *mfm, // Face data
     int fNum, // Number of faces
 
-    // "Correct" BVH in the near future
-    BvhNode *nodes, int nNum,
+    // // "Correct" BVH in the near future
+    // HstNode *nodes, int nNum,
 
     Vec3f lightSrc
 );

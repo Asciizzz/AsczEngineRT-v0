@@ -14,11 +14,15 @@ __global__ void iterativeRayTracing(
     Vec3i *mfv, Vec3i *mft, Vec3i *mfn, int *mfm, // Face data
     int fNum, // Number of faces
 
-    // "Correct" BVH in the near future
-    BvhNode *nodes, int nNum,
+    // // "Correct" BVH in the near future
+    // HstNode *nodes, int nNum,
 
     Vec3f lightSrc
 ) {
+
+/* Halting ray tracing until BVH is fully functional */
+
+/*
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i >= frmW * frmH) return;
 
@@ -55,7 +59,7 @@ __global__ void iterativeRayTracing(
         RayHit &hit = hits[r];
 
         for (int nd = 0; nd < nNum; nd++) {
-            const BvhNode &node = nodes[nd];
+            const HstNode &node = nodes[nd];
 
             bool hitAABB = node.hitAABB(ray.origin, ray.direction);
             if (!hitAABB) continue;
@@ -153,7 +157,7 @@ __global__ void iterativeRayTracing(
         int lightPass = 0;
 
         for (int nd = 0; nd < nNum; nd++) {
-            const BvhNode &node = nodes[nd];
+            const HstNode &node = nodes[nd];
 
             bool hitAABB = node.hitAABB(vrtx[r], lightDir);
             if (!hitAABB) continue;
@@ -321,4 +325,6 @@ __global__ void iterativeRayTracing(
     }
 
     frmbuffer[i] = finalColr;
+
+*/
 }

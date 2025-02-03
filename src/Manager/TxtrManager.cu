@@ -2,8 +2,6 @@
 #include <SFML/Graphics.hpp>
 #include <cuda_runtime.h>
 
-#include <iostream>
-
 int TxtrManager::appendTexture(const char *path) {
     sf::Image img;
     img.loadFromFile(path);

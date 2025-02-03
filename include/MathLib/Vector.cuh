@@ -1,14 +1,18 @@
 #ifndef VECTOR_CUH
 #define VECTOR_CUH
 
+#include <iostream>
 #include <vector>
 #include <cstdio>
 #include <cmath>
 
-#define UInt unsigned int
-#define ULInt unsigned long int
-#define ULLInt unsigned long long int
-#define LLInt long long int
+/*
+Take a screenshot of these abomination below
+to instantly kill a programmer on the spot
+*/
+
+#define VecsI std::vector<int>
+#define VecsF std::vector<float>
 
 #define Vecs2f std::vector<Vec2f>
 #define Vecs3f std::vector<Vec3f>
@@ -20,6 +24,8 @@
 #define M_PI_2 1.57079632679489661923 // 90 degrees
 #define M_2_PI 6.28318530717958647692 // 360 degrees
 
+#define _dev_ __device__
+#define _hst_ __host__
 #define _hst_dev_ __host__ __device__
 
 struct Vec2f {

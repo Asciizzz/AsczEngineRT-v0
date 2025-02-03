@@ -3,10 +3,14 @@
 
 #include <MeshManager.cuh>
 
-struct BvhNode {
+struct HstNode { // Host code node
     Vec3f min = Vec3f(INFINITY);
     Vec3f max = Vec3f(-INFINITY);
-    int fl, fr; // [face left, face right)
+
+    HstNode *l = nullptr, *r = nullptr; // Child node
+
+    bool leaf = false;
+    std::vector<int> faces; // Face indices
 
     void recalc(Vec3f v) {
         min.x = fminf(min.x, v.x);
@@ -55,34 +59,103 @@ struct BvhNode {
     }
 };
 
+struct DevNode { // Flattened structure friendly for shader code
+    Vec3f min = Vec3f(INFINITY);
+    Vec3f max = Vec3f(-INFINITY);
+
+    int l, r; // Child node index
+    bool leaf = false;
+
+    int fl, fr; // [face left, face right)
+};
+
 class BvhManager {
 public:
-    std::vector<BvhNode> h_nodes;
+    std::vector<HstNode> h_nodes;
 
-    int appendNode(BvhNode node) {
+    int appendNode(HstNode node) {
         h_nodes.push_back(node);
         return num++;
     }
 
-    BvhNode *d_nodes;
+    HstNode *d_nodes;
     int num = 0;
 
     void hostToDevice() {
-        cudaMalloc(&d_nodes, num * sizeof(BvhNode));
-        cudaMemcpy(d_nodes, h_nodes.data(), num * sizeof(BvhNode), cudaMemcpyHostToDevice);
+        cudaMalloc(&d_nodes, num * sizeof(HstNode));
+        cudaMemcpy(d_nodes, h_nodes.data(), num * sizeof(HstNode), cudaMemcpyHostToDevice);
     }
 
-    void bvh(VectI &h_fo, Vecs3i &h_fv, Vecs3f &h_fmin, Vecs3f &h_fmax) {
-        for (int i = 0; i < h_fo.size() - 1; i++) {
-            BvhNode node;
-            node.fl = h_fo[i];
-            node.fr = h_fo[i + 1];
-            for (int j = h_fo[i]; j < h_fo[i + 1]; j++) {
-                node.recalc(h_fmin[j]);
-                node.recalc(h_fmax[j]);
-            }
-            appendNode(node);
+    void designBVH(MeshManager &meshMgr) {
+        const Vecs3i &fv = meshMgr.h_fv; // Faces
+
+        const VecsI &OrSO = meshMgr.OrSO; // Object references sub-objects
+        const VecsI &SOrF = meshMgr.SOrF; // Sub-object references faces
+
+        const Vecs3f &fABmin = meshMgr.h_fABmin; // Face's AABB min
+        const Vecs3f &fABmax = meshMgr.h_fABmax; // Face's AABB max
+        const Vecs3f &fABcen = meshMgr.h_fABcen; // Face's AABB center
+
+        // For the time being, we will focus on treating each sub-objects as a leaf node
+        // And try to perform SAH BVH on those sub-objects instead of their faces
+
+        // We will perform the simplest BVH construction algorithm
+        // Split in the middle of the longest axis
+
+        HstNode *root = new HstNode();
+        root->faces.resize(fv.size());
+        for (int i = 0; i < fv.size(); i++) {
+            root->faces[i] = i;
+            root->recalc(fABmin[i]);
+            root->recalc(fABmax[i]);
         }
+
+        buildBvh(root, meshMgr);
+    }
+
+    static void buildBvh(HstNode *nodes, MeshManager &meshMgr, int depth = 0) {
+        const VecsI &OrSO = meshMgr.OrSO; // Object references sub-objects
+        const VecsI &SOrF = meshMgr.SOrF; // Sub-object references faces
+
+        const Vecs3f &fABmin = meshMgr.h_fABmin; // Face's AABB min
+        const Vecs3f &fABmax = meshMgr.h_fABmax; // Face's AABB max
+        const Vecs3f &fABcen = meshMgr.h_fABcen; // Face's AABB center
+
+        HstNode *left = new HstNode();
+        HstNode *right = new HstNode();
+
+        Vec3f AABBsize = nodes->max - nodes->min;
+        int axis = 0;
+        if (AABBsize.y > AABBsize.x) axis = 1;
+        if (AABBsize.z > AABBsize.y) axis = 2;
+
+        for (int i = 0; i < SOrF.size(); i++) {
+            int idx = SOrF[i];
+            Vec3f center = fABcen[idx];
+
+            if (center[axis] < nodes->min[axis] + AABBsize[axis] / 2) {
+                left->faces.push_back(idx);
+                left->recalc(fABmin[idx]);
+                left->recalc(fABmax[idx]);
+            } else {
+                right->faces.push_back(idx);
+                right->recalc(fABmin[idx]);
+                right->recalc(fABmax[idx]);
+            }
+        }
+
+        if (left->faces.size() > 1)
+            buildBvh(left, meshMgr, depth + 1);
+        else left->leaf = true;
+
+        if (right->faces.size() > 1)
+            buildBvh(right, meshMgr, depth + 1);
+        else right->leaf = true;
+
+        std::cout << "Depth: " << depth << "\n";
+
+        nodes->l = left;
+        nodes->r = right;
     }
 };
 
