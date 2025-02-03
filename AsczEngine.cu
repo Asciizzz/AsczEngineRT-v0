@@ -161,7 +161,7 @@ int main() {
     TxtrMgr.hostToDevice();
     MatMgr.hostToDevice();
     MeshMgr.hostToDevice();
-    BvhMgr.bvh(MeshMgr.h_fo, MeshMgr.h_fm, MeshMgr.h_fmin, MeshMgr.h_fmax, MeshMgr.h_fc);
+    BvhMgr.bvh(MeshMgr.SOrF, MeshMgr.h_fv, MeshMgr.h_fmin, MeshMgr.h_fmax);
     BvhMgr.hostToDevice();
 
     // ========================================================================

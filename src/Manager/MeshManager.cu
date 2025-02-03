@@ -5,9 +5,11 @@
 
 void MeshManager::appendMesh(MeshStruct mesh) {
     #pragma omp parallel for
-    for (int i = 0; i < mesh.fo.size(); i++) {
-        h_fo.push_back(mesh.fo[i] + h_fv.size());
+    for (int i = 0; i < mesh.SOrF.size(); i++) {
+        SOrF.push_back(mesh.SOrF[i] + h_fv.size());
     }
+
+    OrSO.push_back(SOrF.size());
 
     #pragma omp parallel for
     for (int i = 0; i < mesh.fv.size(); i++) {
@@ -40,17 +42,27 @@ void MeshManager::freeDevice() {
 }
 
 void MeshManager::computeData() {
+    // Debug: print OrSO and SOrF
+    for (int i = 0; i < OrSO.size(); i++) {
+        std::cout << OrSO[i] << std::endl;
+    }
+
+    std::cout << "----------------" << std::endl;
+
+    for (int i = 0; i < SOrF.size(); i++) {
+        std::cout << SOrF[i] << std::endl;
+    }   
+
+
     // These data will be useful for BVH construction
 
     h_fmin.resize(fNum);
     h_fmax.resize(fNum);
-    h_fc.resize(fNum);
 
     #pragma omp parallel for
     for (int i = 0; i < fNum; i++) {
         Vec3f minV = Vec3f(INFINITY);
         Vec3f maxV = Vec3f(-INFINITY);
-        Vec3f center = Vec3f();
 
         for (int j = 0; j < 3; j++) {
             Vec3f v = h_v[h_fv[i][j]];
@@ -62,25 +74,16 @@ void MeshManager::computeData() {
             maxV.x = fmaxf(maxV.x, v.x);
             maxV.y = fmaxf(maxV.y, v.y);
             maxV.z = fmaxf(maxV.z, v.z);
-
-            center += v;
         }
 
         h_fmin[i] = minV;
         h_fmax[i] = maxV;
-        h_fc[i] = center / 3.0f;
     }
 }
 
 void MeshManager::hostToDevice() {
     freeDevice();
     computeData();
-
-    // -------------------------------------- //
-
-    for (int i = 1; i < h_fo.size(); i++) {
-        std::cout << h_fo[i] - h_fo[i - 1] << std::endl;
-    }
 
     // -------------------------------------- //    
 

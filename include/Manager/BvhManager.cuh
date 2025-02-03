@@ -72,7 +72,7 @@ public:
         cudaMemcpy(d_nodes, h_nodes.data(), num * sizeof(BvhNode), cudaMemcpyHostToDevice);
     }
 
-    void bvh(VectI &h_fo, VectI &h_fm, Vecs3f &h_fmin, Vecs3f &h_fmax, Vecs3f &h_fc) {
+    void bvh(VectI &h_fo, Vecs3i &h_fv, Vecs3f &h_fmin, Vecs3f &h_fmax) {
         for (int i = 0; i < h_fo.size() - 1; i++) {
             BvhNode node;
             node.fl = h_fo[i];

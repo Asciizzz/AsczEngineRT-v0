@@ -25,7 +25,7 @@ void Utils::appendObj(
     Vecs3i mft;
     Vecs3i mfn;
     VectI mfm;
-    VectI mfo;
+    VectI mSOrF;
 
     int matIdx = 0;
     std::unordered_map<std::string, int> matMap;
@@ -137,7 +137,7 @@ void Utils::appendObj(
         }
 
         else if (type == "o") {
-            mfo.push_back(mfv.size());
+            mSOrF.push_back(mfv.size());
         }
 
         else if (type == "usemtl") {
@@ -203,8 +203,8 @@ void Utils::appendObj(
             }
         }
     }
-    mfo.push_back(mfv.size());
-    mfo.erase(mfo.begin());
+    mSOrF.push_back(mfv.size());
+    mSOrF.erase(mSOrF.begin());
 
     #pragma omp parallel for
     for (size_t i = 0; i < mv.size(); i++) {
@@ -228,7 +228,7 @@ void Utils::appendObj(
     mesh.ft = mft;
     mesh.fn = mfn;
     mesh.fm = mfm;
-    mesh.fo = mfo;
+    mesh.SOrF = mSOrF;
 
     meshMgr.appendMesh(mesh);
 }
