@@ -158,12 +158,12 @@ int main() {
     // ======================= Copy to device memory ==========================
 
     // Copy to device memory
-    TxtrMgr.hostToDevice();
-    MatMgr.hostToDevice();
-    MeshMgr.hostToDevice();
+    TxtrMgr.toDevice();
+    MatMgr.toDevice();
+    MeshMgr.toDevice();
 
     BvhMgr.designBVH(MeshMgr);
-    BvhMgr.hostToDevice();
+    BvhMgr.toDevice();
 
     // ========================================================================
     // ========================================================================

@@ -24,7 +24,7 @@ public:
     int txtrCount = 0;
 
     void freeDevice();
-    void hostToDevice();
+    void toDevice();
 };
 
 #endif

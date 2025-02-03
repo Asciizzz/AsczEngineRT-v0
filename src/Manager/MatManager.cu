@@ -13,7 +13,7 @@ void MatManager::freeDevice() {
     }
 }
 
-void MatManager::hostToDevice() {
+void MatManager::toDevice() {
     freeDevice();
     if (matsNum) {
         cudaMalloc(&d_mats, matsNum * sizeof(Material));

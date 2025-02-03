@@ -33,7 +33,7 @@ void TxtrManager::freeDevice() {
     cudaFree(d_txtrPtr);
 }
 
-void TxtrManager::hostToDevice() {
+void TxtrManager::toDevice() {
     freeDevice();
 
     cudaMalloc(&d_txtrFlat, txtrSize * sizeof(Vec3f));

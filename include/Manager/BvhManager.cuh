@@ -74,18 +74,18 @@ struct DevNode { // Flattened structure friendly for shader code
 class BvhManager {
 public:
     std::vector<HstNode> h_nodes;
+    std::vector<DevNode> h_dnodes;
+    std::vector<int> h_fidx;
 
-    int appendNode(HstNode node) {
-        h_nodes.push_back(node);
-        return num++;
-    }
+    DevNode *d_nodes;
+    int *d_fidx;
 
-    HstNode *d_nodes;
-    int num = 0;
+    void toDevice() {
+        cudaMalloc(&d_nodes, h_dnodes.size() * sizeof(DevNode));
+        cudaMemcpy(d_nodes, h_dnodes.data(), h_dnodes.size() * sizeof(DevNode), cudaMemcpyHostToDevice);
 
-    void hostToDevice() {
-        cudaMalloc(&d_nodes, num * sizeof(HstNode));
-        cudaMemcpy(d_nodes, h_nodes.data(), num * sizeof(HstNode), cudaMemcpyHostToDevice);
+        cudaMalloc(&d_fidx, h_fidx.size() * sizeof(int));
+        cudaMemcpy(d_fidx, h_fidx.data(), h_fidx.size() * sizeof(int), cudaMemcpyHostToDevice);
     }
 
     void designBVH(MeshManager &meshMgr) {
@@ -113,6 +113,18 @@ public:
         }
 
         buildBvh(root, meshMgr);
+
+        std::cout << "---\n";
+
+        toShader(root, h_dnodes, h_fidx);
+
+        for (int i = 0; i < h_dnodes.size(); i++) {
+            DevNode dnode = h_dnodes[i];
+
+            std::cout << i 
+            << " - " << (dnode.leaf ? "lf" : "nd") 
+            << " | " << dnode.l << " | " << dnode.r << "\n";
+        }
     }
 
     static void buildBvh(HstNode *nodes, MeshManager &meshMgr, int depth=0, std::string pf="O ") {
@@ -125,17 +137,20 @@ public:
 
         const int MAX_DEPTH = 5;
 
+
         HstNode *left = new HstNode();
         HstNode *right = new HstNode();
         nodes->l = left;
         nodes->r = right;
 
+        int nF = nodes->faces.size();
+
         Vec3f AABBsize = nodes->max - nodes->min;
         int axis = 0;
-        if (AABBsize.y > AABBsize.x) axis = 1;
-        if (AABBsize.z > AABBsize.y) axis = 2;
+        axis = AABBsize.y > AABBsize.x ? 1 : axis;
+        axis = AABBsize.z > AABBsize.y ? 2 : axis;
 
-        for (int i = 0; i < nodes->faces.size(); i++) {
+        for (int i = 0; i < nF; i++) {
             int idx = nodes->faces[i];
             Vec3f center = fABcen[idx];
 
@@ -152,7 +167,6 @@ public:
 
         int lF = left->faces.size();
         int rF = right->faces.size();
-        int nF = nodes->faces.size();
 
         nodes->leaf = depth >= MAX_DEPTH || nF <= 1 || lF == nF || rF == nF;
 
@@ -167,6 +181,32 @@ public:
 
         buildBvh(left, meshMgr, depth + 1, pf + "L ");
         buildBvh(right, meshMgr, depth + 1, pf + "R ");
+    }
+
+    static int toShader(HstNode *node, std::vector<DevNode> &dnodes, std::vector<int> &fidx) {
+        int idx = dnodes.size();
+        dnodes.push_back(DevNode());
+
+        DevNode &dnode = dnodes[idx];
+
+        if (node->leaf) {
+            dnode.leaf = true;
+
+            dnode.fl = fidx.size();
+
+            for (int i = 0; i < node->faces.size(); i++) {
+                fidx.push_back(node->faces[i]);
+            }
+
+            dnode.fr = fidx.size();
+
+            return idx;
+        }
+
+        dnodes[idx].l = toShader(node->l, dnodes, fidx);
+        dnodes[idx].r = toShader(node->r, dnodes, fidx);
+
+        return idx;
     }
 };
 

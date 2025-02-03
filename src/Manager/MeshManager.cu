@@ -71,7 +71,7 @@ void MeshManager::computeData() {
     }
 }
 
-void MeshManager::hostToDevice() {
+void MeshManager::toDevice() {
     freeDevice();
     computeData();
 

@@ -32,7 +32,7 @@ public:
     int matsNum = 0;
 
     void freeDevice();
-    void hostToDevice();
+    void toDevice();
 };
 
 #endif

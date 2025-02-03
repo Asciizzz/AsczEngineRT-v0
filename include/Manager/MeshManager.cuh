@@ -94,7 +94,7 @@ public:
     int fNum = 0;
 
     void freeDevice();
-    void hostToDevice();
+    void toDevice();
 };
 
 #endif
