@@ -14,15 +14,11 @@ __global__ void iterativeRayTracing(
     Vec3i *mfv, Vec3i *mft, Vec3i *mfn, int *mfm, // Face data
     int fNum, // Number of faces
 
-    // // "Correct" BVH in the near future
-    // HstNode *nodes, int nNum,
+    // BVH data
+    int *fidx, DevNode *nodes, int nNum,
 
     Vec3f lightSrc
 ) {
-
-/* Halting ray tracing until BVH is fully functional */
-
-/*
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i >= frmW * frmH) return;
 
@@ -34,6 +30,7 @@ __global__ void iterativeRayTracing(
     const double EPSILON_1 = 0.001;
     const double EPSILON_2 = 0.00001;
     const int MAX_RAYS = 10;
+    const int MAX_DEPTH = 64;
 
     // Very important note:
     // If mfv.z = -2, the face is a Sphere!
@@ -50,6 +47,10 @@ __global__ void iterativeRayTracing(
     Vec2f txtr[MAX_RAYS];
     Vec3f nrml[MAX_RAYS];
 
+    int stack[MAX_DEPTH];
+    int sptr = 0;
+    stack[sptr++] = 0; // Start with root
+
     int rnum = 0;
 
     for (int r = 0; r < rnum + 1; r++) {
@@ -58,16 +59,26 @@ __global__ void iterativeRayTracing(
         Ray &ray = rays[r];
         RayHit &hit = hits[r];
 
-        for (int nd = 0; nd < nNum; nd++) {
-            const HstNode &node = nodes[nd];
+        sptr = 0;
+        stack[sptr++] = 0; // Start with root
+
+        while (sptr > 0) {
+            int idx = stack[--sptr];
+            const DevNode &node = nodes[idx];
 
             bool hitAABB = node.hitAABB(ray.origin, ray.direction);
             if (!hitAABB) continue;
 
-            for (int i = node.fl; i < node.fr; i++) {
-                Vec3i &fv = mfv[i];
+            if (!node.leaf) {
+                stack[sptr++] = node.l;
+                stack[sptr++] = node.r;
+                continue;
+            }
 
-                // Get the vertices
+            for (int i = node.l; i < node.r; i++) {
+                int fi = fidx[i];
+                Vec3i &fv = mfv[fi];
+
                 Vec3f v0 = mv[fv.x];
                 Vec3f v1 = mv[fv.y];
                 Vec3f v2 = mv[fv.z];
@@ -94,7 +105,7 @@ __global__ void iterativeRayTracing(
 
                 if (t > EPSILON_2 && t < hit.t) {
                     hit.hit = true;
-                    hit.idx = i;
+                    hit.idx = fi;
                     hit.t = t;
                     hit.u = u;
                     hit.v = v;
@@ -109,7 +120,7 @@ __global__ void iterativeRayTracing(
         if (!hit.hit) continue;
 
         // Get the face data
-        int fIdx = hit.idx; int &fm = mfm[fIdx];
+        int fi = hit.idx; int &fm = mfm[fi];
         const Material &mat = mats[fm];
         float hitw = 1 - hit.u - hit.v;
 
@@ -117,7 +128,7 @@ __global__ void iterativeRayTracing(
         vrtx[r] = ray.origin + ray.direction * hit.t;
 
         // Normal interpolation
-        Vec3i &fn = mfn[fIdx];
+        Vec3i &fn = mfn[fi];
         if (fn.x > -1) {
             Vec3f &n0 = mn[fn.x], &n1 = mn[fn.y], &n2 = mn[fn.z];
             nrml[r] = n0 * hitw + n1 * hit.u + n2 * hit.v;
@@ -126,7 +137,7 @@ __global__ void iterativeRayTracing(
 
         // Color/Texture interpolation
         if (mat.mapKd > -1) {
-            Vec3i &ft = mft[fIdx];
+            Vec3i &ft = mft[fi];
             Vec2f &t0 = mt[ft.x], &t1 = mt[ft.y], &t2 = mt[ft.z];
             txtr[r] = t0 * hitw + t1 * hit.u + t2 * hit.v;
             // Modulo 1
@@ -148,7 +159,7 @@ __global__ void iterativeRayTracing(
         }
 
         // Light ray
-        Vec3f lightDir = vrtx[r] - lightSrc;
+        Vec3f lightDir = lightSrc - vrtx[r];
         float lightDist = lightDir.mag();
         lightDir.norm();
 
@@ -156,18 +167,28 @@ __global__ void iterativeRayTracing(
         float lightIntens = 1.0f;
         int lightPass = 0;
 
-        for (int nd = 0; nd < nNum; nd++) {
-            const HstNode &node = nodes[nd];
+        sptr = 0;
+        stack[sptr++] = 0; // Start with root
 
-            bool hitAABB = node.hitAABB(vrtx[r], lightDir);
+        while (sptr > 0) {
+            int idx = stack[--sptr];
+            const DevNode &node = nodes[idx];
+
+            bool hitAABB = node.hitAABB(lightSrc, lightDir);
             if (!hitAABB) continue;
 
-            for (int i = node.fl; i < node.fr; i++) {
-                if (i == fIdx) continue;
+            if (!node.leaf) {
+                stack[sptr++] = node.l;
+                stack[sptr++] = node.r;
+                continue;
+            }
 
-                Vec3i &fv = mfv[i];
+            for (int i = node.l; i < node.r; i++) {
+                int fi = fidx[i];
+                if (fi == hit.idx) continue;
 
-                // Get the vertices
+                Vec3i &fv = mfv[fi];
+
                 Vec3f v0 = mv[fv.x];
                 Vec3f v1 = mv[fv.y];
                 Vec3f v2 = mv[fv.z];
@@ -193,7 +214,7 @@ __global__ void iterativeRayTracing(
                 float t = f * (e2 * q);
 
                 if (t > EPSILON_2 && t < lightDist) {
-                    const Material &mat = mats[mfm[i]];
+                    const Material &mat = mats[mfm[fi]];
 
                     if (mat.transmit > 0.0f) {
                         lightPass++;
@@ -325,6 +346,4 @@ __global__ void iterativeRayTracing(
     }
 
     frmbuffer[i] = finalColr;
-
-*/
 }
