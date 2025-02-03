@@ -3,6 +3,8 @@
 
 #include <MeshManager.cuh>
 
+#include <string>
+
 struct HstNode { // Host code node
     Vec3f min = Vec3f(INFINITY);
     Vec3f max = Vec3f(-INFINITY);
@@ -113,7 +115,7 @@ public:
         buildBvh(root, meshMgr);
     }
 
-    static void buildBvh(HstNode *nodes, MeshManager &meshMgr, int depth = 0) {
+    static void buildBvh(HstNode *nodes, MeshManager &meshMgr, int depth=0, std::string pf="O ") {
         const VecsI &OrSO = meshMgr.OrSO; // Object references sub-objects
         const VecsI &SOrF = meshMgr.SOrF; // Sub-object references faces
 
@@ -121,16 +123,20 @@ public:
         const Vecs3f &fABmax = meshMgr.h_fABmax; // Face's AABB max
         const Vecs3f &fABcen = meshMgr.h_fABcen; // Face's AABB center
 
+        const int MAX_DEPTH = 5;
+
         HstNode *left = new HstNode();
         HstNode *right = new HstNode();
+        nodes->l = left;
+        nodes->r = right;
 
         Vec3f AABBsize = nodes->max - nodes->min;
         int axis = 0;
         if (AABBsize.y > AABBsize.x) axis = 1;
         if (AABBsize.z > AABBsize.y) axis = 2;
 
-        for (int i = 0; i < SOrF.size(); i++) {
-            int idx = SOrF[i];
+        for (int i = 0; i < nodes->faces.size(); i++) {
+            int idx = nodes->faces[i];
             Vec3f center = fABcen[idx];
 
             if (center[axis] < nodes->min[axis] + AABBsize[axis] / 2) {
@@ -144,18 +150,23 @@ public:
             }
         }
 
-        if (left->faces.size() > 1)
-            buildBvh(left, meshMgr, depth + 1);
-        else left->leaf = true;
+        int lF = left->faces.size();
+        int rF = right->faces.size();
+        int nF = nodes->faces.size();
 
-        if (right->faces.size() > 1)
-            buildBvh(right, meshMgr, depth + 1);
-        else right->leaf = true;
+        nodes->leaf = depth >= MAX_DEPTH || nF <= 1 || lF == nF || rF == nF;
 
-        std::cout << "Depth: " << depth << "\n";
+        std::string leafStr = nodes->leaf ? "lf:[" : "nd:[";
+        std::string axisStr = axis == 0 ? "x" : (axis == 1 ? "y" : "z");
+        std::cout << depth << " - " << axisStr << " | " << pf << leafStr << nF << "] | ";
+        Vec3f min = nodes->min, max = nodes->max;
+        std::cout << "(" << min.x << ", " << min.y << ", " << min.z << ") | ";
+        std::cout << "(" << max.x << ", " << max.y << ", " << max.z << ")\n";
 
-        nodes->l = left;
-        nodes->r = right;
+        if (nodes->leaf) return;
+
+        buildBvh(left, meshMgr, depth + 1, pf + "L ");
+        buildBvh(right, meshMgr, depth + 1, pf + "R ");
     }
 };
 
