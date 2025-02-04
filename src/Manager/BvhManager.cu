@@ -71,11 +71,8 @@ void BvhManager::buildBvh(HstNode *nodes, MeshManager &meshMgr, int depth) {
 
     #pragma omp parallel
     for (int x = 0; x < SPLIT_X; ++x) {
-    #pragma omp parallel
     for (int y = 0; y < SPLIT_Y; ++y) {
-    #pragma omp parallel
     for (int z = 0; z < SPLIT_Z; ++z) {
-    #pragma omp parallel
     for (int a = 0; a < 3; ++a) { // Axes
         HstNode l = HstNode();
         HstNode r = HstNode();

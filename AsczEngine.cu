@@ -250,10 +250,6 @@ int main() {
         // Update camera
         CAMERA.update();
 
-        // Prepare frmbuffer
-        clearFrameBuffer<<<blocks, threads>>>(d_frmbuffer1, frmW, frmH);
-        cudaDeviceSynchronize();
-
         // Render frmbuffer
         iterativeRayTracing<<<blocks, threads>>>(
             CAMERA, d_frmbuffer1, frmW, frmH,
