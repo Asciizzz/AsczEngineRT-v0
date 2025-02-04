@@ -20,13 +20,13 @@ to instantly kill a programmer on the spot
 
 #define Vecs3i std::vector<Vec3i>
 
-#define M_PI 3.14159265358979323846 // 180 degrees
-#define M_PI_2 1.57079632679489661923 // 90 degrees
-#define M_2_PI 6.28318530717958647692 // 360 degrees
-
 #define _dev_ __device__
 #define _hst_ __host__
 #define _hst_dev_ __host__ __device__
+
+constexpr float M_PI = 3.14159265358979323846; // 180 degrees
+constexpr float M_PI_2 = 1.57079632679489661923; // 90 degrees
+constexpr float M_2_PI = 6.28318530717958647692; // 360 degrees
 
 constexpr int THREADS_PER_BLOCK = 256;
 constexpr float EPSILON_1 = 1e-3;
