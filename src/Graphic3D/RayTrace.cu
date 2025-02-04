@@ -61,10 +61,15 @@ __global__ void iterativeRayTracing(
 
         while (sTop > 0) {
             int idx = stack[--sTop];
-            const DevNode &node = nodes[idx];
+            DevNode &node = nodes[idx];
 
             bool hitAABB = node.hitAABB(ray.origin, ray.direction);
             if (!hitAABB) continue;
+
+            float AABBdist = node.hitDist(ray.origin, ray.direction);
+            
+            // Already found a closer hit
+            if (hit.hit && hit.t < AABBdist) continue;
 
             if (!node.leaf) {
                 stack[sTop++] = node.l;

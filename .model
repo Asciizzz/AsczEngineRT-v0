@@ -1,7 +1,7 @@
 #assets/Models/Shapes/Floor/Floor.obj 0 2
 #assets/Models/Shapes/Cube/Cube1.obj 2 2
 
-#assets/Models/Genshin/Paimon/Paimon.obj 0 2
+assets/Models/Genshin/Paimon/Paimon.obj 0 2
 #assets/Models/Genshin/Navia/Navia.obj 2 10
 
 #assets/Models/BlueArchive/Arisu/Arisu.obj 2 1
@@ -20,6 +20,6 @@
 #assets/Models/Cornell/Cornell.obj 2 10
 
 #assets/Models/Weapon/AK47.obj 2 1
-assets/Models/Weapon/AWP.obj 2 1
+#assets/Models/Weapon/AWP.obj 2 1
 
 #.heavy/Fnaf/Fnaf1.obj 2 1

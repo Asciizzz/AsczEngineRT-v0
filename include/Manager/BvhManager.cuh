@@ -82,6 +82,20 @@ struct DevNode { // Flattened structure friendly for shader code
 
         return (tmin < tzmax && tzmin < tmax);
     }
+
+    __device__
+    float hitDist(Vec3f rO, Vec3f rD) {
+        // For each axis clamp the ray origin to nearest point on the AABB
+        Vec3f clst = rO;
+
+        for (int i = 0; i < 3; ++i) {
+            if (rO[i] < min[i]) clst[i] = min[i];
+            else if (rO[i] > max[i]) clst[i] = max[i];
+        }
+
+        Vec3f delta = clst - rO;
+        return delta.mag();
+    }
 };
 
 class BvhManager {
