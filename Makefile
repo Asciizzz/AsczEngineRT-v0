@@ -26,6 +26,7 @@ AsczEngine:
 		src/Manager/MatManager.cu \
 		src/Manager/TxtrManager.cu \
 		src/Manager/MeshManager.cu \
+		src/Manager/BvhManager.cu \
 		src/System/FpsHandler.cu \
 		src/System/CsLogHandler.cu \
 		src/System/Utility.cu \

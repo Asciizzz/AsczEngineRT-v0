@@ -39,6 +39,11 @@ float& Vec3f::operator[](int i) {
     if (i == 1) return y;
     return z;
 }
+float Vec3f::operator[](int i) const {
+    if (i == 0) return x;
+    if (i == 1) return y;
+    return z;
+}
 
 Vec3f Vec3f::operator-() const {
     return Vec3f(-x, -y, -z);

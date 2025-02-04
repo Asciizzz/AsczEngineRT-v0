@@ -59,6 +59,7 @@ struct Vec3f {
 
     // Bracket operator
     _hst_dev_ float& operator[](int i);
+    _hst_dev_ float operator[](int i) const;
 
     // Basic operations
     _hst_dev_ Vec3f operator-() const;
