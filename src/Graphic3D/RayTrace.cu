@@ -1,8 +1,8 @@
 #include <RayTrace.cuh>
 
 __global__ void clearFrameBuffer(Vec3f *frmbuffer, int frmW, int frmH) {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (i < frmW * frmH) frmbuffer[i] = Vec3f(0, 0, 0);
+    int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (tIdx < frmW * frmH) frmbuffer[tIdx] = Vec3f(0, 0, 0);
 }
 
 __global__ void iterativeRayTracing(
@@ -19,11 +19,11 @@ __global__ void iterativeRayTracing(
 
     Vec3f lightSrc
 ) {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (i >= frmW * frmH) return;
+    int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (tIdx >= frmW * frmH) return;
 
-    int x = i % frmW;
-    int y = i / frmW;
+    int x = tIdx % frmW;
+    int y = tIdx / frmW;
 
     Ray primaryRay = camera.castRay(x, y, frmW, frmH);
 
@@ -117,7 +117,7 @@ __global__ void iterativeRayTracing(
         if (!hit.hit) continue;
 
         // Get the face data
-        int fi = hit.idx; int &fm = mfm[fi];
+        int hidx = hit.idx; int &fm = mfm[hidx];
         const Material &mat = mats[fm];
         float hitw = 1 - hit.u - hit.v;
 
@@ -125,7 +125,7 @@ __global__ void iterativeRayTracing(
         vrtx[r] = ray.origin + ray.direction * hit.t;
 
         // Normal interpolation
-        Vec3i &fn = mfn[fi];
+        Vec3i &fn = mfn[hidx];
         if (fn.x > -1) {
             Vec3f &n0 = mn[fn.x], &n1 = mn[fn.y], &n2 = mn[fn.z];
             nrml[r] = n0 * hitw + n1 * hit.u + n2 * hit.v;
@@ -134,7 +134,7 @@ __global__ void iterativeRayTracing(
 
         // Color/Texture interpolation
         if (mat.mapKd > -1) {
-            Vec3i &ft = mft[fi];
+            Vec3i &ft = mft[hidx];
             Vec2f &t0 = mt[ft.x], &t1 = mt[ft.y], &t2 = mt[ft.z];
             txtr[r] = t0 * hitw + t1 * hit.u + t2 * hit.v;
             // Modulo 1
@@ -219,7 +219,7 @@ __global__ void iterativeRayTracing(
 
                         // Perform interpolation to get the color
                         if (mat.mapKd > -1) {
-                            Vec3i &ft = mft[i];
+                            Vec3i &ft = mft[fi];
                             float w = 1 - u - v;
 
                             Vec2f &t0 = mt[ft.x], &t1 = mt[ft.y], &t2 = mt[ft.z];
@@ -345,5 +345,5 @@ __global__ void iterativeRayTracing(
         finalColr += colr[i] * weights[i];
     }
 
-    frmbuffer[i] = finalColr;
+    frmbuffer[tIdx] = finalColr;
 }

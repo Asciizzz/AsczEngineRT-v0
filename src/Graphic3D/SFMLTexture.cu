@@ -33,11 +33,11 @@ void SFMLTexture::updateTexture(Vec3f *frmbuffer, int b_w, int b_h) {
 __global__ void updateTextureKernel(
     sf::Uint8 *d_sfPixel, Vec3f *frmbuffer, int b_w, int b_h
 ) {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (i >= b_w * b_h) return;
+    int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (tIdx >= b_w * b_h) return;
 
-    int x = i % b_w;
-    int y = i / b_w;
+    int x = tIdx % b_w;
+    int y = tIdx / b_w;
     int b_i = x + y * b_w;
 
     // Limit the color to 0-255 
