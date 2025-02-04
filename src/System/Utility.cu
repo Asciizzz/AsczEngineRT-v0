@@ -156,12 +156,12 @@ void Utils::appendObj(
                     matMap[matName] = matIdx;
                 }
 
-                if (mtlType == "Kd") {
+                else if (mtlType == "Kd") {
                     Vec3f Kd; mtlSS >> Kd.x >> Kd.y >> Kd.z;
                     matMgr.h_mats[matIdx].Kd = Kd;
-                }
+                } 
 
-                if (mtlType == "map_Kd") {
+                else if (mtlType == "map_Kd") {
                     std::string txtrPath; mtlSS >> txtrPath;
 
                     matMgr.h_mats[matIdx].mapKd = txtrMgr.appendTexture(
@@ -169,21 +169,31 @@ void Utils::appendObj(
                     );
                 }
 
+                else if (mtlType == "Ns") {
+                    float Ns; mtlSS >> Ns;
+                    matMgr.h_mats[matIdx].Ns = Ns;
+                }
+
                 // Additional attributes can be added here
                 // Even those that do no exist in a typical .mtl file
                 // for debugging of course
 
-                // Those that do not exist in a typical .mtl file
-                if (mtlType == "refl") {
+                else if (mtlType == "refl") {
                     float refl; mtlSS >> refl;
                     matMgr.h_mats[matIdx].reflect = refl;
-                } else if (mtlType == "transm") {
+                }
+
+                else if (mtlType == "transm") {
                     float transm; mtlSS >> transm;
                     matMgr.h_mats[matIdx].transmit = transm;
-                } else if (mtlType == "Fresnel") {
+                }
+
+                else if (mtlType == "Fresnel") {
                     float fresnel; mtlSS >> fresnel;
                     matMgr.h_mats[matIdx].Fresnel = fresnel;
-                } else if (mtlType == "Phong") { // 0: no, 1: yes
+                }
+
+                else if (mtlType == "Phong") { // 0: no, 1: yes
                     int phong; mtlSS >> phong;
                     matMgr.h_mats[matIdx].Phong = phong;
                 }

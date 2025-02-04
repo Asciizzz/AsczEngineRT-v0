@@ -263,9 +263,9 @@ __global__ void iterativeRayTracing(
             diff = 0.3 + diff * 0.7;
 
             Vec3f refl = lightDir - nrml[r] * 2 * (lightDir * nrml[r]);
-            float spec = lightIntens * pow(refl * ray.direction, 32);
+            float spec = lightIntens * pow(refl * ray.direction, mat.Ns);
 
-            colr[r] *= (diff + spec);
+            colr[r] *= diff + spec;
         }
         
         // Limit light intensity to 0.3 - 1.0

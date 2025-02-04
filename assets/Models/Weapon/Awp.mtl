@@ -1,8 +1,12 @@
 newmtl GreenAwp
+Phong 1
 Kd .2 .6 .2
+refl 0.2
 
 newmtl BlackAwp
+Phong 1
 Kd 0.2 0.2 0.2
 
 newmtl SilverAwp
+Phong 1
 Kd 0.7 0.7 0.7

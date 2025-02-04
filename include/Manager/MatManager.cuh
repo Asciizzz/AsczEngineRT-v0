@@ -8,6 +8,8 @@ struct Material {
     Vec3f Kd = Vec3f(0.5f);
     int mapKd = -1;
 
+    float Ns = 32.0f;
+
     // Not in a usual mtl file
     float reflect = 0.0f;
     float transmit = 0.0f;
