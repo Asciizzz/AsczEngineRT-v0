@@ -28,7 +28,7 @@ __global__ void iterativeRayTracing(
     Ray primaryRay = camera.castRay(x, y, frmW, frmH);
 
     const int MAX_RAYS = 10;
-    const int MAX_DEPTH = 64;
+    const int MAX_DEPTH = 32;
 
     // Very important note:
     // If mfv.z = -2, the face is a Sphere!
@@ -36,27 +36,26 @@ __global__ void iterativeRayTracing(
     // The mv[mfv.y].x is the radius of the sphere
 
     // Iterative ray tracing
-    Vec3f resultColr = Vec3f(0, 0, 0);
 
-    Ray rays[MAX_RAYS] = { primaryRay };
+    Ray rstack[MAX_RAYS] = { primaryRay };
 
-    int stack[64];
-    int sTop = 0;
+    int nstack[MAX_DEPTH];
+    int nsTop = 0; // Node stack top
 
     int rnum = 0;
-
+    Vec3f resultColr = Vec3f(0, 0, 0);
     for (int r = 0; r < rnum + 1; r++) {
         if (rnum > MAX_RAYS - 4) break;
 
-        Ray &ray = rays[r];
+        Ray &ray = rstack[r];
         RayHit hit;
 
-        sTop = 0;
-        stack[sTop++] = 0; // Start with root
+        nsTop = 0;
+        nstack[nsTop++] = 0; // Start with root
 
-        while (sTop > 0) {
-            int idx = stack[--sTop];
-            DevNode &node = nodes[idx];
+        while (nsTop > 0) {
+            int nidx = nstack[--nsTop];
+            DevNode &node = nodes[nidx];
 
             float hitDist = node.hitDist(ray.o, ray.invd);
             if (hitDist < 0 || hitDist > hit.t) continue;
@@ -68,12 +67,12 @@ __global__ void iterativeRayTracing(
                 // Early exit
                 if (ldist < 0 && rdist < 0) continue;
                 // Push the valid node
-                else if (ldist < 0) stack[sTop++] = node.r;
-                else if (rdist < 0) stack[sTop++] = node.l;
+                else if (ldist < 0) nstack[nsTop++] = node.r;
+                else if (rdist < 0) nstack[nsTop++] = node.l;
                 // Push the closest node first
                 else {
-                    stack[sTop++] = ldist < rdist ? node.r : node.l;
-                    stack[sTop++] = ldist < rdist ? node.l : node.r;
+                    nstack[nsTop++] = ldist < rdist ? node.r : node.l;
+                    nstack[nsTop++] = ldist < rdist ? node.l : node.r;
                 }
 
                 continue;
@@ -176,11 +175,11 @@ __global__ void iterativeRayTracing(
         float lightIntens = 1.0f;
         int lightPass = 0;
 
-        sTop = 0;
-        stack[sTop++] = 0; // Start with root
+        nsTop = 0;
+        nstack[nsTop++] = 0; // Start with root
 
-        while (sTop > 0) {
-            int idx = stack[--sTop];
+        while (nsTop > 0) {
+            int idx = nstack[--nsTop];
             DevNode &node = nodes[idx];
 
             float hitDist = node.hitDist(lightSrc, lightDirInv);
@@ -191,11 +190,11 @@ __global__ void iterativeRayTracing(
                 float rdist = nodes[node.r].hitDist(lightSrc, lightDirInv);
 
                 if (ldist < 0 && rdist < 0) continue;
-                else if (ldist < 0) stack[sTop++] = node.r;
-                else if (rdist < 0) stack[sTop++] = node.l;
+                else if (ldist < 0) nstack[nsTop++] = node.r;
+                else if (rdist < 0) nstack[nsTop++] = node.l;
                 else {
-                    stack[sTop++] = ldist < rdist ? node.r : node.l;
-                    stack[sTop++] = ldist < rdist ? node.l : node.r;
+                    nstack[nsTop++] = ldist < rdist ? node.r : node.l;
+                    nstack[nsTop++] = ldist < rdist ? node.l : node.r;
                 }
 
                 continue;
@@ -302,7 +301,7 @@ __global__ void iterativeRayTracing(
             Vec3f reflDir = ray.reflect(n);
             Vec3f reflOrigin = vrtx + n * EPSILON_1;
 
-            rays[++rnum] = Ray(reflOrigin, reflDir);
+            rstack[++rnum] = Ray(reflOrigin, reflDir);
         } else if (mat.reflect == -1) {
             // Schlick's approximation
             float cosI = (-ray.d) * nrml;
@@ -317,7 +316,7 @@ __global__ void iterativeRayTracing(
             Vec3f reflDir = ray.reflect(n);
             Vec3f reflOrigin = vrtx + n * EPSILON_1;
 
-            rays[++rnum] = Ray(reflOrigin, reflDir);
+            rstack[++rnum] = Ray(reflOrigin, reflDir);
         }
         else if (mat.transmit > 0.0f) {
             float wLeft = ray.w * mat.transmit;
@@ -325,7 +324,7 @@ __global__ void iterativeRayTracing(
 
             Vec3f transOrg = vrtx + ray.d * EPSILON_1;
 
-            rays[++rnum] = Ray(transOrg, ray.d);
+            rstack[++rnum] = Ray(transOrg, ray.d);
         }
         else if (mat.Fresnel > 0.0f) {
             float wLeft = ray.w * mat.Fresnel;
@@ -343,12 +342,12 @@ __global__ void iterativeRayTracing(
             // Refraction (for the time being just tranparent)
             Vec3f refrDir = ray.d;
             Vec3f refrOrigin = vrtx + refrDir * EPSILON_1;
-            rays[++rnum] = Ray(refrOrigin, refrDir);
+            rstack[++rnum] = Ray(refrOrigin, refrDir);
 
             // Reflection
             Vec3f reflDir = ray.reflect(nrml);
             Vec3f reflOrigin = vrtx + nrml * EPSILON_1;
-            rays[++rnum] = Ray(reflOrigin, reflDir);
+            rstack[++rnum] = Ray(reflOrigin, reflDir);
         }
 
         resultColr += colr * ray.w;
