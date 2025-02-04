@@ -64,10 +64,7 @@ __global__ void iterativeRayTracing(
             DevNode &node = nodes[idx];
 
             float hitDist = node.hitDist(ray.o, ray.invd);
-            if (hitDist < 0) continue;
-
-            // Already found a closer hit
-            if (hit.hit && hitDist > hit.t) continue;
+            if (hitDist < 0 || hitDist > hit.t) continue;
 
             if (!node.leaf) {
                 float ldist = nodes[node.l].hitDist(ray.o, ray.invd);
@@ -188,7 +185,7 @@ __global__ void iterativeRayTracing(
             DevNode &node = nodes[idx];
 
             float hitDist = node.hitDist(lightSrc, lightDirInv);
-            if (hitDist < 0) continue;
+            if (hitDist < 0 || hitDist > lightDist) continue;
 
             if (!node.leaf) {
                 float ldist = nodes[node.l].hitDist(lightSrc, lightDirInv);
