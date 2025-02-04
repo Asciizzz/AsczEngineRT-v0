@@ -85,16 +85,36 @@ struct DevNode { // Flattened structure friendly for shader code
 
     __device__
     float hitDist(Vec3f rO, Vec3f rD) {
-        // For each axis clamp the ray origin to nearest point on the AABB
-        Vec3f clst = rO;
+        float tmin = -FLT_MAX;
+        float tmax = FLT_MAX;
 
         for (int i = 0; i < 3; ++i) {
-            if (rO[i] < min[i]) clst[i] = min[i];
-            else if (rO[i] > max[i]) clst[i] = max[i];
+            float o = rO[i];
+            float d = rD[i];
+            float mn = min[i];
+            float mx = max[i];
+
+            if (d == 0) {
+                if (o < mn || o > mx) return -1.0f;
+            } else {
+                float t1 = (mn - o) / d;
+                float t2 = (mx - o) / d;
+
+                if (t1 > t2) {
+                    float temp = t1;
+                    t1 = t2;
+                    t2 = temp;
+                }
+
+                tmin = fmaxf(tmin, t1);
+                tmax = fminf(tmax, t2);
+
+                if (tmin > tmax) return -1.0f;
+            }
         }
 
-        Vec3f delta = clst - rO;
-        return delta.mag();
+        // Tmin negative => origin inside AABB
+        return tmin < 0 ? 0 : tmin;
     }
 };
 

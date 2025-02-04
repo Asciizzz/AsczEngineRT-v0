@@ -1,7 +1,7 @@
 #assets/Models/Shapes/Floor/Floor.obj 0 2
 #assets/Models/Shapes/Cube/Cube1.obj 2 2
 
-assets/Models/Genshin/Paimon/Paimon.obj 0 2
+#assets/Models/Genshin/Paimon/Paimon.obj 0 2
 #assets/Models/Genshin/Navia/Navia.obj 2 10
 
 #assets/Models/BlueArchive/Arisu/Arisu.obj 2 1
@@ -10,7 +10,7 @@ assets/Models/Genshin/Paimon/Paimon.obj 0 2
 
 #assets/Models/Character/Sukuna/Sukuna.obj 2 1
 
-#assets/Models/City/Building001.obj 2 1
+assets/Models/City/Building001.obj 2 1
 
 #assets/Models/Structure/PeachsCastle/PeachsCastle.obj 2 1
 #assets/Models/Structure/PeachsCastle1F/PeachsCastle1F.obj 2 1

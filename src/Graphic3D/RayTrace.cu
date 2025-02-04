@@ -66,10 +66,12 @@ __global__ void iterativeRayTracing(
             bool hitAABB = node.hitAABB(ray.origin, ray.direction);
             if (!hitAABB) continue;
 
-            float AABBdist = node.hitDist(ray.origin, ray.direction);
-            
             // Already found a closer hit
-            if (hit.hit && hit.t < AABBdist) continue;
+            if (hit.hit) {
+                float AABBdist = node.hitDist(ray.origin, ray.direction);
+
+                if (AABBdist > hit.t) continue;
+            }
 
             if (!node.leaf) {
                 stack[sTop++] = node.l;
@@ -123,8 +125,8 @@ __global__ void iterativeRayTracing(
 
         // Get the face data
         int hidx = hit.idx; int &fm = mfm[hidx];
-        const Material &mat = mats[fm];
         float hitw = 1 - hit.u - hit.v;
+        const Material &mat = mats[fm];
 
         // Vertex interpolation
         vrtx[r] = ray.origin + ray.direction * hit.t;
@@ -174,7 +176,7 @@ __global__ void iterativeRayTracing(
 
         while (sTop > 0) {
             int idx = stack[--sTop];
-            const DevNode &node = nodes[idx];
+            DevNode &node = nodes[idx];
 
             bool hitAABB = node.hitAABB(vrtx[r], lightDir);
             if (!hitAABB) continue;
@@ -215,7 +217,7 @@ __global__ void iterativeRayTracing(
 
                 float t = f * (e2 * q);
 
-                if (t > EPSILON_2 && t < lightDist) {
+                if (t > EPSILON_2 && t + EPSILON_2 < lightDist) {
                     const Material &mat = mats[mfm[fi]];
 
                     if (mat.transmit > 0.0f) {
@@ -255,6 +257,8 @@ __global__ void iterativeRayTracing(
                     }
                 }
             }
+
+            if (lightIntens < 0.01f) break;
         }
 
         if (lightPass > 0) shadwColor /= lightPass;
@@ -266,6 +270,7 @@ __global__ void iterativeRayTracing(
 
             Vec3f refl = lightDir - nrml[r] * 2 * (lightDir * nrml[r]);
             float spec = lightIntens * pow(refl * ray.direction, mat.Ns);
+            spec = spec < 0 ? -spec : spec;
 
             colr[r] *= diff + spec;
         }
