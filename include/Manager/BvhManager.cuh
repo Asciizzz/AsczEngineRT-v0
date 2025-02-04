@@ -102,11 +102,11 @@ public:
     }
 
     void designBVH(MeshManager &meshMgr) {
-        const Vecs3i &fv = meshMgr.h_fv; // Faces
 
         // const VecsI &OrSO = meshMgr.OrSO; // Object references sub-objects
-        const VecsI &SOrF = meshMgr.SOrF; // Sub-object references faces
+        // const VecsI &SOrF = meshMgr.SOrF; // Sub-object references faces
 
+        const Vecs3i &fv = meshMgr.h_fv; // Faces
         const Vecs3f &fABmin = meshMgr.h_fABmin; // Face's AABB min
         const Vecs3f &fABmax = meshMgr.h_fABmax; // Face's AABB max
         // const Vecs3f &fABcen = meshMgr.h_fABcen; // Face's AABB center
@@ -136,11 +136,11 @@ public:
 
     // Object split sub-objects
     static void buildLvl2Bvh(HstNode *nodes, MeshManager &meshMgr, int depth=0, std::string pf="O ") {
-        const Vecs3f &fABmin = meshMgr.h_fABmin; // Face's AABB min
-        const Vecs3f &fABmax = meshMgr.h_fABmax; // Face's AABB max
-        const Vecs3f &fABcen = meshMgr.h_fABcen; // Face's AABB center
+        // const Vecs3f &fABmin = meshMgr.h_fABmin; // Face's AABB min
+        // const Vecs3f &fABmax = meshMgr.h_fABmax; // Face's AABB max
+        // const Vecs3f &fABcen = meshMgr.h_fABcen; // Face's AABB center
         
-        const VecsI &SOrF = meshMgr.SOrF; // Sub-object references faces
+        // const VecsI &SOrF = meshMgr.SOrF; // Sub-object references faces
     }
 
     // Sub-object split faces
@@ -149,8 +149,12 @@ public:
         const Vecs3f &fABmax = meshMgr.h_fABmax; // Face's AABB max
         const Vecs3f &fABcen = meshMgr.h_fABcen; // Face's AABB center
 
-        const int MAX_DEPTH = 16;
+        const int MAX_DEPTH = 32;
+        const int MIN_FACES = 2;
 
+        const int SPLIT_X = 5;
+        const int SPLIT_Y = 5;
+        const int SPLIT_Z = 5;
 
         HstNode *left = new HstNode();
         HstNode *right = new HstNode();
@@ -160,36 +164,68 @@ public:
         int nF = nodes->faces.size();
 
         Vec3f AABBsize = nodes->max - nodes->min;
-        int axis = 0;
-        axis = AABBsize.y > AABBsize.x ? 1 : axis;
-        axis = AABBsize.z > AABBsize.y ? 2 : axis;
 
-        for (int i = 0; i < nF; i++) {
-            int idx = nodes->faces[i];
-            Vec3f center = fABcen[idx];
+        float curCost = INFINITY;
 
-            if (center[axis] < nodes->min[axis] + AABBsize[axis] / 2) {
-                left->faces.push_back(idx);
-                left->recalc(fABmin[idx]);
-                left->recalc(fABmax[idx]);
-            } else {
-                right->faces.push_back(idx);
-                right->recalc(fABmin[idx]);
-                right->recalc(fABmax[idx]);
+        for (int x = 0; x < SPLIT_X; x++) {
+        for (int y = 0; y < SPLIT_Y; y++) {
+        for (int z = 0; z < SPLIT_Z; z++) {
+        for (int a = 0; a < 3; a++) { // Axes
+            HstNode l = HstNode();
+            HstNode r = HstNode();
+
+            Vec3f p = nodes->min + Vec3f(
+                AABBsize.x * (x + 1) / (SPLIT_X + 1),
+                AABBsize.y * (y + 1) / (SPLIT_Y + 1),
+                AABBsize.z * (z + 1) / (SPLIT_Z + 1)
+            );
+
+            for (int i = 0; i < nF; i++) {
+                int idx = nodes->faces[i];
+                Vec3f center = fABcen[idx];
+
+                if (center[a] < p[a]) {
+                    l.faces.push_back(idx);
+                    l.recalc(fABmin[idx]);
+                    l.recalc(fABmax[idx]);
+                } else {
+                    r.faces.push_back(idx);
+                    r.recalc(fABmin[idx]);
+                    r.recalc(fABmax[idx]);
+                }
             }
-        }
+
+            // Calculate cost
+            int lF = l.faces.size();
+            int rF = r.faces.size();
+
+            Vec3f lSize = l.max - l.min;
+            Vec3f rSize = r.max - r.min;
+
+            float lCost = (lSize.x * (lSize.y + lSize.z) + lSize.y * lSize.z) * lF;
+            float rCost = (rSize.x * (rSize.y + rSize.z) + rSize.y * rSize.z) * rF;
+            float cost = lCost + rCost;
+
+            if (cost < curCost) {
+                curCost = cost;
+
+                left->faces = l.faces;
+                left->min = l.min;
+                left->max = l.max;
+
+                right->faces = r.faces;
+                right->min = r.min;
+                right->max = r.max;
+            }
+        }}}}
 
         int lF = left->faces.size();
         int rF = right->faces.size();
 
-        nodes->leaf = depth >= MAX_DEPTH || nF <= 1 || lF == nF || rF == nF;
-
-        std::string leafStr = nodes->leaf ? "lf:[" : "nd:[";
-        std::string axisStr = axis == 0 ? "x" : (axis == 1 ? "y" : "z");
-        std::cout << depth << " - " << axisStr << " | " << pf << leafStr << nF << "] | ";
-        Vec3f min = nodes->min, max = nodes->max;
-        std::cout << "(" << min.x << ", " << min.y << ", " << min.z << ") | ";
-        std::cout << "(" << max.x << ", " << max.y << ", " << max.z << ")\n";
+        nodes->leaf = 
+            depth >= MAX_DEPTH ||
+            nF <= MIN_FACES ||
+            lF == nF || rF == nF;
 
         if (nodes->leaf) return;
 

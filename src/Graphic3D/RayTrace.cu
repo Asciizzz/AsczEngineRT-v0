@@ -159,7 +159,7 @@ __global__ void iterativeRayTracing(
         }
 
         // Light ray
-        Vec3f lightDir = lightSrc - vrtx[r];
+        Vec3f lightDir = vrtx[r] - lightSrc;
         float lightDist = lightDir.mag();
         lightDir.norm();
 
@@ -174,7 +174,7 @@ __global__ void iterativeRayTracing(
             int idx = stack[--sptr];
             const DevNode &node = nodes[idx];
 
-            bool hitAABB = node.hitAABB(lightSrc, lightDir);
+            bool hitAABB = node.hitAABB(vrtx[r], lightDir);
             if (!hitAABB) continue;
 
             if (!node.leaf) {

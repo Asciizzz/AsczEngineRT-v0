@@ -42,7 +42,7 @@ AsczEngine:
 		-rdc=true \
 		--expt-relaxed-constexpr \
 		--extended-lambda \
-		-diag-suppress 161 \
+		--disable-warnings
 
 Run:
 	./AsczEngine
