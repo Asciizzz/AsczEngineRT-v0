@@ -102,6 +102,18 @@ int main() {
         if (type == "FXAA") {
             ss >> hasFXAA;
         }
+
+        if (type == "MaxDepth") {
+            ss >> BvhMgr.MAX_DEPTH;
+        } else if (type == "MinFaces") {
+            ss >> BvhMgr.MIN_FACES;
+        } else if (type == "SplitX") {
+            ss >> BvhMgr.SPLIT_X;
+        } else if (type == "SplitY") {
+            ss >> BvhMgr.SPLIT_Y;
+        } else if (type == "SplitZ") {
+            ss >> BvhMgr.SPLIT_Z;
+        }
     };
 
     // Allocate frame buffer
@@ -147,14 +159,6 @@ int main() {
         );
     }
 
-    // ================ Terrible attemp at building a BVH =====================
-
-    // NodeHst *node = new NodeHst();
-    // BvhManager::buildBvh(
-    //     node, MeshMgr.ABmin, MeshMgr.ABmax,
-    //     MeshMgr.h_v, MeshMgr.h_fv, MeshMgr.h_fi
-    // );
-
     // ======================= Copy to device memory ==========================
 
     // Copy to device memory
@@ -167,9 +171,6 @@ int main() {
 
     // ========================================================================
     // ========================================================================
-
-    Vec3f prevPos = CAMERA.pos + 1;
-    Vec3f prevRot = CAMERA.rot + 1;
 
     // Main loop
     while (window.isOpen()) {
@@ -249,47 +250,41 @@ int main() {
         // Update camera
         CAMERA.update();
 
-        if (prevPos != CAMERA.pos || prevRot != CAMERA.rot)
+        // Prepare frmbuffer
+        clearFrameBuffer<<<blocks, threads>>>(d_frmbuffer1, frmW, frmH);
+        cudaDeviceSynchronize();
+
+        // Render frmbuffer
+        iterativeRayTracing<<<blocks, threads>>>(
+            CAMERA, d_frmbuffer1, frmW, frmH,
+            TxtrMgr.d_txtrFlat, TxtrMgr.d_txtrPtr,
+            MatMgr.d_mats,
+            MeshMgr.d_v, MeshMgr.d_t, MeshMgr.d_n,
+            MeshMgr.d_fv, MeshMgr.d_ft, MeshMgr.d_fn, MeshMgr.d_fm,
+            MeshMgr.fNum,
+
+            BvhMgr.d_fidx, BvhMgr.d_nodes, BvhMgr.nNum,
+
+            lightSrc
+        );
+        cudaDeviceSynchronize();
+
+        // FXAA
+        if (hasFXAA)
         {
-            // Prepare frmbuffer
-            clearFrameBuffer<<<blocks, threads>>>(d_frmbuffer1, frmW, frmH);
-            cudaDeviceSynchronize();
-
-            // Render frmbuffer
-            iterativeRayTracing<<<blocks, threads>>>(
-                CAMERA, d_frmbuffer1, frmW, frmH,
-                TxtrMgr.d_txtrFlat, TxtrMgr.d_txtrPtr,
-                MatMgr.d_mats,
-                MeshMgr.d_v, MeshMgr.d_t, MeshMgr.d_n,
-                MeshMgr.d_fv, MeshMgr.d_ft, MeshMgr.d_fn, MeshMgr.d_fm,
-                MeshMgr.fNum,
-
-                BvhMgr.d_fidx, BvhMgr.d_nodes, BvhMgr.nNum,
-
-                lightSrc
-            );
-            cudaDeviceSynchronize();
-
             // FXAA
-            if (hasFXAA)
-            {
-                // FXAA
-                calcLuminance<<<blocks, threads>>>(d_luminance, d_frmbuffer1, frmW, frmH);
-                cudaDeviceSynchronize();
+            calcLuminance<<<blocks, threads>>>(d_luminance, d_frmbuffer1, frmW, frmH);
+            cudaDeviceSynchronize();
 
-                edgeMask<<<blocks, threads>>>(d_edge, d_luminance, frmW, frmH);
-                cudaDeviceSynchronize();
+            edgeMask<<<blocks, threads>>>(d_edge, d_luminance, frmW, frmH);
+            cudaDeviceSynchronize();
 
-                applyFXAAtoBuffer<<<blocks, threads>>>(d_luminance, d_edge, d_frmbuffer1, d_frmbuffer2, frmW, frmH);
-                cudaDeviceSynchronize();
+            applyFXAAtoBuffer<<<blocks, threads>>>(d_luminance, d_edge, d_frmbuffer1, d_frmbuffer2, frmW, frmH);
+            cudaDeviceSynchronize();
 
-                SFTex.updateTexture(d_frmbuffer2, frmW, frmH);
-            } else
-                SFTex.updateTexture(d_frmbuffer1, frmW, frmH);
-        }
-
-        prevPos = CAMERA.pos;
-        prevRot = CAMERA.rot;
+            SFTex.updateTexture(d_frmbuffer2, frmW, frmH);
+        } else
+            SFTex.updateTexture(d_frmbuffer1, frmW, frmH);
 
         LOG.addLog("Welcome to AsczEngineRT v0", sf::Color::Green, 1);
         LOG.addLog("FPS: " + std::to_string(FPS.fps), sf::Color::Blue);

@@ -257,18 +257,21 @@ __global__ void iterativeRayTracing(
 
         if (lightPass > 0) shadwColor /= lightPass;
 
-        // Limit light intesnse to 0.3 - 1.0
-        lightIntens = 0.3 + lightIntens * 0.7;
-
-        colr[r] = colr[r] * lightIntens + shadwColor * (1 - lightIntens);
-
         if (mat.Phong) {
             float diff = -lightDir * nrml[r];
             diff = diff < 0 ? 0 : diff;
-
             diff = 0.3 + diff * 0.7;
-            colr[r] *= diff;
+
+            Vec3f refl = lightDir - nrml[r] * 2 * (lightDir * nrml[r]);
+            float spec = lightIntens * pow(refl * ray.direction, 32);
+
+            colr[r] *= (diff + spec);
         }
+        
+        // Limit light intensity to 0.3 - 1.0
+        lightIntens = 0.3 + lightIntens * 0.7;
+
+        colr[r] = colr[r] * lightIntens + shadwColor * (1 - lightIntens);
 
         if (mat.reflect > 0.0f) {
             float weightLeft = weights[r] * mat.reflect;

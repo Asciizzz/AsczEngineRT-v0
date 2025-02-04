@@ -4,6 +4,7 @@
 #include <MeshManager.cuh>
 
 #include <string>
+#include <omp.h>
 
 /* 3 Level of BVH construction
 
@@ -91,6 +92,13 @@ public:
     int *d_fidx;
     int nNum;
 
+    int MAX_DEPTH = 32;
+    int MIN_FACES = 2;
+
+    int SPLIT_X = 5;
+    int SPLIT_Y = 5;
+    int SPLIT_Z = 5;
+
     void toDevice() {
         nNum = h_dnodes.size();
 
@@ -135,7 +143,7 @@ public:
     }
 
     // Object split sub-objects
-    static void buildLvl2Bvh(HstNode *nodes, MeshManager &meshMgr, int depth=0, std::string pf="O ") {
+    void buildLvl2Bvh(HstNode *nodes, MeshManager &meshMgr, int depth=0, std::string pf="O ") {
         // const Vecs3f &fABmin = meshMgr.h_fABmin; // Face's AABB min
         // const Vecs3f &fABmax = meshMgr.h_fABmax; // Face's AABB max
         // const Vecs3f &fABcen = meshMgr.h_fABcen; // Face's AABB center
@@ -144,17 +152,10 @@ public:
     }
 
     // Sub-object split faces
-    static void buildLvl3Bvh(HstNode *nodes, MeshManager &meshMgr, int depth=0, std::string pf="O ") {
+    void buildLvl3Bvh(HstNode *nodes, MeshManager &meshMgr, int depth=0, std::string pf="O ") {
         const Vecs3f &fABmin = meshMgr.h_fABmin; // Face's AABB min
         const Vecs3f &fABmax = meshMgr.h_fABmax; // Face's AABB max
         const Vecs3f &fABcen = meshMgr.h_fABcen; // Face's AABB center
-
-        const int MAX_DEPTH = 32;
-        const int MIN_FACES = 2;
-
-        const int SPLIT_X = 5;
-        const int SPLIT_Y = 5;
-        const int SPLIT_Z = 5;
 
         HstNode *left = new HstNode();
         HstNode *right = new HstNode();
@@ -167,9 +168,13 @@ public:
 
         float curCost = INFINITY;
 
+        #pragma omp parallel
         for (int x = 0; x < SPLIT_X; x++) {
+        #pragma omp parallel
         for (int y = 0; y < SPLIT_Y; y++) {
+        #pragma omp parallel
         for (int z = 0; z < SPLIT_Z; z++) {
+        #pragma omp parallel
         for (int a = 0; a < 3; a++) { // Axes
             HstNode l = HstNode();
             HstNode r = HstNode();
@@ -180,6 +185,7 @@ public:
                 AABBsize.z * (z + 1) / (SPLIT_Z + 1)
             );
 
+            #pragma omp parallel
             for (int i = 0; i < nF; i++) {
                 int idx = nodes->faces[i];
                 Vec3f center = fABcen[idx];
