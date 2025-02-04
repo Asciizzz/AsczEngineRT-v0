@@ -74,8 +74,18 @@ __global__ void iterativeRayTracing(
             }
 
             if (!node.leaf) {
-                stack[sTop++] = node.r;
-                stack[sTop++] = node.l;
+                float ldist = nodes[node.l].hitDist(ray.origin, ray.direction);
+                float rdist = nodes[node.r].hitDist(ray.origin, ray.direction);
+
+                // Prioritize the closer node
+                if (ldist < rdist) {
+                    stack[sTop++] = node.r;
+                    stack[sTop++] = node.l;
+                } else {
+                    stack[sTop++] = node.l;
+                    stack[sTop++] = node.r;
+                }
+
                 continue;
             }
 

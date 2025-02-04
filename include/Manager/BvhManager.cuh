@@ -38,6 +38,10 @@ struct HstNode { // Host code node
         max.y = fmaxf(max.y, v.y);
         max.z = fmaxf(max.z, v.z);
     }
+
+    float findCost() {
+        return (max.x - min.x) * (max.y - min.y) * (max.z - min.z) * faces.size();
+    }
 };
 
 struct DevNode { // Flattened structure friendly for shader code
@@ -128,7 +132,7 @@ public:
     int *d_fidx;
     int nNum;
 
-    int MAX_DEPTH = 32;
+    int MAX_DEPTH = 48;
     int NODE_FACES = 2;
 
     int SPLIT_X = 5;
@@ -196,7 +200,8 @@ public:
 
         Vec3f AABBsize = nodes->max - nodes->min;
 
-        float curCost = INFINITY;
+        float nodeCost = nodes->findCost();
+        float curCost = nodeCost;
 
         #pragma omp parallel
         for (int x = 0; x < SPLIT_X; ++x) {
@@ -235,11 +240,8 @@ public:
             int lF = l.faces.size();
             int rF = r.faces.size();
 
-            Vec3f lSize = l.max - l.min;
-            Vec3f rSize = r.max - r.min;
-
-            float lCost = (lSize.x * (lSize.y + lSize.z) + lSize.y * lSize.z) * lF;
-            float rCost = (rSize.x * (rSize.y + rSize.z) + rSize.y * rSize.z) * rF;
+            float lCost = l.findCost();
+            float rCost = r.findCost();
             float cost = lCost + rCost;
 
             if (cost < curCost) {
@@ -254,6 +256,12 @@ public:
                 right->max = r.max;
             }
         }}}}
+
+        // Unsuccesful split
+        if (curCost >= nodeCost) {
+            nodes->leaf = true;
+            return;
+        }
 
         int lF = left->faces.size();
         int rF = right->faces.size();
