@@ -73,6 +73,10 @@ struct Vec3f {
     _hst_dev_ void operator-=(const Vec3f &v);
     _hst_dev_ void operator*=(const float scl);
     _hst_dev_ void operator/=(const float scl);
+    _hst_dev_ friend Vec3f operator+(const float t, const Vec3f &v);
+    _hst_dev_ friend Vec3f operator-(const float t, const Vec3f &v);
+    _hst_dev_ friend Vec3f operator*(const float scl, const Vec3f &v);
+    _hst_dev_ friend Vec3f operator/(const float scl, const Vec3f &v);
     // Comparison
     _hst_dev_ bool operator==(const Vec3f &v) const;
     _hst_dev_ bool operator!=(const Vec3f &v) const;
@@ -84,9 +88,6 @@ struct Vec3f {
     _hst_dev_ float mag();
     // Normalize
     _hst_dev_ void norm();
-    // Barycentric coordinates
-    _hst_dev_ static Vec3f bary(Vec2f v, Vec2f v0, Vec2f v1, Vec2f v2);
-    _hst_dev_ static Vec3f bary(Vec3f v, Vec3f v0, Vec3f v1, Vec3f v2);
     // Limit the vector
     _hst_dev_ void limit(float min, float max);
     // Absolute value

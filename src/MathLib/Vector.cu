@@ -78,6 +78,18 @@ void Vec3f::operator*=(const float scl) {
 void Vec3f::operator/=(const float scl) {
     x /= scl; y /= scl; z /= scl;
 }
+Vec3f operator+(const float t, const Vec3f& v) {
+    return Vec3f(v.x + t, v.y + t, v.z + t);
+}
+Vec3f operator-(const float t, const Vec3f& v) {
+    return Vec3f(t - v.x, t - v.y, t - v.z);
+}
+Vec3f operator*(const float scl, const Vec3f& v) {
+    return Vec3f(v.x * scl, v.y * scl, v.z * scl);
+}
+Vec3f operator/(const float scl, const Vec3f& v) {
+    return Vec3f(scl / v.x, scl / v.y, scl / v.z);
+}
 
 bool Vec3f::operator==(const Vec3f& v) const {
     return x == v.x && y == v.y && z == v.z;
@@ -100,22 +112,6 @@ void Vec3f::norm() {
     x /= m; y /= m; z /= m;
 }
 
-Vec3f Vec3f::bary(Vec2f v, Vec2f v0, Vec2f v1, Vec2f v2) {
-    float d = (v1.y - v2.y) * (v0.x - v2.x) + (v2.x - v1.x) * (v0.y - v2.y);
-    float a = ((v1.y - v2.y) * (v.x - v2.x) + (v2.x - v1.x) * (v.y - v2.y)) / d;
-    float b = ((v2.y - v0.y) * (v.x - v2.x) + (v0.x - v2.x) * (v.y - v2.y)) / d;
-    float c = 1 - a - b;
-    return Vec3f(a, b, c);
-}
-Vec3f Vec3f::bary(Vec3f v, Vec3f v0, Vec3f v1, Vec3f v2) {
-    Vec3f v01 = v1 - v0, v02 = v2 - v0, v0v = v - v0;
-    float d00 = v01 * v01, d01 = v01 * v02, d11 = v02 * v02, d20 = v0v * v01, d21 = v0v * v02;
-    float d = d00 * d11 - d01 * d01;
-    float a = (d11 * d20 - d01 * d21) / d;
-    float b = (d00 * d21 - d01 * d20) / d;
-    float c = 1 - a - b;
-    return Vec3f(a, b, c);
-}
 void Vec3f::limit(float min, float max) {
     x = std::max(min, std::min(x, max));
     y = std::max(min, std::min(y, max));

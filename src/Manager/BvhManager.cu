@@ -16,72 +16,25 @@ float HstNode::findCost() {
     return (max.x - min.x) * (max.y - min.y) * (max.z - min.z) * faces.size();
 }
 
+float DevNode::hitDist(Vec3f rO, Vec3f rInvD) const {
+    // If origin is inside the AABB
+    if (rO.x >= min.x && rO.x <= max.x &&
+        rO.y >= min.y && rO.y <= max.y &&
+        rO.z >= min.z && rO.z <= max.z) return 0.0f;
 
-bool DevNode::hitAABB(Vec3f rO, Vec3f rD) const {
-    float tmin = (min.x - rO.x) / rD.x;
-    float tmax = (max.x - rO.x) / rD.x;
+    float t1 = (min.x - rO.x) * rInvD.x;
+    float t2 = (max.x - rO.x) * rInvD.x;
+    float t3 = (min.y - rO.y) * rInvD.y;
+    float t4 = (max.y - rO.y) * rInvD.y;
+    float t5 = (min.z - rO.z) * rInvD.z;
+    float t6 = (max.z - rO.z) * rInvD.z;
 
-    if (tmin > tmax) {
-        float temp = tmin;
-        tmin = tmax;
-        tmax = temp;
-    }
+    float tmin = fmaxf(fmaxf(fminf(t1, t2), fminf(t3, t4)), fminf(t5, t6));
+    float tmax = fminf(fminf(fmaxf(t1, t2), fmaxf(t3, t4)), fmaxf(t5, t6));
 
-    float tymin = (min.y - rO.y) / rD.y;
-    float tymax = (max.y - rO.y) / rD.y;
-
-    if (tymin > tymax) {
-        float temp = tymin;
-        tymin = tymax;
-        tymax = temp;
-    }
-    
-    if (tymin > tmin) tmin = tymin;
-    if (tymax < tmax) tmax = tymax;
-
-    float tzmin = (min.z - rO.z) / rD.z;
-    float tzmax = (max.z - rO.z) / rD.z;
-    
-    if (tzmin > tzmax) {
-        float temp = tzmin;
-        tzmin = tzmax;
-        tzmax = temp;
-    }
-
-    return (tmin < tzmax && tzmin < tmax);
-}
-
-float DevNode::hitDist(Vec3f rO, Vec3f rD) const {
-    float tmin = -FLT_MAX;
-    float tmax = FLT_MAX;
-
-    for (int i = 0; i < 3; ++i) {
-        float o = rO[i];
-        float d = rD[i];
-        float mn = min[i];
-        float mx = max[i];
-
-        if (d == 0) {
-            if (o < mn || o > mx) return -1.0f;
-        } else {
-            float t1 = (mn - o) / d;
-            float t2 = (mx - o) / d;
-
-            if (t1 > t2) {
-                float temp = t1;
-                t1 = t2;
-                t2 = temp;
-            }
-
-            tmin = fmaxf(tmin, t1);
-            tmax = fminf(tmax, t2);
-
-            if (tmin > tmax) return -1.0f;
-        }
-    }
-
-    // Tmin negative => origin inside AABB
-    return tmin < 0 ? 0 : tmin;
+    if (tmax < tmin) return -1.0f; // No intersection
+    if (tmin < 0.0f) return -1.0f; // Intersection behind the ray
+    return tmin;
 }
 
 

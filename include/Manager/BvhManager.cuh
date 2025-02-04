@@ -39,9 +39,7 @@ struct DevNode { // Flattened structure friendly for shader code
     int l, r; // Dual purpose, either child node or face index
     bool leaf = false;
 
-    // Ray hit AABB
-    _dev_ bool hitAABB(Vec3f rO, Vec3f rD) const;
-    _dev_ float hitDist(Vec3f rO, Vec3f rD) const;
+    _dev_ float hitDist(Vec3f rO, Vec3f rInvD) const;
 };
 
 class BvhManager {
