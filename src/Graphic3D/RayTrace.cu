@@ -73,16 +73,15 @@ __global__ void iterativeRayTracing(
                 float ldist = nodes[node.l].hitDist(ray.o, ray.invd);
                 float rdist = nodes[node.r].hitDist(ray.o, ray.invd);
 
-                // Ray do not hit both children
+                // Early exit
                 if (ldist < 0 && rdist < 0) continue;
-
-                // Prioritize the closer node
-                if (ldist < rdist) {
-                    if (rdist >= 0) stack[sTop++] = node.r;
-                    if (ldist >= 0) stack[sTop++] = node.l;
-                } else {
-                    if (ldist >= 0) stack[sTop++] = node.l;
-                    if (rdist >= 0) stack[sTop++] = node.r;
+                // Push the valid node
+                else if (ldist < 0) stack[sTop++] = node.r;
+                else if (rdist < 0) stack[sTop++] = node.l;
+                // Push the closest node first
+                else {
+                    stack[sTop++] = ldist < rdist ? node.r : node.l;
+                    stack[sTop++] = ldist < rdist ? node.l : node.r;
                 }
 
                 continue;
@@ -196,13 +195,11 @@ __global__ void iterativeRayTracing(
                 float rdist = nodes[node.r].hitDist(lightSrc, lightDirInv);
 
                 if (ldist < 0 && rdist < 0) continue;
-
-                if (ldist < rdist) {
-                    if (rdist >= 0) stack[sTop++] = node.r;
-                    if (ldist >= 0) stack[sTop++] = node.l;
-                } else {
-                    if (ldist >= 0) stack[sTop++] = node.l;
-                    if (rdist >= 0) stack[sTop++] = node.r;
+                else if (ldist < 0) stack[sTop++] = node.r;
+                else if (rdist < 0) stack[sTop++] = node.l;
+                else {
+                    stack[sTop++] = ldist < rdist ? node.r : node.l;
+                    stack[sTop++] = ldist < rdist ? node.l : node.r;
                 }
 
                 continue;
