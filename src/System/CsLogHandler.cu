@@ -32,7 +32,7 @@ void CsLogHandler::drawLog(sf::RenderWindow& window) {
     };
 
     int count = 0;
-    for (int i = 0; i < cslogs.size(); i++) {
+    for (int i = 0; i < cslogs.size(); ++i) {
         // Remove the /n at the end of the log
         // As it is unnecessary
         if (cslogs[i].log.back() == '\n')

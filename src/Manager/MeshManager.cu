@@ -4,14 +4,14 @@
 
 void MeshManager::appendMesh(MeshStruct mesh) {
     #pragma omp parallel for
-    for (int i = 0; i < mesh.SOrF.size(); i++) {
+    for (int i = 0; i < mesh.SOrF.size(); ++i) {
         SOrF.push_back(mesh.SOrF[i] + h_fv.size());
     }
 
     OrSO.push_back(SOrF.size());
 
     #pragma omp parallel for
-    for (int i = 0; i < mesh.fv.size(); i++) {
+    for (int i = 0; i < mesh.fv.size(); ++i) {
         // Offset the indices
         h_fv.push_back(mesh.fv[i] + h_v.size());
         h_ft.push_back(mesh.ft[i] + h_t.size());
@@ -46,12 +46,12 @@ void MeshManager::computeData() {
     h_fABcen.resize(fNum);
 
     #pragma omp parallel for
-    for (int i = 0; i < fNum; i++) {
+    for (int i = 0; i < fNum; ++i) {
         Vec3f fABmin = Vec3f(INFINITY);
         Vec3f fABmax = Vec3f(-INFINITY);
         Vec3f fABcen = Vec3f();
 
-        for (int j = 0; j < 3; j++) {
+        for (int j = 0; j < 3; ++j) {
             Vec3f v = h_v[h_fv[i][j]];
 
             fABmin.x = fminf(fABmin.x, v.x);

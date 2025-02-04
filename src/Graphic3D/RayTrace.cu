@@ -75,7 +75,7 @@ __global__ void iterativeRayTracing(
                 continue;
             }
 
-            for (int i = node.l; i < node.r; i++) {
+            for (int i = node.l; i < node.r; ++i) {
                 int fi = fidx[i];
                 Vec3i &fv = mfv[fi];
 
@@ -183,7 +183,7 @@ __global__ void iterativeRayTracing(
                 continue;
             }
 
-            for (int i = node.l; i < node.r; i++) {
+            for (int i = node.l; i < node.r; ++i) {
                 int fi = fidx[i];
                 if (fi == hit.idx) continue;
 
@@ -344,7 +344,7 @@ __global__ void iterativeRayTracing(
     }
 
     Vec3f finalColr(0, 0, 0);
-    for (int i = 0; i <= rnum; i++) {
+    for (int i = 0; i <= rnum; ++i) {
         finalColr += colr[i] * weights[i];
     }
 

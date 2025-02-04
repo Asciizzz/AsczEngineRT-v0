@@ -15,8 +15,8 @@ int TxtrManager::appendTexture(const char *path) {
 
     txtrSize += w * h;
 
-    for (int y = 0; y < h; y++) {
-        for (int x = 0; x < w; x++) {
+    for (int y = 0; y < h; ++y) {
+        for (int x = 0; x < w; ++x) {
             sf::Color c = img.getPixel(x, h - y - 1);
             h_txtrFlat.push_back(Vec3f(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f));
         }

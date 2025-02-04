@@ -9,8 +9,8 @@ Mat4f::Mat4f() {
 }
 
 Mat4f::Mat4f(float data[4][4]) {
-    for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 4; j++) {
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
             this->data[i][j] = data[i][j];
         }
     }
@@ -18,8 +18,8 @@ Mat4f::Mat4f(float data[4][4]) {
 
 Mat4f Mat4f::operator+(const Mat4f &mat) {
     Mat4f result;
-    for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 4; j++) {
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
             result.data[i][j] = data[i][j] + mat.data[i][j];
         }
     }
@@ -29,8 +29,8 @@ Mat4f Mat4f::operator+(const Mat4f &mat) {
 
 Mat4f Mat4f::operator-(const Mat4f &mat) {
     Mat4f result;
-    for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 4; j++) {
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
             result.data[i][j] = data[i][j] - mat.data[i][j];
         }
     }
@@ -40,8 +40,8 @@ Mat4f Mat4f::operator-(const Mat4f &mat) {
 
 Mat4f Mat4f::operator*(const float scl) {
     Mat4f result;
-    for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 4; j++) {
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
             result.data[i][j] = data[i][j] * scl;
         }
     }
@@ -61,10 +61,10 @@ Vec4f Mat4f::operator*(const Vec4f &vec) {
 
 Mat4f Mat4f::operator*(const Mat4f &mat) {
     Mat4f result;
-    for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 4; j++) {
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
             result.data[i][j] = 0;
-            for (int k = 0; k < 4; k++) {
+            for (int k = 0; k < 4; ++k) {
                 result.data[i][j] += data[i][k] * mat.data[k][j];
             }
         }

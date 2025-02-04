@@ -121,7 +121,7 @@ public:
 
         HstNode *root = new HstNode();
         root->faces.resize(fv.size());
-        for (int i = 0; i < fv.size(); i++) {
+        for (int i = 0; i < fv.size(); ++i) {
             root->faces[i] = i;
             root->recalc(fABmin[i]);
             root->recalc(fABmax[i]);
@@ -130,16 +130,6 @@ public:
         buildLvl3Bvh(root, meshMgr);
 
         toShader(root, h_dnodes, h_fidx);
-
-        // for (int i = 0; i < h_dnodes.size(); i++) {
-        //     DevNode dnode = h_dnodes[i];
-
-        //     std::cout << i 
-        //     << " - " << (dnode.leaf ? "lf" : "nd") 
-        //     << " | " << dnode.l << " | " << dnode.r << " | "
-        //     << "(" << dnode.min.x << ", " << dnode.min.y << ", " << dnode.min.z << ") | "
-        //     << "(" << dnode.max.x << ", " << dnode.max.y << ", " << dnode.max.z << ")\n";
-        // }
     }
 
     // Object split sub-objects
@@ -169,13 +159,13 @@ public:
         float curCost = INFINITY;
 
         #pragma omp parallel
-        for (int x = 0; x < SPLIT_X; x++) {
+        for (int x = 0; x < SPLIT_X; ++x) {
         #pragma omp parallel
-        for (int y = 0; y < SPLIT_Y; y++) {
+        for (int y = 0; y < SPLIT_Y; ++y) {
         #pragma omp parallel
-        for (int z = 0; z < SPLIT_Z; z++) {
+        for (int z = 0; z < SPLIT_Z; ++z) {
         #pragma omp parallel
-        for (int a = 0; a < 3; a++) { // Axes
+        for (int a = 0; a < 3; ++a) { // Axes
             HstNode l = HstNode();
             HstNode r = HstNode();
 
@@ -186,7 +176,7 @@ public:
             );
 
             #pragma omp parallel
-            for (int i = 0; i < nF; i++) {
+            for (int i = 0; i < nF; ++i) {
                 int idx = nodes->faces[i];
                 Vec3f center = fABcen[idx];
 
@@ -251,7 +241,8 @@ public:
 
             dnodes[idx].l = fidx.size();
 
-            for (int i = 0; i < node->faces.size(); i++) {
+            #pragma omp parallel for
+            for (int i = 0; i < node->faces.size(); ++i) {
                 fidx.push_back(node->faces[i]);
             }
 

@@ -100,7 +100,7 @@ void Utils::appendObj(
             }
 
             // Triangulate the face
-            for (int i = 1; i < vs.size() - 1; i++) {
+            for (int i = 1; i < vs.size() - 1; ++i) {
                 fv = Vec3i(vs[0], vs[i], vs[i + 1]);
                 ft = Vec3i(ts[0], ts[i], ts[i + 1]);
                 fn = Vec3i(ns[0], ns[i], ns[i + 1]);
@@ -194,7 +194,7 @@ void Utils::appendObj(
     mSOrF.erase(mSOrF.begin());
 
     #pragma omp parallel for
-    for (size_t i = 0; i < mv.size(); i++) {
+    for (size_t i = 0; i < mv.size(); ++i) {
         // Shift to center of xz plane
         if (placement > 0) {
             mv[i].x -= (minX + maxX) / 2;
