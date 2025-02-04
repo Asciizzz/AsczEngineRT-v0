@@ -33,6 +33,7 @@ Ni 1.000000
 d 1.000000
 illum 1
 map_Kd 7A7501A5_c.png
+refl -1
 
 newmtl Shape.084
 Ns 0.000000
@@ -77,6 +78,7 @@ Ni 1.000000
 d 1.000000
 illum 1
 map_Kd 7F0DBBD7_c.png
+#refl 0.7
 
 newmtl Shape.164
 Ns 0.000000
@@ -109,4 +111,4 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 1
-map_Kd 5C3492AB_c.png
+#map_Kd 5C3492AB_c.png
