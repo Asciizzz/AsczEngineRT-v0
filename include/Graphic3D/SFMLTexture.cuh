@@ -22,7 +22,6 @@ public:
     int pixelCount;
 
     // Set kernel parameters
-    int blockSize = 256;
     int blockNum;
 
     SFMLTexture(int width, int height);

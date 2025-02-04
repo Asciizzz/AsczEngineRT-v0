@@ -28,6 +28,10 @@ to instantly kill a programmer on the spot
 #define _hst_ __host__
 #define _hst_dev_ __host__ __device__
 
+constexpr int THREADS_PER_BLOCK = 256;
+constexpr float EPSILON_1 = 1e-3;
+constexpr float EPSILON_2 = 1e-6;
+
 struct Vec2f {
     float x, y;
     _hst_dev_ Vec2f();

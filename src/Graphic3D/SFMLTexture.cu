@@ -16,13 +16,13 @@ void SFMLTexture::resize(int width, int height) {
     cudaMalloc(&d_sfPixel, width * height * 4 * sizeof(sf::Uint8));
 
     pixelCount = width * height * 4;
-    blockNum = (width * height + blockSize - 1) / blockSize;
+    blockNum = (width * height + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
 }
 
 void SFMLTexture::updateTexture(Vec3f *frmbuffer, int b_w, int b_h) {
-    int bCount = (b_w * b_h + blockSize - 1) / blockSize;
+    int bCount = (b_w * b_h + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
 
-    updateTextureKernel<<<bCount, blockSize>>>(
+    updateTextureKernel<<<bCount, THREADS_PER_BLOCK>>>(
         d_sfPixel, frmbuffer, b_w, b_h
     );
     cudaMemcpy(sfPixel, d_sfPixel, pixelCount * sizeof(sf::Uint8), cudaMemcpyDeviceToHost);

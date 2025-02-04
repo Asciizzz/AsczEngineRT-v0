@@ -20,4 +20,6 @@
 #assets/Models/Cornell/Cornell.obj 2 10
 
 #assets/Models/Weapon/AK47.obj 2 1
-assets/Models/Weapon/AWP.obj 2 1
+#assets/Models/Weapon/AWP.obj 2 1
+
+.heavy/Fnaf/Fnaf1.obj 2 1

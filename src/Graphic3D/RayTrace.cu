@@ -27,8 +27,6 @@ __global__ void iterativeRayTracing(
 
     Ray primaryRay = camera.castRay(x, y, frmW, frmH);
 
-    const double EPSILON_1 = 0.001;
-    const double EPSILON_2 = 0.00001;
     const int MAX_RAYS = 10;
     const int MAX_DEPTH = 64;
 
@@ -47,9 +45,8 @@ __global__ void iterativeRayTracing(
     Vec2f txtr[MAX_RAYS];
     Vec3f nrml[MAX_RAYS];
 
-    int stack[MAX_DEPTH];
-    int sptr = 0;
-    stack[sptr++] = 0; // Start with root
+    int stack[64];
+    int sTop = 0;
 
     int rnum = 0;
 
@@ -59,19 +56,19 @@ __global__ void iterativeRayTracing(
         Ray &ray = rays[r];
         RayHit &hit = hits[r];
 
-        sptr = 0;
-        stack[sptr++] = 0; // Start with root
+        sTop = 0;
+        stack[sTop++] = 0; // Start with root
 
-        while (sptr > 0) {
-            int idx = stack[--sptr];
+        while (sTop > 0) {
+            int idx = stack[--sTop];
             const DevNode &node = nodes[idx];
 
             bool hitAABB = node.hitAABB(ray.origin, ray.direction);
             if (!hitAABB) continue;
 
             if (!node.leaf) {
-                stack[sptr++] = node.l;
-                stack[sptr++] = node.r;
+                stack[sTop++] = node.l;
+                stack[sTop++] = node.r;
                 continue;
             }
 
@@ -167,19 +164,19 @@ __global__ void iterativeRayTracing(
         float lightIntens = 1.0f;
         int lightPass = 0;
 
-        sptr = 0;
-        stack[sptr++] = 0; // Start with root
+        sTop = 0;
+        stack[sTop++] = 0; // Start with root
 
-        while (sptr > 0) {
-            int idx = stack[--sptr];
+        while (sTop > 0) {
+            int idx = stack[--sTop];
             const DevNode &node = nodes[idx];
 
             bool hitAABB = node.hitAABB(vrtx[r], lightDir);
             if (!hitAABB) continue;
 
             if (!node.leaf) {
-                stack[sptr++] = node.l;
-                stack[sptr++] = node.r;
+                stack[sTop++] = node.l;
+                stack[sTop++] = node.r;
                 continue;
             }
 

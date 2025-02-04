@@ -27,11 +27,13 @@ struct HstNode { // Host code node
     bool leaf = false;
     std::vector<int> faces; // Face indices
 
-    void recalc(Vec3f v) {
+    void recalcMin(Vec3f v) {
         min.x = fminf(min.x, v.x);
         min.y = fminf(min.y, v.y);
         min.z = fminf(min.z, v.z);
+    }
 
+    void recalcMax(Vec3f v) {
         max.x = fmaxf(max.x, v.x);
         max.y = fmaxf(max.y, v.y);
         max.z = fmaxf(max.z, v.z);
@@ -123,8 +125,8 @@ public:
         root->faces.resize(fv.size());
         for (int i = 0; i < fv.size(); ++i) {
             root->faces[i] = i;
-            root->recalc(fABmin[i]);
-            root->recalc(fABmax[i]);
+            root->recalcMin(fABmin[i]);
+            root->recalcMax(fABmax[i]);
         }
 
         buildLvl3Bvh(root, meshMgr);
@@ -133,7 +135,7 @@ public:
     }
 
     // Object split sub-objects
-    void buildLvl2Bvh(HstNode *nodes, MeshManager &meshMgr, int depth=0, std::string pf="O ") {
+    void buildLvl2Bvh(HstNode *nodes, MeshManager &meshMgr, int depth=0) {
         // const Vecs3f &fABmin = meshMgr.h_fABmin; // Face's AABB min
         // const Vecs3f &fABmax = meshMgr.h_fABmax; // Face's AABB max
         // const Vecs3f &fABcen = meshMgr.h_fABcen; // Face's AABB center
@@ -142,7 +144,7 @@ public:
     }
 
     // Sub-object split faces
-    void buildLvl3Bvh(HstNode *nodes, MeshManager &meshMgr, int depth=0, std::string pf="O ") {
+    void buildLvl3Bvh(HstNode *nodes, MeshManager &meshMgr, int depth=0) {
         const Vecs3f &fABmin = meshMgr.h_fABmin; // Face's AABB min
         const Vecs3f &fABmax = meshMgr.h_fABmax; // Face's AABB max
         const Vecs3f &fABcen = meshMgr.h_fABcen; // Face's AABB center
@@ -182,12 +184,12 @@ public:
 
                 if (center[a] < p[a]) {
                     l.faces.push_back(idx);
-                    l.recalc(fABmin[idx]);
-                    l.recalc(fABmax[idx]);
+                    l.recalcMin(fABmin[idx]);
+                    l.recalcMax(fABmax[idx]);
                 } else {
                     r.faces.push_back(idx);
-                    r.recalc(fABmin[idx]);
-                    r.recalc(fABmax[idx]);
+                    r.recalcMin(fABmin[idx]);
+                    r.recalcMax(fABmax[idx]);
                 }
             }
 
@@ -225,8 +227,8 @@ public:
 
         if (nodes->leaf) return;
 
-        buildLvl3Bvh(left, meshMgr, depth + 1, pf + "L ");
-        buildLvl3Bvh(right, meshMgr, depth + 1, pf + "R ");
+        buildLvl3Bvh(left, meshMgr, depth + 1);
+        buildLvl3Bvh(right, meshMgr, depth + 1);
     }
 
     static int toShader(HstNode *node, std::vector<DevNode> &dnodes, std::vector<int> &fidx) {
