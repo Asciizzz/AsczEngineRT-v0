@@ -76,6 +76,7 @@ __global__ void iterativeRayTracing(
             if (!node.leaf) {
                 stack[sTop++] = node.l;
                 stack[sTop++] = node.r;
+
                 continue;
             }
 
@@ -182,8 +183,17 @@ __global__ void iterativeRayTracing(
             if (!hitAABB) continue;
 
             if (!node.leaf) {
-                stack[sTop++] = node.l;
-                stack[sTop++] = node.r;
+                float ldist = nodes[node.l].hitDist(vrtx[r], lightDir);
+                float rdist = nodes[node.r].hitDist(vrtx[r], lightDir);
+
+                if (ldist < rdist) {
+                    stack[sTop++] = node.r;
+                    stack[sTop++] = node.l;
+                } else {
+                    stack[sTop++] = node.l;
+                    stack[sTop++] = node.r;
+                }
+
                 continue;
             }
 
