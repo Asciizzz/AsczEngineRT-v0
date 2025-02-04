@@ -129,7 +129,7 @@ public:
     int nNum;
 
     int MAX_DEPTH = 32;
-    int MIN_FACES = 2;
+    int NODE_FACES = 2;
 
     int SPLIT_X = 5;
     int SPLIT_Y = 5;
@@ -183,12 +183,16 @@ public:
         const Vecs3f &fABmax = meshMgr.h_fABmax; // Face's AABB max
         const Vecs3f &fABcen = meshMgr.h_fABcen; // Face's AABB center
 
+        int nF = nodes->faces.size();
+        if (depth >= MAX_DEPTH || nF <= NODE_FACES) {
+            nodes->leaf = true;
+            return;
+        }
+
         HstNode *left = new HstNode();
         HstNode *right = new HstNode();
         nodes->l = left;
         nodes->r = right;
-
-        int nF = nodes->faces.size();
 
         Vec3f AABBsize = nodes->max - nodes->min;
 
@@ -253,13 +257,6 @@ public:
 
         int lF = left->faces.size();
         int rF = right->faces.size();
-
-        nodes->leaf = 
-            depth >= MAX_DEPTH ||
-            nF <= MIN_FACES ||
-            lF == nF || rF == nF;
-
-        if (nodes->leaf) return;
 
         buildLvl3Bvh(left, meshMgr, depth + 1);
         buildLvl3Bvh(right, meshMgr, depth + 1);

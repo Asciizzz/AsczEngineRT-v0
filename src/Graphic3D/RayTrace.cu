@@ -74,9 +74,8 @@ __global__ void iterativeRayTracing(
             }
 
             if (!node.leaf) {
-                stack[sTop++] = node.l;
                 stack[sTop++] = node.r;
-
+                stack[sTop++] = node.l;
                 continue;
             }
 

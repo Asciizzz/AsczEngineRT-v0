@@ -106,7 +106,7 @@ int main() {
         if (type == "MaxDepth") {
             ss >> BvhMgr.MAX_DEPTH;
         } else if (type == "MinFaces") {
-            ss >> BvhMgr.MIN_FACES;
+            ss >> BvhMgr.NODE_FACES;
         } else if (type == "SplitX") {
             ss >> BvhMgr.SPLIT_X;
         } else if (type == "SplitY") {
