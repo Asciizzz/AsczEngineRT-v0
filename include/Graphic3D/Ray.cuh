@@ -14,7 +14,8 @@ struct RayHit {
 struct Ray {
     Vec3f o;
     Vec3f d;
-    Vec3f invd; // Inverse direction
+    Vec3f invd; // Inverse direction for AABB intersection since division is a b*tch
+    float w = 1.0f; // Weight
     float Ni = 1.0f; // Refractive index
 
     _hst_dev_ Ray();
