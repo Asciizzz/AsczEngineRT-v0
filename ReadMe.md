@@ -41,7 +41,7 @@ Ray tracing allow for graphically complex and graphically beutiful grapich, sinc
 - Now that we have our bounding boxes, what’s next? Well, there are some **"minor" tweaks** that can help **boost performance** by a sizable margin:
   - **Child ordering** and **Early Exit**: Essentially, "if the left box is closer to the right box, check the left box first." If the ray hits something in the left box, there's no need to check the right box, since that hit intersection is closer than any potential intersection in the right box.
 
-- By using all these optimization techniques, the engine is able to render a ultra-complex scene at a wopping 1 frame per 1 second. Truly a marvel of modern technology (but in all seriousness, the peformance gain is massive, up to 300-400fps on ~20k faces and 100-200fps on ~400k faces).
+- By using all these optimization techniques, the engine is able to render a ultra-complex scene at a wopping 1 frame per 1 second. Truly a marvel of modern technology (but in all seriousness, the peformance gain is massive, up to 300-400fps on ~20k faces and 100-200fps on ~200k faces).
 
 ### How to Use
 
