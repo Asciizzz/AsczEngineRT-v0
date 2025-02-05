@@ -148,7 +148,7 @@ Flt3 Flt3::rotateX(Flt3 &v, const Flt3 &o, const float rx) {
         {0, 0, 0, 1}
     };
 
-    Flt4 rVec4 = Mat4f(rX) * dlt4;
+    Flt4 rVec4 = Mat4(rX) * dlt4;
     Flt3 rVec3 = rVec4.f3();
     rVec3 += o;
 
@@ -166,7 +166,7 @@ Flt3 Flt3::rotateY(Flt3 &v, const Flt3 &o, const float ry) {
         {0, 0, 0, 1}
     };
 
-    Flt4 rVec4 = Mat4f(rY) * dlt4;
+    Flt4 rVec4 = Mat4(rY) * dlt4;
     Flt3 rVec3 = rVec4.f3();
     rVec3 += o;
 
@@ -184,7 +184,7 @@ Flt3 Flt3::rotateZ(Flt3 &v, const Flt3 &o, const float rz) {
         {0, 0, 0, 1}
     };
 
-    Flt4 rVec4 = Mat4f(rZ) * dlt4;
+    Flt4 rVec4 = Mat4(rZ) * dlt4;
     Flt3 rVec3 = rVec4.f3();
     rVec3 += o;
 

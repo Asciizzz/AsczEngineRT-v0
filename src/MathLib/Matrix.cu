@@ -1,6 +1,6 @@
 #include <Matrix.cuh>
 
-Mat4f::Mat4f() {
+Mat4::Mat4() {
     // Identity matrix
     data[0][0] = 1;
     data[1][1] = 1;
@@ -8,7 +8,7 @@ Mat4f::Mat4f() {
     data[3][3] = 1;
 }
 
-Mat4f::Mat4f(float data[4][4]) {
+Mat4::Mat4(float data[4][4]) {
     for (int i = 0; i < 4; ++i) {
         for (int j = 0; j < 4; ++j) {
             this->data[i][j] = data[i][j];
@@ -16,8 +16,8 @@ Mat4f::Mat4f(float data[4][4]) {
     }
 }
 
-Mat4f Mat4f::operator+(const Mat4f &mat) {
-    Mat4f result;
+Mat4 Mat4::operator+(const Mat4 &mat) {
+    Mat4 result;
     for (int i = 0; i < 4; ++i) {
         for (int j = 0; j < 4; ++j) {
             result.data[i][j] = data[i][j] + mat.data[i][j];
@@ -27,8 +27,8 @@ Mat4f Mat4f::operator+(const Mat4f &mat) {
     return result;
 }
 
-Mat4f Mat4f::operator-(const Mat4f &mat) {
-    Mat4f result;
+Mat4 Mat4::operator-(const Mat4 &mat) {
+    Mat4 result;
     for (int i = 0; i < 4; ++i) {
         for (int j = 0; j < 4; ++j) {
             result.data[i][j] = data[i][j] - mat.data[i][j];
@@ -38,8 +38,8 @@ Mat4f Mat4f::operator-(const Mat4f &mat) {
     return result;
 }
 
-Mat4f Mat4f::operator*(const float scl) {
-    Mat4f result;
+Mat4 Mat4::operator*(const float scl) {
+    Mat4 result;
     for (int i = 0; i < 4; ++i) {
         for (int j = 0; j < 4; ++j) {
             result.data[i][j] = data[i][j] * scl;
@@ -49,7 +49,7 @@ Mat4f Mat4f::operator*(const float scl) {
     return result;
 }
 
-Flt4 Mat4f::operator*(const Flt4 &vec) {
+Flt4 Mat4::operator*(const Flt4 &vec) {
     Flt4 result;
     result.x = data[0][0] * vec.x + data[0][1] * vec.y + data[0][2] * vec.z + data[0][3] * vec.w;
     result.y = data[1][0] * vec.x + data[1][1] * vec.y + data[1][2] * vec.z + data[1][3] * vec.w;
@@ -59,8 +59,8 @@ Flt4 Mat4f::operator*(const Flt4 &vec) {
     return result;
 }
 
-Mat4f Mat4f::operator*(const Mat4f &mat) {
-    Mat4f result;
+Mat4 Mat4::operator*(const Mat4 &mat) {
+    Mat4 result;
     for (int i = 0; i < 4; ++i) {
         for (int j = 0; j < 4; ++j) {
             result.data[i][j] = 0;
@@ -73,7 +73,7 @@ Mat4f Mat4f::operator*(const Mat4f &mat) {
     return result;
 }
 
-float Mat4f::det() {
+float Mat4::det() {
     float detA11 = data[1][1] * (data[2][2] * data[3][3] - data[2][3] * data[3][2]) - 
                    data[1][2] * (data[2][1] * data[3][3] - data[2][3] * data[3][1]) + 
                    data[1][3] * (data[2][1] * data[3][2] - data[2][2] * data[3][1]);
