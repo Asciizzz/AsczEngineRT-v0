@@ -22,19 +22,26 @@ Ray tracing allow for graphically complex and graphically beutiful grapich, sinc
 
 ### How it is optimized
 
-- Now that you have a basic understanding of how ray tracing works, let's talk about how to make it faster. There's this little thing called BVH, basically: if I didn't find the box, I didn't find anything in the box.
-- BVH allow you to skip a large portion of the scene that you don't need to check. This is done by dividing the scene into smaller boxes, and then divide those boxes into even smaller boxes, and so on, until you reach what seems to be the most optimal box size.
-- Here comes the tricky part, "where do I slice the cake?". Blindly splitting boxes can be detrimental, not only is an unoptimized BVH negate the effect of spatial partitioning, the depth traversal can be a bottleneck, leading to worse performance then just looping. This is where Surface Area heuristic (or SAH for short) comes in, SAH is a method to determine the optimal split point of a box, by calculating the cost of splitting the box at every possible point and choose the one with the lowest cost.
-  - $C_{split} = C_{trav} + \frac{A_{left}}{A_{box}}C_{left} + \frac{A_{right}}{A_{box}}C_{right}$.
-  - Where:
-    - $C_{split}$ is the cost of splitting the box.
-    - $C_{trav}$ is the cost of traversing the box.
-    - $A_{box}$ is the area of the current box.
-    - $A_{left/right}$ is the area of the left/right box.
-    - $C_{left/right}$ is the cost of the left/right box.
+- Now that you have a basic understanding of how ray tracing works, let's talk about how to make it **faster**. There's this little thing called **BVH (Bounding Volume Hierarchy)**, basically: if I didn't find the box, I didn't find anything in the box.
 
-- Now that we have our bounding boxes, what next? Well, there's some "minor" tweaks that can help boost performance by a sizable margin:
-  - Child ordering and Early Exit: Basically, "box left closer to box right, check box left first, ray does hit something in box left, since that hit intersection is closer than box right, no need to check box right".
+- **BVH** allows you to **skip** a large portion of the scene that you don't need to check. This is done by dividing the scene into smaller boxes, and then dividing those boxes into even smaller boxes, and so on, until you reach what seems to be the most optimal box size.
+
+- Here comes the tricky part, **"where do I slice the cake?"** Blindly splitting boxes can be **detrimental**, not only because an **unoptimized BVH** negates the effect of spatial partitioning, but also because the depth traversal can become a **bottleneck**, leading to worse performance than just looping through everything. This is where **Surface Area Heuristic (SAH)** comes in. **SAH** is a method to determine the optimal split point of a box by calculating the cost of splitting the box at every possible point and choosing the one with the **lowest cost**.
+
+  - The cost formula is:  
+  \[
+  C_{split} = C_{trav} + \frac{A_{left}}{A_{box}}C_{left} + \frac{A_{right}}{A_{box}}C_{right}
+  \]
+  
+  - Where:
+    - **$C_{split}$** is the cost of splitting the box.
+    - **$C_{trav}$** is the cost of traversing the box.
+    - **$A_{box}$** is the area of the current box.
+    - **$A_{left/right}$** is the area of the left/right box.
+    - **$C_{left/right}$** is the cost of traversing the left/right box.
+
+- Now that we have our bounding boxes, what’s next? Well, there are some **"minor" tweaks** that can help **boost performance** by a sizable margin:
+  - **Child ordering** and **Early Exit**: Essentially, "if the left box is closer to the right box, check the left box first." If the ray hits something in the left box, there's no need to check the right box, since that hit intersection is closer than any potential intersection in the right box.
 
 ### How to Use
 
