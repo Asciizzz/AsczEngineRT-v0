@@ -63,3 +63,4 @@ Whether you have ideas, suggestions, techniques, or just want to discuss renderi
 - Spaghetti: onion, garlic powder, tomato, meatball...
 
 ![](assets/Textures/Seia.png)
+No longer muted.
