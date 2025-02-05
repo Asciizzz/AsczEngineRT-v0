@@ -28,16 +28,17 @@ __global__ void iterativeRayTracing(
     const int MAX_RAYS = 10;
     const int MAX_DEPTH = 32;
 
-    Ray rstack[MAX_RAYS] = { primaryRay };
-    int r_top = 1; // Ray stack top
+    Ray rstack[MAX_RAYS]; // Ray stack
+    int rs_top = 0; // Ray stack top
+    rstack[rs_top++] = primaryRay; // Initial ray
 
-    int nstack[MAX_DEPTH];
+    int nstack[MAX_DEPTH]; // Node stack
     int ns_top = 0; // Node stack top
 
     int rnum = 0;
     Vec3f resultColr = Vec3f(0, 0, 0);
-    while (r_top > 0) {
-        Ray &ray = rstack[--r_top];
+    while (rs_top > 0) {
+        Ray &ray = rstack[--rs_top];
 
         // Ray with little contribution
         if (ray.w < 0.01f) continue;
@@ -288,28 +289,28 @@ __global__ void iterativeRayTracing(
         colr = colr * lightIntens + shadwColor * (1 - lightIntens);
 
         // Reflective
-        if (mat.reflect > 0.0f && r_top + 1 < MAX_RAYS) {
+        if (mat.reflect > 0.0f && rs_top + 1 < MAX_RAYS) {
             float wLeft = ray.w * mat.reflect;
             ray.w *= (1 - mat.reflect);
 
             Vec3f reflDir = ray.reflect(nrml);
             Vec3f reflOrigin = vrtx + nrml * EPSILON_1;
 
-            rstack[r_top++] = Ray(reflOrigin, reflDir, ray.Ni);
-            rstack[r_top - 1].w = wLeft;
+            rstack[rs_top++] = Ray(reflOrigin, reflDir, ray.Ni);
+            rstack[rs_top - 1].w = wLeft;
         }
         // Transparent
-        else if (mat.transmit > 0.0f && r_top + 1 < MAX_RAYS) {
+        else if (mat.transmit > 0.0f && rs_top + 1 < MAX_RAYS) {
             float wLeft = ray.w * mat.transmit;
             ray.w *= (1 - mat.transmit);
 
             Vec3f transOrg = vrtx + ray.d * EPSILON_1;
 
-            rstack[r_top++] = Ray(transOrg, ray.d, mat.Ni);
-            rstack[r_top - 1].w = wLeft;
+            rstack[rs_top++] = Ray(transOrg, ray.d, mat.Ni);
+            rstack[rs_top - 1].w = wLeft;
         }
         // Fresnel effect
-        else if (mat.Fresnel > 0.0f && r_top + 2 < MAX_RAYS) {
+        else if (mat.Fresnel > 0.0f && rs_top + 2 < MAX_RAYS) {
             float wLeft = ray.w * mat.Fresnel;
             ray.w *= (1 - mat.Fresnel);
 
@@ -325,14 +326,14 @@ __global__ void iterativeRayTracing(
             // Refraction (for the time being just tranparent)
             Vec3f refrDir = ray.d;
             Vec3f refrOrigin = vrtx + refrDir * EPSILON_1;
-            rstack[r_top++] = Ray(refrOrigin, refrDir, ray.Ni);
-            rstack[r_top - 1].w = Rrefr;
+            rstack[rs_top++] = Ray(refrOrigin, refrDir, ray.Ni);
+            rstack[rs_top - 1].w = Rrefr;
 
             // Reflection
             Vec3f reflDir = ray.reflect(nrml);
             Vec3f reflOrigin = vrtx + nrml * EPSILON_1;
-            rstack[r_top++] = Ray(reflOrigin, reflDir, ray.Ni);
-            rstack[r_top - 1].w = Rrefl;
+            rstack[rs_top++] = Ray(reflOrigin, reflDir, ray.Ni);
+            rstack[rs_top - 1].w = Rrefl;
         }
 
         resultColr += colr * ray.w;
