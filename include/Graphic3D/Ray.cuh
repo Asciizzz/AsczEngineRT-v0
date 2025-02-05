@@ -19,8 +19,7 @@ struct Ray {
     float Ni = 1.0f; // Refractive index
 
     _hst_dev_ Ray();
-    _hst_dev_ Ray(Vec3f d, float Ni=1.0f); // Origin at (0, 0, 0)
-    _hst_dev_ Ray(Vec3f o, Vec3f d, float Ni=1.0f);
+    _hst_dev_ Ray(Vec3f o, Vec3f d, float w=1.0f, float Ni=1.0f);
 
     _hst_dev_ Vec3f reflect(const Vec3f &n);
     _hst_dev_ Vec3f refract(const Vec3f &n, float Ni2);

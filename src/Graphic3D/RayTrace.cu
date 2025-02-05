@@ -296,8 +296,7 @@ __global__ void iterativeRayTracing(
             Vec3f reflDir = ray.reflect(nrml);
             Vec3f reflOrigin = vrtx + nrml * EPSILON_1;
 
-            rstack[rs_top++] = Ray(reflOrigin, reflDir, ray.Ni);
-            rstack[rs_top - 1].w = wLeft;
+            rstack[rs_top++] = Ray(reflOrigin, reflDir, wLeft, ray.Ni);
         }
         // Transparent
         else if (mat.transmit > 0.0f && rs_top + 1 < MAX_RAYS) {
@@ -306,8 +305,7 @@ __global__ void iterativeRayTracing(
 
             Vec3f transOrg = vrtx + ray.d * EPSILON_1;
 
-            rstack[rs_top++] = Ray(transOrg, ray.d, mat.Ni);
-            rstack[rs_top - 1].w = wLeft;
+            rstack[rs_top++] = Ray(transOrg, ray.d, wLeft, mat.Ni);
         }
         // Fresnel effect
         else if (mat.Fresnel > 0.0f && rs_top + 2 < MAX_RAYS) {
@@ -326,14 +324,12 @@ __global__ void iterativeRayTracing(
             // Refraction (for the time being just tranparent)
             Vec3f refrDir = ray.d;
             Vec3f refrOrigin = vrtx + refrDir * EPSILON_1;
-            rstack[rs_top++] = Ray(refrOrigin, refrDir, ray.Ni);
-            rstack[rs_top - 1].w = Rrefr;
+            rstack[rs_top++] = Ray(refrOrigin, refrDir, Rrefr, ray.Ni);
 
             // Reflection
             Vec3f reflDir = ray.reflect(nrml);
             Vec3f reflOrigin = vrtx + nrml * EPSILON_1;
-            rstack[rs_top++] = Ray(reflOrigin, reflDir, ray.Ni);
-            rstack[rs_top - 1].w = Rrefl;
+            rstack[rs_top++] = Ray(reflOrigin, reflDir, Rrefl, ray.Ni);
         }
 
         resultColr += colr * ray.w;

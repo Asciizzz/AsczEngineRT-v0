@@ -1,9 +1,9 @@
 #include <Ray.cuh>
 
 // Constructors
-Ray::Ray() : o(Vec3f()), d(Vec3f()), invd(Vec3f()), Ni(1.0f) {}
-Ray::Ray(Vec3f d, float Ni) : o(Vec3f()), d(d), invd(1.0f / d), Ni(Ni) {}
-Ray::Ray(Vec3f o, Vec3f d, float Ni) : o(o), d(d), invd(1.0f / d), Ni(Ni) {}
+Ray::Ray() {};
+Ray::Ray(Vec3f o, Vec3f d, float w, float Ni) :
+    o(o), d(d), invd(1.0f / d), w(w), Ni(Ni) {};
 
 // Reflection + refraction
 Vec3f Ray::reflect(const Vec3f &n) {
