@@ -6,19 +6,35 @@
 
 The idea behind ray tracing is simple: you trace ray.
 
-But instead of tracing pretty-much-infinite-number of rays from *light* $\rightarrow$ *surface* $\rightarrow$ *camera* (like how light would irl), you trace a finite number of ray from the *camera* $\rightarrow$ *surface* $\rightarrow$ *light* and do the math in reverese. This may seem quite counter-intuitive, but the performace gain is GYATTDAMN massive since $x\rightarrow \inf$ of rays from the light doesn't even reach the camera in the first place.
+But instead of tracing pretty-much-infinite-number of rays from *light* $\rightarrow$ *surface* $\rightarrow$ *camera* (like how light would irl), you trace a finite number of ray from the *camera* $\rightarrow$ *surface* $\rightarrow$ *light* and do the math in reverse. This may seem quite counter-intuitive, but the performace gain is GYATTDAMN massive since $x\rightarrow\inf$ of rays from the light doesn't even reach the camera in the first place.
 
-Ray tracing allow for graphically complex and graphically beutiful grapich, since rays can bounces around, which allow for stuff like reflection or refraction to be possible. To handle ray tracing, 2 methods were proposed (by the great me ofc):
+Ray tracing allow for graphically complex and graphically beutiful grapich, since rays can bounces around, which allow for stuff like reflection or refraction to be possible. To handle rays bouncing around, 2 methods were proposed (by the great me ofc):
 
-- **Recursive Ray Tracing**: the idea is the result of the next ray will influence the result of the current ray, so you trace the next ray and the next ray and the next ray... until you reach the end, or the limit of the recursion. This method is simple to implement, but stack overflow is a b*tch, so it's not recommended.
+- **Recursive Ray Tracing**: the idea is the result of the next ray will influence the result of the current ray, so you trace the next ray and the next ray and the next ray... until you reach the end, or the limit of the recursion. This method is simple to implement, but un-shader-friendly, and stack overflow is a b*tch, so it's not recommended.
 
-- **Weight Based Ray Tracing**: this is similar to Monte Carlo's path tracing, but deterministic instead of stochastic. Each ray has a weight, the next ray will influence the weight of the current ray, but the total weight of every ray will always be the same (sum = 1).
+- **Weight Based Ray Tracing**: To implement this, we'll use a stack to store the ray. This is similar to Monte Carlo's path tracing, but deterministic instead of stochastic. Each ray has a weight, the next ray will influence the weight of the current ray, but the total weight of every ray will always be the same (sum = 1).
   - Example: 
     - Primary ray `weight = 1.0` $\rightarrow$ Hit a red surface with a `reflective = 0.5` $\rightarrow$ Primary ray `weight = 1.0 * 0.5 = 0.5` + New ray 1 `weight = 1.0 * 0.5 = 0.5`.
     - New ray 1 hit a blue surface with a `reflective = 0.5` $\rightarrow$ New ray 1 `weight = 0.5 * 0.5 = 0.25` + New ray 2 `weight = 0.5 * 0.5 = 0.25`.
     - --- 
     - $\Rightarrow$ **`Result Color`** `=` **`Blue * 0.5`** *`(from primary ray)`* `+` **`Red * 0.25`** *`(from new ray 1)`* `+` **`Blue * 0.25`** *`(from new ray 2)`* `=` **`Something idk do the math yourself`**.
     - $\Rightarrow$ **`Result Weight`** `=` `0.5 + 0.25 + 0.25` `=` **`1.0`**.
+
+### How it is optimized
+
+- Now that you have a basic understanding of how ray tracing works, let's talk about how to make it faster. There's this little thing called BVH, basically: if I didn't find the box, I didn't find anything in the box.
+- BVH allow you to skip a large portion of the scene that you don't need to check. This is done by dividing the scene into smaller boxes, and then divide those boxes into even smaller boxes, and so on, until you reach what seems to be the most optimal box size.
+- Here comes the tricky part, "where do I slice the cake?". Blindly splitting boxes can be detrimental, not only is an unoptimized BVH negate the effect of spatial partitioning, the depth traversal can be a bottleneck, leading to worse performance then just looping. This is where Surface Area heuristic (or SAH for short) comes in, SAH is a method to determine the optimal split point of a box, by calculating the cost of splitting the box at every possible point and choose the one with the lowest cost.
+  - $C_{split} = C_{trav} + \frac{A_{left}}{A_{box}}C_{left} + \frac{A_{right}}{A_{box}}C_{right}$.
+  - Where:
+    - $C_{split}$ is the cost of splitting the box.
+    - $C_{trav}$ is the cost of traversing the box.
+    - $A_{box}$ is the area of the current box.
+    - $A_{left/right}$ is the area of the left/right box.
+    - $C_{left/right}$ is the cost of the left/right box.
+
+- Now that we have our bounding boxes, what next? Well, there's some "minor" tweaks that can help boost performance by a sizable margin:
+  - Child ordering and Early Exit: Basically, "box left closer to box right, check box left first, ray does hit something in box left, since that hit intersection is closer than box right, no need to check box right".
 
 ### How to Use
 
