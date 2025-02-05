@@ -4,8 +4,7 @@
 Flt2::Flt2() : x(0), y(0) {}
 Flt2::Flt2(float x, float y) : x(x), y(y) {}
 float& Flt2::operator[](int i) {
-    if (i == 0) return x;
-    return y;
+    return i == 0 ? x : y;
 }
 
 Flt2 Flt2::operator+(const Flt2& v) const {
@@ -33,14 +32,10 @@ Flt3::Flt3(float x, float y, float z) : x(x), y(y), z(z) {}
 Flt3::Flt3(float a) : x(a), y(a), z(a) {}
 
 float& Flt3::operator[](int i) {
-    if (i == 0) return x;
-    if (i == 1) return y;
-    return z;
+    return i == 0 ? x : (i == 1 ? y : z);
 }
 float Flt3::operator[](int i) const {
-    if (i == 0) return x;
-    if (i == 1) return y;
-    return z;
+    return i == 0 ? x : (i == 1 ? y : z);
 }
 
 Flt3 Flt3::operator-() const {
@@ -154,7 +149,7 @@ Flt3 Flt3::rotateX(Flt3 &v, const Flt3 &o, const float rx) {
     };
 
     Flt4 rVec4 = Mat4f(rX) * dlt4;
-    Flt3 rVec3 = rVec4.toFlt3();
+    Flt3 rVec3 = rVec4.f3();
     rVec3 += o;
 
     return rVec3;
@@ -172,7 +167,7 @@ Flt3 Flt3::rotateY(Flt3 &v, const Flt3 &o, const float ry) {
     };
 
     Flt4 rVec4 = Mat4f(rY) * dlt4;
-    Flt3 rVec3 = rVec4.toFlt3();
+    Flt3 rVec3 = rVec4.f3();
     rVec3 += o;
 
     return rVec3;
@@ -190,7 +185,7 @@ Flt3 Flt3::rotateZ(Flt3 &v, const Flt3 &o, const float rz) {
     };
 
     Flt4 rVec4 = Mat4f(rZ) * dlt4;
-    Flt3 rVec3 = rVec4.toFlt3();
+    Flt3 rVec3 = rVec4.f3();
     rVec3 += o;
 
     return rVec3;
@@ -233,15 +228,11 @@ void Flt3::scale(const Flt3& o, const float scl) {
 // VEC4
 Flt4::Flt4() : x(0), y(0), z(0), w(0) {}
 Flt4::Flt4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
-Flt3 Flt4::toFlt3(bool norm) {
-    if (norm) return Flt3(x / w, y / w, z / w);
-    return Flt3(x, y, z);
+Flt3 Flt4::f3(bool norm) {
+    return norm ? (Flt3(x, y, z) / w) : Flt3(x, y, z);
 }
 float& Flt4::operator[](int i) {
-    if (i == 0) return x;
-    if (i == 1) return y;
-    if (i == 2) return z;
-    return w;
+    return i == 0 ? x : (i == 1 ? y : (i == 2 ? z : w));
 }
 
 Flt4 Flt4::operator+(const Flt4& v) const {
@@ -276,9 +267,7 @@ Int3::Int3(int x, int y, int z) : x(x), y(y), z(z) {}
 Int3::Int3(int a) : x(a), y(a), z(a) {}
 
 int& Int3::operator[](int i) {
-    if (i == 0) return x;
-    if (i == 1) return y;
-    return z;
+    return i == 0 ? x : (i == 1 ? y : z);
 }
 
 Int3 Int3::operator+(const Int3& v) const {

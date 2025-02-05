@@ -113,7 +113,7 @@ struct Flt4 {
     float x, y, z, w;
     _hst_dev_ Flt4();
     _hst_dev_ Flt4(float x, float y, float z, float w);
-    _hst_dev_ Flt3 toFlt3(bool norm=true);
+    _hst_dev_ Flt3 f3(bool norm = false);
     
     // Bracket operator
     _hst_dev_ float& operator[](int i);
