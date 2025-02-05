@@ -27,10 +27,11 @@ to instantly kill a programmer on the spot
 constexpr float M_PI = 3.14159265358979323846; // 180 degrees
 constexpr float M_PI_2 = 1.57079632679489661923; // 90 degrees
 constexpr float M_2_PI = 6.28318530717958647692; // 360 degrees
+constexpr float M_E = 2.71828182845904523536;
 
-constexpr int THREADS_PER_BLOCK = 256;
 constexpr float EPSILON_1 = 1e-3;
 constexpr float EPSILON_2 = 1e-6;
+constexpr int THREADS_PER_BLOCK = 256;
 
 struct Flt2 {
     float x, y;

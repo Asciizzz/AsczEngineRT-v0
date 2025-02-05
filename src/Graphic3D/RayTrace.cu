@@ -1,5 +1,7 @@
 #include <RayTrace.cuh>
 
+#include <curand_kernel.h>
+
 __global__ void iterativeRayTracing(
     Camera camera, Flt3 *frmbuffer, int frmW, int frmH, // In-out
     Flt4 *txtrFlat, TxtrPtr *txtrPtr, // Textures
@@ -12,25 +14,24 @@ __global__ void iterativeRayTracing(
     // BVH data
     int *fidx, DevNode *nodes, int nNum,
 
-    Flt3 lightSrc
+    Flt3 lightSrc,
+
+    curandState *randState
 ) {
     int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
     if (tIdx >= frmW * frmH) return;
 
-    // Clear the frame buffer
-    frmbuffer[tIdx] = Flt3(0, 0, 0);
+    curandState localRand = randState[tIdx];
 
-    int x = tIdx % frmW;
-    int y = tIdx / frmW;
-
+    int x = tIdx % frmW, y = tIdx / frmW;
     Ray primaryRay = camera.castRay(x, y, frmW, frmH);
 
-    const int MAX_RAYS = 10;
+    const int MAX_RAYS = 8;
     const int MAX_DEPTH = 32;
 
     Ray rstack[MAX_RAYS]; // Ray stack
     int rs_top = 0; // Ray stack top
-    rstack[rs_top++] = primaryRay; // Initial ray
+    rstack[rs_top++] = primaryRay;
 
     int nstack[MAX_DEPTH]; // Node stack
     int ns_top = 0; // Node stack top
@@ -39,14 +40,13 @@ __global__ void iterativeRayTracing(
     Flt3 resultColr = Flt3(0, 0, 0);
     while (rs_top > 0) {
         Ray &ray = rstack[--rs_top];
+        RayHit hit;
 
         // Ray with little contribution
         if (ray.w < 0.01f) continue;
 
         ns_top = 0;
         nstack[ns_top++] = 0; // Start with root
-
-        RayHit hit;
 
         while (ns_top > 0) {
             int nidx = nstack[--ns_top];
@@ -102,7 +102,6 @@ __global__ void iterativeRayTracing(
                 float t = f * (e2 * q);
 
                 if (t > EPSILON_2 && t < hit.t) {
-                    hit.hit = true;
                     hit.idx = fi;
                     hit.t = t;
                     hit.u = u;
@@ -115,7 +114,7 @@ __global__ void iterativeRayTracing(
     // =========================================================================
     // =========================================================================
 
-        if (!hit.hit) continue;
+        if (hit.idx == -1) continue;
 
         // Get the face data
         int hidx = hit.idx; int &fm = mfm[hidx];

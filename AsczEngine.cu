@@ -14,6 +14,15 @@
 #include <RayTrace.cuh>
 #include <SFMLTexture.cuh>
 
+#include <curand_kernel.h>
+
+__global__ void initCurand(curandState *randState, int n, unsigned long long seed = 0) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= n) return;
+
+    curand_init(seed, idx, 0, &randState[idx]);
+}
+
 int main() {
     // =================== Initialize FPS and Log ==============
     FpsHandler &FPS = FpsHandler::instance();
@@ -127,6 +136,12 @@ int main() {
     float *d_luminance; bool *d_edge;
     cudaMalloc(&d_luminance, frmW * frmH * sizeof(float));
     cudaMalloc(&d_edge, frmW * frmH * sizeof(bool));
+
+    // Allocate Curand states
+    curandState *d_randState;
+    cudaMalloc(&d_randState, frmW * frmH * sizeof(curandState));
+    initCurand<<<blocks, threads>>>(d_randState, frmW * frmH, time(0));
+    cudaDeviceSynchronize();
 
     // Create SFML texture
     SFMLTexture SFTex(frmW, frmH);
@@ -261,7 +276,9 @@ int main() {
 
             BvhMgr.d_fidx, BvhMgr.d_nodes, BvhMgr.nNum,
 
-            lightSrc
+            lightSrc,
+
+            d_randState
         );
         cudaDeviceSynchronize();
 

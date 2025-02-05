@@ -7,8 +7,6 @@
 #include <MeshManager.cuh>
 #include <BvhManager.cuh>
 
-__global__ void clearFrameBuffer(Flt3 *frmbuffer, int frmW, int frmH);
-
 __global__ void iterativeRayTracing(
     Camera camera, Flt3 *frmbuffer, int frmW, int frmH, // In-out
     Flt4 *txtrFlat, TxtrPtr *txtrPtr, // Textures
@@ -21,7 +19,9 @@ __global__ void iterativeRayTracing(
     // BVH data
     int *fidx, DevNode *nodes, int nNum,
 
-    Flt3 lightSrc
+    Flt3 lightSrc,
+
+    curandState *randState
 );
 
 #endif
