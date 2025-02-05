@@ -28,13 +28,6 @@ __global__ void iterativeRayTracing(
     const int MAX_RAYS = 10;
     const int MAX_DEPTH = 32;
 
-    // Very important note:
-    // If mfv.z = -2, the face is a Sphere!
-    // The mv[mfv.x] is the center of the sphere
-    // The mv[mfv.y].x is the radius of the sphere
-
-    // Iterative ray tracing
-
     Ray rstack[MAX_RAYS] = { primaryRay };
     int r_top = 1; // Ray stack top
 
