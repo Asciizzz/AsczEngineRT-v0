@@ -45,10 +45,14 @@ __global__ void iterativeRayTracing(
     Vec3f resultColr = Vec3f(0, 0, 0);
     while (r_top > 0) {
         Ray &ray = rstack[--r_top];
-        RayHit hit;
+
+        // Ray with little contribution
+        if (ray.w < 0.01f) continue;
 
         ns_top = 0;
         nstack[ns_top++] = 0; // Start with root
+
+        RayHit hit;
 
         while (ns_top > 0) {
             int nidx = nstack[--ns_top];
