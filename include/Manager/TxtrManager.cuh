@@ -10,14 +10,14 @@ struct TxtrPtr {
 class TxtrManager {
 public:
     // Host memory
-    std::vector<Vec3f> h_txtrFlat;
+    std::vector<Flt4> h_txtrFlat;
     std::vector<TxtrPtr> h_txtrPtr;
     std::vector<const char *> h_paths;
 
     int appendTexture(const char *path);
 
     // Device memory
-    Vec3f *d_txtrFlat;
+    Flt4 *d_txtrFlat;
     TxtrPtr *d_txtrPtr;
 
     int txtrSize = 0;

@@ -1,12 +1,12 @@
 #include <BvhManager.cuh>
 
-void HstNode::recalcMin(Vec3f v) {
+void HstNode::recalcMin(Flt3 v) {
     min.x = fminf(min.x, v.x);
     min.y = fminf(min.y, v.y);
     min.z = fminf(min.z, v.z);
 }
 
-void HstNode::recalcMax(Vec3f v) {
+void HstNode::recalcMax(Flt3 v) {
     max.x = fmaxf(max.x, v.x);
     max.y = fmaxf(max.y, v.y);
     max.z = fmaxf(max.z, v.z);
@@ -16,7 +16,7 @@ float HstNode::findCost() {
     return (max.x - min.x) * (max.y - min.y) * (max.z - min.z) * faces.size();
 }
 
-float DevNode::hitDist(Vec3f rO, Vec3f rInvD) const {
+float DevNode::hitDist(Flt3 rO, Flt3 rInvD) const {
     // If origin is inside the AABB
     if (rO.x >= min.x && rO.x <= max.x &&
         rO.y >= min.y && rO.y <= max.y &&
@@ -64,7 +64,7 @@ void BvhManager::buildBvh(HstNode *nodes, MeshManager &meshMgr, int depth) {
     nodes->l = left;
     nodes->r = right;
 
-    Vec3f AABBsize = nodes->max - nodes->min;
+    Flt3 AABBsize = nodes->max - nodes->min;
 
     float nodeCost = nodes->findCost();
     float curCost = nodeCost;
@@ -77,7 +77,7 @@ void BvhManager::buildBvh(HstNode *nodes, MeshManager &meshMgr, int depth) {
         HstNode l = HstNode();
         HstNode r = HstNode();
 
-        Vec3f p = nodes->min + Vec3f(
+        Flt3 p = nodes->min + Flt3(
             AABBsize.x * (x + 1) / (SPLIT_X + 1),
             AABBsize.y * (y + 1) / (SPLIT_Y + 1),
             AABBsize.z * (z + 1) / (SPLIT_Z + 1)
@@ -86,7 +86,7 @@ void BvhManager::buildBvh(HstNode *nodes, MeshManager &meshMgr, int depth) {
         #pragma omp parallel
         for (int i = 0; i < nF; ++i) {
             int idx = nodes->faces[i];
-            Vec3f center = fABcen[idx];
+            Flt3 center = fABcen[idx];
 
             if (center[a] < p[a]) {
                 l.faces.push_back(idx);

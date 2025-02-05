@@ -2,6 +2,8 @@
 #include <SFML/Graphics.hpp>
 #include <cuda_runtime.h>
 
+#include <iostream>
+
 int TxtrManager::appendTexture(const char *path) {
     sf::Image img;
     img.loadFromFile(path);
@@ -18,7 +20,18 @@ int TxtrManager::appendTexture(const char *path) {
     for (int y = 0; y < h; ++y) {
         for (int x = 0; x < w; ++x) {
             sf::Color c = img.getPixel(x, h - y - 1);
-            h_txtrFlat.push_back(Vec3f(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f));
+
+            int r = static_cast<int>(c.r);
+            int g = static_cast<int>(c.g);
+            int b = static_cast<int>(c.b);
+            int a = static_cast<int>(c.a);
+
+            h_txtrFlat.push_back(Flt4(
+                static_cast<float>(r) / 255.0f,
+                static_cast<float>(g) / 255.0f,
+                static_cast<float>(b) / 255.0f,
+                static_cast<float>(a) / 255.0f
+            ));
         }
     }
 
@@ -36,9 +49,9 @@ void TxtrManager::freeDevice() {
 void TxtrManager::toDevice() {
     freeDevice();
 
-    cudaMalloc(&d_txtrFlat, txtrSize * sizeof(Vec3f));
+    cudaMalloc(&d_txtrFlat, txtrSize * sizeof(Flt4));
     cudaMalloc(&d_txtrPtr, txtrCount * sizeof(TxtrPtr));
 
-    cudaMemcpy(d_txtrFlat, h_txtrFlat.data(), txtrSize * sizeof(Vec3f), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_txtrFlat, h_txtrFlat.data(), txtrSize * sizeof(Flt4), cudaMemcpyHostToDevice);
     cudaMemcpy(d_txtrPtr, h_txtrPtr.data(), txtrCount * sizeof(TxtrPtr), cudaMemcpyHostToDevice);
 }

@@ -65,7 +65,7 @@ int main() {
 
     // Some debugging values
 
-    Vec3f lightSrc = Vec3f(0, 10, 0);
+    Flt3 lightSrc = Flt3(0, 10, 0);
 
     bool hasFXAA = true;
 
@@ -119,9 +119,9 @@ int main() {
     // Allocate frame buffer
     int threads = 256;
     int blocks = (frmW * frmH + threads - 1) / threads;
-    Vec3f *d_frmbuffer1, *d_frmbuffer2;
-    cudaMalloc(&d_frmbuffer1, frmW * frmH * sizeof(Vec3f));
-    cudaMalloc(&d_frmbuffer2, frmW * frmH * sizeof(Vec3f));
+    Flt3 *d_frmbuffer1, *d_frmbuffer2;
+    cudaMalloc(&d_frmbuffer1, frmW * frmH * sizeof(Flt3));
+    cudaMalloc(&d_frmbuffer2, frmW * frmH * sizeof(Flt3));
 
     // Allocate luminance buffer
     float *d_luminance; bool *d_edge;

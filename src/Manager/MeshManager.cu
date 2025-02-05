@@ -47,12 +47,12 @@ void MeshManager::computeData() {
 
     #pragma omp parallel for
     for (int i = 0; i < fNum; ++i) {
-        Vec3f fABmin = Vec3f(INFINITY);
-        Vec3f fABmax = Vec3f(-INFINITY);
-        Vec3f fABcen = Vec3f();
+        Flt3 fABmin = Flt3(INFINITY);
+        Flt3 fABmax = Flt3(-INFINITY);
+        Flt3 fABcen = Flt3();
 
         for (int j = 0; j < 3; ++j) {
-            Vec3f v = h_v[h_fv[i][j]];
+            Flt3 v = h_v[h_fv[i][j]];
 
             fABmin.x = fminf(fABmin.x, v.x);
             fABmin.y = fminf(fABmin.y, v.y);
@@ -77,31 +77,31 @@ void MeshManager::toDevice() {
 
     // -------------------------------------- //    
 
-    cudaMalloc(&d_v, vNum * sizeof(Vec3f));
-    cudaMalloc(&d_t, tNum * sizeof(Vec2f));
-    cudaMalloc(&d_n, nNum * sizeof(Vec3f));
+    cudaMalloc(&d_v, vNum * sizeof(Flt3));
+    cudaMalloc(&d_t, tNum * sizeof(Flt2));
+    cudaMalloc(&d_n, nNum * sizeof(Flt3));
 
-    cudaMalloc(&d_fv, fNum * sizeof(Vec3i));
-    cudaMalloc(&d_ft, fNum * sizeof(Vec3i));
-    cudaMalloc(&d_fn, fNum * sizeof(Vec3i));
+    cudaMalloc(&d_fv, fNum * sizeof(Int3));
+    cudaMalloc(&d_ft, fNum * sizeof(Int3));
+    cudaMalloc(&d_fn, fNum * sizeof(Int3));
     cudaMalloc(&d_fm, fNum * sizeof(int));
 
-    cudaMalloc(&d_fABmin, fNum * sizeof(Vec3f));
-    cudaMalloc(&d_fABmax, fNum * sizeof(Vec3f));
-    cudaMalloc(&d_fABcen, fNum * sizeof(Vec3f));
+    cudaMalloc(&d_fABmin, fNum * sizeof(Flt3));
+    cudaMalloc(&d_fABmax, fNum * sizeof(Flt3));
+    cudaMalloc(&d_fABcen, fNum * sizeof(Flt3));
 
     // -------------------------------------- //
 
-    cudaMemcpy(d_v, h_v.data(), vNum * sizeof(Vec3f), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_t, h_t.data(), tNum * sizeof(Vec2f), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_n, h_n.data(), nNum * sizeof(Vec3f), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_v, h_v.data(), vNum * sizeof(Flt3), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_t, h_t.data(), tNum * sizeof(Flt2), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_n, h_n.data(), nNum * sizeof(Flt3), cudaMemcpyHostToDevice);
 
-    cudaMemcpy(d_fv, h_fv.data(), fNum * sizeof(Vec3i), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_ft, h_ft.data(), fNum * sizeof(Vec3i), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_fn, h_fn.data(), fNum * sizeof(Vec3i), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_fv, h_fv.data(), fNum * sizeof(Int3), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_ft, h_ft.data(), fNum * sizeof(Int3), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_fn, h_fn.data(), fNum * sizeof(Int3), cudaMemcpyHostToDevice);
     cudaMemcpy(d_fm, h_fm.data(), fNum * sizeof(int), cudaMemcpyHostToDevice);
 
-    cudaMemcpy(d_fABmin, h_fABmin.data(), fNum * sizeof(Vec3f), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_fABmax, h_fABmax.data(), fNum * sizeof(Vec3f), cudaMemcpyHostToDevice);    
-    cudaMemcpy(d_fABcen, h_fABcen.data(), fNum * sizeof(Vec3f), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_fABmin, h_fABmin.data(), fNum * sizeof(Flt3), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_fABmax, h_fABmax.data(), fNum * sizeof(Flt3), cudaMemcpyHostToDevice);    
+    cudaMemcpy(d_fABcen, h_fABcen.data(), fNum * sizeof(Flt3), cudaMemcpyHostToDevice);
 }

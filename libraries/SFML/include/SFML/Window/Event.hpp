@@ -75,7 +75,7 @@ public:
     ////////////////////////////////////////////////////////////
     struct TextEvent
     {
-        Uint32 unicode; //!< UTF-32 Unicode value of the character
+        UInt32 unicode; //!< UTF-32 Unicode value of the character
     };
 
     ////////////////////////////////////////////////////////////

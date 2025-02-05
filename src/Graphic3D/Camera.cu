@@ -14,7 +14,7 @@ void Camera::updateView() {
     forward.z = cos(rot.y) * cos(rot.x);
     forward.norm();
 
-    right = Vec3f(0, 1, 0) & forward;
+    right = Flt3(0, 1, 0) & forward;
     right.norm();
 
     up = forward & right;
@@ -22,20 +22,20 @@ void Camera::updateView() {
 }
 
 
-Vec2f Camera::getScrnNDC(float x, float y, float width, float height) {
+Flt2 Camera::getScrnNDC(float x, float y, float width, float height) {
     // Note: w/2 and h/2 are used to center the screen space coordinates
-    return Vec2f((2 * x - width) / width, (height - 2 * y) / height);
+    return Flt2((2 * x - width) / width, (height - 2 * y) / height);
 }
 
 Ray Camera::castRay(float x, float y, float width, float height) {
     // Step 1: Convert screen space coordinates to NDC
-    Vec2f ndc = getScrnNDC(x, y, width, height);
+    Flt2 ndc = getScrnNDC(x, y, width, height);
 
     // Step 2: Calculate the direction vector for the ray
     // tan(fov / 2) scales the direction based on the field of view.
     // Aspect ratio adjusts the direction for non-square screens (i.e., when width != height).
     float tanFov = tan(fov / 2);
-    Vec3f rayDir = forward + right * ndc.x * tanFov * width / height + up * ndc.y * tanFov;
+    Flt3 rayDir = forward + right * ndc.x * tanFov * width / height + up * ndc.y * tanFov;
 
     // Step 3: Normalize the direction vector
     rayDir.norm();

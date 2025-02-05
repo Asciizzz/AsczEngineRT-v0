@@ -4,13 +4,13 @@
 #include <Vector.cuh>
 
 struct Plane {
-    Vec3f n;
+    Flt3 n;
     float d;
 
-    Vec3f color;
+    Flt3 color;
 
     Plane() {}
-    Plane(Vec3f n, float d, Vec3f color) :
+    Plane(Flt3 n, float d, Flt3 color) :
         n(n), d(d), color(color) {}
 };
 

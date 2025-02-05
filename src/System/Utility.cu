@@ -45,8 +45,8 @@ void Utils::appendObj(
         */
 
         if (type == "v") {
-            Vec3f v; ss >> v.x >> v.y >> v.z;
-            v.scale(Vec3f(), scale);
+            Flt3 v; ss >> v.x >> v.y >> v.z;
+            v.scale(Flt3(), scale);
             mv.push_back(v);
 
             minX = std::min(minX, v.x);
@@ -58,7 +58,7 @@ void Utils::appendObj(
         }
 
         else if (type == "f") {
-            Vec3i fv, ft, fn;
+            Int3 fv, ft, fn;
 
             VecsI vs, ts, ns;
             while (ss.good()) {
@@ -101,9 +101,9 @@ void Utils::appendObj(
 
             // Triangulate the face
             for (int i = 1; i < vs.size() - 1; ++i) {
-                fv = Vec3i(vs[0], vs[i], vs[i + 1]);
-                ft = Vec3i(ts[0], ts[i], ts[i + 1]);
-                fn = Vec3i(ns[0], ns[i], ns[i + 1]);
+                fv = Int3(vs[0], vs[i], vs[i + 1]);
+                ft = Int3(ts[0], ts[i], ts[i + 1]);
+                fn = Int3(ns[0], ns[i], ns[i + 1]);
 
                 mfv.push_back(fv);
                 mft.push_back(ft);
@@ -113,12 +113,12 @@ void Utils::appendObj(
         }
 
         else if (type == "vt") {
-            Vec2f t; ss >> t.x >> t.y;
+            Flt2 t; ss >> t.x >> t.y;
             mt.push_back(t);
         }
 
         else if (type == "vn") {
-            Vec3f n; ss >> n.x >> n.y >> n.z;
+            Flt3 n; ss >> n.x >> n.y >> n.z;
             n.norm(); // Just in case
             mn.push_back(n);
         }
@@ -157,7 +157,7 @@ void Utils::appendObj(
                 }
 
                 else if (mtlType == "Kd") {
-                    Vec3f Kd; mtlSS >> Kd.x >> Kd.y >> Kd.z;
+                    Flt3 Kd; mtlSS >> Kd.x >> Kd.y >> Kd.z;
                     matMgr.h_mats[matIdx].Kd = Kd;
                 } 
 

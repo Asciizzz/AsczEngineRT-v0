@@ -7,21 +7,21 @@
 #include <MeshManager.cuh>
 #include <BvhManager.cuh>
 
-__global__ void clearFrameBuffer(Vec3f *frmbuffer, int frmW, int frmH);
+__global__ void clearFrameBuffer(Flt3 *frmbuffer, int frmW, int frmH);
 
 __global__ void iterativeRayTracing(
-    Camera camera, Vec3f *frmbuffer, int frmW, int frmH, // In-out
-    Vec3f *txtrFlat, TxtrPtr *txtrPtr, // Textures
+    Camera camera, Flt3 *frmbuffer, int frmW, int frmH, // In-out
+    Flt4 *txtrFlat, TxtrPtr *txtrPtr, // Textures
     Material *mats, // Materials
     // Mesh data
-    Vec3f *mv, Vec2f *mt, Vec3f *mn, // Primitive data
-    Vec3i *mfv, Vec3i *mft, Vec3i *mfn, int *mfm, // Face data
+    Flt3 *mv, Flt2 *mt, Flt3 *mn, // Primitive data
+    Int3 *mfv, Int3 *mft, Int3 *mfn, int *mfm, // Face data
     int fNum, // Number of faces
 
     // BVH data
     int *fidx, DevNode *nodes, int nNum,
 
-    Vec3f lightSrc
+    Flt3 lightSrc
 );
 
 #endif

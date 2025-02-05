@@ -3,11 +3,11 @@
 
 #include <Vector.cuh>
 
-__global__ void calcLuminance(float *lumi, Vec3f *frmbuffer, int frmW, int frmH) {
+__global__ void calcLuminance(float *lumi, Flt3 *frmbuffer, int frmW, int frmH) {
     int idx = threadIdx.x + blockIdx.x * blockDim.x;
     if (idx >= frmW * frmH) return;
 
-    Vec3f color = frmbuffer[idx];
+    Flt3 color = frmbuffer[idx];
     lumi[idx] = 0.299f * color.x + 0.587f * color.y + 0.114f * color.z;
 }
 
@@ -33,7 +33,7 @@ __global__ void edgeMask(bool *edge, float *lumi, int frmW, int frmH) {
     edge[idx] = gradX + gradY >= 0.1f;
 }
 
-__global__ void applyFXAAtoBuffer(float *lumi, bool *edge, Vec3f *frmbuffer1, Vec3f *frmbuffer2, int frmW, int frmH) {
+__global__ void applyFXAAtoBuffer(float *lumi, bool *edge, Flt3 *frmbuffer1, Flt3 *frmbuffer2, int frmW, int frmH) {
     int idx = threadIdx.x + blockIdx.x * blockDim.x;
     if (idx >= frmW * frmH) return;
 
@@ -42,14 +42,14 @@ __global__ void applyFXAAtoBuffer(float *lumi, bool *edge, Vec3f *frmbuffer1, Ve
         return;
     }
 
-    Vec3f colrL = frmbuffer1[idx - 1];
-    Vec3f colrR = frmbuffer1[idx + 1];
-    Vec3f colrT = frmbuffer1[idx - frmW];
-    Vec3f colrB = frmbuffer1[idx + frmW];
-    Vec3f colrLT = frmbuffer1[idx - frmW - 1];
-    Vec3f colrRT = frmbuffer1[idx - frmW + 1];
-    Vec3f colrLB = frmbuffer1[idx + frmW - 1];
-    Vec3f colrRB = frmbuffer1[idx + frmW + 1];
+    Flt3 colrL = frmbuffer1[idx - 1];
+    Flt3 colrR = frmbuffer1[idx + 1];
+    Flt3 colrT = frmbuffer1[idx - frmW];
+    Flt3 colrB = frmbuffer1[idx + frmW];
+    Flt3 colrLT = frmbuffer1[idx - frmW - 1];
+    Flt3 colrRT = frmbuffer1[idx - frmW + 1];
+    Flt3 colrLB = frmbuffer1[idx + frmW - 1];
+    Flt3 colrRB = frmbuffer1[idx + frmW + 1];
 
     float lumiC = lumi[idx];
     float lumiL = lumi[idx - 1];

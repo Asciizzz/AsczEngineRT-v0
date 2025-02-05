@@ -4,8 +4,8 @@
 #include <Geom.cuh>
 
 struct HstNode {
-    Vec3f min;
-    Vec3f max;
+    Flt3 min;
+    Flt3 max;
     int l;
     int r;
     bool leaf;

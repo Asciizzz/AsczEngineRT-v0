@@ -19,27 +19,27 @@ If its a leaf, then the faces vector is pretty much useless
 */
 
 struct HstNode { // Host code node
-    Vec3f min = Vec3f(INFINITY);
-    Vec3f max = Vec3f(-INFINITY);
+    Flt3 min = Flt3(INFINITY);
+    Flt3 max = Flt3(-INFINITY);
 
     HstNode *l = nullptr, *r = nullptr; // Child node
 
     bool leaf = false;
     std::vector<int> faces; // Face indices
 
-    void recalcMin(Vec3f v);
-    void recalcMax(Vec3f v);
+    void recalcMin(Flt3 v);
+    void recalcMax(Flt3 v);
     float findCost();
 };
 
 struct DevNode { // Flattened structure friendly for shader code
-    Vec3f min = Vec3f(INFINITY);
-    Vec3f max = Vec3f(-INFINITY);
+    Flt3 min = Flt3(INFINITY);
+    Flt3 max = Flt3(-INFINITY);
 
     int l, r; // Dual purpose, either child node or face index
     bool leaf = false;
 
-    _dev_ float hitDist(Vec3f rO, Vec3f rInvD) const;
+    _dev_ float hitDist(Flt3 rO, Flt3 rInvD) const;
 };
 
 class BvhManager {

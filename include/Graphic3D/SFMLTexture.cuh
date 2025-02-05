@@ -28,11 +28,11 @@ public:
     void free();
     void resize(int width, int height);
 
-    void updateTexture(Vec3f *frmbuffer, int b_w, int b_h);
+    void updateTexture(Flt3 *frmbuffer, int b_w, int b_h);
 };
 
 __global__ void updateTextureKernel(
-    sf::Uint8 *d_sfPixel, Vec3f *frmbuffer, int b_w, int b_h
+    sf::Uint8 *d_sfPixel, Flt3 *frmbuffer, int b_w, int b_h
 );
 
 #endif

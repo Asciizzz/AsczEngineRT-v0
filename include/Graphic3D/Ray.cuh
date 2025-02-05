@@ -12,17 +12,17 @@ struct RayHit {
 };
 
 struct Ray {
-    Vec3f o;
-    Vec3f d;
-    Vec3f invd; // Inverse direction for AABB intersection since division is a b*tch
+    Flt3 o;
+    Flt3 d;
+    Flt3 invd; // Inverse direction for AABB intersection since division is a b*tch
     float w = 1.0f; // Weight
     float Ni = 1.0f; // Refractive index
 
     _hst_dev_ Ray();
-    _hst_dev_ Ray(Vec3f o, Vec3f d, float w=1.0f, float Ni=1.0f);
+    _hst_dev_ Ray(Flt3 o, Flt3 d, float w=1.0f, float Ni=1.0f);
 
-    _hst_dev_ Vec3f reflect(const Vec3f &n);
-    _hst_dev_ Vec3f refract(const Vec3f &n, float Ni2);
+    _hst_dev_ Flt3 reflect(const Flt3 &n);
+    _hst_dev_ Flt3 refract(const Flt3 &n, float Ni2);
 };
 
 #endif

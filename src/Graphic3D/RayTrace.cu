@@ -1,24 +1,24 @@
 #include <RayTrace.cuh>
 
 __global__ void iterativeRayTracing(
-    Camera camera, Vec3f *frmbuffer, int frmW, int frmH, // In-out
-    Vec3f *txtrFlat, TxtrPtr *txtrPtr, // Textures
+    Camera camera, Flt3 *frmbuffer, int frmW, int frmH, // In-out
+    Flt4 *txtrFlat, TxtrPtr *txtrPtr, // Textures
     Material *mats, // Materials
     // Mesh data
-    Vec3f *mv, Vec2f *mt, Vec3f *mn, // Primitive data
-    Vec3i *mfv, Vec3i *mft, Vec3i *mfn, int *mfm, // Face data
+    Flt3 *mv, Flt2 *mt, Flt3 *mn, // Primitive data
+    Int3 *mfv, Int3 *mft, Int3 *mfn, int *mfm, // Face data
     int fNum, // Number of faces
 
     // BVH data
     int *fidx, DevNode *nodes, int nNum,
 
-    Vec3f lightSrc
+    Flt3 lightSrc
 ) {
     int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
     if (tIdx >= frmW * frmH) return;
 
     // Clear the frame buffer
-    frmbuffer[tIdx] = Vec3f(0, 0, 0);
+    frmbuffer[tIdx] = Flt3(0, 0, 0);
 
     int x = tIdx % frmW;
     int y = tIdx / frmW;
@@ -36,7 +36,7 @@ __global__ void iterativeRayTracing(
     int ns_top = 0; // Node stack top
 
     int rnum = 0;
-    Vec3f resultColr = Vec3f(0, 0, 0);
+    Flt3 resultColr = Flt3(0, 0, 0);
     while (rs_top > 0) {
         Ray &ray = rstack[--rs_top];
 
@@ -75,26 +75,26 @@ __global__ void iterativeRayTracing(
 
             for (int i = node.l; i < node.r; ++i) {
                 int fi = fidx[i];
-                Vec3i &fv = mfv[fi];
+                Int3 &fv = mfv[fi];
 
-                Vec3f v0 = mv[fv.x];
-                Vec3f v1 = mv[fv.y];
-                Vec3f v2 = mv[fv.z];
+                Flt3 v0 = mv[fv.x];
+                Flt3 v1 = mv[fv.y];
+                Flt3 v2 = mv[fv.z];
 
-                Vec3f e1 = v1 - v0;
-                Vec3f e2 = v2 - v0;
-                Vec3f h = ray.d & e2;
+                Flt3 e1 = v1 - v0;
+                Flt3 e2 = v2 - v0;
+                Flt3 h = ray.d & e2;
                 float a = e1 * h;
 
                 if (a > -EPSILON_2 && a < EPSILON_2) continue;
 
                 float f = 1.0f / a;
-                Vec3f s = ray.o - v0;
+                Flt3 s = ray.o - v0;
                 float u = f * (s * h);
 
                 if (u < 0.0f || u > 1.0f) continue;
 
-                Vec3f q = s & e1;
+                Flt3 q = s & e1;
                 float v = f * (ray.d * q);
 
                 if (v < 0.0f || u + v > 1.0f) continue;
@@ -117,31 +117,29 @@ __global__ void iterativeRayTracing(
 
         if (!hit.hit) continue;
 
-
-
         // Get the face data
         int hidx = hit.idx; int &fm = mfm[hidx];
         float hitw = 1 - hit.u - hit.v;
         const Material &mat = mats[fm];
 
         // Vertex interpolation
-        Vec3f vrtx = ray.o + ray.d * hit.t;
+        Flt3 vrtx = ray.o + ray.d * hit.t;
 
         // Normal interpolation
-        Vec3i &fn = mfn[hidx];
-        Vec3f nrml;
+        Int3 &fn = mfn[hidx];
+        Flt3 nrml;
         if (fn.x > -1) {
-            Vec3f &n0 = mn[fn.x], &n1 = mn[fn.y], &n2 = mn[fn.z];
+            Flt3 &n0 = mn[fn.x], &n1 = mn[fn.y], &n2 = mn[fn.z];
             nrml = n0 * hitw + n1 * hit.u + n2 * hit.v;
             nrml.norm();
         }
 
-        Vec3f colr;
+        Flt3 colr;
         // Color/Texture interpolation
         if (mat.mapKd > -1) {
-            Vec3i &ft = mft[hidx];
-            Vec2f &t0 = mt[ft.x], &t1 = mt[ft.y], &t2 = mt[ft.z];
-            Vec2f txtr = t0 * hitw + t1 * hit.u + t2 * hit.v;
+            Int3 &ft = mft[hidx];
+            Flt2 &t0 = mt[ft.x], &t1 = mt[ft.y], &t2 = mt[ft.z];
+            Flt2 txtr = t0 * hitw + t1 * hit.u + t2 * hit.v;
             // Modulo 1
             txtr.x -= floor(txtr.x);
             txtr.y -= floor(txtr.y);
@@ -155,18 +153,33 @@ __global__ void iterativeRayTracing(
             int txtrY = txtr.y * th;
 
             int mapKd2 = txtrX + txtrY * tw + toff;
-            colr = txtrFlat[mapKd2];
+            Flt4 tColr = txtrFlat[mapKd2];
+
+            // if (tColr.w < 1.0f) {
+            //     float wLeft = ray.w * (1 - tColr.w);
+            //     ray.w *= tColr.w;
+
+            //     // Create a new ray
+            //     if (rs_top + 1 < MAX_RAYS) {
+            //         Flt3 d = ray.d;
+            //         Flt3 o = vrtx + d * EPSILON_2;
+
+            //         rstack[rs_top++] = Ray(o, d, wLeft, ray.Ni);
+            //     }
+            // }
+
+            colr = Flt3(tColr.x, tColr.y, tColr.z);
         } else {
             colr = mat.Kd;
         }
 
         // Light ray
-        Vec3f lightDir = vrtx - lightSrc;
+        Flt3 lightDir = vrtx - lightSrc;
         float lightDist = lightDir.mag();
         lightDir /= lightDist;
-        Vec3f lightDirInv = 1.0f / lightDir;
+        Flt3 lightDirInv = 1.0f / lightDir;
 
-        Vec3f shadwColor(0, 0, 0);
+        Flt3 shadwColor(0, 0, 0);
         float lightIntens = 1.0f;
         int lightPass = 0;
 
@@ -199,26 +212,26 @@ __global__ void iterativeRayTracing(
                 int fi = fidx[i];
                 if (fi == hit.idx) continue;
 
-                Vec3i &fv = mfv[fi];
+                Int3 &fv = mfv[fi];
 
-                Vec3f v0 = mv[fv.x];
-                Vec3f v1 = mv[fv.y];
-                Vec3f v2 = mv[fv.z];
+                Flt3 v0 = mv[fv.x];
+                Flt3 v1 = mv[fv.y];
+                Flt3 v2 = mv[fv.z];
 
-                Vec3f e1 = v1 - v0;
-                Vec3f e2 = v2 - v0;
-                Vec3f h = lightDir & e2;
+                Flt3 e1 = v1 - v0;
+                Flt3 e2 = v2 - v0;
+                Flt3 h = lightDir & e2;
                 float a = e1 * h;
 
                 if (a > -EPSILON_2 && a < EPSILON_2) continue;
 
                 float f = 1.0f / a;
-                Vec3f s = lightSrc - v0;
+                Flt3 s = lightSrc - v0;
                 float u = f * (s * h);
 
                 if (u < 0.0f || u > 1.0f) continue;
 
-                Vec3f q = s & e1;
+                Flt3 q = s & e1;
                 float v = f * (lightDir * q);
 
                 if (v < 0.0f || u + v > 1.0f) continue;
@@ -234,11 +247,11 @@ __global__ void iterativeRayTracing(
 
                         // Perform interpolation to get the color
                         if (mat.mapKd > -1) {
-                            Vec3i &ft = mft[fi];
+                            Int3 &ft = mft[fi];
                             float w = 1 - u - v;
 
-                            Vec2f &t0 = mt[ft.x], &t1 = mt[ft.y], &t2 = mt[ft.z];
-                            Vec2f txtr = t0 * w + t1 * u + t2 * v;
+                            Flt2 &t0 = mt[ft.x], &t1 = mt[ft.y], &t2 = mt[ft.z];
+                            Flt2 txtr = t0 * w + t1 * u + t2 * v;
                             // Modulo 1
                             txtr.x -= floor(txtr.x);
                             txtr.y -= floor(txtr.y);
@@ -252,15 +265,17 @@ __global__ void iterativeRayTracing(
                             int txtrY = txtr.y * th;
 
                             int mapKd2 = txtrX + txtrY * tw + toff;
+                            Flt4 tColr = txtrFlat[mapKd2];
+                            Flt3 sColr = Flt3(tColr.x, tColr.y, tColr.z);
 
-                            shadwColor += txtrFlat[mapKd2] * mat.transmit;
+                            shadwColor += sColr * mat.transmit;
                         } else {
                             shadwColor += mat.Kd * mat.transmit;
                         }
                     } else {
                         lightPass = 0;
                         lightIntens = 0.0f;
-                        shadwColor = Vec3f(0, 0, 0);
+                        shadwColor = Flt3(0, 0, 0);
                         break;
                     }
                 }
@@ -276,7 +291,7 @@ __global__ void iterativeRayTracing(
             diff = diff < 0 ? 0 : diff;
             diff = 0.3 + diff * 0.7;
 
-            Vec3f refl = lightDir - nrml * 2 * (lightDir * nrml);
+            Flt3 refl = lightDir - nrml * 2 * (lightDir * nrml);
             float spec = lightIntens * pow(refl * ray.d, mat.Ns);
             spec = spec < 0 ? -spec : spec;
 
@@ -293,8 +308,8 @@ __global__ void iterativeRayTracing(
             float wLeft = ray.w * mat.reflect;
             ray.w *= (1 - mat.reflect);
 
-            Vec3f reflDir = ray.reflect(nrml);
-            Vec3f reflOrigin = vrtx + nrml * EPSILON_1;
+            Flt3 reflDir = ray.reflect(nrml);
+            Flt3 reflOrigin = vrtx + nrml * EPSILON_1;
 
             rstack[rs_top++] = Ray(reflOrigin, reflDir, wLeft, ray.Ni);
         }
@@ -303,7 +318,7 @@ __global__ void iterativeRayTracing(
             float wLeft = ray.w * mat.transmit;
             ray.w *= (1 - mat.transmit);
 
-            Vec3f transOrg = vrtx + ray.d * EPSILON_1;
+            Flt3 transOrg = vrtx + ray.d * EPSILON_1;
 
             rstack[rs_top++] = Ray(transOrg, ray.d, wLeft, mat.Ni);
         }
@@ -322,13 +337,13 @@ __global__ void iterativeRayTracing(
             float Rrefr = (1 - R) * wLeft;
 
             // Refraction (for the time being just tranparent)
-            Vec3f refrDir = ray.d;
-            Vec3f refrOrigin = vrtx + refrDir * EPSILON_1;
+            Flt3 refrDir = ray.d;
+            Flt3 refrOrigin = vrtx + refrDir * EPSILON_1;
             rstack[rs_top++] = Ray(refrOrigin, refrDir, Rrefr, ray.Ni);
 
             // Reflection
-            Vec3f reflDir = ray.reflect(nrml);
-            Vec3f reflOrigin = vrtx + nrml * EPSILON_1;
+            Flt3 reflDir = ray.reflect(nrml);
+            Flt3 reflOrigin = vrtx + nrml * EPSILON_1;
             rstack[rs_top++] = Ray(reflOrigin, reflDir, Rrefl, ray.Ni);
         }
 

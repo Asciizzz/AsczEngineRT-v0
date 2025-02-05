@@ -74,23 +74,23 @@ public:
     VecsI SOrF = {0}; // Sub-object references faces
 
 
-    Vec3f ABmin, ABmax;
+    Flt3 ABmin, ABmax;
 
     void appendMesh(MeshStruct mesh);
     void computeData();
 
     // Device memory
-    Vec3f *d_v = nullptr; int vNum = 0;
-    Vec2f *d_t = nullptr; int tNum = 0;
-    Vec3f *d_n = nullptr; int nNum = 0;
+    Flt3 *d_v = nullptr; int vNum = 0;
+    Flt2 *d_t = nullptr; int tNum = 0;
+    Flt3 *d_n = nullptr; int nNum = 0;
 
-    Vec3i *d_fv = nullptr;
-    Vec3i *d_ft = nullptr;
-    Vec3i *d_fn = nullptr;
+    Int3 *d_fv = nullptr;
+    Int3 *d_ft = nullptr;
+    Int3 *d_fn = nullptr;
     int   *d_fm = nullptr;
-    Vec3f *d_fABmin = nullptr;
-    Vec3f *d_fABmax = nullptr;
-    Vec3f *d_fABcen = nullptr;
+    Flt3 *d_fABmin = nullptr;
+    Flt3 *d_fABmax = nullptr;
+    Flt3 *d_fABcen = nullptr;
     int fNum = 0;
 
     void freeDevice();

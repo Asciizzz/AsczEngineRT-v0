@@ -5,7 +5,7 @@
 
 struct Material {
     // True mtl attributes
-    Vec3f Kd = Vec3f(0.5f);
+    Flt3 Kd = Flt3(0.5f);
     int mapKd = -1;
 
     float Ns = 32.0f;

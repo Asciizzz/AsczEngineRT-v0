@@ -106,7 +106,7 @@ public:
     /// \see toInteger
     ///
     ////////////////////////////////////////////////////////////
-    explicit IpAddress(Uint32 address);
+    explicit IpAddress(UInt32 address);
 
     ////////////////////////////////////////////////////////////
     /// \brief Get a string representation of the address
@@ -136,7 +136,7 @@ public:
     /// \see toString
     ///
     ////////////////////////////////////////////////////////////
-    Uint32 toInteger() const;
+    UInt32 toInteger() const;
 
     ////////////////////////////////////////////////////////////
     /// \brief Get the computer's local address
@@ -201,7 +201,7 @@ private:
     ////////////////////////////////////////////////////////////
     // Member data
     ////////////////////////////////////////////////////////////
-    Uint32 m_address; //!< Address stored as an unsigned 32 bits integer
+    UInt32 m_address; //!< Address stored as an unsigned 32 bits integer
     bool   m_valid;   //!< Is the address valid?
 };
 

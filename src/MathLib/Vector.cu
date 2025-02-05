@@ -1,151 +1,149 @@
 #include <Matrix.cuh>
 
-// VEC2f
-Vec2f::Vec2f() : x(0), y(0) {}
-Vec2f::Vec2f(float x, float y) : x(x), y(y) {}
-float& Vec2f::operator[](int i) {
+// Flt2
+Flt2::Flt2() : x(0), y(0) {}
+Flt2::Flt2(float x, float y) : x(x), y(y) {}
+float& Flt2::operator[](int i) {
     if (i == 0) return x;
     return y;
 }
 
-Vec2f Vec2f::operator+(const Vec2f& v) const {
-    return Vec2f(x + v.x, y + v.y);
+Flt2 Flt2::operator+(const Flt2& v) const {
+    return Flt2(x + v.x, y + v.y);
 }
-Vec2f Vec2f::operator+(const float t) const {
-    return Vec2f(x + t, y + t);
+Flt2 Flt2::operator+(const float t) const {
+    return Flt2(x + t, y + t);
 }
-Vec2f Vec2f::operator-(const Vec2f& v) const {
-    return Vec2f(x - v.x, y - v.y);
+Flt2 Flt2::operator-(const Flt2& v) const {
+    return Flt2(x - v.x, y - v.y);
 }
-Vec2f Vec2f::operator-(const float t) const {
-    return Vec2f(x - t, y - t);
+Flt2 Flt2::operator-(const float t) const {
+    return Flt2(x - t, y - t);
 }
-Vec2f Vec2f::operator*(const float scl) const {
-    return Vec2f(x * scl, y * scl);
+Flt2 Flt2::operator*(const float scl) const {
+    return Flt2(x * scl, y * scl);
 }
-Vec2f Vec2f::operator/(const float scl) const {
-    return Vec2f(x / scl, y / scl);
+Flt2 Flt2::operator/(const float scl) const {
+    return Flt2(x / scl, y / scl);
 }
 
-// VEC3f
-Vec3f::Vec3f() : x(0), y(0), z(0) {}
-Vec3f::Vec3f(float x, float y, float z) : x(x), y(y), z(z) {}
-Vec3f::Vec3f(float a) : x(a), y(a), z(a) {}
-Vec4f Vec3f::toVec4f() {
-    return Vec4f(x, y, z, 1);
-}
-float& Vec3f::operator[](int i) {
+// Flt3
+Flt3::Flt3() : x(0), y(0), z(0) {}
+Flt3::Flt3(float x, float y, float z) : x(x), y(y), z(z) {}
+Flt3::Flt3(float a) : x(a), y(a), z(a) {}
+
+float& Flt3::operator[](int i) {
     if (i == 0) return x;
     if (i == 1) return y;
     return z;
 }
-float Vec3f::operator[](int i) const {
+float Flt3::operator[](int i) const {
     if (i == 0) return x;
     if (i == 1) return y;
     return z;
 }
 
-Vec3f Vec3f::operator-() const {
-    return Vec3f(-x, -y, -z);
+Flt3 Flt3::operator-() const {
+    return Flt3(-x, -y, -z);
 }
-Vec3f Vec3f::operator+(const Vec3f& v) const {
-    return Vec3f(x + v.x, y + v.y, z + v.z);
+Flt3 Flt3::operator+(const Flt3& v) const {
+    return Flt3(x + v.x, y + v.y, z + v.z);
 }
-Vec3f Vec3f::operator+(const float t) const {
-    return Vec3f(x + t, y + t, z + t);
+Flt3 Flt3::operator+(const float t) const {
+    return Flt3(x + t, y + t, z + t);
 }
-Vec3f Vec3f::operator-(const Vec3f& v) const {
-    return Vec3f(x - v.x, y - v.y, z - v.z);
+Flt3 Flt3::operator-(const Flt3& v) const {
+    return Flt3(x - v.x, y - v.y, z - v.z);
 }
-Vec3f Vec3f::operator-(const float t) const {
-    return Vec3f(x - t, y - t, z - t);
+Flt3 Flt3::operator-(const float t) const {
+    return Flt3(x - t, y - t, z - t);
 }
-Vec3f Vec3f::operator*(const float scl) const {
-    return Vec3f(x * scl, y * scl, z * scl);
+Flt3 Flt3::operator*(const float scl) const {
+    return Flt3(x * scl, y * scl, z * scl);
 }
-Vec3f Vec3f::operator/(const float scl) const {
-    return Vec3f(x / scl, y / scl, z / scl);
+Flt3 Flt3::operator/(const float scl) const {
+    return Flt3(x / scl, y / scl, z / scl);
 }
-void Vec3f::operator+=(const Vec3f& v) {
+void Flt3::operator+=(const Flt3& v) {
     x += v.x; y += v.y; z += v.z;
 }
-void Vec3f::operator-=(const Vec3f& v) {
+void Flt3::operator-=(const Flt3& v) {
     x -= v.x; y -= v.y; z -= v.z;
 }
-void Vec3f::operator*=(const float scl) {
+void Flt3::operator*=(const float scl) {
     x *= scl; y *= scl; z *= scl;
 }
-void Vec3f::operator/=(const float scl) {
+void Flt3::operator/=(const float scl) {
     x /= scl; y /= scl; z /= scl;
 }
-Vec3f operator+(const float t, const Vec3f& v) {
-    return Vec3f(v.x + t, v.y + t, v.z + t);
+Flt3 operator+(const float t, const Flt3& v) {
+    return Flt3(v.x + t, v.y + t, v.z + t);
 }
-Vec3f operator-(const float t, const Vec3f& v) {
-    return Vec3f(t - v.x, t - v.y, t - v.z);
+Flt3 operator-(const float t, const Flt3& v) {
+    return Flt3(t - v.x, t - v.y, t - v.z);
 }
-Vec3f operator*(const float scl, const Vec3f& v) {
-    return Vec3f(v.x * scl, v.y * scl, v.z * scl);
+Flt3 operator*(const float scl, const Flt3& v) {
+    return Flt3(v.x * scl, v.y * scl, v.z * scl);
 }
-Vec3f operator/(const float scl, const Vec3f& v) {
-    return Vec3f(scl / v.x, scl / v.y, scl / v.z);
+Flt3 operator/(const float scl, const Flt3& v) {
+    return Flt3(scl / v.x, scl / v.y, scl / v.z);
 }
 
-bool Vec3f::operator==(const Vec3f& v) const {
+bool Flt3::operator==(const Flt3& v) const {
     return x == v.x && y == v.y && z == v.z;
 }
-bool Vec3f::operator!=(const Vec3f& v) const {
+bool Flt3::operator!=(const Flt3& v) const {
     return x != v.x || y != v.y || z != v.z;
 }
 
-float Vec3f::operator*(const Vec3f& v) const {
+float Flt3::operator*(const Flt3& v) const {
     return x * v.x + y * v.y + z * v.z;
 }
-Vec3f Vec3f::operator&(const Vec3f& v) const { // Cross product
-    return Vec3f(y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x);
+Flt3 Flt3::operator&(const Flt3& v) const { // Cross product
+    return Flt3(y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x);
 }
-float Vec3f::mag() {
+float Flt3::mag() {
     return sqrt(x * x + y * y + z * z);
 }
-void Vec3f::norm() {
+void Flt3::norm() {
     float m = mag();
     x /= m; y /= m; z /= m;
 }
 
-void Vec3f::limit(float min, float max) {
+void Flt3::limit(float min, float max) {
     x = std::max(min, std::min(x, max));
     y = std::max(min, std::min(y, max));
     z = std::max(min, std::min(z, max));
 }
-void Vec3f::abs() {
+void Flt3::abs() {
     x = x < 0 ? -x : x;
     y = y < 0 ? -y : y;
     z = z < 0 ? -z : z;
 }
 
 // Transformations
-Vec3f Vec3f::translate(Vec3f& v, const Vec3f& t) {
+Flt3 Flt3::translate(Flt3& v, const Flt3& t) {
     return v + t;
 }
 
-Vec3f Vec3f::rotate(Vec3f &v, const Vec3f &o, const Vec3f &n, const float w) {
+Flt3 Flt3::rotate(Flt3 &v, const Flt3 &o, const Flt3 &n, const float w) {
     // Note: the rodriques rotation is based on the right hand rule
 
-    Vec3f dlt = v - o;
-    Vec4f dlt4 = dlt.toVec4f();
+    Flt3 dlt = v - o;
+    Flt4 dlt4 = Flt4(dlt.x, dlt.y, dlt.z, 1);
 
     float cosW = cos(w), sinW = sin(w);
 
     // The Rodrigues formula
-    Vec3f p = dlt*cosW + (n & v)*sinW + n*(n * v)*(1 - cosW);
+    Flt3 p = dlt*cosW + (n & v)*sinW + n*(n * v)*(1 - cosW);
     p += o;
 
     return p;
 }
 
-Vec3f Vec3f::rotateX(Vec3f &v, const Vec3f &o, const float rx) {
-    Vec3f dlt = v - o;
-    Vec4f dlt4 = dlt.toVec4f();
+Flt3 Flt3::rotateX(Flt3 &v, const Flt3 &o, const float rx) {
+    Flt3 dlt = v - o;
+    Flt4 dlt4 = Flt4(dlt.x, dlt.y, dlt.z, 1);
 
     float cosX = cos(rx), sinX = sin(rx);
     float rX[4][4] = {
@@ -155,15 +153,15 @@ Vec3f Vec3f::rotateX(Vec3f &v, const Vec3f &o, const float rx) {
         {0, 0, 0, 1}
     };
 
-    Vec4f rVec4 = Mat4f(rX) * dlt4;
-    Vec3f rVec3 = rVec4.toVec3f();
+    Flt4 rVec4 = Mat4f(rX) * dlt4;
+    Flt3 rVec3 = rVec4.toFlt3();
     rVec3 += o;
 
     return rVec3;
 }
-Vec3f Vec3f::rotateY(Vec3f &v, const Vec3f &o, const float ry) {
-    Vec3f dlt = v - o;
-    Vec4f dlt4 = dlt.toVec4f();
+Flt3 Flt3::rotateY(Flt3 &v, const Flt3 &o, const float ry) {
+    Flt3 dlt = v - o;
+    Flt4 dlt4 = Flt4(dlt.x, dlt.y, dlt.z, 1);
 
     float cosY = cos(ry), sinY = sin(ry);
     float rY[4][4] = {
@@ -173,15 +171,15 @@ Vec3f Vec3f::rotateY(Vec3f &v, const Vec3f &o, const float ry) {
         {0, 0, 0, 1}
     };
 
-    Vec4f rVec4 = Mat4f(rY) * dlt4;
-    Vec3f rVec3 = rVec4.toVec3f();
+    Flt4 rVec4 = Mat4f(rY) * dlt4;
+    Flt3 rVec3 = rVec4.toFlt3();
     rVec3 += o;
 
     return rVec3;
 }
-Vec3f Vec3f::rotateZ(Vec3f &v, const Vec3f &o, const float rz) {
-    Vec3f dlt = v - o;
-    Vec4f dlt4 = dlt.toVec4f();
+Flt3 Flt3::rotateZ(Flt3 &v, const Flt3 &o, const float rz) {
+    Flt3 dlt = v - o;
+    Flt4 dlt4 = Flt4(dlt.x, dlt.y, dlt.z, 1);
 
     float cosZ = cos(rz), sinZ = sin(rz);
     float rZ[4][4] = {
@@ -191,80 +189,80 @@ Vec3f Vec3f::rotateZ(Vec3f &v, const Vec3f &o, const float rz) {
         {0, 0, 0, 1}
     };
 
-    Vec4f rVec4 = Mat4f(rZ) * dlt4;
-    Vec3f rVec3 = rVec4.toVec3f();
+    Flt4 rVec4 = Mat4f(rZ) * dlt4;
+    Flt3 rVec3 = rVec4.toFlt3();
     rVec3 += o;
 
     return rVec3;
 }
 
-Vec3f Vec3f::scale(Vec3f& v, const Vec3f& o, const Vec3f& scl) {
-    Vec3f dlt = v - o;
-    return Vec3f(
+Flt3 Flt3::scale(Flt3& v, const Flt3& o, const Flt3& scl) {
+    Flt3 dlt = v - o;
+    return Flt3(
         o.x + dlt.x * scl.x,
         o.y + dlt.y * scl.y,
         o.z + dlt.z * scl.z
     );
 }
-Vec3f Vec3f::scale(Vec3f& v, const Vec3f& o, const float scl) {
-    return scale(v, o, Vec3f(scl));
+Flt3 Flt3::scale(Flt3& v, const Flt3& o, const float scl) {
+    return scale(v, o, Flt3(scl));
 }
 
 // Transformations but on self
-void Vec3f::translate(const Vec3f& t) {
+void Flt3::translate(const Flt3& t) {
     *this += t;
 }
 
-void Vec3f::rotateX(const Vec3f& o, const float rx) {
+void Flt3::rotateX(const Flt3& o, const float rx) {
     *this = rotateX(*this, o, rx);
 }
-void Vec3f::rotateY(const Vec3f& o, const float ry) {
+void Flt3::rotateY(const Flt3& o, const float ry) {
     *this = rotateY(*this, o, ry);
 }
-void Vec3f::rotateZ(const Vec3f& o, const float rz) {
+void Flt3::rotateZ(const Flt3& o, const float rz) {
     *this = rotateZ(*this, o, rz);
 }
 
-void Vec3f::scale(const Vec3f& o, const Vec3f& scl) {
+void Flt3::scale(const Flt3& o, const Flt3& scl) {
     *this = scale(*this, o, scl);
 }
-void Vec3f::scale(const Vec3f& o, const float scl) {
+void Flt3::scale(const Flt3& o, const float scl) {
     *this = scale(*this, o, scl);
 }
 
 // VEC4
-Vec4f::Vec4f() : x(0), y(0), z(0), w(0) {}
-Vec4f::Vec4f(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
-Vec3f Vec4f::toVec3f(bool norm) {
-    if (norm) return Vec3f(x / w, y / w, z / w);
-    return Vec3f(x, y, z);
+Flt4::Flt4() : x(0), y(0), z(0), w(0) {}
+Flt4::Flt4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
+Flt3 Flt4::toFlt3(bool norm) {
+    if (norm) return Flt3(x / w, y / w, z / w);
+    return Flt3(x, y, z);
 }
-float& Vec4f::operator[](int i) {
+float& Flt4::operator[](int i) {
     if (i == 0) return x;
     if (i == 1) return y;
     if (i == 2) return z;
     return w;
 }
 
-Vec4f Vec4f::operator+(const Vec4f& v) const {
-    return Vec4f(x + v.x, y + v.y, z + v.z, w + v.w);
+Flt4 Flt4::operator+(const Flt4& v) const {
+    return Flt4(x + v.x, y + v.y, z + v.z, w + v.w);
 }
-Vec4f Vec4f::operator+(const float t) const {
-    return Vec4f(x + t, y + t, z + t, w + t);
+Flt4 Flt4::operator+(const float t) const {
+    return Flt4(x + t, y + t, z + t, w + t);
 }
-Vec4f Vec4f::operator-(const Vec4f& v) const {
-    return Vec4f(x - v.x, y - v.y, z - v.z, w - v.w);
+Flt4 Flt4::operator-(const Flt4& v) const {
+    return Flt4(x - v.x, y - v.y, z - v.z, w - v.w);
 }
-Vec4f Vec4f::operator-(const float t) const {
-    return Vec4f(x - t, y - t, z - t, w - t);
+Flt4 Flt4::operator-(const float t) const {
+    return Flt4(x - t, y - t, z - t, w - t);
 }
-Vec4f Vec4f::operator*(const float scl) const {
-    return Vec4f(x * scl, y * scl, z * scl, w * scl);
+Flt4 Flt4::operator*(const float scl) const {
+    return Flt4(x * scl, y * scl, z * scl, w * scl);
 }
-Vec4f Vec4f::operator/(const float scl) const {
-    return Vec4f(x / scl, y / scl, z / scl, w / scl);
+Flt4 Flt4::operator/(const float scl) const {
+    return Flt4(x / scl, y / scl, z / scl, w / scl);
 }
-void Vec4f::limit(float min, float max) {
+void Flt4::limit(float min, float max) {
     x = std::max(min, std::min(x, max));
     y = std::max(min, std::min(y, max));
     z = std::max(min, std::min(z, max));
@@ -272,39 +270,39 @@ void Vec4f::limit(float min, float max) {
 }
 
 
-// VEC3i
-Vec3i::Vec3i() : x(0), y(0), z(0) {}
-Vec3i::Vec3i(int x, int y, int z) : x(x), y(y), z(z) {}
-Vec3i::Vec3i(int a) : x(a), y(a), z(a) {}
+// Int3
+Int3::Int3() : x(0), y(0), z(0) {}
+Int3::Int3(int x, int y, int z) : x(x), y(y), z(z) {}
+Int3::Int3(int a) : x(a), y(a), z(a) {}
 
-int& Vec3i::operator[](int i) {
+int& Int3::operator[](int i) {
     if (i == 0) return x;
     if (i == 1) return y;
     return z;
 }
 
-Vec3i Vec3i::operator+(const Vec3i& v) const {
-    return Vec3i(x + v.x, y + v.y, z + v.z);
+Int3 Int3::operator+(const Int3& v) const {
+    return Int3(x + v.x, y + v.y, z + v.z);
 }
-Vec3i Vec3i::operator+(const int t) const {
-    return Vec3i(x + t, y + t, z + t);
+Int3 Int3::operator+(const int t) const {
+    return Int3(x + t, y + t, z + t);
 }
-void Vec3i::operator+=(const Vec3i& v) {
+void Int3::operator+=(const Int3& v) {
     x += v.x; y += v.y; z += v.z;
 }
-void Vec3i::operator+=(const int t) {
+void Int3::operator+=(const int t) {
     x += t; y += t; z += t;
 }
 
-Vec3i Vec3i::operator-(const Vec3i& v) const {
-    return Vec3i(x - v.x, y - v.y, z - v.z);
+Int3 Int3::operator-(const Int3& v) const {
+    return Int3(x - v.x, y - v.y, z - v.z);
 }
-Vec3i Vec3i::operator-(const int t) const {
-    return Vec3i(x - t, y - t, z - t);
+Int3 Int3::operator-(const int t) const {
+    return Int3(x - t, y - t, z - t);
 }
-void Vec3i::operator-=(const Vec3i& v) {
+void Int3::operator-=(const Int3& v) {
     x -= v.x; y -= v.y; z -= v.z;
 }
-void Vec3i::operator-=(const int t) {
+void Int3::operator-=(const int t) {
     x -= t; y -= t; z -= t;
 }

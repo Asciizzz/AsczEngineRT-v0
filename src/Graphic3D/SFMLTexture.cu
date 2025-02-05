@@ -19,7 +19,7 @@ void SFMLTexture::resize(int width, int height) {
     blockNum = (width * height + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
 }
 
-void SFMLTexture::updateTexture(Vec3f *frmbuffer, int b_w, int b_h) {
+void SFMLTexture::updateTexture(Flt3 *frmbuffer, int b_w, int b_h) {
     int bCount = (b_w * b_h + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
 
     updateTextureKernel<<<bCount, THREADS_PER_BLOCK>>>(
@@ -31,7 +31,7 @@ void SFMLTexture::updateTexture(Vec3f *frmbuffer, int b_w, int b_h) {
 
 // Kernel for updating the texture
 __global__ void updateTextureKernel(
-    sf::Uint8 *d_sfPixel, Vec3f *frmbuffer, int b_w, int b_h
+    sf::Uint8 *d_sfPixel, Flt3 *frmbuffer, int b_w, int b_h
 ) {
     int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
     if (tIdx >= b_w * b_h) return;

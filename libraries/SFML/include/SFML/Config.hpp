@@ -224,7 +224,7 @@ namespace sf
 
     // 32 bits integer types
     typedef signed   int Int32;
-    typedef unsigned int Uint32;
+    typedef unsigned int UInt32;
 
     // 64 bits integer types
     #if defined(_MSC_VER)

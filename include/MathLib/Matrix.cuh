@@ -13,7 +13,7 @@ struct Mat4f {
     _hst_dev_ Mat4f operator-(const Mat4f &mat);
     _hst_dev_ Mat4f operator*(const float scl);
     // Advanced operations
-    _hst_dev_ Vec4f operator*(const Vec4f &vec);
+    _hst_dev_ Flt4 operator*(const Flt4 &vec);
     _hst_dev_ Mat4f operator*(const Mat4f &mat);
     _hst_dev_ float det(); // Determinant
 };

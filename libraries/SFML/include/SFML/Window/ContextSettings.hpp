@@ -78,7 +78,7 @@ struct ContextSettings
     unsigned int antialiasingLevel; //!< Level of antialiasing
     unsigned int majorVersion;      //!< Major number of the context version to create
     unsigned int minorVersion;      //!< Minor number of the context version to create
-    Uint32       attributeFlags;    //!< The attribute flags to create the context with
+    UInt32       attributeFlags;    //!< The attribute flags to create the context with
     bool         sRgbCapable;       //!< Whether the context frmbuffer is sRGB capable
 };
 

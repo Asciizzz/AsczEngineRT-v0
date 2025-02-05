@@ -49,8 +49,8 @@ Mat4f Mat4f::operator*(const float scl) {
     return result;
 }
 
-Vec4f Mat4f::operator*(const Vec4f &vec) {
-    Vec4f result;
+Flt4 Mat4f::operator*(const Flt4 &vec) {
+    Flt4 result;
     result.x = data[0][0] * vec.x + data[0][1] * vec.y + data[0][2] * vec.z + data[0][3] * vec.w;
     result.y = data[1][0] * vec.x + data[1][1] * vec.y + data[1][2] * vec.z + data[1][3] * vec.w;
     result.z = data[2][0] * vec.x + data[2][1] * vec.y + data[2][2] * vec.z + data[2][3] * vec.w;

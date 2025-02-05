@@ -14,11 +14,11 @@ to instantly kill a programmer on the spot
 #define VecsI std::vector<int>
 #define VecsF std::vector<float>
 
-#define Vecs2f std::vector<Vec2f>
-#define Vecs3f std::vector<Vec3f>
-#define Vecs4f std::vector<Vec4f>
+#define Vecs2f std::vector<Flt2>
+#define Vecs3f std::vector<Flt3>
+#define Vecs4f std::vector<Flt4>
 
-#define Vecs3i std::vector<Vec3i>
+#define Vecs3i std::vector<Int3>
 
 #define _dev_ __device__
 #define _hst_ __host__
@@ -32,58 +32,57 @@ constexpr int THREADS_PER_BLOCK = 256;
 constexpr float EPSILON_1 = 1e-3;
 constexpr float EPSILON_2 = 1e-6;
 
-struct Vec2f {
+struct Flt2 {
     float x, y;
-    _hst_dev_ Vec2f();
-    _hst_dev_ Vec2f(float x, float y);
+    _hst_dev_ Flt2();
+    _hst_dev_ Flt2(float x, float y);
     
     // Bracket operator
     _hst_dev_ float& operator[](int i);
 
     // Basic operations
-    _hst_dev_ Vec2f operator+(const Vec2f &vec) const;
-    _hst_dev_ Vec2f operator+(const float t) const;
-    _hst_dev_ Vec2f operator-(const Vec2f &vec) const;
-    _hst_dev_ Vec2f operator-(const float t) const;
-    _hst_dev_ Vec2f operator*(const float scl) const;
-    _hst_dev_ Vec2f operator/(const float scl) const;
+    _hst_dev_ Flt2 operator+(const Flt2 &vec) const;
+    _hst_dev_ Flt2 operator+(const float t) const;
+    _hst_dev_ Flt2 operator-(const Flt2 &vec) const;
+    _hst_dev_ Flt2 operator-(const float t) const;
+    _hst_dev_ Flt2 operator*(const float scl) const;
+    _hst_dev_ Flt2 operator/(const float scl) const;
 };
 
-struct Vec4f; // Forward declaration
-struct Vec3f {
+struct Flt4; // Forward declaration
+struct Flt3 {
     float x, y, z;
-    _hst_dev_ Vec3f();
-    _hst_dev_ Vec3f(float x, float y, float z);
-    _hst_dev_ Vec3f(float a);
-    _hst_dev_ Vec4f toVec4f();
+    _hst_dev_ Flt3();
+    _hst_dev_ Flt3(float x, float y, float z);
+    _hst_dev_ Flt3(float a);
 
     // Bracket operator
     _hst_dev_ float& operator[](int i);
     _hst_dev_ float operator[](int i) const;
 
     // Basic operations
-    _hst_dev_ Vec3f operator-() const;
-    _hst_dev_ Vec3f operator+(const Vec3f &v) const;
-    _hst_dev_ Vec3f operator+(const float t) const;
-    _hst_dev_ Vec3f operator-(const Vec3f &v) const;
-    _hst_dev_ Vec3f operator-(const float t) const;
-    _hst_dev_ Vec3f operator*(const float scl) const;
-    _hst_dev_ Vec3f operator/(const float scl) const;
-    _hst_dev_ void operator+=(const Vec3f &v);
-    _hst_dev_ void operator-=(const Vec3f &v);
+    _hst_dev_ Flt3 operator-() const;
+    _hst_dev_ Flt3 operator+(const Flt3 &v) const;
+    _hst_dev_ Flt3 operator+(const float t) const;
+    _hst_dev_ Flt3 operator-(const Flt3 &v) const;
+    _hst_dev_ Flt3 operator-(const float t) const;
+    _hst_dev_ Flt3 operator*(const float scl) const;
+    _hst_dev_ Flt3 operator/(const float scl) const;
+    _hst_dev_ void operator+=(const Flt3 &v);
+    _hst_dev_ void operator-=(const Flt3 &v);
     _hst_dev_ void operator*=(const float scl);
     _hst_dev_ void operator/=(const float scl);
-    _hst_dev_ friend Vec3f operator+(const float t, const Vec3f &v);
-    _hst_dev_ friend Vec3f operator-(const float t, const Vec3f &v);
-    _hst_dev_ friend Vec3f operator*(const float scl, const Vec3f &v);
-    _hst_dev_ friend Vec3f operator/(const float scl, const Vec3f &v);
+    _hst_dev_ friend Flt3 operator+(const float t, const Flt3 &v);
+    _hst_dev_ friend Flt3 operator-(const float t, const Flt3 &v);
+    _hst_dev_ friend Flt3 operator*(const float scl, const Flt3 &v);
+    _hst_dev_ friend Flt3 operator/(const float scl, const Flt3 &v);
     // Comparison
-    _hst_dev_ bool operator==(const Vec3f &v) const;
-    _hst_dev_ bool operator!=(const Vec3f &v) const;
+    _hst_dev_ bool operator==(const Flt3 &v) const;
+    _hst_dev_ bool operator!=(const Flt3 &v) const;
     // Dot product
-    _hst_dev_ float operator*(const Vec3f &v) const;
+    _hst_dev_ float operator*(const Flt3 &v) const;
     // Cross product 
-    _hst_dev_ Vec3f operator&(const Vec3f &v) const;
+    _hst_dev_ Flt3 operator&(const Flt3 &v) const;
     // Magnitude
     _hst_dev_ float mag();
     // Normalize
@@ -94,61 +93,61 @@ struct Vec3f {
     _hst_dev_ void abs();
 
     // Transformations
-    _hst_dev_ static Vec3f translate(Vec3f &v, const Vec3f &t);
-    _hst_dev_ static Vec3f rotate(Vec3f &v, const Vec3f &o, const Vec3f &n, const float w); // RIght-hand rule
-    _hst_dev_ static Vec3f rotateX(Vec3f &v, const Vec3f &o, const float rx);
-    _hst_dev_ static Vec3f rotateY(Vec3f &v, const Vec3f &o, const float ry);
-    _hst_dev_ static Vec3f rotateZ(Vec3f &v, const Vec3f &o, const float rz);
-    _hst_dev_ static Vec3f scale(Vec3f &v, const Vec3f &o, const Vec3f &scl);
-    _hst_dev_ static Vec3f scale(Vec3f &v, const Vec3f &o, const float scl);
+    _hst_dev_ static Flt3 translate(Flt3 &v, const Flt3 &t);
+    _hst_dev_ static Flt3 rotate(Flt3 &v, const Flt3 &o, const Flt3 &n, const float w); // RIght-hand rule
+    _hst_dev_ static Flt3 rotateX(Flt3 &v, const Flt3 &o, const float rx);
+    _hst_dev_ static Flt3 rotateY(Flt3 &v, const Flt3 &o, const float ry);
+    _hst_dev_ static Flt3 rotateZ(Flt3 &v, const Flt3 &o, const float rz);
+    _hst_dev_ static Flt3 scale(Flt3 &v, const Flt3 &o, const Flt3 &scl);
+    _hst_dev_ static Flt3 scale(Flt3 &v, const Flt3 &o, const float scl);
     // Transformations but on self
-    _hst_dev_ void translate(const Vec3f &t);
-    _hst_dev_ void rotateX(const Vec3f &o, const float rx);
-    _hst_dev_ void rotateY(const Vec3f &o, const float ry);
-    _hst_dev_ void rotateZ(const Vec3f &o, const float rz);
-    _hst_dev_ void scale(const Vec3f &o, const Vec3f &scl);
-    _hst_dev_ void scale(const Vec3f &o, const float scl);
+    _hst_dev_ void translate(const Flt3 &t);
+    _hst_dev_ void rotateX(const Flt3 &o, const float rx);
+    _hst_dev_ void rotateY(const Flt3 &o, const float ry);
+    _hst_dev_ void rotateZ(const Flt3 &o, const float rz);
+    _hst_dev_ void scale(const Flt3 &o, const Flt3 &scl);
+    _hst_dev_ void scale(const Flt3 &o, const float scl);
 };
 
-struct Vec4f {
+struct Flt4 {
     float x, y, z, w;
-    _hst_dev_ Vec4f();
-    _hst_dev_ Vec4f(float x, float y, float z, float w);
-    _hst_dev_ Vec3f toVec3f(bool norm=true);
+    _hst_dev_ Flt4();
+    _hst_dev_ Flt4(float x, float y, float z, float w);
+    _hst_dev_ Flt3 toFlt3(bool norm=true);
     
     // Bracket operator
     _hst_dev_ float& operator[](int i);
 
     // Basic operations
-    _hst_dev_ Vec4f operator+(const Vec4f &v) const;
-    _hst_dev_ Vec4f operator+(const float t) const;
-    _hst_dev_ Vec4f operator-(const Vec4f &v) const;
-    _hst_dev_ Vec4f operator-(const float t) const;
-    _hst_dev_ Vec4f operator*(const float scl) const;
-    _hst_dev_ Vec4f operator/(const float scl) const;
+    _hst_dev_ Flt4 operator+(const Flt4 &v) const;
+    _hst_dev_ Flt4 operator+(const float t) const;
+    _hst_dev_ Flt4 operator-(const Flt4 &v) const;
+    _hst_dev_ Flt4 operator-(const float t) const;
+    _hst_dev_ Flt4 operator*(const float scl) const;
+    _hst_dev_ Flt4 operator/(const float scl) const;
 
     // Limit the vector
     _hst_dev_ void limit(float min, float max);
 };
 
 
-struct Vec3i {
+struct Int3 {
     int x, y, z;
-    _hst_dev_ Vec3i();
-    _hst_dev_ Vec3i(int x, int y, int z);
-    _hst_dev_ Vec3i(int a);
+    _hst_dev_ Int3();
+    _hst_dev_ Int3(int x, int y, int z);
+    _hst_dev_ Int3(int a);
 
     // Bracket operator
     _hst_dev_ int& operator[](int i);
 
-    _hst_dev_ Vec3i operator+(const Vec3i &v) const;
-    _hst_dev_ Vec3i operator+(const int t) const;
-    _hst_dev_ void operator+=(const Vec3i &v);
+    _hst_dev_ Int3 operator+(const Int3 &v) const;
+    _hst_dev_ Int3 operator+(const int t) const;
+    _hst_dev_ void operator+=(const Int3 &v);
     _hst_dev_ void operator+=(const int t);
 
-    _hst_dev_ Vec3i operator-(const Vec3i &v) const;
-    _hst_dev_ Vec3i operator-(const int t) const;
-    _hst_dev_ void operator-=(const Vec3i &v);
+    _hst_dev_ Int3 operator-(const Int3 &v) const;
+    _hst_dev_ Int3 operator-(const int t) const;
+    _hst_dev_ void operator-=(const Int3 &v);
     _hst_dev_ void operator-=(const int t);
 };
 

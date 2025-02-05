@@ -4,14 +4,14 @@
 #include <Vector.cuh>
 
 struct Sphere {
-    Vec3f o;
+    Flt3 o;
     float r;
 
-    Vec3f color;
+    Flt3 color;
     bool invert = false; // Invert the normal
 
     Sphere() {}
-    Sphere(Vec3f o, float r, Vec3f color=Vec3f()) :
+    Sphere(Flt3 o, float r, Flt3 color=Flt3()) :
         o(o), r(r), color(color) {}
 };
 
