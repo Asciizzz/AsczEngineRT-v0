@@ -250,8 +250,12 @@ __global__ void iterativeRayTracing(
             if (shadow) continue;
 
 
-            // Closer = brighter
-            intens *= 1.0f / (lDist * lDist);
+            // Exponential falloff
+            if (light.falloff) {
+                float dist = lDist - light.bias;
+                float falloff = 1.0f / (1.0f + pow(dist / light.falloffDist, light.exp));
+                intens *= falloff;
+            }
 
             float diff = nrml * -lDir;
             diff = diff < 0 ? -diff : diff;

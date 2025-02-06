@@ -100,7 +100,8 @@ int main() {
             LightSrc lSrc; ss >>
                 lSrc.pos.x >> lSrc.pos.y >> lSrc.pos.z >>
                 lSrc.colr.x >> lSrc.colr.y >> lSrc.colr.z >>
-                lSrc.intens >> lSrc.size;
+                lSrc.intens >> lSrc.bias >>
+                lSrc.exp >> lSrc.falloffDist >> lSrc.falloff;
 
             LightMgr.appendLight(lSrc);
         }
