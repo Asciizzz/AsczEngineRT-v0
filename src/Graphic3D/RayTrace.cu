@@ -122,10 +122,8 @@ __global__ void realtimeRayTracing(
         float hitw = 1 - hit.u - hit.v;
         const Material &mat = mats[fm];
 
-        // Vertex interpolation
         Flt3 vrtx = ray.o + ray.d * hit.t;
 
-        // Normal interpolation
         Int3 &fn = mfn[hidx];
         Flt3 nrml;
         if (fn.x > -1) {
@@ -134,8 +132,7 @@ __global__ void realtimeRayTracing(
             nrml.norm();
         }
 
-        Flt3 colr;
-        // Color/Texture interpolation
+        Flt3 hitKd;
         if (mat.mKd > -1) {
             Int3 &ft = mft[hidx];
             Flt2 &t0 = mt[ft.x], &t1 = mt[ft.y], &t2 = mt[ft.z];
@@ -153,9 +150,9 @@ __global__ void realtimeRayTracing(
             int txtrY = txtr.y * th;
 
             int mKd2 = txtrX + txtrY * tw + toff;
-            colr = txtrFlat[mKd2].f3();
+            hitKd = txtrFlat[mKd2].f3();
         } else {
-            colr = mat.Kd;
+            hitKd = mat.Kd;
         }
 
         // Light management
@@ -279,16 +276,15 @@ __global__ void realtimeRayTracing(
                 intens *= falloff;
             }
 
-            float diff = -lDir * nrml;
-            diff = diff < 0 ? -diff : diff;
+            float NdotL = nrml * -lDir;
+            NdotL = NdotL < 0 ? -NdotL : NdotL;
+            Flt3 diff = hitKd * NdotL;
 
             Flt3 refl = Ray::reflect(-lDir, nrml);
             Flt3 spec = mat.Ks * pow(refl * -ray.d, mat.Ns);
 
             finalColr += passColr & (spec + diff) * intens;
         }
-
-        finalColr &= colr;
 
         // Reflective
         if (mat.reflect > 0.0f && rs_top + 1 < MAX_RAYS) {
