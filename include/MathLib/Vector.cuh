@@ -50,7 +50,6 @@ struct Flt2 {
     _hst_dev_ Flt2 operator/(const float scl) const;
 };
 
-struct Flt4; // Forward declaration
 struct Flt3 {
     float x, y, z;
     _hst_dev_ Flt3();

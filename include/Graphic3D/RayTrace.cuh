@@ -6,6 +6,7 @@
 #include <MatManager.cuh>
 #include <MeshManager.cuh>
 #include <BvhManager.cuh>
+#include <LightManager.cuh>
 
 __global__ void iterativeRayTracing(
     Camera camera, Flt3 *frmbuffer, int frmW, int frmH, // In-out
@@ -19,7 +20,8 @@ __global__ void iterativeRayTracing(
     // BVH data
     int *fidx, DevNode *nodes, int nNum,
 
-    Flt3 lightSrc,
+    // Light data
+    LightSrc *lSrc, int lNum,
 
     curandState *randState
 );

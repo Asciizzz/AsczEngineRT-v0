@@ -12,9 +12,10 @@ __global__ void iterativeRayTracing(
     int fNum, // Number of faces
 
     // BVH data
-    int *fidx, DevNode *nodes, int nNum,
+    int *fIdx, DevNode *nodes, int nNum,
 
-    Flt3 lightSrc,
+    // Light source data
+    LightSrc *lSrc, int lNum,
 
     curandState *randState
 ) {
@@ -74,7 +75,7 @@ __global__ void iterativeRayTracing(
             }
 
             for (int i = node.l; i < node.r; ++i) {
-                int fi = fidx[i];
+                int fi = fIdx[i];
                 Int3 &fv = mfv[fi];
 
                 Flt3 v0 = mv[fv.x];
@@ -154,153 +155,99 @@ __global__ void iterativeRayTracing(
             int mapKd2 = txtrX + txtrY * tw + toff;
             Flt4 tColr = txtrFlat[mapKd2];
 
-            // if (tColr.w < 1.0f) {
-            //     float wLeft = ray.w * (1 - tColr.w);
-            //     ray.w *= tColr.w;
-
-            //     // Create a new ray
-            //     if (rs_top + 1 < MAX_RAYS) {
-            //         Flt3 d = ray.d;
-            //         Flt3 o = vrtx + d * EPSILON_2;
-
-            //         rstack[rs_top++] = Ray(o, d, wLeft, ray.Ni);
-            //     }
-            // }
-
             colr = Flt3(tColr.x, tColr.y, tColr.z);
         } else {
             colr = mat.Kd;
         }
 
-        // Light ray
-        Flt3 lightDir = vrtx - lightSrc;
-        float lightDist = lightDir.mag();
-        lightDir /= lightDist;
-        Flt3 lightDirInv = 1.0f / lightDir;
+        // Light management
+        Flt3 finalColr = Flt3(0, 0, 0);
 
-        Flt3 shadwColor(0, 0, 0);
-        float lightIntens = 1.0f;
-        int lightPass = 0;
+        for (int l = 0; l < lNum; ++l) {
+            const LightSrc &light = lSrc[l];
 
-        ns_top = 0;
-        nstack[ns_top++] = 0; // Start with root
+            Flt3 lDir = vrtx - light.pos;
+            float lDist = lDir.mag();
+            lDir.norm();
+            Flt3 lInv = 1.0f / lDir;
 
-        while (ns_top > 0) {
-            int idx = nstack[--ns_top];
-            DevNode &node = nodes[idx];
+            ns_top = 0;
+            nstack[ns_top++] = 0; // Start with root
 
-            float hitDist = node.hitDist(lightSrc, lightDirInv);
-            if (hitDist < 0 || hitDist > lightDist) continue;
+            bool shadow = false;
+            while (ns_top > 0) {
+                int idx = nstack[--ns_top];
+                DevNode &node = nodes[idx];
 
-            if (!node.leaf) {
-                float ldist = nodes[node.l].hitDist(lightSrc, lightDirInv);
-                float rdist = nodes[node.r].hitDist(lightSrc, lightDirInv);
+                float hitDist = node.hitDist(light.pos, lInv);
+                if (hitDist < 0 || hitDist > lDist) continue;
 
-                if (ldist < 0 && rdist < 0) continue;
-                else if (ldist < 0) nstack[ns_top++] = node.r;
-                else if (rdist < 0) nstack[ns_top++] = node.l;
-                else {
-                    nstack[ns_top++] = ldist < rdist ? node.r : node.l;
-                    nstack[ns_top++] = ldist < rdist ? node.l : node.r;
+                if (!node.leaf) {
+                    float ldist = nodes[node.l].hitDist(light.pos, lInv);
+                    float rdist = nodes[node.r].hitDist(light.pos, lInv);
+
+                    if (ldist < 0 && rdist < 0) continue;
+                    else if (ldist < 0) nstack[ns_top++] = node.r;
+                    else if (rdist < 0) nstack[ns_top++] = node.l;
+                    else {
+                        nstack[ns_top++] = ldist < rdist ? node.r : node.l;
+                        nstack[ns_top++] = ldist < rdist ? node.l : node.r;
+                    }
+
+                    continue;
                 }
 
-                continue;
-            }
+                for (int i = node.l; i < node.r; ++i) {
+                    int fi = fIdx[i];
+                    if (fi == hit.idx) continue;
 
-            for (int i = node.l; i < node.r; ++i) {
-                int fi = fidx[i];
-                if (fi == hit.idx) continue;
+                    Int3 &fv = mfv[fi];
 
-                Int3 &fv = mfv[fi];
+                    Flt3 v0 = mv[fv.x];
+                    Flt3 v1 = mv[fv.y];
+                    Flt3 v2 = mv[fv.z];
 
-                Flt3 v0 = mv[fv.x];
-                Flt3 v1 = mv[fv.y];
-                Flt3 v2 = mv[fv.z];
+                    Flt3 e1 = v1 - v0;
+                    Flt3 e2 = v2 - v0;
+                    Flt3 h = lDir & e2;
+                    float a = e1 * h;
 
-                Flt3 e1 = v1 - v0;
-                Flt3 e2 = v2 - v0;
-                Flt3 h = lightDir & e2;
-                float a = e1 * h;
+                    if (a > -EPSILON_2 && a < EPSILON_2) continue;
 
-                if (a > -EPSILON_2 && a < EPSILON_2) continue;
+                    float f = 1.0f / a;
+                    Flt3 s = light.pos - v0;
+                    float u = f * (s * h);
 
-                float f = 1.0f / a;
-                Flt3 s = lightSrc - v0;
-                float u = f * (s * h);
+                    if (u < 0.0f || u > 1.0f) continue;
 
-                if (u < 0.0f || u > 1.0f) continue;
+                    Flt3 q = s & e1;
+                    float v = f * (lDir * q);
 
-                Flt3 q = s & e1;
-                float v = f * (lightDir * q);
+                    if (v < 0.0f || u + v > 1.0f) continue;
 
-                if (v < 0.0f || u + v > 1.0f) continue;
+                    float t = f * (e2 * q);
 
-                float t = f * (e2 * q);
-
-                if (t > EPSILON_2 && t < lightDist) {
-                    const Material &mat = mats[mfm[fi]];
-
-                    if (mat.transmit > 0.0f) {
-                        lightPass++;
-                        lightIntens *= mat.transmit;
-
-                        // Perform interpolation to get the color
-                        if (mat.mapKd > -1) {
-                            Int3 &ft = mft[fi];
-                            float w = 1 - u - v;
-
-                            Flt2 &t0 = mt[ft.x], &t1 = mt[ft.y], &t2 = mt[ft.z];
-                            Flt2 txtr = t0 * w + t1 * u + t2 * v;
-                            // Modulo 1
-                            txtr.x -= floor(txtr.x);
-                            txtr.y -= floor(txtr.y);
-
-                            int mapKd = mat.mapKd;
-                            int tw = txtrPtr[mapKd].w;
-                            int th = txtrPtr[mapKd].h;
-                            int toff = txtrPtr[mapKd].off;
-
-                            int txtrX = txtr.x * tw;
-                            int txtrY = txtr.y * th;
-
-                            int mapKd2 = txtrX + txtrY * tw + toff;
-                            Flt4 tColr = txtrFlat[mapKd2];
-                            Flt3 sColr = Flt3(tColr.x, tColr.y, tColr.z);
-
-                            shadwColor += sColr * mat.transmit;
-                        } else {
-                            shadwColor += mat.Kd * mat.transmit;
-                        }
-                    } else {
-                        lightPass = 0;
-                        lightIntens = 0.0f;
-                        shadwColor = Flt3(0, 0, 0);
+                    if (t > EPSILON_2 && t < lDist) {
+                        shadow = true;
                         break;
                     }
                 }
+
+                if (shadow) break;
             }
 
-            if (lightIntens < 0.01f) break;
+            if (shadow) continue;
+
+            float NdotL = nrml * -lDir;
+            NdotL = NdotL < 0 ? -NdotL : NdotL;
+            Flt3 diff = light.colr * light.intens * NdotL;
+
+            finalColr += diff;
         }
 
-        if (lightPass > 0) shadwColor /= lightPass;
-
-        if (mat.Phong) {
-            float diff = -lightDir * nrml;
-            diff = diff < 0 ? 0 : diff;
-            diff = 0.3 + diff * 0.7;
-
-            Flt3 refl = lightDir - nrml * 2 * (lightDir * nrml);
-            float spec = lightIntens * pow(refl * ray.d, mat.Ns);
-            spec = spec < 0 ? -spec : spec;
-
-            colr *= diff + spec;
-        }
-        
-        // Limit light intensity to 0.3 - 1.0
-        lightIntens = 0.3 + lightIntens * 0.7;
-
-        colr = colr * lightIntens + shadwColor * (1 - lightIntens);
+        colr.x *= finalColr.x;
+        colr.y *= finalColr.y;
+        colr.z *= finalColr.z;
 
         // Reflective
         if (mat.reflect > 0.0f && rs_top + 1 < MAX_RAYS) {

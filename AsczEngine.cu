@@ -8,6 +8,7 @@
 #include <MatManager.cuh>
 #include <MeshManager.cuh>
 #include <BvhManager.cuh>
+#include <LightManager.cuh>
 
 #include <FXAA.cuh>
 
@@ -61,6 +62,7 @@ int main() {
     MatManager MatMgr;
     MeshManager MeshMgr;
     BvhManager BvhMgr;
+    LightManager LightMgr;
 
     // Create Camera
     // By logic, then this is CameraManager?
@@ -71,10 +73,6 @@ int main() {
     float frmScl = 1;
     int frmW = winW / frmScl;
     int frmH = winH / frmScl;
-
-    // Some debugging values
-
-    Flt3 lightSrc = Flt3(0, 10, 0);
 
     bool hasFXAA = true;
 
@@ -99,7 +97,12 @@ int main() {
         }
 
         if (type == "LightSrc") {
-            ss >> lightSrc.x >> lightSrc.y >> lightSrc.z;
+            LightSrc lSrc;
+            ss >>
+                lSrc.pos.x >> lSrc.pos.y >> lSrc.pos.z >>
+                lSrc.colr.x >> lSrc.colr.y >> lSrc.colr.z >>
+                lSrc.intens >> lSrc.size;
+            LightMgr.appendLight(lSrc);
         }
 
         if (type == "FrameScl") {
@@ -183,6 +186,8 @@ int main() {
 
     BvhMgr.designBVH(MeshMgr);
     BvhMgr.toDevice();
+
+    LightMgr.toDevice();
 
     // ========================================================================
     // ========================================================================
@@ -276,7 +281,7 @@ int main() {
 
             BvhMgr.d_fidx, BvhMgr.d_nodes, BvhMgr.nNum,
 
-            lightSrc,
+            LightMgr.d_lSrc, LightMgr.num,
 
             d_randState
         );
