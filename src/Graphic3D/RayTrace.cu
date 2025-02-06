@@ -166,7 +166,9 @@ __global__ void iterativeRayTracing(
         for (int l = 0; l < lNum; ++l) {
             const LightSrc &light = lSrc[l];
 
-            Flt3 lDir = vrtx - light.pos;
+            Flt3 lPos = light.pos;
+
+            Flt3 lDir = vrtx - lPos;
             float lDist = lDir.mag();
             lDir.norm();
             Flt3 lInv = 1.0f / lDir;
@@ -183,12 +185,12 @@ __global__ void iterativeRayTracing(
                 int idx = nstack[--ns_top];
                 DevNode &node = nodes[idx];
 
-                float hitDist = node.hitDist(light.pos, lInv);
+                float hitDist = node.hitDist(lPos, lInv);
                 if (hitDist < 0 || hitDist > lDist) continue;
 
                 if (!node.leaf) {
-                    float ldist = nodes[node.l].hitDist(light.pos, lInv);
-                    float rdist = nodes[node.r].hitDist(light.pos, lInv);
+                    float ldist = nodes[node.l].hitDist(lPos, lInv);
+                    float rdist = nodes[node.r].hitDist(lPos, lInv);
 
                     if (ldist < 0 && rdist < 0) continue;
                     else if (ldist < 0) nstack[ns_top++] = node.r;
@@ -219,7 +221,7 @@ __global__ void iterativeRayTracing(
                     if (a > -EPSILON_2 && a < EPSILON_2) continue;
 
                     float f = 1.0f / a;
-                    Flt3 s = light.pos - v0;
+                    Flt3 s = lPos - v0;
                     float u = f * (s * h);
 
                     if (u < 0.0f || u > 1.0f) continue;

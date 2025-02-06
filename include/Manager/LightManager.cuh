@@ -8,10 +8,11 @@ struct LightSrc {
     Flt3 colr = Flt3(1.0f);
     float intens = 1.0f;
 
+    // Light falloff
+    bool falloff = true; // Use falloff or not
     float bias = 1.0f; // The start of the falloff
     float exp = 2.0f; // Control how intensity falls off with distance
     float falloffDist = 100.0f; // Distance for exponential falloff
-    bool falloff = true; // Use falloff or not
 };
 
 class LightManager {

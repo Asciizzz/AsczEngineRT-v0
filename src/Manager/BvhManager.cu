@@ -17,7 +17,6 @@ float HstNode::findCost() {
 }
 
 float DevNode::hitDist(Flt3 rO, Flt3 rInvD) const {
-    // If origin is inside the AABB
     if (rO.x >= min.x && rO.x <= max.x &&
         rO.y >= min.y && rO.y <= max.y &&
         rO.z >= min.z && rO.z <= max.z) return 0.0f;
