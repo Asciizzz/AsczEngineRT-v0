@@ -90,9 +90,7 @@ struct Flt3 {
     // Magnitude
     _hst_dev_ float mag();
     // Normalize
-    _hst_dev_ void norm();
-    // Limit the vector
-    _hst_dev_ void limit(float min, float max);
+    _hst_dev_ Flt3 norm();
     // Absolute value
     _hst_dev_ void abs();
 

@@ -112,15 +112,10 @@ Flt3 Flt3::operator&(const Flt3& v) const { // Cross product
 float Flt3::mag() {
     return sqrt(x * x + y * y + z * z);
 }
-void Flt3::norm() {
+Flt3 Flt3::norm() {
     float m = mag();
     x /= m; y /= m; z /= m;
-}
-
-void Flt3::limit(float min, float max) {
-    x = std::max(min, std::min(x, max));
-    y = std::max(min, std::min(y, max));
-    z = std::max(min, std::min(z, max));
+    return *this;
 }
 void Flt3::abs() {
     x = x < 0 ? -x : x;

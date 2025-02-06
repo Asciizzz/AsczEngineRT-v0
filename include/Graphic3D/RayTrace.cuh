@@ -8,7 +8,24 @@
 #include <BvhManager.cuh>
 #include <LightManager.cuh>
 
-__global__ void iterativeRayTracing(
+/* Difference:
+
+Real Time Ray Tracing:
+
+- Only contain direct lighting (no Global Illumination)
+- Few ray bounces
+- Can run in real time
+
+Static Path Tracing:
+
+- Contain direct and indirect lighting (Global Illumination)
+- Many ray bounces
+- Only render a static frame
+
+
+*/
+
+__global__ void realtimeRayTracing(
     Camera camera, Flt3 *frmbuffer, int frmW, int frmH, // In-out
     Flt4 *txtrFlat, TxtrPtr *txtrPtr, // Textures
     Material *mats, // Materials

@@ -86,15 +86,12 @@ int main() {
         std::stringstream ss(cfgLine);
         std::string type; ss >> type;
 
-        if (type == "CameraPos") {
+        if (type == "CameraPos")
             ss >> CAMERA.pos.x >> CAMERA.pos.y >> CAMERA.pos.z;
-        }
-        else if (type == "CameraRot") {
+        else if (type == "CameraRot")
             ss >> CAMERA.rot.x >> CAMERA.rot.y >> CAMERA.rot.z;
-        }
-        else if (type == "CameraFov") {
+        else if (type == "CameraFov")
             ss >> CAMERA.fov;
-        }
 
         if (type == "LightSrc") {
             LightSrc lSrc; ss >>
@@ -116,17 +113,16 @@ int main() {
             ss >> hasFXAA;
         }
 
-        if (type == "MaxDepth") {
+        if (type == "MaxDepth")
             ss >> BvhMgr.MAX_DEPTH;
-        } else if (type == "MinFaces") {
+        else if (type == "MinFaces")
             ss >> BvhMgr.NODE_FACES;
-        } else if (type == "SplitX") {
+        else if (type == "SplitX")
             ss >> BvhMgr.SPLIT_X;
-        } else if (type == "SplitY") {
+        else if (type == "SplitY")
             ss >> BvhMgr.SPLIT_Y;
-        } else if (type == "SplitZ") {
+        else if (type == "SplitZ")
             ss >> BvhMgr.SPLIT_Z;
-        }
     };
 
     // Allocate frame buffer
@@ -272,7 +268,7 @@ int main() {
         CAMERA.update();
 
         // Render frmbuffer
-        iterativeRayTracing<<<blocks, threads>>>(
+        realtimeRayTracing<<<blocks, threads>>>(
             CAMERA, d_frmbuffer1, frmW, frmH,
             TxtrMgr.d_txtrFlat, TxtrMgr.d_txtrPtr,
             MatMgr.d_mats,

@@ -2,7 +2,7 @@
 
 #include <curand_kernel.h>
 
-__global__ void iterativeRayTracing(
+__global__ void realtimeRayTracing(
     Camera camera, Flt3 *frmbuffer, int frmW, int frmH, // In-out
     Flt4 *txtrFlat, TxtrPtr *txtrPtr, // Textures
     Material *mats, // Materials
@@ -161,7 +161,11 @@ __global__ void iterativeRayTracing(
         }
 
         // Light management
-        Flt3 finalColr = mat.Ka;
+        float RdotN = ray.d * nrml;
+        RdotN = RdotN < 0 ? -RdotN : RdotN;
+
+        Flt3 finalColr = mat.Ka * RdotN;
+        // Ka for ambient, RdotN for better 3d perception
 
         for (int l = 0; l < lNum; ++l) {
             const LightSrc &light = lSrc[l];
@@ -170,7 +174,8 @@ __global__ void iterativeRayTracing(
 
             Flt3 lDir = vrtx - lPos;
             float lDist = lDir.mag();
-            lDir.norm();
+            lDir /= lDist;
+
             Flt3 lInv = 1.0f / lDir;
 
             ns_top = 0;
