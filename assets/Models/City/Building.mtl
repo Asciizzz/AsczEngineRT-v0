@@ -5,6 +5,6 @@ Ns 10
 
 newmtl glass
 Phong 1
-transm 0.6
+Tr 0.6
 #refl 0.6
 Kd 0.7 0.1 0.7

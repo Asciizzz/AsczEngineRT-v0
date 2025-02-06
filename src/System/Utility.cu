@@ -184,6 +184,20 @@ void Utils::appendObj(
                     matMgr.h_mats[matIdx].Ns = Ns;
                 }
 
+                else if (mtlType == "Tr") {
+                    float Tr; mtlSS >> Tr;
+                    matMgr.h_mats[matIdx].Tr = Tr;
+                }
+                else if (mtlType == "d") { // The opposite of Tr
+                    float Tr; mtlSS >> Tr;
+                    matMgr.h_mats[matIdx].Tr = 1 - Tr;
+                }
+
+                else if (mtlType == "Ni") {
+                    float Ni; mtlSS >> Ni;
+                    matMgr.h_mats[matIdx].Ni = Ni;
+                }
+
                 // Additional attributes can be added here
                 // Even those that do no exist in a typical .mtl file
                 // for debugging of course
@@ -191,11 +205,6 @@ void Utils::appendObj(
                 else if (mtlType == "refl") {
                     float refl; mtlSS >> refl;
                     matMgr.h_mats[matIdx].reflect = refl;
-                }
-
-                else if (mtlType == "transm") {
-                    float transm; mtlSS >> transm;
-                    matMgr.h_mats[matIdx].transmit = transm;
                 }
 
                 else if (mtlType == "Fresnel") {

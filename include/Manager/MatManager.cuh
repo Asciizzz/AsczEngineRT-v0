@@ -11,10 +11,10 @@ struct Material {
     int mKd = -1;
 
     float Ns = 10.0f;
+    float Tr = 0.0f;
 
     // Not in a usual mtl file
     float reflect = 0.0f;
-    float transmit = 0.0f;
 
     float Fresnel = 0.0f;
     float Ni = 1.0f;

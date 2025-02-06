@@ -235,11 +235,11 @@ __global__ void realtimeRayTracing(
                     if (t > EPSILON_2 && t < lDist) {
                         const Material &mat2 = mats[mfm[fi]];
 
-                        if (mat2.transmit == 0.0f) {
+                        if (mat2.Tr < 0.01f) {
                             shadow = true; break;
                         }
 
-                        intens *= mat2.transmit;
+                        intens *= mat2.Tr;
 
                         if (mat2.mKd > -1) {
                             Int3 &ft = mft[fi];
@@ -299,9 +299,9 @@ __global__ void realtimeRayTracing(
             rstack[rs_top++] = Ray(reflOrigin, reflDir, wLeft, ray.Ni);
         }
         // Transparent
-        else if (mat.transmit > 0.0f && rs_top + 1 < MAX_RAYS) {
-            float wLeft = ray.w * mat.transmit;
-            ray.w *= (1 - mat.transmit);
+        else if (mat.Tr > 0.0f && rs_top + 1 < MAX_RAYS) {
+            float wLeft = ray.w * mat.Tr;
+            ray.w *= (1 - mat.Tr);
 
             Flt3 transOrg = vrtx + ray.d * EPSILON_1;
 
