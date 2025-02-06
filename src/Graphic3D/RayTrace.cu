@@ -253,12 +253,18 @@ __global__ void iterativeRayTracing(
             // Closer = brighter
             intens *= 1.0f / (lDist * lDist);
 
-            float NdotL = nrml * -lDir;
-            NdotL = NdotL < 0 ? -NdotL : NdotL;
-            Flt3 diff = passColr * NdotL * intens;
+            float diff = nrml * -lDir;
+            diff = diff < 0 ? -diff : diff;
 
-            finalColr += diff;
+            Flt3 refl = Ray::reflect(-lDir, nrml);
+            float spec = pow(refl * -ray.d, mat.Ns);
+
+            finalColr += passColr * (diff + spec) * intens;
         }
+
+        finalColr.x = finalColr.x < 0.02f ? 0.02f : finalColr.x;
+        finalColr.y = finalColr.y < 0.02f ? 0.02f : finalColr.y;
+        finalColr.z = finalColr.z < 0.02f ? 0.02f : finalColr.z;
 
         colr *= finalColr;
 

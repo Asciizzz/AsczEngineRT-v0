@@ -19,3 +19,7 @@ Flt3 Ray::refract(const Flt3 &n, float Ni2) {
 
     return d * Ni1 / Ni2 + n * (Ni1 * cosI / Ni2 - sqrt(cosT2));
 }
+
+Flt3 Ray::reflect(const Flt3 &d, const Flt3 &n) {
+    return d - n * (2.0f * (d * n));
+}

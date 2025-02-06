@@ -24,6 +24,8 @@ struct Ray {
     _hst_dev_ Flt3 reflect(const Flt3 &n);
     _hst_dev_ Flt3 refract(const Flt3 &n, float Ni2);
 
+    static _hst_dev_ Flt3 reflect(const Flt3 &d, const Flt3 &n);
+
     // Generate a random point on a unit disk using cosine-weighted sampling
     static __device__ Flt3 randomInUnitDisk(curandState *randState) {
         float theta = curand_uniform(randState) * 2.0f * M_PI;
