@@ -69,9 +69,13 @@ struct Flt3 {
     _hst_dev_ Flt3 operator*(const float scl) const;
     _hst_dev_ Flt3 operator/(const float scl) const;
     _hst_dev_ void operator+=(const Flt3 &v);
+    _hst_dev_ void operator+=(const float t);
     _hst_dev_ void operator-=(const Flt3 &v);
+    _hst_dev_ void operator-=(const float t);
     _hst_dev_ void operator*=(const float scl);
+    _hst_dev_ void operator*=(const Flt3 &v);
     _hst_dev_ void operator/=(const float scl);
+    _hst_dev_ void operator/=(const Flt3 &v);
     _hst_dev_ friend Flt3 operator+(const float t, const Flt3 &v);
     _hst_dev_ friend Flt3 operator-(const float t, const Flt3 &v);
     _hst_dev_ friend Flt3 operator*(const float scl, const Flt3 &v);

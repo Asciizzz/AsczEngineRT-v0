@@ -97,11 +97,11 @@ int main() {
         }
 
         if (type == "LightSrc") {
-            LightSrc lSrc;
-            ss >>
+            LightSrc lSrc; ss >>
                 lSrc.pos.x >> lSrc.pos.y >> lSrc.pos.z >>
                 lSrc.colr.x >> lSrc.colr.y >> lSrc.colr.z >>
                 lSrc.intens >> lSrc.size;
+
             LightMgr.appendLight(lSrc);
         }
 

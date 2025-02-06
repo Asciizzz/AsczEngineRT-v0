@@ -62,14 +62,26 @@ Flt3 Flt3::operator/(const float scl) const {
 void Flt3::operator+=(const Flt3& v) {
     x += v.x; y += v.y; z += v.z;
 }
+void Flt3::operator+=(const float t) {
+    x += t; y += t; z += t;
+}
 void Flt3::operator-=(const Flt3& v) {
     x -= v.x; y -= v.y; z -= v.z;
+}
+void Flt3::operator-=(const float t) {
+    x -= t; y -= t; z -= t;
 }
 void Flt3::operator*=(const float scl) {
     x *= scl; y *= scl; z *= scl;
 }
+void Flt3::operator*=(const Flt3& v) {
+    x *= v.x; y *= v.y; z *= v.z;
+}
 void Flt3::operator/=(const float scl) {
     x /= scl; y /= scl; z /= scl;
+}
+void Flt3::operator/=(const Flt3& v) {
+    x /= v.x; y /= v.y; z /= v.z;
 }
 Flt3 operator+(const float t, const Flt3& v) {
     return Flt3(v.x + t, v.y + t, v.z + t);

@@ -174,6 +174,10 @@ __global__ void iterativeRayTracing(
             ns_top = 0;
             nstack[ns_top++] = 0; // Start with root
 
+            // Values for transparency
+            float intens = light.intens;
+            Flt3 passColr = light.colr;
+
             bool shadow = false;
             while (ns_top > 0) {
                 int idx = nstack[--ns_top];
@@ -228,8 +232,15 @@ __global__ void iterativeRayTracing(
                     float t = f * (e2 * q);
 
                     if (t > EPSILON_2 && t < lDist) {
-                        shadow = true;
-                        break;
+                        const Material &mat2 = mats[mfm[fi]];
+
+                        if (mat2.transmit > 0.0f) {
+                            intens *= mat2.transmit;
+                            passColr += mat2.Kd;
+                        } else {
+                            shadow = true;
+                            break;
+                        }
                     }
                 }
 
@@ -238,16 +249,18 @@ __global__ void iterativeRayTracing(
 
             if (shadow) continue;
 
+
+            // Closer = brighter
+            intens *= 1.0f / (lDist * lDist);
+
             float NdotL = nrml * -lDir;
             NdotL = NdotL < 0 ? -NdotL : NdotL;
-            Flt3 diff = light.colr * light.intens * NdotL;
+            Flt3 diff = passColr * NdotL * intens;
 
             finalColr += diff;
         }
 
-        colr.x *= finalColr.x;
-        colr.y *= finalColr.y;
-        colr.z *= finalColr.z;
+        colr *= finalColr;
 
         // Reflective
         if (mat.reflect > 0.0f && rs_top + 1 < MAX_RAYS) {
