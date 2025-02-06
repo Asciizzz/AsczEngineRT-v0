@@ -161,7 +161,7 @@ __global__ void iterativeRayTracing(
         }
 
         // Light management
-        Flt3 finalColr = Flt3(0, 0, 0);
+        Flt3 finalColr = mat.Ka;
 
         for (int l = 0; l < lNum; ++l) {
             const LightSrc &light = lSrc[l];
@@ -236,12 +236,33 @@ __global__ void iterativeRayTracing(
                     if (t > EPSILON_2 && t < lDist) {
                         const Material &mat2 = mats[mfm[fi]];
 
-                        if (mat2.transmit > 0.0f) {
-                            intens *= mat2.transmit;
-                            passColr += mat2.Kd;
+                        if (mat2.transmit == 0.0f) {
+                            shadow = true; break;
+                        }
+
+                        intens *= mat2.transmit;
+
+                        if (mat2.mapKd > -1) {
+                            Int3 &ft = mft[fi];
+                            Flt2 &t0 = mt[ft.x], &t1 = mt[ft.y], &t2 = mt[ft.z];
+                            Flt2 txtr = t0 * hitw + t1 * hit.u + t2 * hit.v;
+                            txtr.x -= floor(txtr.x);
+                            txtr.y -= floor(txtr.y);
+
+                            int mapKd = mat2.mapKd;
+                            int tw = txtrPtr[mapKd].w;
+                            int th = txtrPtr[mapKd].h;
+                            int toff = txtrPtr[mapKd].off;
+
+                            int txtrX = txtr.x * tw;
+                            int txtrY = txtr.y * th;
+
+                            int mapKd2 = txtrX + txtrY * tw + toff;
+                            Flt4 tColr = txtrFlat[mapKd2];
+
+                            passColr += tColr.f3();
                         } else {
-                            shadow = true;
-                            break;
+                            passColr += mat2.Kd;
                         }
                     }
                 }
@@ -250,7 +271,6 @@ __global__ void iterativeRayTracing(
             }
 
             if (shadow) continue;
-
 
             // Exponential falloff
             if (light.falloff) {
@@ -267,10 +287,6 @@ __global__ void iterativeRayTracing(
 
             finalColr += passColr * (diff + spec) * intens;
         }
-
-        finalColr.x = finalColr.x < 0.02f ? 0.02f : finalColr.x;
-        finalColr.y = finalColr.y < 0.02f ? 0.02f : finalColr.y;
-        finalColr.z = finalColr.z < 0.02f ? 0.02f : finalColr.z;
 
         colr *= finalColr;
 

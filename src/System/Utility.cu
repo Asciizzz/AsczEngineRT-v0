@@ -156,9 +156,19 @@ void Utils::appendObj(
                     matMap[matName] = matIdx;
                 }
 
+                else if (mtlType == "Ka") {
+                    Flt3 Ka; mtlSS >> Ka.x >> Ka.y >> Ka.z;
+                    matMgr.h_mats[matIdx].Ka = Ka;
+                }
+
                 else if (mtlType == "Kd") {
                     Flt3 Kd; mtlSS >> Kd.x >> Kd.y >> Kd.z;
                     matMgr.h_mats[matIdx].Kd = Kd;
+                }
+
+                else if (mtlType == "Ks") {
+                    Flt3 Ks; mtlSS >> Ks.x >> Ks.y >> Ks.z;
+                    matMgr.h_mats[matIdx].Ks = Ks;
                 } 
 
                 else if (mtlType == "map_Kd") {
