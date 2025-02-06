@@ -6,7 +6,7 @@
 
 class Camera {
 public:
-    float fov = M_PI_2;
+    float fov = M_PI_2; // The most perfect fov imo
 
     Flt3 pos, rot;
     void restrictRot();
@@ -22,9 +22,6 @@ public:
 
     void update();
 
-    // BETA: movement
-    Flt3 vel;
-
     // Some beta settings
     float mSens = 0.2f;
     float slowFactor = 0.2f;
@@ -32,7 +29,7 @@ public:
     float velSpec = 20;
 
     bool focus = true;
-    
+
     // Debug
     std::string data();
 };

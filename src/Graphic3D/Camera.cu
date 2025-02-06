@@ -61,12 +61,3 @@ std::string Camera::data() {
     str += "| Fov: " + std::to_string(fov * 180 / M_PI) + "\n";
     return str;
 }
-
-__global__ void castRayKernel(Camera camera, Ray *rays, int w, int h) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx >= w * h) return;
-
-    int x = idx % w, y = idx / w;
-
-    rays[y * w + x] = camera.castRay(x, y, w, h);
-}

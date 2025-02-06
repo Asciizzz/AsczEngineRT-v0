@@ -159,7 +159,7 @@ __global__ void realtimeRayTracing(
         float RdotN = ray.d * nrml;
         RdotN = RdotN < 0 ? -RdotN : RdotN;
 
-        Flt3 finalColr = mat.Ka * RdotN;
+        Flt3 finalColr = (mat.Ka & hitKd) * RdotN;
 
         for (int l = 0; l < lNum; ++l) {
             const LightSrc &light = lSrc[l];
@@ -286,6 +286,8 @@ __global__ void realtimeRayTracing(
             finalColr += passColr & (spec + diff) * intens;
         }
 
+        // ======== Additional rays ========
+
         // Reflective
         if (mat.reflect > 0.0f && rs_top + 1 < MAX_RAYS) {
             float wLeft = ray.w * mat.reflect;
@@ -330,7 +332,7 @@ __global__ void realtimeRayTracing(
             rstack[rs_top++] = Ray(reflOrigin, reflDir, Rrefl, ray.Ni);
         }
 
-        resultColr += finalColr;
+        resultColr += finalColr * ray.w;
     }
 
     frmbuffer[tIdx] = resultColr;
