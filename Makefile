@@ -21,7 +21,6 @@ AsczEngine:
 		src/MathLib/Matrix.cu \
 		src/Graphic3D/Ray.cu \
 		src/Graphic3D/Camera.cu \
-		src/Graphic3D/SFMLTexture.cu \
 		src/Graphic3D/RayTrace.cu \
 		src/Manager/MatManager.cu \
 		src/Manager/TxtrManager.cu \
@@ -29,6 +28,7 @@ AsczEngine:
 		src/Manager/BvhManager.cu \
 		src/System/FpsHandler.cu \
 		src/System/CsLogHandler.cu \
+		src/Graphic3D/SFMLTexture.cu \
 		src/System/Utility.cu \
 		\
 		AsczEngine.cu \

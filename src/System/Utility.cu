@@ -174,7 +174,7 @@ void Utils::appendObj(
                 else if (mtlType == "map_Kd") {
                     std::string txtrPath; mtlSS >> txtrPath;
 
-                    matMgr.h_mats[matIdx].mapKd = txtrMgr.appendTexture(
+                    matMgr.h_mats[matIdx].mKd = txtrMgr.appendTexture(
                         (mtlDir + txtrPath).c_str()
                     );
                 }

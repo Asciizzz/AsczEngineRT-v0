@@ -74,14 +74,8 @@ void Flt3::operator-=(const float t) {
 void Flt3::operator*=(const float scl) {
     x *= scl; y *= scl; z *= scl;
 }
-void Flt3::operator*=(const Flt3& v) {
-    x *= v.x; y *= v.y; z *= v.z;
-}
 void Flt3::operator/=(const float scl) {
     x /= scl; y /= scl; z /= scl;
-}
-void Flt3::operator/=(const Flt3& v) {
-    x /= v.x; y /= v.y; z /= v.z;
 }
 Flt3 operator+(const float t, const Flt3& v) {
     return Flt3(v.x + t, v.y + t, v.z + t);
@@ -103,12 +97,20 @@ bool Flt3::operator!=(const Flt3& v) const {
     return x != v.x || y != v.y || z != v.z;
 }
 
-float Flt3::operator*(const Flt3& v) const {
+// Element-wise multiplication
+Flt3 Flt3::operator&(const Flt3& v) const {
+    return Flt3(x * v.x, y * v.y, z * v.z);
+}
+void Flt3::operator&=(const Flt3& v) {
+    x *= v.x; y *= v.y; z *= v.z;
+}
+float Flt3::operator*(const Flt3& v) const { // Dot product
     return x * v.x + y * v.y + z * v.z;
 }
-Flt3 Flt3::operator&(const Flt3& v) const { // Cross product
+Flt3 Flt3::operator^(const Flt3& v) const { // Cross product
     return Flt3(y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x);
 }
+
 float Flt3::mag() {
     return sqrt(x * x + y * y + z * z);
 }

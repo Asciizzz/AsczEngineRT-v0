@@ -37,9 +37,9 @@ struct Ray {
     static __device__ Ray generateJitteredRay(const Ray &ray, float jitter, curandState *randState) {
         // Create an orthonormal basis around the ray direction
         Flt3 up = fabs(ray.d.z) < 0.99f ? Flt3(0, 0, 1) : Flt3(1, 0, 0);
-        Flt3 right = ray.d & up;  // Cross product to get tangent vector
+        Flt3 right = ray.d ^ up;  // Cross product to get tangent vector
         right.norm();
-        Flt3 upVec = right & ray.d; // Get second perpendicular vector
+        Flt3 upVec = right ^ ray.d; // Get second perpendicular vector
 
         // Sample random offset in disk
         Flt3 offset = randomInUnitDisk(randState);

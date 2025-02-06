@@ -84,7 +84,7 @@ __global__ void realtimeRayTracing(
 
                 Flt3 e1 = v1 - v0;
                 Flt3 e2 = v2 - v0;
-                Flt3 h = ray.d & e2;
+                Flt3 h = ray.d ^ e2;
                 float a = e1 * h;
 
                 if (a > -EPSILON_2 && a < EPSILON_2) continue;
@@ -95,7 +95,7 @@ __global__ void realtimeRayTracing(
 
                 if (u < 0.0f || u > 1.0f) continue;
 
-                Flt3 q = s & e1;
+                Flt3 q = s ^ e1;
                 float v = f * (ray.d * q);
 
                 if (v < 0.0f || u + v > 1.0f) continue;
@@ -136,7 +136,7 @@ __global__ void realtimeRayTracing(
 
         Flt3 colr;
         // Color/Texture interpolation
-        if (mat.mapKd > -1) {
+        if (mat.mKd > -1) {
             Int3 &ft = mft[hidx];
             Flt2 &t0 = mt[ft.x], &t1 = mt[ft.y], &t2 = mt[ft.z];
             Flt2 txtr = t0 * hitw + t1 * hit.u + t2 * hit.v;
@@ -144,18 +144,16 @@ __global__ void realtimeRayTracing(
             txtr.x -= floor(txtr.x);
             txtr.y -= floor(txtr.y);
 
-            int mapKd = mat.mapKd;
-            int tw = txtrPtr[mapKd].w;
-            int th = txtrPtr[mapKd].h;
-            int toff = txtrPtr[mapKd].off;
+            int mKd = mat.mKd;
+            int tw = txtrPtr[mKd].w;
+            int th = txtrPtr[mKd].h;
+            int toff = txtrPtr[mKd].off;
 
             int txtrX = txtr.x * tw;
             int txtrY = txtr.y * th;
 
-            int mapKd2 = txtrX + txtrY * tw + toff;
-            Flt4 tColr = txtrFlat[mapKd2];
-
-            colr = Flt3(tColr.x, tColr.y, tColr.z);
+            int mKd2 = txtrX + txtrY * tw + toff;
+            colr = txtrFlat[mKd2].f3();
         } else {
             colr = mat.Kd;
         }
@@ -165,7 +163,6 @@ __global__ void realtimeRayTracing(
         RdotN = RdotN < 0 ? -RdotN : RdotN;
 
         Flt3 finalColr = mat.Ka * RdotN;
-        // Ka for ambient, RdotN for better 3d perception
 
         for (int l = 0; l < lNum; ++l) {
             const LightSrc &light = lSrc[l];
@@ -220,7 +217,7 @@ __global__ void realtimeRayTracing(
 
                     Flt3 e1 = v1 - v0;
                     Flt3 e2 = v2 - v0;
-                    Flt3 h = lDir & e2;
+                    Flt3 h = lDir ^ e2;
                     float a = e1 * h;
 
                     if (a > -EPSILON_2 && a < EPSILON_2) continue;
@@ -231,7 +228,7 @@ __global__ void realtimeRayTracing(
 
                     if (u < 0.0f || u > 1.0f) continue;
 
-                    Flt3 q = s & e1;
+                    Flt3 q = s ^ e1;
                     float v = f * (lDir * q);
 
                     if (v < 0.0f || u + v > 1.0f) continue;
@@ -247,25 +244,23 @@ __global__ void realtimeRayTracing(
 
                         intens *= mat2.transmit;
 
-                        if (mat2.mapKd > -1) {
+                        if (mat2.mKd > -1) {
                             Int3 &ft = mft[fi];
                             Flt2 &t0 = mt[ft.x], &t1 = mt[ft.y], &t2 = mt[ft.z];
-                            Flt2 txtr = t0 * hitw + t1 * hit.u + t2 * hit.v;
-                            txtr.x -= floor(txtr.x);
-                            txtr.y -= floor(txtr.y);
+                            Flt2 tx = t0 * hitw + t1 * hit.u + t2 * hit.v;
+                            tx.x -= floor(tx.x);
+                            tx.y -= floor(tx.y);
 
-                            int mapKd = mat2.mapKd;
-                            int tw = txtrPtr[mapKd].w;
-                            int th = txtrPtr[mapKd].h;
-                            int toff = txtrPtr[mapKd].off;
+                            int mKd = mat2.mKd;
+                            int tw = txtrPtr[mKd].w;
+                            int th = txtrPtr[mKd].h;
+                            int toff = txtrPtr[mKd].off;
 
-                            int txtrX = txtr.x * tw;
-                            int txtrY = txtr.y * th;
+                            int txX = tx.x * tw;
+                            int txY = tx.y * th;
 
-                            int mapKd2 = txtrX + txtrY * tw + toff;
-                            Flt4 tColr = txtrFlat[mapKd2];
-
-                            passColr += tColr.f3();
+                            int mKd2 = txX + txY * tw + toff;
+                            passColr += txtrFlat[mKd2].f3();
                         } else {
                             passColr += mat2.Kd;
                         }
@@ -284,16 +279,16 @@ __global__ void realtimeRayTracing(
                 intens *= falloff;
             }
 
-            float diff = nrml * -lDir;
+            float diff = -lDir * nrml;
             diff = diff < 0 ? -diff : diff;
 
             Flt3 refl = Ray::reflect(-lDir, nrml);
-            float spec = pow(refl * -ray.d, mat.Ns);
+            Flt3 spec = mat.Ks * pow(refl * -ray.d, mat.Ns);
 
-            finalColr += passColr * (diff + spec) * intens;
+            finalColr += passColr & (spec + diff) * intens;
         }
 
-        colr *= finalColr;
+        finalColr &= colr;
 
         // Reflective
         if (mat.reflect > 0.0f && rs_top + 1 < MAX_RAYS) {
@@ -339,7 +334,7 @@ __global__ void realtimeRayTracing(
             rstack[rs_top++] = Ray(reflOrigin, reflDir, Rrefl, ray.Ni);
         }
 
-        resultColr += colr * ray.w;
+        resultColr += finalColr;
     }
 
     frmbuffer[tIdx] = resultColr;

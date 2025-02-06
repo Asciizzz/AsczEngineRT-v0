@@ -68,25 +68,31 @@ struct Flt3 {
     _hst_dev_ Flt3 operator-(const float t) const;
     _hst_dev_ Flt3 operator*(const float scl) const;
     _hst_dev_ Flt3 operator/(const float scl) const;
+
     _hst_dev_ void operator+=(const Flt3 &v);
     _hst_dev_ void operator+=(const float t);
     _hst_dev_ void operator-=(const Flt3 &v);
     _hst_dev_ void operator-=(const float t);
     _hst_dev_ void operator*=(const float scl);
-    _hst_dev_ void operator*=(const Flt3 &v);
     _hst_dev_ void operator/=(const float scl);
-    _hst_dev_ void operator/=(const Flt3 &v);
+
     _hst_dev_ friend Flt3 operator+(const float t, const Flt3 &v);
     _hst_dev_ friend Flt3 operator-(const float t, const Flt3 &v);
     _hst_dev_ friend Flt3 operator*(const float scl, const Flt3 &v);
     _hst_dev_ friend Flt3 operator/(const float scl, const Flt3 &v);
+
     // Comparison
     _hst_dev_ bool operator==(const Flt3 &v) const;
     _hst_dev_ bool operator!=(const Flt3 &v) const;
+
+    // Element-wise multiplication
+    _hst_dev_ Flt3 operator&(const Flt3 &v) const;
+    _hst_dev_ void operator&=(const Flt3 &v);
     // Dot product
     _hst_dev_ float operator*(const Flt3 &v) const;
     // Cross product 
-    _hst_dev_ Flt3 operator&(const Flt3 &v) const;
+    _hst_dev_ Flt3 operator^(const Flt3 &v) const;
+
     // Magnitude
     _hst_dev_ float mag();
     // Normalize
@@ -102,6 +108,7 @@ struct Flt3 {
     _hst_dev_ static Flt3 rotateZ(Flt3 &v, const Flt3 &o, const float rz);
     _hst_dev_ static Flt3 scale(Flt3 &v, const Flt3 &o, const Flt3 &scl);
     _hst_dev_ static Flt3 scale(Flt3 &v, const Flt3 &o, const float scl);
+
     // Transformations but on self
     _hst_dev_ void translate(const Flt3 &t);
     _hst_dev_ void rotateX(const Flt3 &o, const float rx);
@@ -131,7 +138,6 @@ struct Flt4 {
     // Limit the vector
     _hst_dev_ void limit(float min, float max);
 };
-
 
 struct Int3 {
     int x, y, z;
