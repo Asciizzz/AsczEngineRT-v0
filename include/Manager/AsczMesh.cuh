@@ -50,9 +50,9 @@ struct MeshStruct {
     Vec3i fv;
     Vec3i ft;
     Vec3i fn;
-    VecI fm;
+    VecI  fm;
 
-    VecI SOrF; // Sub-objects
+    VecI  SOrF; // Sub-objects
 };
 
 class AsczMesh {
@@ -70,8 +70,8 @@ public:
     Vec3f h_fABmax; // Face's AABB max
     Vec3f h_fABcen; // Face's AABB center (not to be confused with face's center)
 
-    VecI OrSO = {0}; // Object references sub-objects
-    VecI SOrF = {0}; // Sub-object references faces
+    VecI  OrSO = {0}; // Object references sub-objects
+    VecI  SOrF = {0}; // Sub-object references faces
 
 
     Flt3 ABmin, ABmax;
@@ -87,7 +87,7 @@ public:
     Int3 *d_fv = nullptr;
     Int3 *d_ft = nullptr;
     Int3 *d_fn = nullptr;
-    int   *d_fm = nullptr;
+    int  *d_fm = nullptr;
     Flt3 *d_fABmin = nullptr;
     Flt3 *d_fABmax = nullptr;
     Flt3 *d_fABcen = nullptr;

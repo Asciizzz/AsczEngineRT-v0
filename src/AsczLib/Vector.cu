@@ -62,24 +62,32 @@ Flt3 Flt3::operator*(const float scl) const {
 Flt3 Flt3::operator/(const float scl) const {
     return Flt3(x / scl, y / scl, z / scl);
 }
-void Flt3::operator+=(const Flt3& v) {
+
+Flt3 Flt3::operator+=(const Flt3& v) {
     x += v.x; y += v.y; z += v.z;
+    return *this;
 }
-void Flt3::operator+=(const float t) {
+Flt3 Flt3::operator+=(const float t) {
     x += t; y += t; z += t;
+    return *this;
 }
-void Flt3::operator-=(const Flt3& v) {
+Flt3 Flt3::operator-=(const Flt3& v) {
     x -= v.x; y -= v.y; z -= v.z;
+    return *this;
 }
-void Flt3::operator-=(const float t) {
+Flt3 Flt3::operator-=(const float t) {
     x -= t; y -= t; z -= t;
+    return *this;
 }
-void Flt3::operator*=(const float scl) {
+Flt3 Flt3::operator*=(const float scl) {
     x *= scl; y *= scl; z *= scl;
+    return *this;
 }
-void Flt3::operator/=(const float scl) {
+Flt3 Flt3::operator/=(const float scl) {
     x /= scl; y /= scl; z /= scl;
+    return *this;
 }
+
 Flt3 operator+(const float t, const Flt3& v) {
     return Flt3(v.x + t, v.y + t, v.z + t);
 }
@@ -104,8 +112,9 @@ bool Flt3::operator!=(const Flt3& v) const {
 Flt3 Flt3::operator&(const Flt3& v) const {
     return Flt3(x * v.x, y * v.y, z * v.z);
 }
-void Flt3::operator&=(const Flt3& v) {
+Flt3 Flt3::operator&=(const Flt3& v) {
     x *= v.x; y *= v.y; z *= v.z;
+    return *this;
 }
 float Flt3::operator*(const Flt3& v) const { // Dot product
     return x * v.x + y * v.y + z * v.z;
@@ -119,8 +128,8 @@ float Flt3::mag() {
 }
 Flt3 Flt3::norm() {
     float m = mag();
-    x /= m; y /= m; z /= m;
-    return *this;
+    if (m == 0) return Flt3(0);
+    return *this /= m;
 }
 void Flt3::abs() {
     x = x < 0 ? -x : x;
