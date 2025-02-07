@@ -6,6 +6,9 @@ Flt2::Flt2(float x, float y) : x(x), y(y) {}
 float& Flt2::operator[](int i) {
     return i == 0 ? x : y;
 }
+float Flt2::operator[](int i) const {
+    return i == 0 ? x : y;
+}
 
 Flt2 Flt2::operator+(const Flt2& v) const {
     return Flt2(x + v.x, y + v.y);
@@ -243,6 +246,9 @@ Flt3 Flt4::f3(bool norm) {
 float& Flt4::operator[](int i) {
     return i == 0 ? x : (i == 1 ? y : (i == 2 ? z : w));
 }
+float Flt4::operator[](int i) const {
+    return i == 0 ? x : (i == 1 ? y : (i == 2 ? z : w));
+}
 
 Flt4 Flt4::operator+(const Flt4& v) const {
     return Flt4(x + v.x, y + v.y, z + v.z, w + v.w);
@@ -261,12 +267,6 @@ Flt4 Flt4::operator*(const float scl) const {
 }
 Flt4 Flt4::operator/(const float scl) const {
     return Flt4(x / scl, y / scl, z / scl, w / scl);
-}
-void Flt4::limit(float min, float max) {
-    x = std::max(min, std::min(x, max));
-    y = std::max(min, std::min(y, max));
-    z = std::max(min, std::min(z, max));
-    w = std::max(min, std::min(w, max));
 }
 
 

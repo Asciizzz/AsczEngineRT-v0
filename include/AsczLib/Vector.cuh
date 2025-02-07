@@ -40,6 +40,7 @@ struct Flt2 {
     
     // Bracket operator
     _hst_dev_ float& operator[](int i);
+    _hst_dev_ float operator[](int i) const;
 
     // Basic operations
     _hst_dev_ Flt2 operator+(const Flt2 &vec) const;
@@ -126,6 +127,7 @@ struct Flt4 {
     
     // Bracket operator
     _hst_dev_ float& operator[](int i);
+    _hst_dev_ float operator[](int i) const;
 
     // Basic operations
     _hst_dev_ Flt4 operator+(const Flt4 &v) const;
@@ -134,9 +136,6 @@ struct Flt4 {
     _hst_dev_ Flt4 operator-(const float t) const;
     _hst_dev_ Flt4 operator*(const float scl) const;
     _hst_dev_ Flt4 operator/(const float scl) const;
-
-    // Limit the vector
-    _hst_dev_ void limit(float min, float max);
 };
 
 struct Int3 {
