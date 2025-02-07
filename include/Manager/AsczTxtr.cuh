@@ -1,5 +1,5 @@
-#ifndef AsczTxtr_CUH
-#define AsczTxtr_CUH
+#ifndef ASCZTXTR_CUH
+#define ASCZTXTR_CUH
 
 #include <Vector.cuh>
 

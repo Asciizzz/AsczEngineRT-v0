@@ -1,5 +1,5 @@
-#ifndef AsczLight_CUH
-#define AsczLight_CUH
+#ifndef ASCZLIGHT_CUH
+#define ASCZLIGHT_CUH
 
 #include <Vector.cuh>
 

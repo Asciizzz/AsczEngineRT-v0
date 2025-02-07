@@ -1,5 +1,5 @@
-#ifndef AsczBvh_CUH
-#define AsczBvh_CUH
+#ifndef ASCZBVH_CUH
+#define ASCZBVH_CUH
 
 #include <AsczMesh.cuh>
 

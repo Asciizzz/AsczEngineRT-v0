@@ -1,5 +1,5 @@
-#ifndef AsczMesh_CUH
-#define AsczMesh_CUH
+#ifndef ASCZMESH_CUH
+#define ASCZMESH_CUH
 
 #include <Vector.cuh>
 

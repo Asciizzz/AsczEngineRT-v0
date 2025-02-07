@@ -1,5 +1,5 @@
-#ifndef AsczMat_CUH
-#define AsczMat_CUH
+#ifndef ASCZMAT_CUH
+#define ASCZMAT_CUH
 
 #include <Vector.cuh>
 
