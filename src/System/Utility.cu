@@ -7,15 +7,15 @@ void Utils::appendObj(
     std::ifstream file(objPath);
     if (!file.is_open()) return;
 
-    Vecs3f mv;
-    Vecs2f mt;
-    Vecs3f mn;
+    Vec3f mv;
+    Vec2f mt;
+    Vec3f mn;
 
-    Vecs3i mfv;
-    Vecs3i mft;
-    Vecs3i mfn;
-    VecsI mfm;
-    VecsI mSOrF;
+    Vec3i mfv;
+    Vec3i mft;
+    Vec3i mfn;
+    VecI mfm;
+    VecI mSOrF;
 
     int matIdx = 0;
     std::unordered_map<std::string, int> matMap;
@@ -60,7 +60,7 @@ void Utils::appendObj(
         else if (type == "f") {
             Int3 fv, ft, fn;
 
-            VecsI vs, ts, ns;
+            VecI vs, ts, ns;
             while (ss.good()) {
                 std::string vtn; ss >> vtn;
                 std::stringstream ss2(vtn);

@@ -11,14 +11,14 @@ Take a screenshot of these abomination below
 to instantly kill a programmer on the spot
 */
 
-#define VecsI std::vector<int>
-#define VecsF std::vector<float>
+#define VecI std::vector<int>
+#define VecF std::vector<float>
 
-#define Vecs2f std::vector<Flt2>
-#define Vecs3f std::vector<Flt3>
-#define Vecs4f std::vector<Flt4>
+#define Vec2f std::vector<Flt2>
+#define Vec3f std::vector<Flt3>
+#define Vec4f std::vector<Flt4>
 
-#define Vecs3i std::vector<Int3>
+#define Vec3i std::vector<Int3>
 
 #define _dev_ __device__
 #define _hst_ __host__

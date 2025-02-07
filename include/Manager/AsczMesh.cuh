@@ -43,35 +43,35 @@ To handle this, I have came up with a way to handle objects as well as their sub
 */
 
 struct MeshStruct {
-    Vecs3f v;
-    Vecs2f t;
-    Vecs3f n;
+    Vec3f v;
+    Vec2f t;
+    Vec3f n;
 
-    Vecs3i fv;
-    Vecs3i ft;
-    Vecs3i fn;
-    VecsI fm;
+    Vec3i fv;
+    Vec3i ft;
+    Vec3i fn;
+    VecI fm;
 
-    VecsI SOrF; // Sub-objects
+    VecI SOrF; // Sub-objects
 };
 
 class AsczMesh {
 public:
     // Host memory
-    Vecs3f h_v;
-    Vecs2f h_t;
-    Vecs3f h_n;
+    Vec3f h_v;
+    Vec2f h_t;
+    Vec3f h_n;
 
-    Vecs3i h_fv;
-    Vecs3i h_ft;
-    Vecs3i h_fn;
-    VecsI  h_fm; // Face's material index
-    Vecs3f h_fABmin; // Face's AABB min
-    Vecs3f h_fABmax; // Face's AABB max
-    Vecs3f h_fABcen; // Face's AABB center (not to be confused with face's center)
+    Vec3i h_fv;
+    Vec3i h_ft;
+    Vec3i h_fn;
+    VecI  h_fm; // Face's material index
+    Vec3f h_fABmin; // Face's AABB min
+    Vec3f h_fABmax; // Face's AABB max
+    Vec3f h_fABcen; // Face's AABB center (not to be confused with face's center)
 
-    VecsI OrSO = {0}; // Object references sub-objects
-    VecsI SOrF = {0}; // Sub-object references faces
+    VecI OrSO = {0}; // Object references sub-objects
+    VecI SOrF = {0}; // Sub-object references faces
 
 
     Flt3 ABmin, ABmax;

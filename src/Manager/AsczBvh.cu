@@ -48,9 +48,9 @@ void AsczBvh::toDevice() {
 }
 
 void AsczBvh::buildBvh(HstNode *nodes, AsczMesh &meshMgr, int depth) {
-    const Vecs3f &fABmin = meshMgr.h_fABmin; // Face's AABB min
-    const Vecs3f &fABmax = meshMgr.h_fABmax; // Face's AABB max
-    const Vecs3f &fABcen = meshMgr.h_fABcen; // Face's AABB center
+    const Vec3f &fABmin = meshMgr.h_fABmin; // Face's AABB min
+    const Vec3f &fABmax = meshMgr.h_fABmax; // Face's AABB max
+    const Vec3f &fABcen = meshMgr.h_fABcen; // Face's AABB center
 
     int nF = nodes->faces.size();
     if (depth >= MAX_DEPTH || nF <= NODE_FACES) {
@@ -161,9 +161,9 @@ int AsczBvh::toShader(HstNode *node, std::vector<DevNode> &dnodes, std::vector<i
 }
 
 void AsczBvh::designBVH(AsczMesh &meshMgr) {
-    const Vecs3i &fv = meshMgr.h_fv; // Faces
-    const Vecs3f &fABmin = meshMgr.h_fABmin; // Face's AABB min
-    const Vecs3f &fABmax = meshMgr.h_fABmax; // Face's AABB max
+    const Vec3i &fv = meshMgr.h_fv; // Faces
+    const Vec3f &fABmin = meshMgr.h_fABmin; // Face's AABB min
+    const Vec3f &fABmax = meshMgr.h_fABmax; // Face's AABB max
 
     HstNode *root = new HstNode();
     root->faces.resize(fv.size());
