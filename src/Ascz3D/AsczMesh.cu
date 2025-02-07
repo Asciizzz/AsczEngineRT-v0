@@ -20,6 +20,9 @@ void AsczMesh::appendMesh(MeshStruct mesh) {
             g.tri.t += h_t.size();
             g.tri.n += h_n.size();
         }
+        else if (g.type == AzGeom::SPHERE) {
+            g.sph.c += h_v.size();
+        }
 
         h_geom.push_back(g);
     }
@@ -77,9 +80,10 @@ void AsczMesh::computeData() {
             break;
 
         case AzGeom::SPHERE:
-            ABmin = g.sph.c - g.sph.r;
-            ABmax = g.sph.c + g.sph.r;
-            ABcen = g.sph.c;
+            Flt3 c = h_v[g.sph.c];
+            ABmin = c - Flt3(g.sph.r);
+            ABmax = c + Flt3(g.sph.r);
+            ABcen = c;
             break;
         }
 

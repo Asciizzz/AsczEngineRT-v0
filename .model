@@ -1,5 +1,6 @@
 assets/Models/Shapes/Floor/Floor.obj 0 2
 #assets/Models/Shapes/Cube/Cube1.obj 2 2
+assets/Models/Shapes/Sphere/Sphere.obj 0 2
 
 #assets/Models/Genshin/Paimon/Paimon.obj 0 2
 #assets/Models/Genshin/Navia/Navia.obj 2 10
@@ -10,7 +11,7 @@ assets/Models/Shapes/Floor/Floor.obj 0 2
 
 #assets/Models/Character/Sukuna/Sukuna.obj 2 1
 
-assets/Models/City/Building001.obj 2 1
+#assets/Models/City/Building001.obj 2 1
 
 #assets/Models/Structure/PeachsCastle/PeachsCastle.obj 2 1
 #assets/Models/Structure/PeachsCastle1F/PeachsCastle1F.obj 2 1
@@ -24,5 +25,3 @@ assets/Models/City/Building001.obj 2 1
 
 #.heavy/Fnaf/Fnaf1.obj 2 1
 #.heavy/AbandonedHouse/AbandonedHouse.obj 2 1
-
-Sphere 10 10 10 40 0

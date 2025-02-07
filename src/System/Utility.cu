@@ -200,6 +200,12 @@ void Utils::appendObj(
                 }
             }
         }
+
+        // STUFF THAT DO NOT EXIST IN A TYPICAL .OBJ FILE
+        else if (type == "sph") {
+            int c; float r; ss >> c >> r;
+            mgeom.push_back(AzGeom(c - fIdxBased, r, matIdx));
+        }
     }
     mSOrF.push_back(mgeom.size());
     mSOrF.erase(mSOrF.begin());

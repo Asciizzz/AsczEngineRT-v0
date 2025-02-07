@@ -129,7 +129,9 @@ _glb_ void realtimeRayTracing(
                     }
                 }
                 else if (geom[gi].type == AzGeom::SPHERE) {
-                    Flt3 sc = geom[gi].sph.c;
+                    int cIdx = geom[gi].sph.c;
+
+                    Flt3 sc = mv[cIdx];
                     float sr = geom[gi].sph.r;
 
                     Flt3 l = sc - ray.o;
@@ -285,12 +287,12 @@ _glb_ void realtimeRayTracing(
 
                         float t = f * (e2 * q);
 
-                        if (t > EPSILON_2 && t < lDist) {
-                            hit = true;
-                        }
+                        hit = t > EPSILON_2 && t < lDist;
                     }
                     else if (geom[gi].type == AzGeom::SPHERE) {
-                        Flt3 sc = geom[gi].sph.c;
+                        int cIdx = geom[gi].sph.c;
+
+                        Flt3 sc = mv[cIdx];
                         float sr = geom[gi].sph.r;
 
                         Flt3 l = sc - lPos;
@@ -303,11 +305,9 @@ _glb_ void realtimeRayTracing(
                         float t0 = tca - thc;
                         float t1 = tca + thc;
 
-                        if (t0 < 0) t0 = t1;
+                        t0 = t0 < 0 ? t1 : t0;
 
-                        if (t0 > EPSILON_2 && t0 < lDist) {
-                            hit = true;
-                        }
+                        hit = t0 > EPSILON_2 && t0 < lDist;
                     }
 
                     if (!hit) continue;

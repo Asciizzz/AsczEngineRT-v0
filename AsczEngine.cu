@@ -170,16 +170,7 @@ int main() {
         short objPlacement;
         float objScale;
 
-        ss >> objPath;
-        if (objPath == "Sphere") {
-            Flt3 pos; ss >> pos.x >> pos.y >> pos.z;
-            float rad; ss >> rad;
-            int matIdx; ss >> matIdx;
-
-            MeshMgr.h_geom.push_back(AzGeom(pos, rad, matIdx));
-        }
-
-        ss >> objPlacement >> objScale;
+        ss >> objPath >> objPlacement >> objScale;
 
         Utils::appendObj(
             MeshMgr, MtlMgr, TxtrMgr,

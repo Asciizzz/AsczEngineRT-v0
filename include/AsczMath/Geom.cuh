@@ -9,12 +9,12 @@ struct AzGeom {
 
     union {
         struct {
-            Int3 v; // Triangle vertices
-            Int3 t; // Triangle texture coordinates
-            Int3 n; // Triangle normals
+            Int3 v; // Triangle vertices indices
+            Int3 t; // Triangle tcoords indices
+            Int3 n; // Triangle normals indices
         } tri;
         struct {
-            Flt3 c; // Sphere center
+            int c; // Sphere center index
             float r; // Sphere radius
         } sph;
     };
@@ -24,8 +24,8 @@ struct AzGeom {
     AzGeom(Int3 tv, Int3 tt, Int3 tn, int m) :
         type(TRIANGLE), tri({ tv, tt, tn }), m(m) {}
 
-    AzGeom(Flt3 sc, float sr, int m) :
-        type(SPHERE), sph({ sc, sr }), m(m) {}
+    AzGeom(int c, float r, int m) :
+        type(SPHERE), sph({ c, r }), m(m) {}
 };
 
 #endif
