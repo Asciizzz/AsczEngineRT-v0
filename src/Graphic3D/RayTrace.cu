@@ -27,7 +27,7 @@ __global__ void realtimeRayTracing(
     int x = tIdx % frmW, y = tIdx / frmW;
     Ray primaryRay = camera.castRay(x, y, frmW, frmH);
 
-    const int MAX_RAYS = 8;
+    const int MAX_RAYS = 32;
     const int MAX_DEPTH = 32;
 
     Ray rstack[MAX_RAYS]; // Ray stack
@@ -40,7 +40,8 @@ __global__ void realtimeRayTracing(
     int rnum = 0;
     Flt3 resultColr = Flt3(0, 0, 0);
     while (rs_top > 0) {
-        Ray &ray = rstack[--rs_top];
+        // Copy before pop
+        Ray ray = rstack[--rs_top];
         RayHit hit;
 
         // Ray with little contribution
@@ -293,43 +294,30 @@ __global__ void realtimeRayTracing(
             float wLeft = ray.w * mat.reflect;
             ray.w *= (1 - mat.reflect);
 
-            Flt3 reflDir = ray.reflect(nrml);
-            Flt3 reflOrigin = vrtx + nrml * EPSILON_1;
+            Flt3 rD = ray.reflect(nrml);
+            Flt3 rO = vrtx + nrml * EPSILON_1;
 
-            rstack[rs_top++] = Ray(reflOrigin, reflDir, wLeft, ray.Ni);
+            // For another day
+            // Ray perfect = Ray(rO, rD, wLeft, ray.Ni);
+            // for (int i = 0; i < 8; i++) {
+            //     if (rs_top + 1 >= MAX_RAYS) break;
+
+            //     rstack[rs_top++] = Ray::generateJitteredRay(
+            //         perfect, 0.1f, &localRand
+            //     );
+            //     rstack[rs_top - 1].w = wLeft / 8;
+            // }
+
+            rstack[rs_top++] = Ray(rO, rD, wLeft, ray.Ni);
         }
         // Transparent
         else if (mat.Tr > 0.0f && rs_top + 1 < MAX_RAYS) {
             float wLeft = ray.w * mat.Tr;
             ray.w *= (1 - mat.Tr);
 
-            Flt3 transOrg = vrtx + ray.d * EPSILON_1;
+            Flt3 rO = vrtx + ray.d * EPSILON_1;
 
-            rstack[rs_top++] = Ray(transOrg, ray.d, wLeft, mat.Ni);
-        }
-        // Fresnel effect
-        else if (mat.Fresnel > 0.0f && rs_top + 2 < MAX_RAYS) {
-            float wLeft = ray.w * mat.Fresnel;
-            ray.w *= (1 - mat.Fresnel);
-
-            // Schlick's approximation
-            float cosI = (-ray.d) * nrml;
-            cosI = cosI < 0 ? 0 : cosI;
-
-            // Find the fresnel coefficient
-            float R = pow(1 - cosI, 5);
-            float Rrefl = R * wLeft;
-            float Rrefr = (1 - R) * wLeft;
-
-            // Refraction (for the time being just tranparent)
-            Flt3 refrDir = ray.d;
-            Flt3 refrOrigin = vrtx + refrDir * EPSILON_1;
-            rstack[rs_top++] = Ray(refrOrigin, refrDir, Rrefr, ray.Ni);
-
-            // Reflection
-            Flt3 reflDir = ray.reflect(nrml);
-            Flt3 reflOrigin = vrtx + nrml * EPSILON_1;
-            rstack[rs_top++] = Ray(reflOrigin, reflDir, Rrefl, ray.Ni);
+            rstack[rs_top++] = Ray(rO, ray.d, wLeft, mat.Ni);
         }
 
         resultColr += finalColr * ray.w;

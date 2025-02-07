@@ -1,4 +1,4 @@
 newmtl floor0
 Kd 1.000 1.000 1.000
-refl 0.1
-map_Kd Seia.png
+refl 0.6
+#map_Kd Seia.png

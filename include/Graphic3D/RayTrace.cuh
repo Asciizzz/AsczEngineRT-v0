@@ -22,8 +22,12 @@ Static Path Tracing:
 - Many ray bounces
 - Only render a static frame
 
-
 */
+
+struct Skybox {
+    Flt3 *txtr;
+    int w, h;
+};
 
 __global__ void realtimeRayTracing(
     Camera camera, Flt3 *frmbuffer, int frmW, int frmH, // In-out
