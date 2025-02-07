@@ -5,7 +5,7 @@
 __global__ void realtimeRayTracing(
     Camera camera, Flt3 *frmbuffer, int frmW, int frmH, // In-out
     Flt4 *txtrFlat, TxtrPtr *txtrPtr, // Textures
-    Material *mats, // Materials
+    Material *mtls, // Materials
     // Mesh data
     Flt3 *mv, Flt2 *mt, Flt3 *mn, // Primitive data
     Int3 *mfv, Int3 *mft, Int3 *mfn, int *mfm, // Face data
@@ -121,7 +121,7 @@ __global__ void realtimeRayTracing(
         // Get the face data
         int hidx = hit.idx; int &fm = mfm[hidx];
         float hitw = 1 - hit.u - hit.v;
-        const Material &mat = mats[fm];
+        const Material &mtl = mtls[fm];
 
         Flt3 vrtx = ray.o + ray.d * hit.t;
 
@@ -134,7 +134,7 @@ __global__ void realtimeRayTracing(
         }
 
         Flt3 hitKd;
-        if (mat.mKd > -1) {
+        if (mtl.mKd > -1) {
             Int3 &ft = mft[hidx];
             Flt2 &t0 = mt[ft.x], &t1 = mt[ft.y], &t2 = mt[ft.z];
             Flt2 txtr = t0 * hitw + t1 * hit.u + t2 * hit.v;
@@ -142,7 +142,7 @@ __global__ void realtimeRayTracing(
             txtr.x -= floor(txtr.x);
             txtr.y -= floor(txtr.y);
 
-            int mKd = mat.mKd;
+            int mKd = mtl.mKd;
             int tw = txtrPtr[mKd].w;
             int th = txtrPtr[mKd].h;
             int toff = txtrPtr[mKd].off;
@@ -153,14 +153,14 @@ __global__ void realtimeRayTracing(
             int mKd2 = txtrX + txtrY * tw + toff;
             hitKd = txtrFlat[mKd2].f3();
         } else {
-            hitKd = mat.Kd;
+            hitKd = mtl.Kd;
         }
 
         // Light management
         float RdotN = ray.d * nrml;
         RdotN = RdotN < 0 ? -RdotN : RdotN;
 
-        Flt3 finalColr = (mat.Ka & hitKd) * RdotN;
+        Flt3 finalColr = (mtl.Ka & hitKd) * RdotN;
 
         for (int l = 0; l < lNum; ++l) {
             const LightSrc &light = lSrc[l];
@@ -234,7 +234,7 @@ __global__ void realtimeRayTracing(
                     float t = f * (e2 * q);
 
                     if (t > EPSILON_2 && t < lDist) {
-                        const Material &mat2 = mats[mfm[fi]];
+                        const Material &mat2 = mtls[mfm[fi]];
 
                         if (mat2.Tr < 0.01f) {
                             shadow = true; break;
@@ -282,7 +282,7 @@ __global__ void realtimeRayTracing(
             Flt3 diff = hitKd * NdotL;
 
             Flt3 refl = Ray::reflect(-lDir, nrml);
-            Flt3 spec = mat.Ks * pow(refl * -ray.d, mat.Ns);
+            Flt3 spec = mtl.Ks * pow(refl * -ray.d, mtl.Ns);
 
             finalColr += passColr & (spec + diff) * intens;
         }
@@ -290,9 +290,9 @@ __global__ void realtimeRayTracing(
         // ======== Additional rays ========
 
         // Reflective
-        if (mat.reflect > 0.0f && rs_top + 1 < MAX_RAYS) {
-            float wLeft = ray.w * mat.reflect;
-            ray.w *= (1 - mat.reflect);
+        if (mtl.reflect > 0.0f && rs_top + 1 < MAX_RAYS) {
+            float wLeft = ray.w * mtl.reflect;
+            ray.w *= (1 - mtl.reflect);
 
             Flt3 rD = ray.reflect(nrml);
             Flt3 rO = vrtx + nrml * EPSILON_1;
@@ -311,13 +311,13 @@ __global__ void realtimeRayTracing(
             rstack[rs_top++] = Ray(rO, rD, wLeft, ray.Ni);
         }
         // Transparent
-        else if (mat.Tr > 0.0f && rs_top + 1 < MAX_RAYS) {
-            float wLeft = ray.w * mat.Tr;
-            ray.w *= (1 - mat.Tr);
+        else if (mtl.Tr > 0.0f && rs_top + 1 < MAX_RAYS) {
+            float wLeft = ray.w * mtl.Tr;
+            ray.w *= (1 - mtl.Tr);
 
             Flt3 rO = vrtx + ray.d * EPSILON_1;
 
-            rstack[rs_top++] = Ray(rO, ray.d, wLeft, mat.Ni);
+            rstack[rs_top++] = Ray(rO, ray.d, wLeft, mtl.Ni);
         }
 
         resultColr += finalColr * ray.w;

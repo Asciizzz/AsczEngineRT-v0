@@ -21,7 +21,7 @@ AsczEngine:
 		src/Graphic3D/Ray.cu \
 		src/Graphic3D/Camera.cu \
 		src/Graphic3D/RayTrace.cu \
-		src/Ascz3D/AsczMat.cu \
+		src/Ascz3D/AsczMtl.cu \
 		src/Ascz3D/AsczTxtr.cu \
 		src/Ascz3D/AsczMesh.cu \
 		src/Ascz3D/AsczBvh.cu \

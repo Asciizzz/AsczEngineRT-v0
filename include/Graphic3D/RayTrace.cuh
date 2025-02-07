@@ -3,7 +3,7 @@
 
 #include <Camera.cuh>
 #include <AsczTxtr.cuh>
-#include <AsczMat.cuh>
+#include <AsczMtl.cuh>
 #include <AsczMesh.cuh>
 #include <AsczBvh.cuh>
 #include <AsczLight.cuh>
@@ -24,15 +24,10 @@ Static Path Tracing:
 
 */
 
-struct Skybox {
-    Flt3 *txtr;
-    int w, h;
-};
-
 __global__ void realtimeRayTracing(
     Camera camera, Flt3 *frmbuffer, int frmW, int frmH, // In-out
     Flt4 *txtrFlat, TxtrPtr *txtrPtr, // Textures
-    Material *mats, // Materials
+    Material *mtls, // Materials
     // Mesh data
     Flt3 *mv, Flt2 *mt, Flt3 *mn, // Primitive data
     Int3 *mfv, Int3 *mft, Int3 *mfn, int *mfm, // Face data

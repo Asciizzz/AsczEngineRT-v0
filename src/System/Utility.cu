@@ -1,7 +1,7 @@
 #include <Utility.cuh>
 
 void Utils::appendObj(
-    AsczMesh &meshMgr, AsczMat &matMgr, AsczTxtr &txtrMgr,
+    AsczMesh &meshMgr, AsczMtl &matMgr, AsczTxtr &txtrMgr,
     const char *objPath, short placement, float scale, short fIdxBased 
 ) {
     std::ifstream file(objPath);
@@ -158,44 +158,44 @@ void Utils::appendObj(
 
                 else if (mtlType == "Ka") {
                     Flt3 Ka; mtlSS >> Ka.x >> Ka.y >> Ka.z;
-                    matMgr.h_mats[matIdx].Ka = Ka;
+                    matMgr.h_mtls[matIdx].Ka = Ka;
                 }
 
                 else if (mtlType == "Kd") {
                     Flt3 Kd; mtlSS >> Kd.x >> Kd.y >> Kd.z;
-                    matMgr.h_mats[matIdx].Kd = Kd;
+                    matMgr.h_mtls[matIdx].Kd = Kd;
                 }
 
                 else if (mtlType == "Ks") {
                     Flt3 Ks; mtlSS >> Ks.x >> Ks.y >> Ks.z;
-                    matMgr.h_mats[matIdx].Ks = Ks;
+                    matMgr.h_mtls[matIdx].Ks = Ks;
                 } 
 
                 else if (mtlType == "map_Kd") {
                     std::string txtrPath; mtlSS >> txtrPath;
 
-                    matMgr.h_mats[matIdx].mKd = txtrMgr.appendTexture(
+                    matMgr.h_mtls[matIdx].mKd = txtrMgr.appendTexture(
                         (mtlDir + txtrPath).c_str()
                     );
                 }
 
                 else if (mtlType == "Ns") {
                     float Ns; mtlSS >> Ns;
-                    matMgr.h_mats[matIdx].Ns = Ns;
+                    matMgr.h_mtls[matIdx].Ns = Ns;
                 }
 
                 else if (mtlType == "Tr") {
                     float Tr; mtlSS >> Tr;
-                    matMgr.h_mats[matIdx].Tr = Tr;
+                    matMgr.h_mtls[matIdx].Tr = Tr;
                 }
                 else if (mtlType == "d") { // The opposite of Tr
                     float Tr; mtlSS >> Tr;
-                    matMgr.h_mats[matIdx].Tr = 1 - Tr;
+                    matMgr.h_mtls[matIdx].Tr = 1 - Tr;
                 }
 
                 else if (mtlType == "Ni") {
                     float Ni; mtlSS >> Ni;
-                    matMgr.h_mats[matIdx].Ni = Ni;
+                    matMgr.h_mtls[matIdx].Ni = Ni;
                 }
 
                 // Additional attributes can be added here
@@ -204,12 +204,12 @@ void Utils::appendObj(
 
                 else if (mtlType == "refl") {
                     float refl; mtlSS >> refl;
-                    matMgr.h_mats[matIdx].reflect = refl;
+                    matMgr.h_mtls[matIdx].reflect = refl;
                 }
 
                 else if (mtlType == "Fresnel") {
                     float fresnel; mtlSS >> fresnel;
-                    matMgr.h_mats[matIdx].Fresnel = fresnel;
+                    matMgr.h_mtls[matIdx].Fresnel = fresnel;
                 }
             }
         }

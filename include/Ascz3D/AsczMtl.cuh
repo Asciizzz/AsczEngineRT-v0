@@ -1,5 +1,5 @@
-#ifndef ASCZMAT_CUH
-#define ASCZMAT_CUH
+#ifndef ASCZMTL_CUH
+#define ASCZMTL_CUH
 
 #include <Vector.cuh>
 
@@ -20,19 +20,16 @@ struct Material {
     float Ni = 1.0f;
 };
 
-class AsczMat {
+class AsczMtl {
 public:
     // Host memory
-    std::vector<Material> h_mats = { Material() };
-    // Append material and return the index
-    int appendMaterial(Material mat);
-    // Get the last mesh
-    Material &getLastMaterial() { return h_mats.back(); }
+    std::vector<Material> h_mtls = { Material() };
 
     // Device memory
-    Material *d_mats = nullptr;
-    int matsNum = 0;
+    Material *d_mtls = nullptr;
+    int mtlsNum = 0;
 
+    int appendMaterial(Material mtl);
     void freeDevice();
     void toDevice();
 };

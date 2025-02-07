@@ -5,7 +5,7 @@
 #include <random>
 
 #include <AsczTxtr.cuh>
-#include <AsczMat.cuh>
+#include <AsczMtl.cuh>
 #include <AsczMesh.cuh>
 #include <AsczBvh.cuh>
 #include <AsczLight.cuh>
@@ -59,7 +59,7 @@ int main() {
 
     // All managers
     AsczTxtr TxtrMgr;
-    AsczMat MatMgr;
+    AsczMtl MatMgr;
     AsczMesh MeshMgr;
     AsczBvh BvhMgr;
     AsczLight LightMgr;
@@ -271,7 +271,7 @@ int main() {
         realtimeRayTracing<<<blocks, threads>>>(
             CAMERA, d_frmbuffer1, frmW, frmH,
             TxtrMgr.d_txtrFlat, TxtrMgr.d_txtrPtr,
-            MatMgr.d_mats,
+            MatMgr.d_mtls,
             MeshMgr.d_v, MeshMgr.d_t, MeshMgr.d_n,
             MeshMgr.d_fv, MeshMgr.d_ft, MeshMgr.d_fn, MeshMgr.d_fm,
             MeshMgr.fNum,
