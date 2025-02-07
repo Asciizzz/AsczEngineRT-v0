@@ -49,7 +49,6 @@ void AsczMesh::computeData() {
     for (int i = 0; i < fNum; ++i) {
         Flt3 fABmin = Flt3(INFINITY);
         Flt3 fABmax = Flt3(-INFINITY);
-        Flt3 fABcen = Flt3();
 
         for (int j = 0; j < 3; ++j) {
             Flt3 v = h_v[h_fv[i][j]];
@@ -61,13 +60,11 @@ void AsczMesh::computeData() {
             fABmax.x = fmaxf(fABmax.x, v.x);
             fABmax.y = fmaxf(fABmax.y, v.y);
             fABmax.z = fmaxf(fABmax.z, v.z);
-
-            fABcen += v;
         }
 
         h_fABmin[i] = fABmin;
         h_fABmax[i] = fABmax;
-        h_fABcen[i] = fABcen / 3;
+        h_fABcen[i] = (fABmin + fABmax) * 0.5f;
     }
 }
 
