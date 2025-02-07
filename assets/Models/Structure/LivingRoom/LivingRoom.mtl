@@ -2,7 +2,6 @@
 # Material Count: 34
 
 newmtl Aluminium
-Phong 1
 #Ns 728.999998
 #Ka 1.000000 1.000000 1.000000
 Kd 0.233016 0.233016 0.233016
@@ -12,7 +11,6 @@ Ni 1.450000
 d 1.000000
 
 newmtl Book
-Phong 1
 #Ns 225.000000
 #Ka 1.000000 1.000000 1.000000
 Kd 0.800000 0.800000 0.800000
@@ -23,7 +21,6 @@ d 1.000000
 #map_Kd Texture\\5b106c26cc7e5c429ba4e5de573d0dce.jpg
 
 newmtl Book2
-Phong 1
 #Ns 225.000000
 #Ka 1.000000 1.000000 1.000000
 Kd 0.800000 0.800000 0.800000
@@ -34,7 +31,6 @@ d 1.000000
 #map_Kd Texture\\finalimage.jpg
 
 newmtl Carpet
-Phong 1
 #Ns 225.000000
 #Ka 1.000000 1.000000 1.000000
 Kd 0.800000 0.800000 0.800000
@@ -45,7 +41,6 @@ d 1.000000
 #map_Kd Texture\\drive-download-20210610T021657Z-001\\Fabric_Rug_006_COLOR.jpg
 
 newmtl Cermin
-Phong 1
 #Ns 900.000000
 #Ka 1.000000 1.000000 1.000000
 Kd 0.800000 0.800000 0.800000
@@ -56,7 +51,6 @@ d 1.000000
 refl 0.4
 
 newmtl Cusion
-Phong 1
 #Ns 225.000000
 #Ka 1.000000 1.000000 1.000000
 Kd 0.800000 0.800000 0.800000
@@ -66,7 +60,6 @@ Ni 1.450000
 d 1.000000
 
 newmtl Emmision
-Phong 1
 #Ns 323.999994
 #Ka 1.000000 1.000000 1.000000
 Kd 0.800000 0.800000 0.800000
@@ -76,7 +69,6 @@ Ni 1.000000
 d 1.000000
 
 newmtl Floor
-Phong 1
 #Ns 225.000000
 #Ka 1.000000 1.000000 1.000000
 Kd 0.800000 0.800000 0.800000
@@ -87,7 +79,6 @@ d 1.000000
 #map_Kd floor.png
 
 newmtl Gelas
-Phong 1
 #Ns 225.000000
 #Ka 1.000000 1.000000 1.000000
 Kd 0.800000 0.800000 0.800000
@@ -98,7 +89,6 @@ d 1.000000
 #map_Kd Texture\\Marble09_MR_2K\\Marble09_2K_BaseColor.png
 
 newmtl InsideBook
-Phong 1
 #Ns 225.000000
 #Ka 1.000000 1.000000 1.000000
 Kd 0.295692 0.295692 0.295692
@@ -108,7 +98,6 @@ Ni 1.450000
 d 1.000000
 
 newmtl Jam
-Phong 1
 #Ns 225.000000
 #Ka 1.000000 1.000000 1.000000
 Kd 0.800000 0.800000 0.800000
@@ -119,7 +108,6 @@ d 1.000000
 #map_Kd Texture\\png-clipart-black-analog-clock-at-11-55-clock-face-clocks-angle-text.png
 
 newmtl Kaca
-Phong 1
 #Ns 323.999994
 #Ka 1.000000 1.000000 1.000000
 Kd 0.800000 0.800000 0.800000
@@ -130,7 +118,6 @@ d 1.000000
 refl 0.7
 
 newmtl KerangkaLemari
-Phong 1
 #Ns 225.000000
 #Ka 0.800000 0.800000 0.800000
 Kd 1.000000 0.000000 0.000000
@@ -140,7 +127,6 @@ Ni 1.450000
 d 1.000000
 
 newmtl Lemari
-Phong 1
 #Ns 225.000000
 #Ka 1.000000 1.000000 1.000000
 Kd 0.800000 0.800000 0.800000
@@ -151,7 +137,6 @@ d 1.000000
 #map_Kd Texture\\Wood09_MR_2K\\Wood09_2K_BaseColor.png
 
 newmtl Meja
-Phong 1
 #Ns 225.000000
 #Ka 1.000000 1.000000 1.000000
 Kd 0.800000 0.800000 0.800000
@@ -162,7 +147,6 @@ d 1.000000
 #map_Kd Texture\\Wood09_MR_2K\\Wood09_2K_BaseColor.png
 
 newmtl Netflix
-Phong 1
 #Ns 225.000000
 #Ka 1.000000 1.000000 1.000000
 Kd 0.800000 0.800000 0.800000
@@ -173,7 +157,6 @@ d 1.000000
 map_Kd Seia.png
 
 newmtl None
-Phong 1
 #Ns 500
 #Ka 0.8 0.8 0.8
 Kd 0.8 0.8 0.8
@@ -181,7 +164,6 @@ Ks 0.8 0.8 0.8
 d 1
 
 newmtl Picture
-Phong 1
 #Ns 225.000000
 #Ka 1.000000 1.000000 1.000000
 Kd 0.800000 0.800000 0.800000
@@ -193,7 +175,6 @@ refl 0.4
 #map_Kd Texture\\Best-Abstract-Art-course-tutorial-class-certification-training-online-scaled.jpg
 
 newmtl Picture2
-Phong 1
 #Ns 225.000000
 #Ka 1.000000 1.000000 1.000000
 Kd 0.800000 0.800000 0.800000
@@ -205,7 +186,6 @@ refl 0.4
 #map_Kd Texture\\639170_18090338_3255399_0cc8cc8e_image.jpg
 
 newmtl Picture3
-Phong 1
 #Ns 225.000000
 #Ka 1.000000 1.000000 1.000000
 Kd 0.800000 0.800000 0.800000
@@ -217,7 +197,6 @@ refl 0.4
 #map_Kd Texture\\Ocean_Dreams_-_Contemporary_Abstract_Painting_7aa795bd-f372-40cf-b6c0-99a7b985aae4.jpg
 
 newmtl Picture4
-Phong 1
 #Ns 225.000000
 #Ka 1.000000 1.000000 1.000000
 Kd 0.800000 0.800000 0.800000
@@ -229,7 +208,6 @@ refl 0.4
 #map_Kd Texture\\On-Impulse-36x36-1-1200x1200.jpeg
 
 newmtl PictureBorder
-Phong 1
 #Ns 225.000000
 #Ka 0.700000 0.700000 0.700000
 Kd 0.015995 0.015995 0.015995
@@ -239,7 +217,6 @@ Ni 1.450000
 d 1.000000
 
 newmtl Roof
-Phong 1
 #Ns 225.000000
 #Ka 1.000000 1.000000 1.000000
 Kd 1.000000 1.000000 1.000000
@@ -249,7 +226,6 @@ Ni 1.450000
 d 1.000000
 
 newmtl SideTegel
-Phong 1
 #Ns 225.000000
 #Ka 1.000000 1.000000 1.000000
 Kd 0.711822 0.736521 0.787399
@@ -259,7 +235,6 @@ Ni 1.450000
 d 1.000000
 
 newmtl Side_Wall
-Phong 1
 #Ns 225.000000
 #Ka 1.000000 1.000000 1.000000
 Kd 0.800000 0.800000 0.800000
@@ -270,7 +245,6 @@ d 1.000000
 #map_Kd Texture\\Concrete_Wall\\Concrete_Wall_009_basecolor.jpg
 
 newmtl Sofa
-Phong 1
 #Ns 225.000000
 #Ka 1.000000 1.000000 1.000000
 Kd 1.000000 1.000000 1.000000
@@ -280,7 +254,6 @@ Ni 1.450000
 d 1.000000
 
 newmtl Sofa_Kecil
-Phong 1
 #Ns 225.000000
 #Ka 1.000000 1.000000 1.000000
 Kd 0.486897 0.486897 0.486897
@@ -290,7 +263,6 @@ Ni 1.450000
 d 1.000000
 
 newmtl TV
-Phong 1
 #Ns 143.999983
 #Ka 0.900000 0.900000 0.900000
 Kd 0.018849 0.018849 0.018849
@@ -300,7 +272,6 @@ Ni 1.450000
 d 1.000000
 
 newmtl TiangMeja
-Phong 1
 #Ns 225.000000
 #Ka 1.000000 1.000000 1.000000
 Kd 0.800000 0.800000 0.800000
@@ -310,7 +281,6 @@ Ni 1.450000
 d 1.000000
 
 newmtl Tree
-Phong 1
 #Ns 225.000000
 #Ka 1.000000 1.000000 1.000000
 Kd 0.800000 0.800000 0.800000
@@ -322,7 +292,6 @@ map_Bump Texture\\Mapple\\Maple_Bark\\Maple_Bark_2_NRM.png
 map_Ks Texture\\Mapple\\Maple_Bark\\Maple_Bark_2_SPEC.png
 
 newmtl Tree07_4K
-Phong 1
 #Ns 225.000000
 #Ka 1.000000 1.000000 1.000000
 Kd 0.800000 0.800000 0.800000
@@ -334,7 +303,6 @@ d 1.000000
 map_d Texture\\Tree07_4K.png
 
 newmtl Tree_Branch
-Phong 1
 #Ns 225.000000
 #Ka 1.000000 1.000000 1.000000
 Kd 0.800000 0.800000 0.800000
@@ -346,7 +314,6 @@ d 1.000000
 map_d Texture\\Mapple\\Tree Branch.png
 
 newmtl Wall
-Phong 1
 #Ns 225.000000
 #Ka 1.000000 1.000000 1.000000
 Kd 0.800000 0.800000 0.800000
@@ -356,7 +323,6 @@ Ni 1.450000
 d 1.000000
 
 newmtl Wall_Down
-Phong 1
 #Ns 225.000000
 #Ka 1.000000 1.000000 1.000000
 Kd 1.000000 1.000000 1.000000

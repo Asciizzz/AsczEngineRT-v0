@@ -1,10 +1,7 @@
 newmtl ground
 Kd 1 1 1
-Phong 1
-Ns 10
 
 newmtl glass
-Phong 1
 Tr 0.6
 #refl 0.6
 Kd 1 0.1 0.7

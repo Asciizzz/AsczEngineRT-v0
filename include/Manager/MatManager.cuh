@@ -18,8 +18,6 @@ struct Material {
 
     float Fresnel = 0.0f;
     float Ni = 1.0f;
-
-    bool Phong = false;
 };
 
 class MatManager {

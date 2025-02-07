@@ -211,11 +211,6 @@ void Utils::appendObj(
                     float fresnel; mtlSS >> fresnel;
                     matMgr.h_mats[matIdx].Fresnel = fresnel;
                 }
-
-                else if (mtlType == "Phong") { // 0: no, 1: yes
-                    int phong; mtlSS >> phong;
-                    matMgr.h_mats[matIdx].Phong = phong;
-                }
             }
         }
     }
