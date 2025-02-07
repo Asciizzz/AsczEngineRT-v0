@@ -1,5 +1,12 @@
 mtllib Sphere.mtl
 
 v 10 10 10
+v -10 10 10
+v 10 10 -10
+v -10 10 -10
 
+usemtl Sphere
 sph 1 10
+sph 2 10
+sph 3 10
+sph 4 10
