@@ -48,7 +48,7 @@ __global__ void realtimeRayTracing(
         if (ray.w < 0.01f) continue;
 
         ns_top = 0;
-        nstack[ns_top++] = 0; // Start with root
+        nstack[ns_top++] = 0;
 
         while (ns_top > 0) {
             int nidx = nstack[--ns_top];

@@ -6,10 +6,9 @@ ClearScreen:
 
 AsczEngine:
 	nvcc\
-		-I include/AsczLib \
-		-I include/Geometry \
+		-I include/AsczMath \
 		-I include/Graphic3D \
-		-I include/Manager \
+		-I include/Ascz3D \
 		-I include/System \
 		\
 		-I libraries/SFML/include \
@@ -17,15 +16,15 @@ AsczEngine:
 		\
 		-o AsczEngine \
 		\
-		src/AsczLib/Vector.cu \
-		src/AsczLib/Matrix.cu \
+		src/AsczMath/Vector.cu \
+		src/AsczMath/Matrix.cu \
 		src/Graphic3D/Ray.cu \
 		src/Graphic3D/Camera.cu \
 		src/Graphic3D/RayTrace.cu \
-		src/Manager/AsczMat.cu \
-		src/Manager/AsczTxtr.cu \
-		src/Manager/AsczMesh.cu \
-		src/Manager/AsczBvh.cu \
+		src/Ascz3D/AsczMat.cu \
+		src/Ascz3D/AsczTxtr.cu \
+		src/Ascz3D/AsczMesh.cu \
+		src/Ascz3D/AsczBvh.cu \
 		src/System/FpsHandler.cu \
 		src/System/CsLogHandler.cu \
 		src/Graphic3D/SFMLTexture.cu \
