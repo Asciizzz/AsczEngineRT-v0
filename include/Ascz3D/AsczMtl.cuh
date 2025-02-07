@@ -27,7 +27,7 @@ public:
 
     // Device memory
     Material *d_mtls = nullptr;
-    int mtlsNum = 0;
+    int mtlsNum = 1;
 
     int appendMaterial(Material mtl);
     void freeDevice();

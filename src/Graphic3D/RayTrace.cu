@@ -161,47 +161,48 @@ _glb_ void realtimeRayTracing(
         // Get the face data
         int hIdx = hit.idx;
         const AzGeom &gHit = geom[hIdx];
+
         float hitw = 1 - hit.u - hit.v;
-        const Material &mtl = mtls[gHit.m];
         
         // Vertex, normal and Kd data
         Flt3 vrtx = ray.o + ray.d * hit.t;
         Flt3 nrml;
         Flt3 hitKd;
 
+        // Interpolated normal
         if (gHit.type == AzGeom::TRIANGLE) {
-            // Interpolated normal
             Int3 &tn = geom[hIdx].tri.n;
             if (tn.x > -1) {
                 Flt3 &n0 = mn[tn.x], &n1 = mn[tn.y], &n2 = mn[tn.z];
                 nrml = (n0 * hitw + n1 * hit.u + n2 * hit.v).norm();
             }
-
-            // Interpolated texture
-            if (mtl.mKd > -1) {
-                Int3 &tt = geom[hIdx].tri.t;
-                Flt2 &t0 = mt[tt.x], &t1 = mt[tt.y], &t2 = mt[tt.z];
-                Flt2 txtr = t0 * hitw + t1 * hit.u + t2 * hit.v;
-                
-                hitKd = getTextureColor(txtr, txtrFlat, txtrPtr, mtl.mKd);
-            } else {
-                hitKd = mtl.Kd;
-            }
         }
         else if (gHit.type == AzGeom::SPHERE) {
             nrml = (vrtx - gHit.sph.c).norm();
+        }
 
-            if (mtl.mKd > -1) {
+        const Material &mtl = mtls[gHit.m];
+        if (mtl.mKd > -1) {
+            if (gHit.type == AzGeom::TRIANGLE) {
+
+                Int3 &tt = geom[hIdx].tri.t;
+                Flt2 &t0 = mt[tt.x], &t1 = mt[tt.y], &t2 = mt[tt.z];
+                Flt2 txtr = t0 * hitw + t1 * hit.u + t2 * hit.v;
+
+                hitKd = getTextureColor(txtr, txtrFlat, txtrPtr, mtl.mKd);
+            }
+            else if (gHit.type == AzGeom::SPHERE) {
                 float phi = acosf(-nrml.y);
                 float theta = atan2f(-nrml.z, -nrml.x) + M_PI;
                 float u = theta / (2 * M_PI);
                 float v = phi / M_PI;
 
                 hitKd = getTextureColor(Flt2(u, v), txtrFlat, txtrPtr, mtl.mKd);
-            } else {
-                hitKd = mtl.Kd;
             }
+        } else {
+            hitKd = mtl.Kd;
         }
+
 
         // Light management
         float RdotN = ray.d * nrml;
@@ -226,9 +227,6 @@ _glb_ void realtimeRayTracing(
             // Values for transparency
             float intens = light.intens;
             Flt3 passColr = light.colr;
-
-            int hitG = -1;
-            float hitU = 0, hitV = 0;
 
             bool shadow = false;
             while (ns_top > 0) {
@@ -256,8 +254,11 @@ _glb_ void realtimeRayTracing(
                 for (int i = node.l; i < node.r; ++i) {
                     int gi = gIdx[i];
                     if (gi == hIdx) continue;
+    
+                    bool hit = false;
+                    float u, v;
 
-                    if (geom[gi].type != AzGeom::TRIANGLE) {
+                    if (geom[gi].type == AzGeom::TRIANGLE) {
                         Int3 &fv = geom[gi].tri.v;
 
                         Flt3 v0 = mv[fv.x];
@@ -273,21 +274,19 @@ _glb_ void realtimeRayTracing(
 
                         float f = 1.0f / a;
                         Flt3 s = lPos - v0;
-                        float u = f * (s * h);
+                        u = f * (s * h);
 
                         if (u < 0.0f || u > 1.0f) continue;
 
                         Flt3 q = s ^ e1;
-                        float v = f * (lDir * q);
+                        v = f * (lDir * q);
 
                         if (v < 0.0f || u + v > 1.0f) continue;
 
                         float t = f * (e2 * q);
 
                         if (t > EPSILON_2 && t < lDist) {
-                            hitG = gi;
-                            hitU = u;
-                            hitV = v;
+                            hit = true;
                         }
                     }
                     else if (geom[gi].type == AzGeom::SPHERE) {
@@ -307,33 +306,37 @@ _glb_ void realtimeRayTracing(
                         if (t0 < 0) t0 = t1;
 
                         if (t0 > EPSILON_2 && t0 < lDist) {
-                            hitG = gi;
+                            hit = true;
                         }
+                    }
+
+                    if (!hit) continue;
+
+                    const Material &mat2 = mtls[geom[gi].m];
+
+                    if (mat2.Tr < 0.01f) {
+                        shadow = true;
+                        break;
+                    }
+
+                    intens *= mat2.Tr;
+
+                    if (mat2.mKd > -1) {
+                        float w = 1 - u - v;
+
+                        Int3 &tt = geom[gi].tri.t;
+                        Flt2 &t0 = mt[tt.x], &t1 = mt[tt.y], &t2 = mt[tt.z];
+                        Flt2 tx = t0 * w + t1 * u + t2 * v;
+                        tx.x -= floor(tx.x);
+                        tx.y -= floor(tx.y);
+
+                        passColr += getTextureColor(tx, txtrFlat, txtrPtr, mat2.mKd);
+                    } else {
+                        passColr += mat2.Kd;
                     }
                 }
 
-                const Material &mat2 = mtls[geom[hitG].m];
-
-                if (mat2.Tr < 0.01f) {
-                    shadow = true;
-                    break;
-                }
-
-                intens *= mat2.Tr;
-
-                if (mat2.mKd > -1) {
-                    float hitW = 1 - hitU - hitV;
-
-                    Int3 &tt = geom[hitG].tri.t;
-                    Flt2 &t0 = mt[tt.x], &t1 = mt[tt.y], &t2 = mt[tt.z];
-                    Flt2 tx = t0 * hitW + t1 * hitU + t2 * hitV;
-                    tx.x -= floor(tx.x);
-                    tx.y -= floor(tx.y);
-
-                    passColr += getTextureColor(tx, txtrFlat, txtrPtr, mat2.mKd);
-                } else {
-                    passColr += mat2.Kd;
-                }
+                if (shadow) break;
             }
 
             if (shadow) continue;

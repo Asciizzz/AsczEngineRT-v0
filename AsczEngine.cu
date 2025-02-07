@@ -59,7 +59,7 @@ int main() {
 
     // All managers
     AsczTxtr TxtrMgr;
-    AsczMtl MatMgr;
+    AsczMtl MtlMgr;
     AsczMesh MeshMgr;
     AsczBvh BvhMgr;
     AsczLight LightMgr;
@@ -125,11 +125,11 @@ int main() {
             ss >> BvhMgr.SPLIT_Z;
     };
 
-    // MeshMgr.h_geom.push_back(AzGeom(Flt3(20), 10, 0));
-
+    // ========================================================================
+    // ========================= Buffer Allocation ============================
+    // ========================================================================
+    
     // Allocate frame buffer
-    int threads = 256;
-    int blocks = (frmW * frmH + threads - 1) / threads;
     Flt3 *d_frmbuffer1, *d_frmbuffer2;
     cudaMalloc(&d_frmbuffer1, frmW * frmH * sizeof(Flt3));
     cudaMalloc(&d_frmbuffer2, frmW * frmH * sizeof(Flt3));
@@ -141,6 +141,8 @@ int main() {
 
     // Allocate Curand states
     curandState *d_randState;
+    int threads = 256;
+    int blocks = (frmW * frmH + threads - 1) / threads;
     cudaMalloc(&d_randState, frmW * frmH * sizeof(curandState));
     initCurand<<<blocks, threads>>>(d_randState, frmW * frmH, time(0));
     cudaDeviceSynchronize();
@@ -168,10 +170,19 @@ int main() {
         short objPlacement;
         float objScale;
 
-        ss >> objPath >> objPlacement >> objScale;
+        ss >> objPath;
+        if (objPath == "Sphere") {
+            Flt3 pos; ss >> pos.x >> pos.y >> pos.z;
+            float rad; ss >> rad;
+            int matIdx; ss >> matIdx;
+
+            MeshMgr.h_geom.push_back(AzGeom(pos, rad, matIdx));
+        }
+
+        ss >> objPlacement >> objScale;
 
         Utils::appendObj(
-            MeshMgr, MatMgr, TxtrMgr,
+            MeshMgr, MtlMgr, TxtrMgr,
             objPath.c_str(), objPlacement, objScale
         );
     }
@@ -180,7 +191,7 @@ int main() {
 
     // Copy to device memory
     TxtrMgr.toDevice();
-    MatMgr.toDevice();
+    MtlMgr.toDevice();
     MeshMgr.toDevice();
 
     BvhMgr.designBVH(MeshMgr);
@@ -273,7 +284,7 @@ int main() {
         realtimeRayTracing<<<blocks, threads>>>(
             CAMERA, d_frmbuffer1, frmW, frmH,
             TxtrMgr.d_txtrFlat, TxtrMgr.d_txtrPtr,
-            MatMgr.d_mtls,
+            MtlMgr.d_mtls,
             MeshMgr.d_v, MeshMgr.d_t, MeshMgr.d_n,
             MeshMgr.d_geom, MeshMgr.gNum,
 
@@ -326,7 +337,7 @@ int main() {
 
     // Free device memory
     TxtrMgr.freeDevice();
-    MatMgr.freeDevice();
+    MtlMgr.freeDevice();
     MeshMgr.freeDevice();
     cudaFree(d_frmbuffer1);
     cudaFree(d_frmbuffer2);
