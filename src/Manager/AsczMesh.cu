@@ -1,8 +1,8 @@
-#include <MeshManager.cuh>
+#include <AsczMesh.cuh>
 #include <cuda_runtime.h>
 #include <omp.h>
 
-void MeshManager::appendMesh(MeshStruct mesh) {
+void AsczMesh::appendMesh(MeshStruct mesh) {
     #pragma omp parallel for
     for (int i = 0; i < mesh.SOrF.size(); ++i) {
         SOrF.push_back(mesh.SOrF[i] + h_fv.size());
@@ -29,7 +29,7 @@ void MeshManager::appendMesh(MeshStruct mesh) {
     fNum = h_fv.size();
 }
 
-void MeshManager::freeDevice() {
+void AsczMesh::freeDevice() {
     if (d_v) { cudaFree(d_v); d_v = nullptr; }
     if (d_t) { cudaFree(d_t); d_t = nullptr; }
     if (d_n) { cudaFree(d_n); d_n = nullptr; }
@@ -40,7 +40,7 @@ void MeshManager::freeDevice() {
     if (d_fm) { cudaFree(d_fm); d_fm = nullptr; }
 }
 
-void MeshManager::computeData() {
+void AsczMesh::computeData() {
     h_fABmin.resize(fNum);
     h_fABmax.resize(fNum);
     h_fABcen.resize(fNum);
@@ -71,7 +71,7 @@ void MeshManager::computeData() {
     }
 }
 
-void MeshManager::toDevice() {
+void AsczMesh::toDevice() {
     freeDevice();
     computeData();
 

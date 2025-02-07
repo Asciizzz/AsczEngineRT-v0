@@ -1,7 +1,7 @@
 #include <Utility.cuh>
 
 void Utils::appendObj(
-    MeshManager &meshMgr, MatManager &matMgr, TxtrManager &txtrMgr,
+    AsczMesh &meshMgr, AsczMat &matMgr, AsczTxtr &txtrMgr,
     const char *objPath, short placement, float scale, short fIdxBased 
 ) {
     std::ifstream file(objPath);

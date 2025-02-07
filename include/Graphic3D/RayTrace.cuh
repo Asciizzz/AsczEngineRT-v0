@@ -2,11 +2,11 @@
 #define RAYTRACE_CUH
 
 #include <Camera.cuh>
-#include <TxtrManager.cuh>
-#include <MatManager.cuh>
-#include <MeshManager.cuh>
-#include <BvhManager.cuh>
-#include <LightManager.cuh>
+#include <AsczTxtr.cuh>
+#include <AsczMat.cuh>
+#include <AsczMesh.cuh>
+#include <AsczBvh.cuh>
+#include <AsczLight.cuh>
 
 /* Difference:
 

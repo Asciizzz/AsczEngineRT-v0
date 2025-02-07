@@ -1,4 +1,4 @@
-#include <BvhManager.cuh>
+#include <AsczBvh.cuh>
 
 void HstNode::recalcMin(Flt3 v) {
     min.x = fminf(min.x, v.x);
@@ -37,7 +37,7 @@ float DevNode::hitDist(Flt3 rO, Flt3 rInvD) const {
 }
 
 
-void BvhManager::toDevice() {
+void AsczBvh::toDevice() {
     nNum = h_dnodes.size();
 
     cudaMalloc(&d_nodes, h_dnodes.size() * sizeof(DevNode));
@@ -47,7 +47,7 @@ void BvhManager::toDevice() {
     cudaMemcpy(d_fidx, h_fidx.data(), h_fidx.size() * sizeof(int), cudaMemcpyHostToDevice);
 }
 
-void BvhManager::buildBvh(HstNode *nodes, MeshManager &meshMgr, int depth) {
+void AsczBvh::buildBvh(HstNode *nodes, AsczMesh &meshMgr, int depth) {
     const Vecs3f &fABmin = meshMgr.h_fABmin; // Face's AABB min
     const Vecs3f &fABmax = meshMgr.h_fABmax; // Face's AABB max
     const Vecs3f &fABcen = meshMgr.h_fABcen; // Face's AABB center
@@ -132,7 +132,7 @@ void BvhManager::buildBvh(HstNode *nodes, MeshManager &meshMgr, int depth) {
     buildBvh(right, meshMgr, depth + 1);
 }
 
-int BvhManager::toShader(HstNode *node, std::vector<DevNode> &dnodes, std::vector<int> &fidx) {
+int AsczBvh::toShader(HstNode *node, std::vector<DevNode> &dnodes, std::vector<int> &fidx) {
     int idx = dnodes.size();
     dnodes.push_back(DevNode());
 
@@ -160,7 +160,7 @@ int BvhManager::toShader(HstNode *node, std::vector<DevNode> &dnodes, std::vecto
     return idx;
 }
 
-void BvhManager::designBVH(MeshManager &meshMgr) {
+void AsczBvh::designBVH(AsczMesh &meshMgr) {
     const Vecs3i &fv = meshMgr.h_fv; // Faces
     const Vecs3f &fABmin = meshMgr.h_fABmin; // Face's AABB min
     const Vecs3f &fABmax = meshMgr.h_fABmax; // Face's AABB max

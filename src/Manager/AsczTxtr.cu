@@ -1,10 +1,10 @@
-#include <TxtrManager.cuh>
+#include <AsczTxtr.cuh>
 #include <SFML/Graphics.hpp>
 #include <cuda_runtime.h>
 
 #include <iostream>
 
-int TxtrManager::appendTexture(const char *path) {
+int AsczTxtr::appendTexture(const char *path) {
     sf::Image img;
     img.loadFromFile(path);
 
@@ -39,14 +39,14 @@ int TxtrManager::appendTexture(const char *path) {
     return txtrCount++;
 }
 
-void TxtrManager::freeDevice() {
+void AsczTxtr::freeDevice() {
     if (txtrSize == 0) return;
 
     cudaFree(d_txtrFlat);
     cudaFree(d_txtrPtr);
 }
 
-void TxtrManager::toDevice() {
+void AsczTxtr::toDevice() {
     freeDevice();
 
     cudaMalloc(&d_txtrFlat, txtrSize * sizeof(Flt4));

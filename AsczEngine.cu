@@ -4,11 +4,11 @@
 #include <Utility.cuh>
 #include <random>
 
-#include <TxtrManager.cuh>
-#include <MatManager.cuh>
-#include <MeshManager.cuh>
-#include <BvhManager.cuh>
-#include <LightManager.cuh>
+#include <AsczTxtr.cuh>
+#include <AsczMat.cuh>
+#include <AsczMesh.cuh>
+#include <AsczBvh.cuh>
+#include <AsczLight.cuh>
 
 #include <FXAA.cuh>
 
@@ -58,11 +58,11 @@ int main() {
     // =============== Initialize Important Managers ================
 
     // All managers
-    TxtrManager TxtrMgr;
-    MatManager MatMgr;
-    MeshManager MeshMgr;
-    BvhManager BvhMgr;
-    LightManager LightMgr;
+    AsczTxtr TxtrMgr;
+    AsczMat MatMgr;
+    AsczMesh MeshMgr;
+    AsczBvh BvhMgr;
+    AsczLight LightMgr;
 
     // Create Camera
     // By logic, then this is CameraManager?

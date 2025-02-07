@@ -1,5 +1,5 @@
-#ifndef TXTRMANAGER_CUH
-#define TXTRMANAGER_CUH
+#ifndef AsczTxtr_CUH
+#define AsczTxtr_CUH
 
 #include <Vector.cuh>
 
@@ -7,7 +7,7 @@ struct TxtrPtr {
     int w, h, off;
 };
 
-class TxtrManager {
+class AsczTxtr {
 public:
     // Host memory
     std::vector<Flt4> h_txtrFlat;

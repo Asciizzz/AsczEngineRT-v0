@@ -1,7 +1,7 @@
-#ifndef BVHMANAGER_CUH
-#define BVHMANAGER_CUH
+#ifndef AsczBvh_CUH
+#define AsczBvh_CUH
 
-#include <MeshManager.cuh>
+#include <AsczMesh.cuh>
 
 #include <string>
 #include <omp.h>
@@ -42,7 +42,7 @@ struct DevNode { // Flattened structure friendly for shader code
     _dev_ float hitDist(Flt3 rO, Flt3 rInvD) const;
 };
 
-class BvhManager {
+class AsczBvh {
 public:
     std::vector<HstNode> h_nodes;
     std::vector<DevNode> h_dnodes;
@@ -62,9 +62,9 @@ public:
     void toDevice();
 
     // Sub-object split faces
-    void buildBvh(HstNode *nodes, MeshManager &meshMgr, int depth=0);
+    void buildBvh(HstNode *nodes, AsczMesh &meshMgr, int depth=0);
     static int toShader(HstNode *node, std::vector<DevNode> &dnodes, std::vector<int> &fidx);
-    void designBVH(MeshManager &meshMgr);
+    void designBVH(AsczMesh &meshMgr);
 };
 
 #endif

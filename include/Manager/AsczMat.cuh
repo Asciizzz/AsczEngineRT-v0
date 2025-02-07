@@ -1,5 +1,5 @@
-#ifndef MATMANAGER_CUH
-#define MATMANAGER_CUH
+#ifndef AsczMat_CUH
+#define AsczMat_CUH
 
 #include <Vector.cuh>
 
@@ -20,7 +20,7 @@ struct Material {
     float Ni = 1.0f;
 };
 
-class MatManager {
+class AsczMat {
 public:
     // Host memory
     std::vector<Material> h_mats = { Material() };

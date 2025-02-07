@@ -1,5 +1,5 @@
-#ifndef MESHMANAGER_CUH
-#define MESHMANAGER_CUH
+#ifndef AsczMesh_CUH
+#define AsczMesh_CUH
 
 #include <Vector.cuh>
 
@@ -55,7 +55,7 @@ struct MeshStruct {
     VecsI SOrF; // Sub-objects
 };
 
-class MeshManager {
+class AsczMesh {
 public:
     // Host memory
     Vecs3f h_v;

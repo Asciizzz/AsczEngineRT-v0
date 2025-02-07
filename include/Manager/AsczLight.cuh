@@ -1,5 +1,5 @@
-#ifndef LIGHTMANAGER_CUH
-#define LIGHTMANAGER_CUH
+#ifndef AsczLight_CUH
+#define AsczLight_CUH
 
 #include <Vector.cuh>
 
@@ -15,14 +15,14 @@ struct LightSrc {
     float falloffDist = 100.0f; // Distance for exponential falloff
 };
 
-class LightManager {
+class AsczLight {
 public:
     std::vector<LightSrc> h_lSrc;
 
     LightSrc *d_lSrc;
     int num;
 
-    LightManager() {}
+    AsczLight() {}
 
     void appendLight(LightSrc light) {
         h_lSrc.push_back(light);
