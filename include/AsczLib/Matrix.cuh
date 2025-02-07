@@ -12,6 +12,7 @@ struct Mat4 {
     _hst_dev_ Mat4 operator+(const Mat4 &mat);
     _hst_dev_ Mat4 operator-(const Mat4 &mat);
     _hst_dev_ Mat4 operator*(const float scl);
+
     // Advanced operations
     _hst_dev_ Flt4 operator*(const Flt4 &vec);
     _hst_dev_ Mat4 operator*(const Mat4 &mat);
