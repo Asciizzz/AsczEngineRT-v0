@@ -3,26 +3,26 @@
 
 #include <Vector.cuh>
 
-struct AszcTriangle {
+struct AzTriangle {
     Int3 fv;
     Int3 ft;
     Int3 fn;
 };
 
-struct AsczSphere {
-    float c;
+struct AzSphere {
+    Flt3 c;
     float r;
 };
 
-struct AsczGeom {
-    enum Type { TRIANGLE, SPHERE } type;
+struct AzGeom {
+    enum Type { TRIANGLE, SPHERE } type = TRIANGLE;
 
     union {
-        AszcTriangle tri;
-        AsczSphere sph;
+        AzTriangle tri;
+        AzSphere sph;
     };
 
-    int mtl = -1;
+    int m = -1; // Material index
 };
 
 #endif
