@@ -48,9 +48,9 @@ void AsczBvh::toDevice() {
 }
 
 void AsczBvh::buildBvh(HstNode *nodes, AsczMesh &meshMgr, int depth) {
-    const Vec3f &fABmin = meshMgr.h_fABmin; // Face's AABB min
-    const Vec3f &fABmax = meshMgr.h_fABmax; // Face's AABB max
-    const Vec3f &fABcen = meshMgr.h_fABcen; // Face's AABB center
+    const Vec3f &ABmin = meshMgr.h_ABmin; // Face's AABB min
+    const Vec3f &ABmax = meshMgr.h_ABmax; // Face's AABB max
+    const Vec3f &ABcen = meshMgr.h_ABcen; // Face's AABB center
 
     int nF = nodes->faces.size();
     if (depth >= MAX_DEPTH || nF <= NODE_FACES) {
@@ -85,16 +85,16 @@ void AsczBvh::buildBvh(HstNode *nodes, AsczMesh &meshMgr, int depth) {
         #pragma omp parallel
         for (int i = 0; i < nF; ++i) {
             int idx = nodes->faces[i];
-            Flt3 center = fABcen[idx];
+            Flt3 center = ABcen[idx];
 
             if (center[a] < p[a]) {
                 l.faces.push_back(idx);
-                l.recalcMin(fABmin[idx]);
-                l.recalcMax(fABmax[idx]);
+                l.recalcMin(ABmin[idx]);
+                l.recalcMax(ABmax[idx]);
             } else {
                 r.faces.push_back(idx);
-                r.recalcMin(fABmin[idx]);
-                r.recalcMax(fABmax[idx]);
+                r.recalcMin(ABmin[idx]);
+                r.recalcMax(ABmax[idx]);
             }
         }
 
@@ -162,15 +162,15 @@ int AsczBvh::toShader(HstNode *node, std::vector<DevNode> &dnodes, std::vector<i
 
 void AsczBvh::designBVH(AsczMesh &meshMgr) {
     const Vec3i &fv = meshMgr.h_fv; // Faces
-    const Vec3f &fABmin = meshMgr.h_fABmin; // Face's AABB min
-    const Vec3f &fABmax = meshMgr.h_fABmax; // Face's AABB max
+    const Vec3f &ABmin = meshMgr.h_ABmin; // Face's AABB min
+    const Vec3f &ABmax = meshMgr.h_ABmax; // Face's AABB max
 
     HstNode *root = new HstNode();
     root->faces.resize(fv.size());
     for (int i = 0; i < fv.size(); ++i) {
         root->faces[i] = i;
-        root->recalcMin(fABmin[i]);
-        root->recalcMax(fABmax[i]);
+        root->recalcMin(ABmin[i]);
+        root->recalcMax(ABmax[i]);
     }
 
     buildBvh(root, meshMgr);

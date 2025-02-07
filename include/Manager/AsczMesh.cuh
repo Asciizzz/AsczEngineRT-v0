@@ -66,15 +66,12 @@ public:
     Vec3i h_ft;
     Vec3i h_fn;
     VecI  h_fm; // Face's material index
-    Vec3f h_fABmin; // Face's AABB min
-    Vec3f h_fABmax; // Face's AABB max
-    Vec3f h_fABcen; // Face's AABB center (not to be confused with face's center)
+    Vec3f h_ABmin; // Face's AABB min
+    Vec3f h_ABmax; // Face's AABB max
+    Vec3f h_ABcen; // Face's AABB center (not to be confused with face's center)
 
     VecI  OrSO = {0}; // Object references sub-objects
     VecI  SOrF = {0}; // Sub-object references faces
-
-
-    Flt3 ABmin, ABmax;
 
     void appendMesh(MeshStruct mesh);
     void computeData();
@@ -88,9 +85,9 @@ public:
     Int3 *d_ft = nullptr;
     Int3 *d_fn = nullptr;
     int  *d_fm = nullptr;
-    Flt3 *d_fABmin = nullptr;
-    Flt3 *d_fABmax = nullptr;
-    Flt3 *d_fABcen = nullptr;
+    Flt3 *d_ABmin = nullptr;
+    Flt3 *d_ABmax = nullptr;
+    Flt3 *d_ABcen = nullptr;
     int fNum = 0;
 
     void freeDevice();

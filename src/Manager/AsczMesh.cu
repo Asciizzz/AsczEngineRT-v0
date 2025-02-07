@@ -41,30 +41,30 @@ void AsczMesh::freeDevice() {
 }
 
 void AsczMesh::computeData() {
-    h_fABmin.resize(fNum);
-    h_fABmax.resize(fNum);
-    h_fABcen.resize(fNum);
+    h_ABmin.resize(fNum);
+    h_ABmax.resize(fNum);
+    h_ABcen.resize(fNum);
 
     #pragma omp parallel for
     for (int i = 0; i < fNum; ++i) {
-        Flt3 fABmin = Flt3(INFINITY);
-        Flt3 fABmax = Flt3(-INFINITY);
+        Flt3 ABmin = Flt3(INFINITY);
+        Flt3 ABmax = Flt3(-INFINITY);
 
         for (int j = 0; j < 3; ++j) {
             Flt3 v = h_v[h_fv[i][j]];
 
-            fABmin.x = fminf(fABmin.x, v.x);
-            fABmin.y = fminf(fABmin.y, v.y);
-            fABmin.z = fminf(fABmin.z, v.z);
+            ABmin.x = fminf(ABmin.x, v.x);
+            ABmin.y = fminf(ABmin.y, v.y);
+            ABmin.z = fminf(ABmin.z, v.z);
 
-            fABmax.x = fmaxf(fABmax.x, v.x);
-            fABmax.y = fmaxf(fABmax.y, v.y);
-            fABmax.z = fmaxf(fABmax.z, v.z);
+            ABmax.x = fmaxf(ABmax.x, v.x);
+            ABmax.y = fmaxf(ABmax.y, v.y);
+            ABmax.z = fmaxf(ABmax.z, v.z);
         }
 
-        h_fABmin[i] = fABmin;
-        h_fABmax[i] = fABmax;
-        h_fABcen[i] = (fABmin + fABmax) * 0.5f;
+        h_ABmin[i] = ABmin;
+        h_ABmax[i] = ABmax;
+        h_ABcen[i] = (ABmin + ABmax) * 0.5f;
     }
 }
 
@@ -83,9 +83,9 @@ void AsczMesh::toDevice() {
     cudaMalloc(&d_fn, fNum * sizeof(Int3));
     cudaMalloc(&d_fm, fNum * sizeof(int));
 
-    cudaMalloc(&d_fABmin, fNum * sizeof(Flt3));
-    cudaMalloc(&d_fABmax, fNum * sizeof(Flt3));
-    cudaMalloc(&d_fABcen, fNum * sizeof(Flt3));
+    cudaMalloc(&d_ABmin, fNum * sizeof(Flt3));
+    cudaMalloc(&d_ABmax, fNum * sizeof(Flt3));
+    cudaMalloc(&d_ABcen, fNum * sizeof(Flt3));
 
     // -------------------------------------- //
 
@@ -98,7 +98,7 @@ void AsczMesh::toDevice() {
     cudaMemcpy(d_fn, h_fn.data(), fNum * sizeof(Int3), cudaMemcpyHostToDevice);
     cudaMemcpy(d_fm, h_fm.data(), fNum * sizeof(int), cudaMemcpyHostToDevice);
 
-    cudaMemcpy(d_fABmin, h_fABmin.data(), fNum * sizeof(Flt3), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_fABmax, h_fABmax.data(), fNum * sizeof(Flt3), cudaMemcpyHostToDevice);    
-    cudaMemcpy(d_fABcen, h_fABcen.data(), fNum * sizeof(Flt3), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_ABmin, h_ABmin.data(), fNum * sizeof(Flt3), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_ABmax, h_ABmax.data(), fNum * sizeof(Flt3), cudaMemcpyHostToDevice);    
+    cudaMemcpy(d_ABcen, h_ABcen.data(), fNum * sizeof(Flt3), cudaMemcpyHostToDevice);
 }
