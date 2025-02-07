@@ -6,7 +6,7 @@ ClearScreen:
 
 AsczEngine:
 	nvcc\
-		-I include/MathLib \
+		-I include/AsczLib \
 		-I include/Geometry \
 		-I include/Graphic3D \
 		-I include/Manager \
@@ -17,8 +17,8 @@ AsczEngine:
 		\
 		-o AsczEngine \
 		\
-		src/MathLib/Vector.cu \
-		src/MathLib/Matrix.cu \
+		src/AsczLib/Vector.cu \
+		src/AsczLib/Matrix.cu \
 		src/Graphic3D/Ray.cu \
 		src/Graphic3D/Camera.cu \
 		src/Graphic3D/RayTrace.cu \
