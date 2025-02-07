@@ -139,12 +139,13 @@ _glb_ void realtimeRayTracing(
                     float d2 = l * l - tca * tca;
 
                     if (d2 > sr * sr) continue;
-                    
+
                     float thc = sqrt(sr * sr - d2);
                     float t0 = tca - thc;
                     float t1 = tca + thc;
 
-                    if (t0 < 0) t0 = t1;
+                    // When you are inside the sphere
+                    t0 = t0 < 0 ? t1 : t0;
 
                     if (t0 > EPSILON_2 && t0 < hit.t) {
                         hit.idx = gi;
@@ -165,7 +166,7 @@ _glb_ void realtimeRayTracing(
         const AzGeom &gHit = geom[hIdx];
 
         float hitw = 1 - hit.u - hit.v;
-        
+
         // Vertex, normal and Kd data
         Flt3 vrtx = ray.o + ray.d * hit.t;
         Flt3 nrml;
@@ -180,7 +181,8 @@ _glb_ void realtimeRayTracing(
             }
         }
         else if (gHit.type == AzGeom::SPHERE) {
-            nrml = (vrtx - gHit.sph.c).norm();
+            const int &cIdx = geom[hIdx].sph.c;
+            nrml = (vrtx - mv[cIdx]).norm();
         }
 
         const Material &mtl = mtls[gHit.m];

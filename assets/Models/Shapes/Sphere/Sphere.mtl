@@ -1,2 +1,4 @@
 newmtl Sphere
-refl 1
+refl 0.7
+
+Kd 1.0 0.0 0.0
