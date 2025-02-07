@@ -46,10 +46,10 @@ class AsczBvh {
 public:
     std::vector<HstNode> h_nodes;
     std::vector<DevNode> h_dnodes;
-    std::vector<int> h_fidx;
+    std::vector<int> h_gIdx;
 
     DevNode *d_nodes;
-    int *d_fidx;
+    int *d_gIdx;
     int nNum;
 
     int MAX_DEPTH = 48;

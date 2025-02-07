@@ -2,27 +2,30 @@
 #define GEOM_CUH
 
 #include <Vector.cuh>
-
-struct AzTriangle {
-    Int3 fv;
-    Int3 ft;
-    Int3 fn;
-};
-
-struct AzSphere {
-    Flt3 c;
-    float r;
-};
+#define VecGeom std::vector<AzGeom>
 
 struct AzGeom {
-    enum Type { TRIANGLE, SPHERE } type = TRIANGLE;
+    enum Type { TRIANGLE, SPHERE } type;
 
     union {
-        AzTriangle tri;
-        AzSphere sph;
+        struct {
+            Int3 v; // Triangle vertices
+            Int3 t; // Triangle texture coordinates
+            Int3 n; // Triangle normals
+        } tri;
+        struct {
+            Flt3 c; // Sphere center
+            float r; // Sphere radius
+        } sph;
     };
 
     int m = -1; // Material index
+
+    AzGeom(Int3 tv, Int3 tt, Int3 tn, int m) :
+        type(TRIANGLE), tri({ tv, tt, tn }), m(m) {}
+
+    AzGeom(Flt3 sc, float sr, int m) :
+        type(SPHERE), sph({ sc, sr }), m(m) {}
 };
 
 #endif

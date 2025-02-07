@@ -1,7 +1,7 @@
 #ifndef ASCZMESH_CUH
 #define ASCZMESH_CUH
 
-#include <Vector.cuh>
+#include <Geom.cuh>
 
 /* OrSO and SOrF explanation:
 
@@ -47,10 +47,7 @@ struct MeshStruct {
     Vec2f t;
     Vec3f n;
 
-    Vec3i fv;
-    Vec3i ft;
-    Vec3i fn;
-    VecI  fm;
+    VecGeom geom;
 
     VecI  SOrF; // Sub-objects
 };
@@ -65,7 +62,7 @@ public:
     Vec3i h_fv;
     Vec3i h_ft;
     Vec3i h_fn;
-    VecI  h_fm; // Face's material index
+    VecI  h_fm;
     Vec3f h_ABmin; // Face's AABB min
     Vec3f h_ABmax; // Face's AABB max
     Vec3f h_ABcen; // Face's AABB center (not to be confused with face's center)

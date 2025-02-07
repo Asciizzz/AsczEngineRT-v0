@@ -276,7 +276,7 @@ int main() {
             MeshMgr.d_fv, MeshMgr.d_ft, MeshMgr.d_fn, MeshMgr.d_fm,
             MeshMgr.fNum,
 
-            BvhMgr.d_fidx, BvhMgr.d_nodes, BvhMgr.nNum,
+            BvhMgr.d_gIdx, BvhMgr.d_nodes, BvhMgr.nNum,
 
             LightMgr.d_lSrc, LightMgr.num,
 

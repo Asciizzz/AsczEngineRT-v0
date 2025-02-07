@@ -11,10 +11,7 @@ void Utils::appendObj(
     Vec2f mt;
     Vec3f mn;
 
-    Vec3i mfv;
-    Vec3i mft;
-    Vec3i mfn;
-    VecI mfm;
+    VecGeom mgeom;
     VecI mSOrF;
 
     int matIdx = 0;
@@ -58,8 +55,6 @@ void Utils::appendObj(
         }
 
         else if (type == "f") {
-            Int3 fv, ft, fn;
-
             VecI vs, ts, ns;
             while (ss.good()) {
                 std::string vtn; ss >> vtn;
@@ -90,10 +85,6 @@ void Utils::appendObj(
                     n = fIdxBased - 1 ; // No normal index provided
                 }
 
-                // Note, setting it to fIdxBased - 1
-                // Helps the operation below to work
-                // Not exist = -1
-
                 vs.push_back(v - fIdxBased);
                 ts.push_back(t - fIdxBased);
                 ns.push_back(n - fIdxBased);
@@ -101,14 +92,11 @@ void Utils::appendObj(
 
             // Triangulate the face
             for (int i = 1; i < vs.size() - 1; ++i) {
-                fv = Int3(vs[0], vs[i], vs[i + 1]);
-                ft = Int3(ts[0], ts[i], ts[i + 1]);
-                fn = Int3(ns[0], ns[i], ns[i + 1]);
-
-                mfv.push_back(fv);
-                mft.push_back(ft);
-                mfn.push_back(fn);
-                mfm.push_back(matIdx);
+                mgeom.push_back(AzGeom(
+                    Int3(vs[0], vs[i], vs[i + 1]),
+                    Int3(ts[0], ts[i], ts[i + 1]),
+                    Int3(ns[0], ns[i], ns[i + 1]),
+                matIdx));
             }
         }
 
@@ -119,12 +107,11 @@ void Utils::appendObj(
 
         else if (type == "vn") {
             Flt3 n; ss >> n.x >> n.y >> n.z;
-            n.norm(); // Just in case
-            mn.push_back(n);
+            mn.push_back(n.norm());
         }
 
         else if (type == "o") {
-            mSOrF.push_back(mfv.size());
+            mSOrF.push_back(mgeom.size());
         }
 
         else if (type == "usemtl") {
@@ -214,7 +201,7 @@ void Utils::appendObj(
             }
         }
     }
-    mSOrF.push_back(mfv.size());
+    mSOrF.push_back(mgeom.size());
     mSOrF.erase(mSOrF.begin());
 
     #pragma omp parallel for
@@ -235,10 +222,7 @@ void Utils::appendObj(
     mesh.v = mv;
     mesh.t = mt;
     mesh.n = mn;
-    mesh.fv = mfv;
-    mesh.ft = mft;
-    mesh.fn = mfn;
-    mesh.fm = mfm;
+    mesh.geom = mgeom;
     mesh.SOrF = mSOrF;
 
     meshMgr.appendMesh(mesh);

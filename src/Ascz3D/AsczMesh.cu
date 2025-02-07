@@ -11,12 +11,12 @@ void AsczMesh::appendMesh(MeshStruct mesh) {
     OrSO.push_back(SOrF.size());
 
     #pragma omp parallel for
-    for (int i = 0; i < mesh.fv.size(); ++i) {
+    for (int i = 0; i < mesh.geom.size(); ++i) {
         // Offset the indices
-        h_fv.push_back(mesh.fv[i] + h_v.size());
-        h_ft.push_back(mesh.ft[i] + h_t.size());
-        h_fn.push_back(mesh.fn[i] + h_n.size());
-        h_fm.push_back(mesh.fm[i]);
+        h_fv.push_back(mesh.geom[i].tri.v + h_v.size());
+        h_ft.push_back(mesh.geom[i].tri.t + h_t.size());
+        h_fn.push_back(mesh.geom[i].tri.n + h_n.size());
+        h_fm.push_back(mesh.geom[i].m);
     }
 
     h_v.insert(h_v.end(), mesh.v.begin(), mesh.v.end());

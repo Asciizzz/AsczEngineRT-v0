@@ -12,7 +12,7 @@ __global__ void realtimeRayTracing(
     int fNum, // Number of faces
 
     // BVH data
-    int *fIdx, DevNode *nodes, int nNum,
+    int *gIdx, DevNode *nodes, int nNum,
 
     // Light source data
     LightSrc *lSrc, int lNum,
@@ -76,7 +76,7 @@ __global__ void realtimeRayTracing(
             }
 
             for (int i = node.l; i < node.r; ++i) {
-                int fi = fIdx[i];
+                int fi = gIdx[i];
                 Int3 &fv = mfv[fi];
 
                 Flt3 v0 = mv[fv.x];
@@ -204,7 +204,7 @@ __global__ void realtimeRayTracing(
                 }
 
                 for (int i = node.l; i < node.r; ++i) {
-                    int fi = fIdx[i];
+                    int fi = gIdx[i];
                     if (fi == hit.idx) continue;
 
                     Int3 &fv = mfv[fi];

@@ -43,8 +43,8 @@ void AsczBvh::toDevice() {
     cudaMalloc(&d_nodes, h_dnodes.size() * sizeof(DevNode));
     cudaMemcpy(d_nodes, h_dnodes.data(), h_dnodes.size() * sizeof(DevNode), cudaMemcpyHostToDevice);
 
-    cudaMalloc(&d_fidx, h_fidx.size() * sizeof(int));
-    cudaMemcpy(d_fidx, h_fidx.data(), h_fidx.size() * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMalloc(&d_gIdx, h_gIdx.size() * sizeof(int));
+    cudaMemcpy(d_gIdx, h_gIdx.data(), h_gIdx.size() * sizeof(int), cudaMemcpyHostToDevice);
 }
 
 void AsczBvh::buildBvh(HstNode *nodes, AsczMesh &meshMgr, int depth) {
@@ -174,5 +174,5 @@ void AsczBvh::designBVH(AsczMesh &meshMgr) {
     }
 
     buildBvh(root, meshMgr);
-    toShader(root, h_dnodes, h_fidx);
+    toShader(root, h_dnodes, h_gIdx);
 }
