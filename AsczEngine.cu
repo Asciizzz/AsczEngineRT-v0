@@ -125,6 +125,8 @@ int main() {
             ss >> BvhMgr.SPLIT_Z;
     };
 
+    // MeshMgr.h_geom.push_back(AzGeom(Flt3(20), 10, 0));
+
     // Allocate frame buffer
     int threads = 256;
     int blocks = (frmW * frmH + threads - 1) / threads;
@@ -273,8 +275,7 @@ int main() {
             TxtrMgr.d_txtrFlat, TxtrMgr.d_txtrPtr,
             MatMgr.d_mtls,
             MeshMgr.d_v, MeshMgr.d_t, MeshMgr.d_n,
-            MeshMgr.d_fv, MeshMgr.d_ft, MeshMgr.d_fn, MeshMgr.d_fm,
-            MeshMgr.fNum,
+            MeshMgr.d_geom, MeshMgr.gNum,
 
             BvhMgr.d_gIdx, BvhMgr.d_nodes, BvhMgr.nNum,
 

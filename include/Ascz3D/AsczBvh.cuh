@@ -25,7 +25,7 @@ struct HstNode { // Host code node
     HstNode *l = nullptr, *r = nullptr; // Child node
 
     bool leaf = false;
-    std::vector<int> faces; // Face indices
+    std::vector<int> geoms; // Geometry indices
 
     void recalcMin(Flt3 v);
     void recalcMax(Flt3 v);

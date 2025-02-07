@@ -30,11 +30,10 @@ __global__ void realtimeRayTracing(
     Material *mtls, // Materials
     // Mesh data
     Flt3 *mv, Flt2 *mt, Flt3 *mn, // Primitive data
-    Int3 *mfv, Int3 *mft, Int3 *mfn, int *mfm, // Face data
-    int fNum, // Number of faces
+    AzGeom *geom, int gNum, // Geometry data
 
     // BVH data
-    int *fidx, DevNode *nodes, int nNum,
+    int *gIdx, DevNode *nodes, int nNum,
 
     // Light data
     LightSrc *lSrc, int lNum,

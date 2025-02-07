@@ -20,6 +20,7 @@ to instantly kill a programmer on the spot
 
 #define Vec3i std::vector<Int3>
 
+#define _glb_ __global__
 #define _dev_ __device__
 #define _hst_ __host__
 #define _hst_dev_ __host__ __device__

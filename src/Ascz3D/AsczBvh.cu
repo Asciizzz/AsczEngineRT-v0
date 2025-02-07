@@ -13,7 +13,7 @@ void HstNode::recalcMax(Flt3 v) {
 }
 
 float HstNode::findCost() {
-    return (max.x - min.x) * (max.y - min.y) * (max.z - min.z) * faces.size();
+    return (max.x - min.x) * (max.y - min.y) * (max.z - min.z) * geoms.size();
 }
 
 float DevNode::hitDist(Flt3 rO, Flt3 rInvD) const {
@@ -52,7 +52,7 @@ void AsczBvh::buildBvh(HstNode *nodes, AsczMesh &meshMgr, int depth) {
     const Vec3f &ABmax = meshMgr.h_ABmax; // Face's AABB max
     const Vec3f &ABcen = meshMgr.h_ABcen; // Face's AABB center
 
-    int nF = nodes->faces.size();
+    int nF = nodes->geoms.size();
     if (depth >= MAX_DEPTH || nF <= NODE_FACES) {
         nodes->leaf = true;
         return;
@@ -84,23 +84,23 @@ void AsczBvh::buildBvh(HstNode *nodes, AsczMesh &meshMgr, int depth) {
 
         #pragma omp parallel
         for (int i = 0; i < nF; ++i) {
-            int idx = nodes->faces[i];
+            int idx = nodes->geoms[i];
             Flt3 center = ABcen[idx];
 
             if (center[a] < p[a]) {
-                l.faces.push_back(idx);
+                l.geoms.push_back(idx);
                 l.recalcMin(ABmin[idx]);
                 l.recalcMax(ABmax[idx]);
             } else {
-                r.faces.push_back(idx);
+                r.geoms.push_back(idx);
                 r.recalcMin(ABmin[idx]);
                 r.recalcMax(ABmax[idx]);
             }
         }
 
         // Calculate cost
-        int lF = l.faces.size();
-        int rF = r.faces.size();
+        int lF = l.geoms.size();
+        int rF = r.geoms.size();
 
         float lCost = l.findCost();
         float rCost = r.findCost();
@@ -109,11 +109,11 @@ void AsczBvh::buildBvh(HstNode *nodes, AsczMesh &meshMgr, int depth) {
         if (cost < curCost) {
             curCost = cost;
 
-            left->faces = l.faces;
+            left->geoms = l.geoms;
             left->min = l.min;
             left->max = l.max;
 
-            right->faces = r.faces;
+            right->geoms = r.geoms;
             right->min = r.min;
             right->max = r.max;
         }
@@ -125,8 +125,8 @@ void AsczBvh::buildBvh(HstNode *nodes, AsczMesh &meshMgr, int depth) {
         return;
     }
 
-    int lF = left->faces.size();
-    int rF = right->faces.size();
+    int lF = left->geoms.size();
+    int rF = right->geoms.size();
 
     buildBvh(left, meshMgr, depth + 1);
     buildBvh(right, meshMgr, depth + 1);
@@ -145,8 +145,8 @@ int AsczBvh::toShader(HstNode *node, std::vector<DevNode> &dnodes, std::vector<i
         dnodes[idx].l = fidx.size();
 
         #pragma omp parallel for
-        for (int i = 0; i < node->faces.size(); ++i) {
-            fidx.push_back(node->faces[i]);
+        for (int i = 0; i < node->geoms.size(); ++i) {
+            fidx.push_back(node->geoms[i]);
         }
 
         dnodes[idx].r = fidx.size();
@@ -161,14 +161,14 @@ int AsczBvh::toShader(HstNode *node, std::vector<DevNode> &dnodes, std::vector<i
 }
 
 void AsczBvh::designBVH(AsczMesh &meshMgr) {
-    const Vec3i &fv = meshMgr.h_fv; // Faces
+    const int &gNum = meshMgr.gNum;
     const Vec3f &ABmin = meshMgr.h_ABmin; // Face's AABB min
     const Vec3f &ABmax = meshMgr.h_ABmax; // Face's AABB max
 
     HstNode *root = new HstNode();
-    root->faces.resize(fv.size());
-    for (int i = 0; i < fv.size(); ++i) {
-        root->faces[i] = i;
+    root->geoms.resize(gNum);
+    for (int i = 0; i < gNum; ++i) {
+        root->geoms[i] = i;
         root->recalcMin(ABmin[i]);
         root->recalcMax(ABmax[i]);
     }

@@ -59,10 +59,8 @@ public:
     Vec2f h_t;
     Vec3f h_n;
 
-    Vec3i h_fv;
-    Vec3i h_ft;
-    Vec3i h_fn;
-    VecI  h_fm;
+    VecGeom h_geom;
+    
     Vec3f h_ABmin; // Face's AABB min
     Vec3f h_ABmax; // Face's AABB max
     Vec3f h_ABcen; // Face's AABB center (not to be confused with face's center)
@@ -78,14 +76,12 @@ public:
     Flt2 *d_t = nullptr; int tNum = 0;
     Flt3 *d_n = nullptr; int nNum = 0;
 
-    Int3 *d_fv = nullptr;
-    Int3 *d_ft = nullptr;
-    Int3 *d_fn = nullptr;
-    int  *d_fm = nullptr;
+    AzGeom *d_geom = nullptr;
+    int gNum = 0;
+
     Flt3 *d_ABmin = nullptr;
     Flt3 *d_ABmax = nullptr;
     Flt3 *d_ABcen = nullptr;
-    int fNum = 0;
 
     void freeDevice();
     void toDevice();
