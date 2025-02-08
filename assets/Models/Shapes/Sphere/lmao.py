@@ -13,6 +13,6 @@ with open("Sphere.obj", "w") as f:
             f.write(f"v {u * (x - lx / 2)} {r} {u * (z - lz / 2)}\n")
 
     f.write("\no Sphere\n")
-    
+
     for i in range(lx * lz):
-        f.write(f"sph {i + 1} 1\n")
+        f.write(f"sph {i + 1} {r}\n")
