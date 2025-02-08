@@ -37,6 +37,85 @@ float DevNode::hitDist(Flt3 rO, Flt3 rInvD) const {
 }
 
 
+
+_glb_ void calcAABB(
+    Flt3 *ABmin, Flt3 *ABmax, Flt3 *gCent,
+    Flt3 *mv, AzGeom *geom, int gNum
+) {
+    int idx = threadIdx.x + blockIdx.x * blockDim.x;
+    if (idx >= gNum) return;
+
+    Flt3 ABmin_ = Flt3(INFINITY);
+    Flt3 ABmax_ = Flt3(-INFINITY);
+    Flt3 gCent_ = Flt3();
+
+    AzGeom &g = geom[idx];
+
+    switch (g.type)
+    {
+    case AzGeom::TRIANGLE:
+        for (int j = 0; j < 3; ++j) {
+            Flt3 v = mv[g.tri.v[j]];
+
+            ABmin_.x = fminf(ABmin_.x, v.x);
+            ABmin_.y = fminf(ABmin_.y, v.y);
+            ABmin_.z = fminf(ABmin_.z, v.z);
+
+            ABmax_.x = fmaxf(ABmax_.x, v.x);
+            ABmax_.y = fmaxf(ABmax_.y, v.y);
+            ABmax_.z = fmaxf(ABmax_.z, v.z);
+
+            gCent_ += v;
+        }
+
+        gCent_ /= 3;
+        break;
+
+    case AzGeom::SPHERE:
+        Flt3 c = mv[g.sph.c];
+        ABmin_ = c - g.sph.r;
+        ABmax_ = c + g.sph.r;
+        gCent_ = c;
+        break;
+    }
+
+    ABmin[idx] = ABmin_;
+    ABmax[idx] = ABmax_;
+    gCent[idx] = gCent_;
+}
+
+void AsczBvh::initAABB(AsczMesh &meshMgr) {
+    h_ABmin.resize(meshMgr.gNum);
+    h_ABmax.resize(meshMgr.gNum);
+    h_gCent.resize(meshMgr.gNum);
+
+    cudaMalloc(&d_ABmin, meshMgr.gNum * sizeof(Flt3));
+    cudaMalloc(&d_ABmax, meshMgr.gNum * sizeof(Flt3));
+    cudaMalloc(&d_gCent, meshMgr.gNum * sizeof(Flt3));
+
+    calcAABB<<<(meshMgr.gNum + 255) / 256, 256>>>(
+        d_ABmin, d_ABmax, d_gCent,
+        meshMgr.d_v, meshMgr.d_geom, meshMgr.gNum
+    );
+    cudaDeviceSynchronize();
+
+    cudaMemcpy(
+        h_ABmin.data(), d_ABmin, meshMgr.gNum * sizeof(Flt3),
+        cudaMemcpyDeviceToHost
+    );
+
+    cudaMemcpy(
+        h_ABmax.data(), d_ABmax, meshMgr.gNum * sizeof(Flt3),
+        cudaMemcpyDeviceToHost
+    );
+
+    cudaMemcpy(
+        h_gCent.data(), d_gCent, meshMgr.gNum * sizeof(Flt3),
+        cudaMemcpyDeviceToHost
+    );
+}
+
+
 void AsczBvh::toDevice() {
     nNum = h_dnodes.size();
 
@@ -48,10 +127,6 @@ void AsczBvh::toDevice() {
 }
 
 void AsczBvh::buildBvh(HstNode *nodes, AsczMesh &meshMgr, int depth) {
-    const Vec3f &ABmin = meshMgr.h_ABmin; // Face's AABB min
-    const Vec3f &ABmax = meshMgr.h_ABmax; // Face's AABB max
-    const Vec3f &ABcen = meshMgr.h_ABcen; // Face's AABB center
-
     int nF = nodes->geoms.size();
     if (depth >= MAX_DEPTH || nF <= NODE_FACES) {
         nodes->leaf = true;
@@ -85,16 +160,16 @@ void AsczBvh::buildBvh(HstNode *nodes, AsczMesh &meshMgr, int depth) {
         #pragma omp parallel
         for (int i = 0; i < nF; ++i) {
             int idx = nodes->geoms[i];
-            Flt3 center = ABcen[idx];
+            Flt3 center = h_gCent[idx];
 
             if (center[a] < p[a]) {
                 l.geoms.push_back(idx);
-                l.recalcMin(ABmin[idx]);
-                l.recalcMax(ABmax[idx]);
+                l.recalcMin(h_ABmin[idx]);
+                l.recalcMax(h_ABmax[idx]);
             } else {
                 r.geoms.push_back(idx);
-                r.recalcMin(ABmin[idx]);
-                r.recalcMax(ABmax[idx]);
+                r.recalcMin(h_ABmin[idx]);
+                r.recalcMax(h_ABmax[idx]);
             }
         }
 
@@ -162,15 +237,13 @@ int AsczBvh::toShader(HstNode *node, std::vector<DevNode> &dnodes, std::vector<i
 
 void AsczBvh::designBVH(AsczMesh &meshMgr) {
     const int &gNum = meshMgr.gNum;
-    const Vec3f &ABmin = meshMgr.h_ABmin; // Face's AABB min
-    const Vec3f &ABmax = meshMgr.h_ABmax; // Face's AABB max
 
     HstNode *root = new HstNode();
     root->geoms.resize(gNum);
     for (int i = 0; i < gNum; ++i) {
         root->geoms[i] = i;
-        root->recalcMin(ABmin[i]);
-        root->recalcMax(ABmax[i]);
+        root->recalcMin(h_ABmin[i]);
+        root->recalcMax(h_ABmax[i]);
     }
 
     buildBvh(root, meshMgr);

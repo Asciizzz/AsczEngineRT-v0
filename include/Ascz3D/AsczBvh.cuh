@@ -46,7 +46,17 @@ class AsczBvh {
 public:
     std::vector<HstNode> h_nodes;
     std::vector<DevNode> h_dnodes;
-    std::vector<int> h_gIdx;
+    VecI h_gIdx;
+
+    Vec3f h_ABmin; // Geom's AABB min
+    Vec3f h_ABmax; // Geom's AABB max
+    Vec3f h_gCent; // Geom's centroid (not the AABB centroid)
+
+    Flt3 *d_ABmin = nullptr;
+    Flt3 *d_ABmax = nullptr;
+    Flt3 *d_gCent = nullptr;
+
+    void initAABB(AsczMesh &meshMgr);
 
     DevNode *d_nodes;
     int *d_gIdx;

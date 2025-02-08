@@ -24,7 +24,7 @@ Static Path Tracing:
 
 */
 
-__global__ void realtimeRayTracing(
+_glb_ void realtimeRayTracing(
     Camera camera, Flt3 *frmbuffer, int frmW, int frmH, // In-out
     Flt4 *txtrFlat, TxtrPtr *txtrPtr, // Textures
     Material *mtls, // Materials

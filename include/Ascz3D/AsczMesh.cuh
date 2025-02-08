@@ -60,10 +60,6 @@ public:
     Vec3f h_n;
 
     VecGeom h_geom;
-    
-    Vec3f h_ABmin; // Face's AABB min
-    Vec3f h_ABmax; // Face's AABB max
-    Vec3f h_ABcen; // Face's AABB center (not to be confused with face's center)
 
     VecI  OrSO = {0}; // Object references sub-objects
     VecI  SOrF = {0}; // Sub-object references faces
@@ -78,10 +74,6 @@ public:
 
     AzGeom *d_geom = nullptr;
     int gNum = 0;
-
-    Flt3 *d_ABmin = nullptr;
-    Flt3 *d_ABmax = nullptr;
-    Flt3 *d_ABcen = nullptr;
 
     void freeDevice();
     void toDevice();
