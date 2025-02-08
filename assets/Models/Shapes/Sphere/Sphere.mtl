@@ -1,4 +1,4 @@
 newmtl Sphere
 refl 0.7
 
-Kd 1.0 0.0 0.0
+Kd 1.0 1.0 1.0
