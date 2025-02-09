@@ -38,8 +38,16 @@ float DevNode::hitDist(Flt3 rO, Flt3 rInvD) const {
 
 
 
-_glb_ void calcAABB(
-    Flt3 *ABmin, Flt3 *ABmax, Flt3 *gCent,
+constexpr uint32_t expandBits(uint32_t v) {
+    v = (v * 0x00010001u) & 0xFF0000FFu; // Spread bits
+    v = (v * 0x00000101u) & 0x0F00F00Fu;
+    v = (v * 0x00000011u) & 0xC30C30C3u;
+    v = (v * 0x00000005u) & 0x49249249u; // Final interleave
+    return v;
+}
+
+_glb_ void calcGeomSuperData(
+    Flt3 *ABmin, Flt3 *ABmax, Flt3 *gCent, uint32_t *gMort, int *gIdx,
     Flt3 *mv, AzGeom *geom, int gNum
 ) {
     int idx = threadIdx.x + blockIdx.x * blockDim.x;
@@ -79,40 +87,53 @@ _glb_ void calcAABB(
         break;
     }
 
+    // Calculate Morton code
+    constexpr float grid = 1024.0f; // Increase for higher precision
+
+    Flt3 scl = grid / (ABmax_ - ABmin_); 
+
+    uint32_t x = static_cast<uint32_t>((gCent_.x - ABmin_.x) * scl.x);
+    uint32_t y = static_cast<uint32_t>((gCent_.y - ABmin_.y) * scl.y);
+    uint32_t z = static_cast<uint32_t>((gCent_.z - ABmin_.z) * scl.z);
+
+    // Clamp
+    x = x >= grid ? grid - 1 : x;
+    y = y >= grid ? grid - 1 : y;
+    z = z >= grid ? grid - 1 : z;
+
+    gMort[idx] = (expandBits(x) << 2) | (expandBits(y) << 1) | expandBits(z);
+
     ABmin[idx] = ABmin_;
     ABmax[idx] = ABmax_;
     gCent[idx] = gCent_;
+
+    gIdx[idx] = idx;
 }
 
 void AsczBvh::initAABB(AsczMesh &meshMgr) {
     h_ABmin.resize(meshMgr.gNum);
     h_ABmax.resize(meshMgr.gNum);
     h_gCent.resize(meshMgr.gNum);
+    h_gMort.resize(meshMgr.gNum);
+    h_gIdx.resize(meshMgr.gNum);
 
     cudaMalloc(&d_ABmin, meshMgr.gNum * sizeof(Flt3));
     cudaMalloc(&d_ABmax, meshMgr.gNum * sizeof(Flt3));
     cudaMalloc(&d_gCent, meshMgr.gNum * sizeof(Flt3));
+    cudaMalloc(&d_gMort, meshMgr.gNum * sizeof(uint32_t));
+    cudaMalloc(&d_gIdx, meshMgr.gNum * sizeof(int));
 
-    calcAABB<<<(meshMgr.gNum + 255) / 256, 256>>>(
-        d_ABmin, d_ABmax, d_gCent,
+    calcGeomSuperData<<<(meshMgr.gNum + 255) / 256, 256>>>(
+        d_ABmin, d_ABmax, d_gCent, d_gMort, d_gIdx,
         meshMgr.d_v, meshMgr.d_geom, meshMgr.gNum
     );
     cudaDeviceSynchronize();
 
-    cudaMemcpy(
-        h_ABmin.data(), d_ABmin, meshMgr.gNum * sizeof(Flt3),
-        cudaMemcpyDeviceToHost
-    );
-
-    cudaMemcpy(
-        h_ABmax.data(), d_ABmax, meshMgr.gNum * sizeof(Flt3),
-        cudaMemcpyDeviceToHost
-    );
-
-    cudaMemcpy(
-        h_gCent.data(), d_gCent, meshMgr.gNum * sizeof(Flt3),
-        cudaMemcpyDeviceToHost
-    );
+    cudaMemcpy(h_ABmin.data(), d_ABmin, meshMgr.gNum * sizeof(Flt3), cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_ABmax.data(), d_ABmax, meshMgr.gNum * sizeof(Flt3), cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_gCent.data(), d_gCent, meshMgr.gNum * sizeof(Flt3), cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_gMort.data(), d_gMort, meshMgr.gNum * sizeof(uint32_t), cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_gIdx.data(), d_gIdx, meshMgr.gNum * sizeof(int), cudaMemcpyDeviceToHost);
 }
 
 
@@ -240,9 +261,8 @@ void AsczBvh::designBVH(AsczMesh &meshMgr) {
     const int &gNum = meshMgr.gNum;
 
     HstNode *root = new HstNode();
-    root->geoms.resize(gNum);
+    root->geoms = h_gIdx;
     for (int i = 0; i < gNum; ++i) {
-        root->geoms[i] = i;
         root->recalcMin(h_ABmin[i]);
         root->recalcMax(h_ABmax[i]);
     }

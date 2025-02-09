@@ -14,6 +14,8 @@ to instantly kill a programmer on the spot
 #define VecI std::vector<int>
 #define VecF std::vector<float>
 
+#define VecUI32t std::vector<uint32_t>
+
 #define Vec2f std::vector<Flt2>
 #define Vec3f std::vector<Flt3>
 #define Vec4f std::vector<Flt4>

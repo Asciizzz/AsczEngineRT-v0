@@ -42,24 +42,28 @@ struct DevNode { // Flattened structure friendly for shader code
     _dev_ float hitDist(Flt3 rO, Flt3 rInvD) const;
 };
 
+
+
 class AsczBvh {
 public:
     std::vector<HstNode> h_nodes;
     std::vector<DevNode> h_dnodes;
-    VecI h_gIdx;
 
     Vec3f h_ABmin; // Geom's AABB min
     Vec3f h_ABmax; // Geom's AABB max
     Vec3f h_gCent; // Geom's centroid (not the AABB centroid)
+    VecUI32t h_gMort; // Geom's Morton code
+    VecI h_gIdx; // Geom's index
 
     Flt3 *d_ABmin = nullptr;
     Flt3 *d_ABmax = nullptr;
     Flt3 *d_gCent = nullptr;
+    uint32_t *d_gMort = nullptr;
+    int *d_gIdx = nullptr;
 
     void initAABB(AsczMesh &meshMgr);
 
     DevNode *d_nodes;
-    int *d_gIdx;
     int nNum;
 
     int MAX_DEPTH = 48;
