@@ -116,6 +116,7 @@ void AsczBvh::initAABB(AsczMesh &meshMgr) {
 }
 
 
+
 void AsczBvh::toDevice() {
     nNum = h_dnodes.size();
 
