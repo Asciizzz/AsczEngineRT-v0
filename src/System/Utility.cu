@@ -198,6 +198,10 @@ void Utils::appendObj(
                     float fresnel; mtlSS >> fresnel;
                     MtlMgr.h_mtls[matIdx].Fresnel = fresnel;
                 }
+
+                else if (mtlType == "NoShade") {
+                    MtlMgr.h_mtls[matIdx].noShade = true;
+                }
             }
         }
 

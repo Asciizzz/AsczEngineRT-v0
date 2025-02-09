@@ -164,15 +164,14 @@ _glb_ void realtimeRayTracing(
         // Get the face data
         int hIdx = hit.idx;
         const AzGeom &gHit = geom[hIdx];
+        const Material &hMtl = mtls[gHit.m];
 
         float hitw = 1 - hit.u - hit.v;
 
-        // Vertex, normal and Kd data
         Flt3 vrtx = ray.o + ray.d * hit.t;
-        Flt3 nrml;
-        Flt3 hitKd;
 
         // Interpolated normal
+        Flt3 nrml;
         if (gHit.type == AzGeom::TRIANGLE) {
             Int3 &tn = geom[hIdx].tri.n;
             if (tn.x > -1) {
@@ -185,15 +184,15 @@ _glb_ void realtimeRayTracing(
             nrml = (vrtx - mv[cIdx]).norm();
         }
 
-        const Material &mtl = mtls[gHit.m];
-        if (mtl.mKd > -1) {
+        Flt3 hitKd;
+        if (hMtl.mKd > -1) {
             if (gHit.type == AzGeom::TRIANGLE) {
 
                 Int3 &tt = geom[hIdx].tri.t;
                 Flt2 &t0 = mt[tt.x], &t1 = mt[tt.y], &t2 = mt[tt.z];
                 Flt2 txtr = t0 * hitw + t1 * hit.u + t2 * hit.v;
 
-                hitKd = getTextureColor(txtr, txtrFlat, txtrPtr, mtl.mKd);
+                hitKd = getTextureColor(txtr, txtrFlat, txtrPtr, hMtl.mKd);
             }
             else if (gHit.type == AzGeom::SPHERE) {
                 float phi = acosf(-nrml.y);
@@ -201,18 +200,22 @@ _glb_ void realtimeRayTracing(
                 float u = theta / (2 * M_PI);
                 float v = phi / M_PI;
 
-                hitKd = getTextureColor(Flt2(u, v), txtrFlat, txtrPtr, mtl.mKd);
+                hitKd = getTextureColor(Flt2(u, v), txtrFlat, txtrPtr, hMtl.mKd);
             }
         } else {
-            hitKd = mtl.Kd;
+            hitKd = hMtl.Kd;
         }
 
+        if (hMtl.noShade) {
+            resultColr += hitKd * ray.w;
+            continue;
+        }
 
         // Light management
         float RdotN = ray.d * nrml;
         RdotN = RdotN < 0 ? -RdotN : RdotN;
 
-        Flt3 finalColr = (mtl.Ka & hitKd) * RdotN;
+        Flt3 finalColr = (hMtl.Ka & hitKd) * RdotN;
 
         for (int l = 0; l < lNum; ++l) {
             const LightSrc &light = lSrc[l];
@@ -355,7 +358,7 @@ _glb_ void realtimeRayTracing(
             Flt3 diff = hitKd * NdotL;
 
             Flt3 refl = Ray::reflect(-lDir, nrml);
-            Flt3 spec = mtl.Ks * pow(refl * -ray.d, mtl.Ns);
+            Flt3 spec = hMtl.Ks * pow(refl * -ray.d, hMtl.Ns);
 
             finalColr += passColr & (spec + diff) * intens;
         }
@@ -363,9 +366,9 @@ _glb_ void realtimeRayTracing(
         // ======== Additional rays ========
 
         // Reflective
-        if (mtl.reflect > 0.0f && rs_top + 1 < MAX_RAYS) {
-            float wLeft = ray.w * mtl.reflect;
-            ray.w *= (1 - mtl.reflect);
+        if (hMtl.reflect > 0.0f && rs_top + 1 < MAX_RAYS) {
+            float wLeft = ray.w * hMtl.reflect;
+            ray.w *= (1 - hMtl.reflect);
 
             Flt3 rD = ray.reflect(nrml);
             Flt3 rO = vrtx + nrml * EPSILON_1;
@@ -384,13 +387,13 @@ _glb_ void realtimeRayTracing(
             rstack[rs_top++] = Ray(rO, rD, wLeft, ray.Ni);
         }
         // Transparent
-        else if (mtl.Tr > 0.0f && rs_top + 1 < MAX_RAYS) {
-            float wLeft = ray.w * mtl.Tr;
-            ray.w *= (1 - mtl.Tr);
+        else if (hMtl.Tr > 0.0f && rs_top + 1 < MAX_RAYS) {
+            float wLeft = ray.w * hMtl.Tr;
+            ray.w *= (1 - hMtl.Tr);
 
             Flt3 rO = vrtx + ray.d * EPSILON_1;
 
-            rstack[rs_top++] = Ray(rO, ray.d, wLeft, mtl.Ni);
+            rstack[rs_top++] = Ray(rO, ray.d, wLeft, hMtl.Ni);
         }
 
         resultColr += finalColr * ray.w;

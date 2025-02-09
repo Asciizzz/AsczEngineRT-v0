@@ -1,0 +1,5 @@
+mtllib Sphere.mtl
+
+v 0 0 0
+
+sph 1 100

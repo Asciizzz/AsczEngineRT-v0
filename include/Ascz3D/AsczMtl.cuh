@@ -18,6 +18,8 @@ struct Material {
 
     float Fresnel = 0.0f;
     float Ni = 1.0f;
+
+    bool noShade = false;
 };
 
 class AsczMtl {
