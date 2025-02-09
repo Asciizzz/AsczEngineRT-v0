@@ -1,22 +1,8 @@
 #include <AsczBvh.cuh>
 
-void HstNode::recalcMin(Flt3 v) {
-    min.x = fminf(min.x, v.x);
-    min.y = fminf(min.y, v.y);
-    min.z = fminf(min.z, v.z);
-}
+#include <algorithm>
 
-void HstNode::recalcMax(Flt3 v) {
-    max.x = fmaxf(max.x, v.x);
-    max.y = fmaxf(max.y, v.y);
-    max.z = fmaxf(max.z, v.z);
-}
-
-float HstNode::findCost() {
-    return (max.x - min.x) * (max.y - min.y) * (max.z - min.z) * geoms.size();
-}
-
-float DevNode::hitDist(Flt3 rO, Flt3 rInvD) const {
+float DevNode::hitDist(const Flt3 &rO, const Flt3 &rInvD) const {
     if (rO.x >= min.x && rO.x <= max.x &&
         rO.y >= min.y && rO.y <= max.y &&
         rO.z >= min.z && rO.z <= max.z) return 0.0f;
@@ -34,6 +20,18 @@ float DevNode::hitDist(Flt3 rO, Flt3 rInvD) const {
     if (tmax < tmin) return -1.0f; // No intersection
     if (tmin < 0.0f) return -1.0f; // Intersection behind the ray
     return tmin;
+}
+
+void DevNode::recalcMin(const Flt3 &v) {
+    min.x = fminf(min.x, v.x);
+    min.y = fminf(min.y, v.y);
+    min.z = fminf(min.z, v.z);
+}
+
+void DevNode::recalcMax(const Flt3 &v) {
+    max.x = fmaxf(max.x, v.x);
+    max.y = fmaxf(max.y, v.y);
+    max.z = fmaxf(max.z, v.z);
 }
 
 
@@ -134,139 +132,122 @@ void AsczBvh::initAABB(AsczMesh &meshMgr) {
     cudaMemcpy(h_gCent.data(), d_gCent, meshMgr.gNum * sizeof(Flt3), cudaMemcpyDeviceToHost);
     cudaMemcpy(h_gMort.data(), d_gMort, meshMgr.gNum * sizeof(uint32_t), cudaMemcpyDeviceToHost);
     cudaMemcpy(h_gIdx.data(), d_gIdx, meshMgr.gNum * sizeof(int), cudaMemcpyDeviceToHost);
+
+    std::sort(h_gIdx.begin(), h_gIdx.end(), [&](int a, int b) {
+        return h_gMort[a] < h_gMort[b];
+    });
 }
 
 
-
 void AsczBvh::toDevice() {
-    nNum = h_dnodes.size();
+    nNum = h_nodes.size();
 
-    cudaMalloc(&d_nodes, h_dnodes.size() * sizeof(DevNode));
-    cudaMemcpy(d_nodes, h_dnodes.data(), h_dnodes.size() * sizeof(DevNode), cudaMemcpyHostToDevice);
+    cudaMalloc(&d_nodes, h_nodes.size() * sizeof(DevNode));
+    cudaMemcpy(d_nodes, h_nodes.data(), h_nodes.size() * sizeof(DevNode), cudaMemcpyHostToDevice);
 
     cudaMalloc(&d_gIdx, h_gIdx.size() * sizeof(int));
     cudaMemcpy(d_gIdx, h_gIdx.data(), h_gIdx.size() * sizeof(int), cudaMemcpyHostToDevice);
 }
 
-void AsczBvh::buildBvh(HstNode *nodes, AsczMesh &meshMgr, int depth) {
-    int nF = nodes->geoms.size();
-    if (depth >= MAX_DEPTH || nF <= NODE_FACES) {
-        nodes->leaf = true;
-        return;
+
+int AsczBvh::buildBvh(DevNode &node, int depth) {
+    h_nodes.push_back(node);
+
+    int idx = 0;
+
+    int nG = node.lr - node.ll;
+    if (nG <= NODE_FACES || depth >= MAX_DEPTH) {
+        node.cl = -1;
+        node.cr = -1;
+        return 1;
     }
 
-    HstNode *left = new HstNode();
-    HstNode *right = new HstNode();
-    nodes->l = left;
-    nodes->r = right;
+    Flt3 AABBsize = node.max - node.min;
+    float curCost = DevNode::findCost(node.min, node.max, nG);
 
-    Flt3 AABBsize = nodes->max - nodes->min;
+    int bestAxis = -1;
+    int bestSplit = -1;
+    Flt3 bestLMin, bestLMax;
+    Flt3 bestRMin, bestRMax;
+    float bestCost = curCost;
 
-    float nodeCost = nodes->findCost();
-    float curCost = nodeCost;
+    for (int a = 0; a < 3; ++a) {
+        std::sort(h_gIdx.begin() + node.ll, h_gIdx.begin() + node.lr, [&](int i1, int i2) {
+            return h_gCent[i1][a] < h_gCent[i2][a];
+        });
 
-    #pragma omp parallel
-    for (int x = 0; x < SPLIT_X; ++x) {
-    for (int y = 0; y < SPLIT_Y; ++y) {
-    for (int z = 0; z < SPLIT_Z; ++z) {
-    for (int a = 0; a < 3; ++a) { // Axes
-        HstNode l = HstNode();
-        HstNode r = HstNode();
+        for (int b = 0; b < BIN_COUNT; ++b) {
+            DevNode l, r;
 
-        Flt3 p = nodes->min + Flt3(
-            AABBsize.x * (x + 1) / (SPLIT_X + 1),
-            AABBsize.y * (y + 1) / (SPLIT_Y + 1),
-            AABBsize.z * (z + 1) / (SPLIT_Z + 1)
-        );
+            float splitPoint = node.min[a] + AABBsize[a] * (b + 1) / BIN_COUNT;
 
-        #pragma omp parallel
-        for (int i = 0; i < nF; ++i) {
-            int idx = nodes->geoms[i];
-            Flt3 center = h_gCent[idx];
+            int splitIdx = node.ll;
 
-            if (center[a] < p[a]) {
-                l.geoms.push_back(idx);
-                l.recalcMin(h_ABmin[idx]);
-                l.recalcMax(h_ABmax[idx]);
-            } else {
-                r.geoms.push_back(idx);
-                r.recalcMin(h_ABmin[idx]);
-                r.recalcMax(h_ABmax[idx]);
+            for (int g = node.ll; g < node.lr; ++g) {
+                if (h_gCent[h_gIdx[g]][a] < splitPoint) {
+                    l.recalcMin(h_ABmin[h_gIdx[g]]);
+                    l.recalcMax(h_ABmax[h_gIdx[g]]);
+                    splitIdx++;
+                }
+                else {
+                    r.recalcMin(h_ABmin[h_gIdx[g]]);
+                    r.recalcMax(h_ABmax[h_gIdx[g]]);
+                }
+            }
+
+            float lCost = DevNode::findCost(l.min, l.max, splitIdx - node.ll);
+            float rCost = DevNode::findCost(r.min, r.max, node.lr - splitIdx);
+            float cost = lCost + rCost;
+
+            if (cost < bestCost) {
+                bestCost = cost;
+                bestAxis = a;
+                bestSplit = splitIdx;
+
+                bestLMin = l.min; bestLMax = l.max;
+                bestRMin = r.min; bestRMax = r.max;
             }
         }
-
-        // Calculate cost
-        int lF = l.geoms.size();
-        int rF = r.geoms.size();
-
-        float lCost = l.findCost();
-        float rCost = r.findCost();
-        float cost = lCost + rCost;
-
-        if (cost < curCost) {
-            curCost = cost;
-
-            left->geoms = l.geoms;
-            left->min = l.min;
-            left->max = l.max;
-
-            right->geoms = r.geoms;
-            right->min = r.min;
-            right->max = r.max;
-        }
-    }}}}
-
-    // Unsuccesful split
-    if (curCost >= nodeCost) {
-        nodes->leaf = true;
-        return;
     }
 
-    int lF = left->geoms.size();
-    int rF = right->geoms.size();
-
-    buildBvh(left, meshMgr, depth + 1);
-    buildBvh(right, meshMgr, depth + 1);
-}
-
-int AsczBvh::toShader(HstNode *node, std::vector<DevNode> &dnodes, std::vector<int> &fidx) {
-    int idx = dnodes.size();
-    dnodes.push_back(DevNode());
-
-    dnodes[idx].min = node->min;
-    dnodes[idx].max = node->max;
-
-    if (node->leaf) {
-        dnodes[idx].leaf = true;
-
-        dnodes[idx].l = fidx.size();
-
-        #pragma omp parallel for
-        for (int i = 0; i < node->geoms.size(); ++i) {
-            fidx.push_back(node->geoms[i]);
-        }
-
-        dnodes[idx].r = fidx.size();
-
-        return idx;
+    if (bestSplit == -1 || bestAxis == -1) {
+        node.cl = -1;
+        node.cr = -1;
+        return 1;
     }
 
-    dnodes[idx].l = toShader(node->l, dnodes, fidx);
-    dnodes[idx].r = toShader(node->r, dnodes, fidx);
+    std::sort(h_gIdx.begin() + node.ll, h_gIdx.begin() + node.lr, [&](int i1, int i2) {
+        return h_gCent[i1][bestAxis] < h_gCent[i2][bestAxis];
+    });
 
-    return idx;
+    DevNode l = { bestLMin, bestLMax, -1, -1, node.ll, bestSplit };
+    DevNode r = { bestRMin, bestRMax, -1, -1, bestSplit, node.lr };
+
+    int curIdx = h_nodes.size() - 1;
+
+    h_nodes[curIdx].cl = h_nodes.size();
+    idx += buildBvh(l, depth + 1);
+
+    h_nodes[curIdx].cr = h_nodes.size();
+    idx += buildBvh(r, depth + 1);
+
+    return idx + 1;
 }
 
 void AsczBvh::designBVH(AsczMesh &meshMgr) {
     const int &gNum = meshMgr.gNum;
 
-    HstNode *root = new HstNode();
-    root->geoms = h_gIdx;
+    DevNode root = { Flt3(INFINITY), Flt3(-INFINITY), -1, -1, 0, gNum };
+    // Calculate the root's AABB
     for (int i = 0; i < gNum; ++i) {
-        root->recalcMin(h_ABmin[i]);
-        root->recalcMax(h_ABmax[i]);
+        root.recalcMin(h_ABmin[i]);
+        root.recalcMax(h_ABmax[i]);
     }
 
-    buildBvh(root, meshMgr);
-    toShader(root, h_dnodes, h_gIdx);
+    buildBvh(root, 0);
+
+    // Debug
+    for (int i = 0; i < h_nodes.size(); ++i) {
+        printf("Node %d: %d %d %d %d\n", i, h_nodes[i].cl, h_nodes[i].cr, h_nodes[i].ll, h_nodes[i].lr);
+    }
 }

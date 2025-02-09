@@ -2,6 +2,18 @@
 #include <cuda_runtime.h>
 #include <omp.h>
 
+int AsczMesh::appendVrtx(Flt3 v) {
+    h_v.push_back(v); return vNum++;
+}
+int AsczMesh::appendTxtr(Flt2 t) {
+    h_t.push_back(t); return tNum++;
+}
+int AsczMesh::appendNrml(Flt3 n) {
+    h_n.push_back(n); return nNum++;
+}
+
+
+
 void AsczMesh::appendMesh(MeshStruct mesh) {
     #pragma omp parallel for
     for (int i = 0; i < mesh.SOrF.size(); ++i) {

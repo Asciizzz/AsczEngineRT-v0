@@ -59,13 +59,20 @@ public:
     Vec2f h_t;
     Vec3f h_n;
 
+    int appendVrtx(Flt3 v);
+    int appendTxtr(Flt2 t);
+    int appendNrml(Flt3 n);
+
+    // Extra geometry data for exclusive use (skybox, etc.)
+    VecGeom h_geomEx;
+
+    // The main geometry data
     VecGeom h_geom;
 
     VecI  OrSO = {0}; // Object references sub-objects
     VecI  SOrF = {0}; // Sub-object references faces
 
     void appendMesh(MeshStruct mesh);
-    void computeData();
 
     // Device memory
     Flt3 *d_v = nullptr; int vNum = 0;
@@ -74,6 +81,9 @@ public:
 
     AzGeom *d_geom = nullptr;
     int gNum = 0;
+
+    AzGeom *d_geomEx = nullptr;
+    int gNumEx = 0;
 
     void freeDevice();
     void toDevice();

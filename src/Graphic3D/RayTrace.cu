@@ -19,6 +19,7 @@ _dev_ Flt3 getTextureColor(
     return txtrFlat[t].f3();
 }
 
+
 _glb_ void realtimeRayTracing(
     Camera camera, Flt3 *frmbuffer, int frmW, int frmH, // In-out
     Flt4 *txtrFlat, TxtrPtr *txtrPtr, // Textures
@@ -73,25 +74,25 @@ _glb_ void realtimeRayTracing(
             float hitDist = node.hitDist(ray.o, ray.invd);
             if (hitDist < 0 || hitDist > hit.t) continue;
 
-            if (!node.leaf) {
-                float ldist = nodes[node.l].hitDist(ray.o, ray.invd);
-                float rdist = nodes[node.r].hitDist(ray.o, ray.invd);
+            if (node.cl > -1) { // If node not a leaf
+                float ldist = nodes[node.cl].hitDist(ray.o, ray.invd);
+                float rdist = nodes[node.cr].hitDist(ray.o, ray.invd);
 
                 // Early exit
                 if (ldist < 0 && rdist < 0) continue;
                 // Push the valid node
-                else if (ldist < 0) nstack[ns_top++] = node.r;
-                else if (rdist < 0) nstack[ns_top++] = node.l;
+                else if (ldist < 0) nstack[ns_top++] = node.cr;
+                else if (rdist < 0) nstack[ns_top++] = node.cl;
                 // Push the closest node first
                 else {
-                    nstack[ns_top++] = ldist < rdist ? node.r : node.l;
-                    nstack[ns_top++] = ldist < rdist ? node.l : node.r;
+                    nstack[ns_top++] = ldist < rdist ? node.cr : node.cl;
+                    nstack[ns_top++] = ldist < rdist ? node.cl : node.cr;
                 }
 
                 continue;
             }
 
-            for (int i = node.l; i < node.r; ++i) {
+            for (int i = node.ll; i < node.lr; ++i) {
                 int gi = gIdx[i];
 
                 if (geom[gi].type == AzGeom::TRIANGLE) {
@@ -243,22 +244,22 @@ _glb_ void realtimeRayTracing(
                 float hitDist = node.hitDist(lPos, lInv);
                 if (hitDist < 0 || hitDist > lDist) continue;
 
-                if (!node.leaf) {
-                    float ldist = nodes[node.l].hitDist(lPos, lInv);
-                    float rdist = nodes[node.r].hitDist(lPos, lInv);
+                if (node.cl > -1) { // If node not a leaf
+                    float ldist = nodes[node.cl].hitDist(lPos, lInv);
+                    float rdist = nodes[node.cr].hitDist(lPos, lInv);
 
                     if (ldist < 0 && rdist < 0) continue;
-                    else if (ldist < 0) nstack[ns_top++] = node.r;
-                    else if (rdist < 0) nstack[ns_top++] = node.l;
+                    else if (ldist < 0) nstack[ns_top++] = node.cr;
+                    else if (rdist < 0) nstack[ns_top++] = node.cl;
                     else {
-                        nstack[ns_top++] = ldist < rdist ? node.r : node.l;
-                        nstack[ns_top++] = ldist < rdist ? node.l : node.r;
+                        nstack[ns_top++] = ldist < rdist ? node.cr : node.cl;
+                        nstack[ns_top++] = ldist < rdist ? node.cl : node.cr;
                     }
 
                     continue;
                 }
 
-                for (int i = node.l; i < node.r; ++i) {
+                for (int i = node.ll; i < node.lr; ++i) {
                     int gi = gIdx[i];
                     if (gi == hIdx) continue;
     

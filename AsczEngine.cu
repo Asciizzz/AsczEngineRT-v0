@@ -115,14 +115,8 @@ int main() {
 
         if (type == "MaxDepth")
             ss >> BvhMgr.MAX_DEPTH;
-        else if (type == "MinFaces")
-            ss >> BvhMgr.NODE_FACES;
-        else if (type == "SplitX")
-            ss >> BvhMgr.SPLIT_X;
-        else if (type == "SplitY")
-            ss >> BvhMgr.SPLIT_Y;
-        else if (type == "SplitZ")
-            ss >> BvhMgr.SPLIT_Z;
+        else if (type == "BinCount")
+            ss >> BvhMgr.BIN_COUNT;
     };
 
     // ========================================================================
