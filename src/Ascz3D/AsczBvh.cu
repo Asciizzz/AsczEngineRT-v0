@@ -183,6 +183,7 @@ int AsczBvh::buildBvh(DevNode &node, int depth) {
 
             int splitIdx = node.ll;
 
+            #pragma omp parallel
             for (int g = node.ll; g < node.lr; ++g) {
                 if (h_gCent[h_gIdx[g]][a] < splitPoint) {
                     l.recalcMin(h_ABmin[h_gIdx[g]]);
@@ -245,9 +246,4 @@ void AsczBvh::designBVH(AsczMesh &meshMgr) {
     }
 
     buildBvh(root, 0);
-
-    // Debug
-    for (int i = 0; i < h_nodes.size(); ++i) {
-        printf("Node %d: %d %d %d %d\n", i, h_nodes[i].cl, h_nodes[i].cr, h_nodes[i].ll, h_nodes[i].lr);
-    }
 }
