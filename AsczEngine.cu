@@ -281,7 +281,7 @@ int main() {
         CAMERA.update();
 
         // Render frmbuffer
-        realtimeRayTracing<<<blocks, threads>>>(
+        raytraceKernel<<<blocks, threads>>>(
             CAMERA, d_frmbuffer1, frmW, frmH,
             TxtrMgr.d_txtrFlat, TxtrMgr.d_txtrPtr,
             MtlMgr.d_mtls,
