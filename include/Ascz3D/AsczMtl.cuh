@@ -20,6 +20,7 @@ struct Material {
     float Ni = 1.0f;
 
     bool noShade = false;
+    bool noShadow = false;
 };
 
 class AsczMtl {

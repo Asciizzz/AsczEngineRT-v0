@@ -207,7 +207,7 @@ _glb_ void realtimeRayTracing(
             hitKd = hMtl.Kd;
         }
 
-        if (hMtl.noShade) {
+        if (hMtl.noShade && hMtl.noShadow) {
             resultColr += hitKd * ray.w;
             continue;
         }
@@ -215,6 +215,7 @@ _glb_ void realtimeRayTracing(
         // Light management
         float RdotN = ray.d * nrml;
         RdotN = RdotN < 0 ? -RdotN : RdotN;
+        RdotN = hMtl.noShade ? 1.0f : RdotN;
 
         Flt3 finalColr = (hMtl.Ka & hitKd) * RdotN;
 
@@ -238,6 +239,8 @@ _glb_ void realtimeRayTracing(
 
             bool shadow = false;
             while (ns_top > 0) {
+                if (hMtl.noShadow) break;
+
                 int idx = nstack[--ns_top];
                 DevNode &node = nodes[idx];
 
@@ -262,7 +265,7 @@ _glb_ void realtimeRayTracing(
                 for (int i = node.ll; i < node.lr; ++i) {
                     int gi = gIdx[i];
                     if (gi == hIdx) continue;
-    
+
                     bool hit = false;
                     float u, v;
 
@@ -360,6 +363,9 @@ _glb_ void realtimeRayTracing(
 
             Flt3 refl = Ray::reflect(-lDir, nrml);
             Flt3 spec = hMtl.Ks * pow(refl * -ray.d, hMtl.Ns);
+
+            diff = hMtl.noShade ? hitKd : diff;
+            spec = hMtl.noShade ? Flt3(0, 0, 0) : spec;
 
             finalColr += passColr & (spec + diff) * intens;
         }

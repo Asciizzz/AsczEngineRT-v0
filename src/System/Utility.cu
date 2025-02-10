@@ -199,6 +199,9 @@ void Utils::appendObj(
                 else if (mtlType == "NoShade") {
                     MtlMgr.h_mtls[matIdx].noShade = true;
                 }
+                else if (mtlType == "NoShadow") {
+                    MtlMgr.h_mtls[matIdx].noShadow = true;
+                }
             }
         }
 

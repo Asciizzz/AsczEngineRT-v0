@@ -13,7 +13,7 @@
 
 #assets/Models/Character/Sukuna/Sukuna.obj 2 1
 
-assets/Models/City/Building001.obj 2 1
+#assets/Models/City/Building001.obj 2 1
 
 #assets/Models/Structure/PeachsCastle/PeachsCastle.obj 2 1
 #assets/Models/Structure/PeachsCastle1F/PeachsCastle1F.obj 2 1
@@ -25,5 +25,5 @@ assets/Models/City/Building001.obj 2 1
 #assets/Models/Weapon/AK47.obj 2 1
 #assets/Models/Weapon/AWP.obj 2 1
 
-#.heavy/Fnaf/Fnaf1.obj 2 1
+.heavy/Fnaf/Fnaf1.obj 2 1
 #.heavy/AbandonedHouse/AbandonedHouse.obj 2 1
