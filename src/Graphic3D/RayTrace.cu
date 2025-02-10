@@ -44,7 +44,7 @@ _glb_ void realtimeRayTracing(
     int x = tIdx % frmW, y = tIdx / frmW;
     Ray primaryRay = camera.castRay(x, y, frmW, frmH);
 
-    const int MAX_RAYS = 32;
+    const int MAX_RAYS = 16;
     const int MAX_DEPTH = 32;
 
     Ray rstack[MAX_RAYS]; // Ray stack
