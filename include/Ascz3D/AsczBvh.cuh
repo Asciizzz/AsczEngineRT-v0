@@ -36,18 +36,8 @@ struct DevNode { // Flattened structure friendly for shader code
 
 class AsczBvh {
 public:
-
-    Vec3f h_ABmin; // Geom's AABB min
-    Vec3f h_ABmax; // Geom's AABB max
-    Vec3f h_gCent; // Geom's centroid (not the AABB centroid)
     VecI h_gIdx; // Geom's index
-
-    Flt3 *d_ABmin = nullptr;
-    Flt3 *d_ABmax = nullptr;
-    Flt3 *d_gCent = nullptr;
     int *d_gIdx = nullptr;
-
-    void initAABB(AsczMesh &meshMgr);
 
     VecNode h_nodes;
     DevNode *d_nodes;

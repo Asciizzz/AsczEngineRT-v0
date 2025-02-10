@@ -27,77 +27,6 @@ float DevNode::hitDist(const Flt3 &rO, const Flt3 &rInvD) const {
 
 
 
-_glb_ void calcGeomSuperData(
-    Flt3 *ABmin, Flt3 *ABmax, Flt3 *gCent, int *gIdx,
-    Flt3 *mv, AzGeom *geom, int gNum
-) {
-    int idx = threadIdx.x + blockIdx.x * blockDim.x;
-    if (idx >= gNum) return;
-
-    Flt3 ABmin_ = Flt3(INFINITY);
-    Flt3 ABmax_ = Flt3(-INFINITY);
-    Flt3 gCent_ = Flt3();
-
-    AzGeom &g = geom[idx];
-
-    switch (g.type)
-    {
-    case AzGeom::TRIANGLE:
-        for (int j = 0; j < 3; ++j) {
-            Flt3 v = mv[g.tri.v[j]];
-
-            ABmin_.x = fminf(ABmin_.x, v.x);
-            ABmin_.y = fminf(ABmin_.y, v.y);
-            ABmin_.z = fminf(ABmin_.z, v.z);
-
-            ABmax_.x = fmaxf(ABmax_.x, v.x);
-            ABmax_.y = fmaxf(ABmax_.y, v.y);
-            ABmax_.z = fmaxf(ABmax_.z, v.z);
-
-            gCent_ += v;
-        }
-
-        gCent_ /= 3;
-        break;
-
-    case AzGeom::SPHERE:
-        Flt3 c = mv[g.sph.c];
-        ABmin_ = c - g.sph.r;
-        ABmax_ = c + g.sph.r;
-        gCent_ = c;
-        break;
-    }
-
-    ABmin[idx] = ABmin_;
-    ABmax[idx] = ABmax_;
-    gCent[idx] = gCent_;
-    gIdx[idx] = idx;
-}
-
-void AsczBvh::initAABB(AsczMesh &meshMgr) {
-    h_ABmin.resize(meshMgr.gNum);
-    h_ABmax.resize(meshMgr.gNum);
-    h_gCent.resize(meshMgr.gNum);
-    h_gIdx.resize(meshMgr.gNum);
-
-    cudaMalloc(&d_ABmin, meshMgr.gNum * sizeof(Flt3));
-    cudaMalloc(&d_ABmax, meshMgr.gNum * sizeof(Flt3));
-    cudaMalloc(&d_gCent, meshMgr.gNum * sizeof(Flt3));
-    cudaMalloc(&d_gIdx, meshMgr.gNum * sizeof(int));
-
-    calcGeomSuperData<<<(meshMgr.gNum + 255) / 256, 256>>>(
-        d_ABmin, d_ABmax, d_gCent, d_gIdx,
-        meshMgr.d_v, meshMgr.d_geom, meshMgr.gNum
-    );
-    cudaDeviceSynchronize();
-
-    cudaMemcpy(h_ABmin.data(), d_ABmin, meshMgr.gNum * sizeof(Flt3), cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_ABmax.data(), d_ABmax, meshMgr.gNum * sizeof(Flt3), cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_gCent.data(), d_gCent, meshMgr.gNum * sizeof(Flt3), cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_gIdx.data(), d_gIdx, meshMgr.gNum * sizeof(int), cudaMemcpyDeviceToHost);
-}
-
-
 void AsczBvh::toDevice() {
     nNum = h_nodes.size();
 
@@ -213,6 +142,11 @@ void AsczBvh::designBVH(AsczMesh &meshMgr) {
     const VecAB &G_AB = meshMgr.G_AB;
 
     DevNode root = { GlbAB, -1, -1, 0, gNum };
+
+    // Initialize h_gIdx with (0, 1, 2, ..., gNum - 1)
+    h_gIdx.resize(gNum);
+    #pragma omp parallel for
+    for (int i = 0; i < gNum; ++i) h_gIdx[i] = i;
 
     buildBvh(
         h_nodes, h_gIdx, root, G_AB, 0,

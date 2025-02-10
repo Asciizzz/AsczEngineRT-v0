@@ -179,7 +179,6 @@ int main() {
     MtlMgr.toDevice();
     MeshMgr.toDevice();
 
-    BvhMgr.initAABB(MeshMgr);
     BvhMgr.designBVH(MeshMgr);
     BvhMgr.toDevice();
 
