@@ -12,9 +12,7 @@ Lvl 1: Scenewise BVH, split objects
 Lvl 2: Objectwise BVH, split sub-objects
 Lvl 3: Sub-objectwise BVH, split faces
 
-Keep in mind for the HstNode:
-
-If its a leaf, then the faces vector is pretty much useless
+Refer to AsczMesh.cuh for detail regarding object and sub-object
 
 */
 
