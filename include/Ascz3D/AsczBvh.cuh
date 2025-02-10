@@ -21,8 +21,7 @@ If its a leaf, then the faces vector is pretty much useless
 #define VecNode std::vector<DevNode>
 
 struct DevNode { // Flattened structure friendly for shader code
-    Flt3 min = Flt3(INFINITY);
-    Flt3 max = Flt3(-INFINITY);
+    AABB ab; // AABB
 
     int cl, cr; // Children
     int ll = -1;
@@ -30,15 +29,8 @@ struct DevNode { // Flattened structure friendly for shader code
 
     _dev_ float hitDist(const Flt3 &rO, const Flt3 &rInvD) const;
 
-    _hst_ void recalcMin(const Flt3 &v);
-    _hst_ void recalcMax(const Flt3 &v);
-
-    _hst_ static float findSAH(Flt3 min, Flt3 max) {
-        Flt3 size = max - min;
-        return size.x * size.y + size.y * size.z + size.z * size.x;
-    }
-    _hst_ static float findCost(Flt3 min, Flt3 max, int gNum) {
-        return findSAH(min, max) * gNum;
+    _hst_ static float findCost(AABB &ab, int nG) {
+        return ab.getSA() * nG;
     }
 };
 

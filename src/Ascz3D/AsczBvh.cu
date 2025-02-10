@@ -3,6 +3,9 @@
 #include <algorithm>
 
 float DevNode::hitDist(const Flt3 &rO, const Flt3 &rInvD) const {
+    const Flt3 &min = ab.min;
+    const Flt3 &max = ab.max;
+
     if (rO.x >= min.x && rO.x <= max.x &&
         rO.y >= min.y && rO.y <= max.y &&
         rO.z >= min.z && rO.z <= max.z) return 0.0f;
@@ -20,18 +23,6 @@ float DevNode::hitDist(const Flt3 &rO, const Flt3 &rInvD) const {
     if (tmax < tmin) return -1.0f; // No intersection
     if (tmin < 0.0f) return -1.0f; // Intersection behind the ray
     return tmin;
-}
-
-void DevNode::recalcMin(const Flt3 &v) {
-    min.x = fminf(min.x, v.x);
-    min.y = fminf(min.y, v.y);
-    min.z = fminf(min.z, v.z);
-}
-
-void DevNode::recalcMax(const Flt3 &v) {
-    max.x = fmaxf(max.x, v.x);
-    max.y = fmaxf(max.y, v.y);
-    max.z = fmaxf(max.z, v.z);
 }
 
 
@@ -134,13 +125,14 @@ int AsczBvh::buildBvh(
         return 1;
     }
 
-    Flt3 AABBsize = node.max - node.min;
-    float curCost = DevNode::findCost(node.min, node.max, nG);
+    Flt3 ABmin_ = node.ab.min;
+    Flt3 ABmax_ = node.ab.max;
+    Flt3 ABsize_ = node.ab.max - node.ab.min;
+    float curCost = DevNode::findCost(node.ab, nG);
 
     int bestAxis = -1;
     int bestSplit = -1;
-    Flt3 bestLMin, bestLMax;
-    Flt3 bestRMin, bestRMax;
+    AABB bestLab, bestRab;
     float bestCost = curCost;
 
     for (int a = 0; a < 3; ++a) {
@@ -151,7 +143,7 @@ int AsczBvh::buildBvh(
         for (int b = 0; b < BIN_COUNT; ++b) {
             DevNode l, r;
 
-            float splitPoint = node.min[a] + AABBsize[a] * (b + 1) / BIN_COUNT;
+            float splitPoint = ABmin_[a] + ABsize_[a] * (b + 1) / BIN_COUNT;
 
             int splitIdx = node.ll;
 
@@ -162,18 +154,18 @@ int AsczBvh::buildBvh(
                 float cent = gCent[i][a];
 
                 if (cent < splitPoint) {
-                    l.recalcMin(ABmin[i]);
-                    l.recalcMax(ABmax[i]);
+                    l.ab.recalcMin(ABmin[i]);
+                    l.ab.recalcMax(ABmax[i]);
                     splitIdx++;
                 }
                 else {
-                    r.recalcMin(ABmin[i]);
-                    r.recalcMax(ABmax[i]);
+                    r.ab.recalcMin(ABmin[i]);
+                    r.ab.recalcMax(ABmax[i]);
                 }
             }
 
-            float lCost = DevNode::findCost(l.min, l.max, splitIdx - node.ll);
-            float rCost = DevNode::findCost(r.min, r.max, node.lr - splitIdx);
+            float lCost = DevNode::findCost(l.ab, splitIdx - node.ll);
+            float rCost = DevNode::findCost(r.ab, node.lr - splitIdx);
             float cost = lCost + rCost;
 
             if (cost < bestCost) {
@@ -181,8 +173,8 @@ int AsczBvh::buildBvh(
                 bestAxis = a;
                 bestSplit = splitIdx;
 
-                bestLMin = l.min; bestLMax = l.max;
-                bestRMin = r.min; bestRMax = r.max;
+                bestLab = l.ab;
+                bestRab = r.ab;
             }
         }
     }
@@ -197,8 +189,8 @@ int AsczBvh::buildBvh(
         return gCent[i1][bestAxis] < gCent[i2][bestAxis];
     });
 
-    DevNode l = { bestLMin, bestLMax, -1, -1, node.ll, bestSplit };
-    DevNode r = { bestRMin, bestRMax, -1, -1, bestSplit, node.lr };
+    DevNode l = { bestLab, -1, -1, node.ll, bestSplit };
+    DevNode r = { bestRab, -1, -1, bestSplit, node.lr };
 
     int curIdx = allNode.size() - 1;
 
@@ -225,8 +217,8 @@ void AsczBvh::designBVH(AsczMesh &meshMgr) {
     DevNode root = { Flt3(INFINITY), Flt3(-INFINITY), -1, -1, 0, gNum };
     // Calculate the root's AABB
     for (int i = 0; i < gNum; ++i) {
-        root.recalcMin(h_ABmin[i]);
-        root.recalcMax(h_ABmax[i]);
+        root.ab.recalcMin(h_ABmin[i]);
+        root.ab.recalcMax(h_ABmax[i]);
     }
 
     buildBvh(

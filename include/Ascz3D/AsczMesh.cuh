@@ -42,6 +42,30 @@ To handle this, I have came up with a way to handle objects as well as their sub
     => SOrF = Human{0, 2, 5, 9} + Animal{11, 14} = {0, 2, 5, 9, 11, 14}
 */
 
+struct AABB {
+    Flt3 min = Flt3(INFINITY);
+    Flt3 max = Flt3(-INFINITY);
+
+    _hst_dev_ void recalcMin(const Flt3 &v) {
+        min.x = fminf(min.x, v.x);
+        min.y = fminf(min.y, v.y);
+        min.z = fminf(min.z, v.z);
+    }
+    _hst_dev_ void recalcMax(const Flt3 &v) {
+        max.x = fmaxf(max.x, v.x);
+        max.y = fmaxf(max.y, v.y);
+        max.z = fmaxf(max.z, v.z);
+    }
+    _hst_dev_ void recalc(const Flt3 &v) {
+        recalcMin(v);
+        recalcMax(v);
+    }
+    _hst_dev_ float getSA() const {
+        Flt3 size = max - min;
+        return size.x * size.y + size.y * size.z + size.z * size.x;
+    }
+};
+
 struct MeshStruct {
     Vec3f v;
     Vec2f t;
@@ -50,6 +74,9 @@ struct MeshStruct {
     VecGeom geom;
 
     VecI  SOrF; // Sub-objects
+
+    Flt3 min, max;
+    Vec3f Smin, Smax;
 };
 
 class AsczMesh {
