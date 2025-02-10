@@ -92,6 +92,12 @@ int main() {
             ss >> CAMERA.rot.x >> CAMERA.rot.y >> CAMERA.rot.z;
         else if (type == "CameraFov")
             ss >> CAMERA.fov;
+        else if (type == "VelSpec")
+            ss >> CAMERA.velSpec;
+        else if (type == "SlowFactor")
+            ss >> CAMERA.slowFactor;
+        else if (type == "FastFactor")
+            ss >> CAMERA.fastFactor;
 
         if (type == "LightSrc") {
             LightSrc lSrc; ss >>
@@ -161,8 +167,8 @@ int main() {
         std::stringstream ss(objLine);
 
         std::string objPath;
-        short objPlacement;
-        float objScale;
+        short objPlacement = 0;
+        float objScale = 1.0f;
 
         ss >> objPath >> objPlacement >> objScale;
 
