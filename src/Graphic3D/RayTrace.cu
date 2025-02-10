@@ -236,7 +236,7 @@ _glb_ void realtimeRayTracing(
         }
 
         // Light management
-        float RdotN = ray.d * nrml;
+        float RdotN = ray.d * nrml * 0.4f;
         RdotN = RdotN < 0 ? -RdotN : RdotN;
         RdotN = hMtl.noShade ? 1.0f : RdotN;
 
