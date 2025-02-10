@@ -335,7 +335,7 @@ _glb_ void raytraceKernel(
                         tx.y -= floor(tx.y);
 
                         Flt4 txColr = getTextureColor(tx, txtrFlat, txtrPtr, mat2.mKd);
-                        passColr += txColr.f3();
+                        passColr += txColr.f3() * txColr.w;
                     } else {
                         passColr += mat2.Kd;
                     }
