@@ -36,7 +36,7 @@ _dev_ RayHit RayHitTriangle(const Flt3 &o, const Flt3 &d, const Flt3 &v0, const 
     Flt3 h = d ^ e2;
     float a = e1 * h;
 
-    if (a > -EPSILON_2 && a < EPSILON_2) return hit;
+    if (a == 0) return hit;
 
     float f = 1.0f / a;
     Flt3 s = o - v0;
@@ -51,7 +51,7 @@ _dev_ RayHit RayHitTriangle(const Flt3 &o, const Flt3 &d, const Flt3 &v0, const 
 
     float t = f * (e2 * q);
 
-    if (t > EPSILON_2) {
+    if (t > 0) {
         hit.idx = 1;
         hit.t = t;
         hit.u = u;
@@ -76,7 +76,7 @@ _dev_ RayHit RayHitSphere(const Flt3 &o, const Flt3 &d, const Flt3 &sc, float sr
 
     t0 = t0 < 0 ? t1 : t0;
 
-    if (t0 > EPSILON_2) {
+    if (t0 > 0) {
         hit.idx = 1;
         hit.t = t0;
     }
@@ -370,8 +370,6 @@ _glb_ void raytraceKernel(
 
             finalColr += passColr & (spec + diff) * intens;
         }
-
-        // Indirect lighting
 
         // ======== Additional rays ========
 
