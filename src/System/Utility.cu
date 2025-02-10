@@ -20,8 +20,8 @@ void Utils::appendObj(
     std::string path(objPath);
 
     // We will use these value to shift the mesh to desired position
-    float minX = INFINITY, minY = INFINITY, minZ = INFINITY;
-    float maxX = -INFINITY, maxY = -INFINITY, maxZ = -INFINITY;
+    AABB O_AB; // Object AABB
+    VecAB SO_AB; // Sub-objects AABB
 
     std::string line;
     while (std::getline(file, line)) {
@@ -46,12 +46,8 @@ void Utils::appendObj(
             v.scale(Flt3(), scale);
             mv.push_back(v);
 
-            minX = std::min(minX, v.x);
-            minY = std::min(minY, v.y);
-            minZ = std::min(minZ, v.z);
-            maxX = std::max(maxX, v.x);
-            maxY = std::max(maxY, v.y);
-            maxZ = std::max(maxZ, v.z);
+            O_AB.recalc(v);
+            SO_AB.back().recalc(v);
         }
 
         else if (type == "f") {
@@ -112,6 +108,7 @@ void Utils::appendObj(
 
         else if (type == "o") {
             mSOrF.push_back(mgeom.size());
+            SO_AB.push_back(AABB());
         }
 
         else if (type == "usemtl") {
@@ -218,14 +215,14 @@ void Utils::appendObj(
     for (size_t i = 0; i < mv.size(); ++i) {
         // Shift to center of xz plane
         if (placement > 0) {
-            mv[i].x -= (minX + maxX) / 2;
-            mv[i].z -= (minZ + maxZ) / 2;
+            mv[i].x -= (O_AB.min.x + O_AB.max.x) / 2;
+            mv[i].z -= (O_AB.min.z + O_AB.max.z) / 2;
         }
 
         // Shift to center
-        if (placement == 1) mv[i].y -= minY;
+        if (placement == 1) mv[i].y -= (O_AB.min.y + O_AB.max.y) / 2;
         // Shift to floor (y = 0)
-        else if (placement == 2) mv[i].y -= minY;
+        else if (placement == 2) mv[i].y -= O_AB.min.y;
     }
 
     MeshStruct mesh;
@@ -234,6 +231,8 @@ void Utils::appendObj(
     mesh.n = mn;
     mesh.geom = mgeom;
     mesh.SOrF = mSOrF;
+    mesh.O_AB = O_AB;
+    mesh.SO_AB = SO_AB;
 
     MeshMgr.appendMesh(mesh);
 }

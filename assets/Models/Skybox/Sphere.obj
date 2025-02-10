@@ -2,4 +2,5 @@ mtllib Sphere.mtl
 
 v 0 0 0
 
+o Skybox
 sph 1 100

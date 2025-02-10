@@ -19,29 +19,48 @@ void AsczMesh::appendMesh(MeshStruct mesh) {
     for (int i = 0; i < mesh.SOrF.size(); ++i) {
         SOrF.push_back(mesh.SOrF[i] + h_geom.size());
     }
-
     OrSO.push_back(SOrF.size());
+    oNum++;
 
-    #pragma omp parallel for
-    for (int i = 0; i < mesh.geom.size(); ++i) {
-        // Offset the indices
+    // Append and calculate AABB
+    GlbAB.recalc(mesh.O_AB);
+    O_AB.push_back(mesh.O_AB);
+    SO_AB.insert(SO_AB.end(), mesh.SO_AB.begin(), mesh.SO_AB.end());
 
-        AzGeom &g = mesh.geom[i];
-        if (g.type == AzGeom::TRIANGLE) {
-            g.tri.v += h_v.size();
-            g.tri.t += h_t.size();
-            g.tri.n += h_n.size();
-        }
-        else if (g.type == AzGeom::SPHERE) {
-            g.sph.c += h_v.size();
-        }
-
-        h_geom.push_back(g);
-    }
+    int vPrev = h_v.size();
+    int tPrev = h_t.size();
+    int nPrev = h_n.size();
 
     h_v.insert(h_v.end(), mesh.v.begin(), mesh.v.end());
     h_t.insert(h_t.end(), mesh.t.begin(), mesh.t.end());
     h_n.insert(h_n.end(), mesh.n.begin(), mesh.n.end());
+
+    #pragma omp parallel for
+    for (int i = 0; i < mesh.geom.size(); ++i) {
+        // Offset the indices
+        AABB ab;
+
+        AzGeom &g = mesh.geom[i];
+        if (g.type == AzGeom::TRIANGLE) {
+            g.tri.v += vPrev;
+            g.tri.t += tPrev;
+            g.tri.n += nPrev;
+
+            ab.recalc(h_v[g.tri.v[0]]);
+            ab.recalc(h_v[g.tri.v[1]]);
+            ab.recalc(h_v[g.tri.v[2]]);
+        }
+        else if (g.type == AzGeom::SPHERE) {
+            g.sph.c += vPrev;
+
+            Flt3 c = h_v[g.sph.c];
+            ab.min = c - g.sph.r;
+            ab.max = c + g.sph.r;
+        }
+
+        h_geom.push_back(g);
+        G_AB.push_back(ab);
+    }
 
     vNum = h_v.size();
     tNum = h_t.size();

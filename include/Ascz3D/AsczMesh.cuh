@@ -42,6 +42,8 @@ To handle this, I have came up with a way to handle objects as well as their sub
     => SOrF = Human{0, 2, 5, 9} + Animal{11, 14} = {0, 2, 5, 9, 11, 14}
 */
 
+#define VecAB std::vector<AABB>
+
 struct AABB {
     Flt3 min = Flt3(INFINITY);
     Flt3 max = Flt3(-INFINITY);
@@ -60,6 +62,10 @@ struct AABB {
         recalcMin(v);
         recalcMax(v);
     }
+    _hst_dev_ void recalc(const AABB &ab) {
+        recalcMin(ab.min);
+        recalcMax(ab.max);
+    }
     _hst_dev_ float getSA() const {
         Flt3 size = max - min;
         return size.x * size.y + size.y * size.z + size.z * size.x;
@@ -75,8 +81,8 @@ struct MeshStruct {
 
     VecI  SOrF; // Sub-objects
 
-    Flt3 min, max;
-    Vec3f Smin, Smax;
+    AABB O_AB; // Object AABB
+    VecAB SO_AB; // Sub-objects AABB
 };
 
 class AsczMesh {
@@ -96,8 +102,14 @@ public:
     // The main geometry data
     VecGeom h_geom;
 
+    int oNum = 0; // Number of objects
     VecI  OrSO = {0}; // Object references sub-objects
     VecI  SOrF = {0}; // Sub-object references faces
+
+    AABB GlbAB; // Global AABB
+    VecAB O_AB; // Objects AABB
+    VecAB SO_AB; // Sub-objects AABB
+    VecAB G_AB; // Geoms AABB
 
     void appendMesh(MeshStruct mesh);
 

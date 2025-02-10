@@ -213,17 +213,14 @@ int AsczBvh::buildBvh(
 
 void AsczBvh::designBVH(AsczMesh &meshMgr) {
     const int &gNum = meshMgr.gNum;
+    const AABB &GlbAB = meshMgr.GlbAB;
+    const AABB &G_AB = meshMgr.G_AB;
 
-    DevNode root = { Flt3(INFINITY), Flt3(-INFINITY), -1, -1, 0, gNum };
-    // Calculate the root's AABB
-    for (int i = 0; i < gNum; ++i) {
-        root.ab.recalcMin(h_ABmin[i]);
-        root.ab.recalcMax(h_ABmax[i]);
-    }
+    DevNode root = { GlbAB, -1, -1, 0, gNum };
 
     buildBvh(
         h_nodes, h_gIdx, root, 0,
-        h_ABmin, h_ABmax, h_gCent,
+        G_AB, h_gCent,
         MAX_DEPTH, NODE_FACES, BIN_COUNT
     );
 }
