@@ -13,12 +13,12 @@
 
 #assets/Models/Character/Sukuna/Sukuna.obj 2 1
 
-#assets/Models/City/Building001.obj 2 1
+assets/Models/City/Building001.obj 2 1
 
 #assets/Models/Structure/PeachsCastle/PeachsCastle.obj 2 1
 #assets/Models/Structure/PeachsCastle1F/PeachsCastle1F.obj 2 1
 #assets/Models/Structure/Stronghold/Stronghold.obj 2 1
-assets/Models/Structure/LivingRoom/LivingRoom.obj 2 1
+#assets/Models/Structure/LivingRoom/LivingRoom.obj 2 1
 
 #assets/Models/Cornell/Cornell.obj 2 10
 

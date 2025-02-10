@@ -139,17 +139,85 @@ int AsczBvh::buildBvh(
 void AsczBvh::designBVH(AsczMesh &meshMgr) {
     const int &gNum = meshMgr.gNum;
     const AABB &GlbAB = meshMgr.GlbAB;
+    const VecAB &O_AB = meshMgr.O_AB;
+    const VecAB &SO_AB = meshMgr.SO_AB;
     const VecAB &G_AB = meshMgr.G_AB;
 
-    DevNode root = { GlbAB, -1, -1, 0, gNum };
+    DevNode root = { GlbAB, -1, -1, 0, O_AB.size() };
 
-    // Initialize h_gIdx with (0, 1, 2, ..., gNum - 1)
-    h_gIdx.resize(gNum);
+    // Initialize oIdx with (0, 1, 2, ..., oNum - 1)
+    VecI oIdx(O_AB.size());
     #pragma omp parallel for
-    for (int i = 0; i < gNum; ++i) h_gIdx[i] = i;
+    for (int i = 0; i < oIdx.size(); ++i) oIdx[i] = i;
 
+    // Lvl 1: Scenewise BVH, split objects
     buildBvh(
-        h_nodes, h_gIdx, root, G_AB, 0,
+        h_nodes, oIdx, root, O_AB, 0,
         MAX_DEPTH, NODE_FACES, BIN_COUNT
     );
+    
+    std::cout << "Finished building scenewise BVH" << std::endl;
+
+    VecI soIdx(SO_AB.size());
+    #pragma omp parallel for
+    for (int i = 0; i < soIdx.size(); ++i) soIdx[i] = i;
+
+    int oNodeNum = h_nodes.size();
+    // Lvl 2: Objectwise BVH, split sub-objects
+    #pragma omp parallel
+    for (int i = 0; i < oNodeNum; ++i) {
+        DevNode &node = h_nodes[i];
+        if (node.cl != -1) continue;
+
+        int nL = node.ll, nR = node.lr;
+        for (int j = nL; j < nR; ++j) {
+            int idx = oIdx[j];
+
+            int soL = meshMgr.OrSO[idx];
+            int soR = meshMgr.OrSO[idx + 1];
+
+            node.ll = soL;
+            node.lr = soR;
+
+            buildBvh(
+                h_nodes, soIdx, node, SO_AB, 0,
+                MAX_DEPTH, NODE_FACES, BIN_COUNT
+            );
+        }
+    }
+
+    std::cout << "Finished building objectwise BVH" << std::endl;
+
+    int soNodeNum = h_nodes.size();
+
+    // Initialize h_gIdx with (0, 1, 2, ..., fNum - 1)
+    h_gIdx.resize(G_AB.size());
+    #pragma omp parallel for
+    for (int i = 0; i < G_AB.size(); ++i) h_gIdx[i] = i;
+
+    // Lvl 3: Sub-objectwise BVH, split faces
+    for (int i = oNodeNum; i < soNodeNum; ++i) {
+        DevNode &node = h_nodes[i];
+        if (node.cl != -1) continue;
+
+        int nL = node.ll, nR = node.lr;
+        for (int j = nL; j < nR; ++j) {
+            int idx = soIdx[j];
+
+            int gL = meshMgr.SOrF[idx];
+            int gR = meshMgr.SOrF[idx + 1];
+
+            node.ll = gL;
+            node.lr = gR;
+            
+            std::cout << gL << " " << gR << std::endl;
+
+            buildBvh(
+                h_nodes, h_gIdx, node, G_AB, 0,
+                MAX_DEPTH, NODE_FACES, BIN_COUNT
+            );
+        }
+    }
+
+    std::cout << "Finished building sub-objectwise BVH" << std::endl;
 }
