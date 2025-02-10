@@ -1,10 +1,10 @@
-# AsczEngineRT_v0: A very Skibidy 3D Ray Tracing Graphics Engine
+# AsczEngineRT_v0: A pretty cool ray tracing engine
 
 **AsczEngineRT_v0** is built from scratch in C++ and uses only CUDA for parallel processing, oh and SFML for the window lol. Since you're here anyway, I suppose you can learn a thing or two on how and/or how not to create an engine. Suggestions are appreciated my fellow fanum taxers.
 
-This engine is **FAR** from perfect, and that's great!
+This engine is **FAR** from perfect, and that's great since that means there's room for improvement. The engine is built with the intention of learning and experimenting with rendering techniques, so if you're looking for a production-ready engine, you're in the wrong place. But if you're looking to learn and experiment with rendering techniques, gracias amigo.
 
-### How it worked
+### Ray tracing 101
 
 The idea behind ray tracing is simple: you trace ray.
 
@@ -21,6 +21,16 @@ Ray tracing allow for graphically complex and graphically beutiful grapich, sinc
     - --- 
     - $\Rightarrow$ **`Result Color`** `=` **`Blue * 0.5`** *`(from primary ray)`* `+` **`Red * 0.25`** *`(from new ray 1)`* `+` **`Blue * 0.25`** *`(from new ray 2)`* `=` **`Something idk do the math yourself`**.
     - $\Rightarrow$ **`Result Weight`** `=` `0.5 + 0.25 + 0.25` `=` **`1.0`**.
+
+<p align="center">
+  <img src="assets/Demo1.png" alt="Demo Image"/>
+  <small><i>A living room with candles lighting up the scene.</i></small>
+</p>
+
+<p align="center">
+  <img src="assets/Demo2.png" alt="Demo Image"/>
+  <small><i>Apples with shadings.</i></small>
+</p>
 
 ### How it is optimized
 
@@ -64,5 +74,8 @@ Whether you have ideas, suggestions, techniques, or just want to discuss renderi
 - Ray tracing: recursive vs iterative (recommended).
 - Spaghetti: onion, garlic powder, tomato, meatball...
 
-![](assets/Textures/Seia.png)
-No longer muted.
+
+<p align="center">
+  <img src="assets/Textures/Seia.png" alt="Demo Image" />
+  <small><i>"I am no longer muted"</i></small>
+</p>

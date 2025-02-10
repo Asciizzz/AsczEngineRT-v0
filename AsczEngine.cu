@@ -75,6 +75,7 @@ int main() {
     int frmH = winH / frmScl;
 
     bool hasFXAA = true;
+    bool hasHud = true;
 
     // ====================== Some very scuffed init ==========================
     
@@ -232,6 +233,13 @@ int main() {
                     hasFXAA = !hasFXAA;
                 }
             }
+            
+            // Press H to toggle HUD
+            if (event.type == sf::Event::KeyPressed) {
+                if (event.key.code == sf::Keyboard::H) {
+                    hasHud = !hasHud;
+                }
+            }
         }
 
         // Setting input activities
@@ -313,22 +321,24 @@ int main() {
         } else
             SFTex.updateTexture(d_frmbuffer1, frmW, frmH);
 
-        LOG.addLog("Welcome to AsczEngineRT v0", sf::Color::Green, 1);
-        LOG.addLog("FPS: " + std::to_string(FPS.fps), sf::Color::Blue);
-        LOG.addLog(CAMERA.data(), sf::Color::White, 0);
 
         // Clear window
         window.clear();
-
+        // Draw the texture
         window.draw(SFTex.sprite);
 
-        // Draw the crosshair
-        window.draw(crosshair1);
-        window.draw(crosshair2);
+        if (hasHud) {
+            LOG.addLog("Welcome to AsczEngineRT v0", sf::Color::Green, 1);
+            LOG.addLog("FPS: " + std::to_string(FPS.fps), sf::Color::Blue);
+            LOG.addLog(CAMERA.data(), sf::Color::White, 0);
 
-        LOG.drawLog(window);
+            // Draw the crosshair
+            window.draw(crosshair1);
+            window.draw(crosshair2);
 
-        // For the time being just draw the window
+            LOG.drawLog(window);
+        }
+
         window.display();
 
         // Frame end
