@@ -14,14 +14,13 @@ void Utils::appendObj(
     VecGeom mgeom;
     VecI mSOrF;
 
+    AABB mO_AB; // Object AABB
+    VecAB mSO_AB; // Sub-objects AABB
+
     int matIdx = 0;
     std::unordered_map<std::string, int> matMap;
 
     std::string path(objPath);
-
-    // We will use these value to shift the mesh to desired position
-    AABB O_AB; // Object AABB
-    VecAB SO_AB; // Sub-objects AABB
 
     std::string line;
     while (std::getline(file, line)) {
@@ -45,9 +44,6 @@ void Utils::appendObj(
             Flt3 v; ss >> v.x >> v.y >> v.z;
             v.scale(Flt3(), scale);
             mv.push_back(v);
-
-            O_AB.expand(v);
-            SO_AB.back().expand(v);
         }
 
         else if (type == "f") {
@@ -94,6 +90,12 @@ void Utils::appendObj(
                     Int3(ns[0], ns[i], ns[i + 1]),
                 matIdx));
             }
+
+            // Expand the AABB  
+            for (int i = 0; i < vs.size(); ++i) {
+                mO_AB.expand(mv[vs[i]]);
+                mSO_AB.back().expand(mv[vs[i]]);
+            }
         }
 
         else if (type == "vt") {
@@ -108,7 +110,7 @@ void Utils::appendObj(
 
         else if (type == "o") {
             mSOrF.push_back(mgeom.size());
-            SO_AB.push_back(AABB());
+            mSO_AB.push_back(AABB());
         }
 
         else if (type == "usemtl") {
@@ -218,14 +220,14 @@ void Utils::appendObj(
 
     Flt3 shift;
     if (placement > 0) {
-        shift.x = (O_AB.min.x + O_AB.max.x) / 2;
-        shift.z = (O_AB.min.z + O_AB.max.z) / 2;
+        shift.x = (mO_AB.min.x + mO_AB.max.x) / 2;
+        shift.z = (mO_AB.min.z + mO_AB.max.z) / 2;
     }
     if (placement == 1) {
-        shift.y = (O_AB.min.y + O_AB.max.y) / 2;
+        shift.y = (mO_AB.min.y + mO_AB.max.y) / 2;
     }
     else if (placement == 2) {
-        shift.y = O_AB.min.y;
+        shift.y = mO_AB.min.y;
     }
 
     #pragma omp parallel for
@@ -234,10 +236,10 @@ void Utils::appendObj(
     }
 
     // Shift the AABBs
-    O_AB.min -= shift;
-    O_AB.max -= shift;
+    mO_AB.min -= shift;
+    mO_AB.max -= shift;
 
-    for (AABB &ab : SO_AB) {
+    for (AABB &ab : mSO_AB) {
         ab.min -= shift;
         ab.max -= shift;
     }
@@ -250,8 +252,8 @@ void Utils::appendObj(
     mesh.n = mn;
     mesh.geom = mgeom;
     mesh.SOrF = mSOrF;
-    mesh.O_AB = O_AB;
-    mesh.SO_AB = SO_AB;
+    mesh.O_AB = mO_AB;
+    mesh.SO_AB = mSO_AB;
 
     MeshMgr.appendMesh(mesh);
 }

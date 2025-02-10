@@ -150,8 +150,12 @@ void AsczBvh::designBVH(AsczMesh &meshMgr) {
     #pragma omp parallel
     for (int i = 0; i < gNum; ++i) h_gIdx[i] = i;
 
+    std::cout << "Building BVH..." << std::endl;
+
     buildBvh(
         h_nodes, h_gIdx, root, G_AB, 0,
         MAX_DEPTH, NODE_FACES, BIN_COUNT
     );
+
+    std::cout << "BVH built!" << std::endl;
 }
