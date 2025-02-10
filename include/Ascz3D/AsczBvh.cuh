@@ -71,9 +71,7 @@ public:
     void toDevice();
 
     // Sub-object split faces
-    int buildBvh(
-        
-        DevNode &node, int depth);
+    int buildBvh(VecNode &allNode, DevNode &node, int depth);
     void designBVH(AsczMesh &meshMgr);
 };
 

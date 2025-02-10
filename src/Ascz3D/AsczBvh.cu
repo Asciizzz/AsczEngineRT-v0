@@ -118,8 +118,8 @@ void AsczBvh::toDevice() {
 }
 
 
-int AsczBvh::buildBvh(DevNode &node, int depth) {
-    h_nodes.push_back(node);
+int AsczBvh::buildBvh(VecNode &allNode, DevNode &node, int depth) {
+    allNode.push_back(node);
 
     int idx = 0;
 
@@ -192,13 +192,13 @@ int AsczBvh::buildBvh(DevNode &node, int depth) {
     DevNode l = { bestLMin, bestLMax, -1, -1, node.ll, bestSplit };
     DevNode r = { bestRMin, bestRMax, -1, -1, bestSplit, node.lr };
 
-    int curIdx = h_nodes.size() - 1;
+    int curIdx = allNode.size() - 1;
 
-    h_nodes[curIdx].cl = h_nodes.size();
-    idx += buildBvh(l, depth + 1);
+    allNode[curIdx].cl = allNode.size();
+    idx += buildBvh(allNode, l, depth + 1);
 
-    h_nodes[curIdx].cr = h_nodes.size();
-    idx += buildBvh(r, depth + 1);
+    allNode[curIdx].cr = allNode.size();
+    idx += buildBvh(allNode, r, depth + 1);
 
     return idx + 1;
 }
@@ -213,5 +213,5 @@ void AsczBvh::designBVH(AsczMesh &meshMgr) {
         root.recalcMax(h_ABmax[i]);
     }
 
-    buildBvh(root, 0);
+    buildBvh(h_nodes, root, 0);
 }
