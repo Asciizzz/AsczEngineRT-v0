@@ -4,7 +4,7 @@
 
 This engine is **FAR** from perfect, and that's great since that means there's room for improvement. The engine is built with the intention of learning and experimenting with rendering techniques, so if you're looking for a production-ready engine, you're in the wrong place. But if you're looking to learn and experiment with rendering techniques, gracias amigo.
 
-### Ray tracing 101
+## Ray tracing 101
 
 The idea behind ray tracing is simple: you trace ray.
 
@@ -32,7 +32,7 @@ Ray tracing allow for graphically complex and graphically beutiful grapich, sinc
   <small><i>Apples with shadings.</i></small>
 </p>
 
-### How it is optimized
+## Optimization 101s
 
 - Now that you have a basic understanding of how ray tracing works, let's talk about how to make it **faster**. There's this little thing called **BVH (Bounding Volume Hierarchy)**, basically: if I didn't find the box, I didn't find anything in the box.
 
@@ -55,25 +55,39 @@ Ray tracing allow for graphically complex and graphically beutiful grapich, sinc
 
 - By using all these optimization techniques, the engine is able to render a ultra-complex scene with ~4 million triangles at ~200fps, which is kinda mind-blowing considering the fact this engine was initially built for a static renderer.
 
-### How to Use
+## What's Next
+
+- Path Tracing, I've read like 420.69 articles on how to implement it. The idea is simple enough, you sample, but how tf do you sample? I have no idea, but I'll figure it out eventually, that's kinda my thing.
+- GPU-based BVH construction.
+
+## How to Use
 
 Just run the `AsczEngineRT_v0.exe` file, easy as that (I lied).
 
-### Contribute
+## Credits
+
+- Me (Asciiz) for the engine.
+- Youtubers, articles, documentations, and forums for the knowledge (sorry I can't list them all, but thank you).
+
+## Contribute
 
 Whether you have ideas, suggestions, techniques, or just want to discuss rendering techniques, contributions are welcome.
 
+---
+
 # Ignore
 
-- Geometry Processing: LOD, culling, vertex cache optimization.
-- Rasterization: Early Z-culling, triangle rasterization optimizations, tile-based rendering.
-- Fragment Shading: Early tests (Z, alpha), shader program optimizations, MSAA.
-- Post-Processing: Deferred shading, screen-space effects.
-- General: Parallelism, memory management.
-- BVH traversal: Stackless traversal, Surface Area Herobrine.
-- Ray tracing: recursive vs iterative (recommended).
-- Spaghetti: onion, garlic powder, tomato, meatball...
-
+- **BVH**: SAH, stack traversal, child ordering, early exit.
+- **Ray tracing**: recursive (not recommended) vs stack (recommended).
+  - *Stack*: weight-based ray tracing.
+- **Path tracing**: sampling, importance sampling, BRDF, etc.
+- **Post-Processing**: Screen-space effects.
+- **Spaghetti**: onion, garlic powder, tomato, tomato paste, ground beef, etc.
+  - *Step 1*: Prepare the ingredients.
+  - *Step 2*: Cook the spaghetti.
+  - *Step 3*: Mix the ingredients.
+  - *Step 4*: Enjoy your meal.
+  - *Step 5*: Run from the Italian mafia.
 
 <p align="center">
   <img src="assets/Textures/Seia.png" alt="Demo Image" />
