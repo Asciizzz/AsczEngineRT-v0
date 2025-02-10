@@ -21,17 +21,12 @@ int AsczTxtr::appendTexture(const char *path) {
         for (int x = 0; x < w; ++x) {
             sf::Color c = img.getPixel(x, h - y - 1);
 
-            int r = static_cast<int>(c.r);
-            int g = static_cast<int>(c.g);
-            int b = static_cast<int>(c.b);
-            int a = static_cast<int>(c.a);
+            float r = c.r / 255.0f;
+            float g = c.g / 255.0f;
+            float b = c.b / 255.0f;
+            float a = c.a / 255.0f;
 
-            h_txtrFlat.push_back(Flt4(
-                static_cast<float>(r) / 255.0f,
-                static_cast<float>(g) / 255.0f,
-                static_cast<float>(b) / 255.0f,
-                static_cast<float>(a) / 255.0f
-            ));
+            h_txtrFlat.push_back(Flt4{r, g, b, a});
         }
     }
 

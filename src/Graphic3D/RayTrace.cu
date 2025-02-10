@@ -57,7 +57,7 @@ _glb_ void realtimeRayTracing(
     int rnum = 0;
     Flt3 resultColr = Flt3(0, 0, 0);
     while (rs_top > 0) {
-        // Copy before pop
+        // Copy before pop since there's high chance of overwriting
         Ray ray = rstack[--rs_top];
         RayHit hit;
 
@@ -194,10 +194,10 @@ _glb_ void realtimeRayTracing(
 
                 Flt4 txColr = getTextureColor(txtr, txtrFlat, txtrPtr, hMtl.mKd);
 
-                if (txColr.w < 0.95f && rs_top + 1 < MAX_RAYS) {
+                if (txColr.w < 0.98f && rs_top + 1 < MAX_RAYS) {
                     // Create a new ray
-                    float wLeft = ray.w * txColr.w;
-                    ray.w *= (1 - txColr.w);
+                    float wLeft = ray.w * (1 - txColr.w);
+                    ray.w *= txColr.w;
 
                     rstack[rs_top++] = Ray(
                         vrtx + ray.d * EPSILON_1, ray.d, wLeft, ray.Ni
@@ -214,10 +214,10 @@ _glb_ void realtimeRayTracing(
 
                 Flt4 txColr = getTextureColor(Flt2(u, v), txtrFlat, txtrPtr, hMtl.mKd);
 
-                if (txColr.w < 0.95f && rs_top + 1 < MAX_RAYS) {
+                if (txColr.w < 0.98f && rs_top + 1 < MAX_RAYS) {
                     // Create a new ray
-                    float wLeft = ray.w * txColr.w;
-                    ray.w *= (1 - txColr.w);
+                    float wLeft = ray.w * (1 - txColr.w);
+                    ray.w *= txColr.w;
 
                     rstack[rs_top++] = Ray(
                         vrtx + ray.d * EPSILON_1, ray.d, wLeft, ray.Ni
