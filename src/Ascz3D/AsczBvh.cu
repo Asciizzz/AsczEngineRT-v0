@@ -110,9 +110,8 @@ void AsczBvh::toDevice() {
 
 
 int AsczBvh::buildBvh(
-    VecNode &allNode, VecI &allGIdx, DevNode &node, int depth,
-    const Vec3f &ABmin, const Vec3f &ABmax, const Vec3f &gCent,
-    const int MAX_DEPTH, const int NODE_FACES, const int BIN_COUNT
+    VecNode &allNode, VecI &allGIdx, DevNode &node, const VecAB &ABs,
+    int depth, const int MAX_DEPTH, const int NODE_FACES, const int BIN_COUNT
 ) {
     allNode.push_back(node);
 
@@ -125,9 +124,8 @@ int AsczBvh::buildBvh(
         return 1;
     }
 
-    Flt3 ABmin_ = node.ab.min;
-    Flt3 ABmax_ = node.ab.max;
-    Flt3 ABsize_ = node.ab.max - node.ab.min;
+    AABB nAB = node.ab;
+    Flt3 nAB_ = nAB.max - nAB.min;
     float curCost = DevNode::findCost(node.ab, nG);
 
     int bestAxis = -1;
@@ -137,13 +135,13 @@ int AsczBvh::buildBvh(
 
     for (int a = 0; a < 3; ++a) {
         std::sort(allGIdx.begin() + node.ll, allGIdx.begin() + node.lr, [&](int i1, int i2) {
-            return gCent[i1][a] < gCent[i2][a];
+            return ABs[i1].cent()[a] < ABs[i2].cent()[a];
         });
 
         for (int b = 0; b < BIN_COUNT; ++b) {
             DevNode l, r;
 
-            float splitPoint = ABmin_[a] + ABsize_[a] * (b + 1) / BIN_COUNT;
+            float splitPoint = nAB.min[a] + nAB_[a] * (b + 1) / BIN_COUNT;
 
             int splitIdx = node.ll;
 
@@ -151,16 +149,16 @@ int AsczBvh::buildBvh(
             for (int g = node.ll; g < node.lr; ++g) {
                 int i = allGIdx[g];
 
-                float cent = gCent[i][a];
+                float cent = ABs[i].cent()[a];
 
                 if (cent < splitPoint) {
-                    l.ab.recalcMin(ABmin[i]);
-                    l.ab.recalcMax(ABmax[i]);
+                    l.ab.recalcMin(ABs[i].min);
+                    l.ab.recalcMax(ABs[i].max);
                     splitIdx++;
                 }
                 else {
-                    r.ab.recalcMin(ABmin[i]);
-                    r.ab.recalcMax(ABmax[i]);
+                    r.ab.recalcMin(ABs[i].min);
+                    r.ab.recalcMax(ABs[i].max);
                 }
             }
 
@@ -186,7 +184,7 @@ int AsczBvh::buildBvh(
     }
 
     std::sort(allGIdx.begin() + node.ll, allGIdx.begin() + node.lr, [&](int i1, int i2) {
-        return gCent[i1][bestAxis] < gCent[i2][bestAxis];
+        return ABs[i1].cent()[bestAxis] < ABs[i2].cent()[bestAxis];
     });
 
     DevNode l = { bestLab, -1, -1, node.ll, bestSplit };
@@ -196,15 +194,13 @@ int AsczBvh::buildBvh(
 
     allNode[curIdx].cl = allNode.size();
     idx += buildBvh(
-        allNode, allGIdx, l, depth + 1,
-        ABmin, ABmax, gCent,
+        allNode, allGIdx, l, ABs, depth + 1,
         MAX_DEPTH, NODE_FACES, BIN_COUNT
     );
 
     allNode[curIdx].cr = allNode.size();
     idx += buildBvh(
-        allNode, allGIdx, r, depth + 1,
-        ABmin, ABmax, gCent,
+        allNode, allGIdx, r, ABs, depth + 1,
         MAX_DEPTH, NODE_FACES, BIN_COUNT
     );
 
@@ -214,13 +210,12 @@ int AsczBvh::buildBvh(
 void AsczBvh::designBVH(AsczMesh &meshMgr) {
     const int &gNum = meshMgr.gNum;
     const AABB &GlbAB = meshMgr.GlbAB;
-    const AABB &G_AB = meshMgr.G_AB;
+    const VecAB &G_AB = meshMgr.G_AB;
 
     DevNode root = { GlbAB, -1, -1, 0, gNum };
 
     buildBvh(
-        h_nodes, h_gIdx, root, 0,
-        G_AB, h_gCent,
+        h_nodes, h_gIdx, root, G_AB, 0,
         MAX_DEPTH, NODE_FACES, BIN_COUNT
     );
 }

@@ -70,6 +70,10 @@ struct AABB {
         Flt3 size = max - min;
         return size.x * size.y + size.y * size.z + size.z * size.x;
     }
+
+    _hst_dev_ Flt3 cent() const {
+        return (min + max) * 0.5f;
+    }
 };
 
 struct MeshStruct {

@@ -61,7 +61,7 @@ public:
 
     // Sub-object split faces
     static int buildBvh(
-        VecNode &allNode, VecI &allGIdx, DevNode &node, const AABB &ABs,
+        VecNode &allNode, VecI &allGIdx, DevNode &node, const VecAB &ABs,
         int depth, const int MAX_DEPTH, const int NODE_FACES, const int BIN_COUNT
     );
     void designBVH(AsczMesh &meshMgr);
