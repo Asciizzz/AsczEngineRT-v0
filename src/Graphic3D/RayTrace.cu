@@ -26,6 +26,8 @@ _dev_ Flt4 getTextureColor(
     return txtrFlat[t];
 }
 
+// Ray intersection
+
 _dev_ RayHit RayHitTriangle(const Flt3 &o, const Flt3 &d, const Flt3 &v0, const Flt3 &v1, const Flt3 &v2) {
     RayHit hit;
 
@@ -105,6 +107,8 @@ _dev_ RayHit RayHitGeom(const Flt3 &o, const Flt3 &d, AzGeom &g, Flt3 *mv) {
 
     return hit;
 }
+
+
 
 _glb_ void raytraceKernel(
     Camera camera, Flt3 *frmbuffer, int frmW, int frmH, // In-out
@@ -260,12 +264,14 @@ _glb_ void raytraceKernel(
             continue;
         }
 
-        // Light management
         float RdotN = ray.d * nrml * 0.4f;
         RdotN = hMtl.noShade ? 1.0f : RdotN * RdotN;
 
         Flt3 finalColr = (hMtl.Ka & hitKd) * RdotN;
 
+        // Global illumination
+
+        // Direct lighting
         for (int l = 0; l < lNum; ++l) {
             const LightSrc &light = lSrc[l];
 
@@ -364,6 +370,8 @@ _glb_ void raytraceKernel(
 
             finalColr += passColr & (spec + diff) * intens;
         }
+
+        // Indirect lighting
 
         // ======== Additional rays ========
 
