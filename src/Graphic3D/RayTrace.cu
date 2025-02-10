@@ -237,8 +237,7 @@ _glb_ void realtimeRayTracing(
 
         // Light management
         float RdotN = ray.d * nrml * 0.4f;
-        RdotN = RdotN < 0 ? -RdotN : RdotN;
-        RdotN = hMtl.noShade ? 1.0f : RdotN;
+        RdotN = hMtl.noShade ? 1.0f : RdotN * RdotN;
 
         Flt3 finalColr = (hMtl.Ka & hitKd) * RdotN;
 
@@ -382,8 +381,7 @@ _glb_ void realtimeRayTracing(
             }
 
             float NdotL = nrml * -lDir;
-            NdotL = NdotL < 0 ? -NdotL : NdotL;
-            Flt3 diff = hitKd * NdotL;
+            Flt3 diff = hitKd * NdotL * NdotL;
 
             Flt3 refl = Ray::reflect(-lDir, nrml);
             Flt3 spec = hMtl.Ks * pow(refl * -ray.d, hMtl.Ns);
