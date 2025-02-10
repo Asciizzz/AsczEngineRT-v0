@@ -26,7 +26,7 @@ _dev_ Flt4 getTextureColor(
     return txtrFlat[t];
 }
 
-_dev_ RayHit intersectTriangle(const Flt3 &o, const Flt3 &d, const Flt3 &v0, const Flt3 &v1, const Flt3 &v2) {
+_dev_ RayHit RayHitTriangle(const Flt3 &o, const Flt3 &d, const Flt3 &v0, const Flt3 &v1, const Flt3 &v2) {
     RayHit hit;
 
     Flt3 e1 = v1 - v0;
@@ -59,7 +59,7 @@ _dev_ RayHit intersectTriangle(const Flt3 &o, const Flt3 &d, const Flt3 &v0, con
     return hit;
 }
 
-_dev_ RayHit intersectSphere(const Flt3 &o, const Flt3 &d, const Flt3 &sc, float sr) {
+_dev_ RayHit RayHitSphere(const Flt3 &o, const Flt3 &d, const Flt3 &sc, float sr) {
     RayHit hit;
 
     Flt3 l = sc - o;
@@ -82,7 +82,7 @@ _dev_ RayHit intersectSphere(const Flt3 &o, const Flt3 &d, const Flt3 &sc, float
     return hit;
 }
 
-_dev_ RayHit intersectGeom(const Flt3 &o, const Flt3 &d, AzGeom &g, Flt3 *mv) {
+_dev_ RayHit RayHitGeom(const Flt3 &o, const Flt3 &d, AzGeom &g, Flt3 *mv) {
     RayHit hit;
 
     if (g.type == AzGeom::TRIANGLE) {
@@ -92,7 +92,7 @@ _dev_ RayHit intersectGeom(const Flt3 &o, const Flt3 &d, AzGeom &g, Flt3 *mv) {
         Flt3 v1 = mv[fv.y];
         Flt3 v2 = mv[fv.z];
 
-        hit = intersectTriangle(o, d, v0, v1, v2);
+        hit = RayHitTriangle(o, d, v0, v1, v2);
     }
     else if (g.type == AzGeom::SPHERE) {
         int cIdx = g.sph.c;
@@ -100,7 +100,7 @@ _dev_ RayHit intersectGeom(const Flt3 &o, const Flt3 &d, AzGeom &g, Flt3 *mv) {
         Flt3 sc = mv[cIdx];
         float sr = g.sph.r;
 
-        hit = intersectSphere(o, d, sc, sr);
+        hit = RayHitSphere(o, d, sc, sr);
     }
 
     return hit;
@@ -175,7 +175,7 @@ _glb_ void raytraceKernel(
             for (int i = node.ll; i < node.lr; ++i) {
                 int gi = gIdxs[i];
 
-                RayHit h = intersectGeom(ray.o, ray.d, geom[gi], mv);
+                RayHit h = RayHitGeom(ray.o, ray.d, geom[gi], mv);
                 if (h.idx == -1) continue;
 
                 if (h.t < hit.t) {
@@ -202,7 +202,7 @@ _glb_ void raytraceKernel(
             Int3 &tn = geom[hIdx].tri.n;
             if (tn.x > -1) {
                 Flt3 &n0 = mn[tn.x], &n1 = mn[tn.y], &n2 = mn[tn.z];
-                nrml = (n0 * hitw + n1 * hit.u + n2 * hit.v).norm();
+                nrml = n0 * hitw + n1 * hit.u + n2 * hit.v;
             }
         }
         else if (gHit.type == AzGeom::SPHERE) {
@@ -313,7 +313,7 @@ _glb_ void raytraceKernel(
                     int gi = gIdxs[i];
                     if (gi == hIdx) continue;
 
-                    RayHit h = intersectGeom(lPos, lDir, geom[gi], mv);
+                    RayHit h = RayHitGeom(lPos, lDir, geom[gi], mv);
                     if (h.idx == -1 || h.t > lDist) continue;
 
                     const Material &mat2 = mtls[geom[gi].m];
