@@ -77,10 +77,15 @@ Whether you have ideas, suggestions, techniques, or just want to discuss renderi
 
 # Ignore
 
-- **BVH**: SAH, stack traversal, child ordering, early exit.
+- **BVH**: SAH, stack traversal.
+  - **SAH**: cost formula, optimal split point.
+  - **Stack Traversal**: child ordering, early exit.
 - **Ray tracing**: recursive (not recommended) vs stack (recommended).
   - *Stack*: weight-based ray tracing.
 - **Path tracing**: sampling, importance sampling, BRDF, etc.
+  - *Sampling*: Monte Carlo, Russian Roulette.
+  - *Importance Sampling*: cosine-weighted, etc.
+  - *BRDF*: Lambertian, Phong, Cook-Torrance, etc.
 - **Post-Processing**: Screen-space effects.
 - **Spaghetti**: onion, garlic powder, tomato, tomato paste, ground beef, etc.
   - *Step 1*: Prepare the ingredients.
