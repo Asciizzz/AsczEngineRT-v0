@@ -339,6 +339,7 @@ int main() {
     TxtrMgr.freeDevice();
     MtlMgr.freeDevice();
     MeshMgr.freeDevice();
+    BvhMgr.freeDevice();
     cudaFree(d_frmbuffer1);
     cudaFree(d_frmbuffer2);
     cudaFree(d_luminance);

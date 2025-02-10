@@ -43,10 +43,11 @@ public:
     DevNode *d_nodes;
     int nNum;
 
-    int MAX_DEPTH = 48;
-    int NODE_FACES = 2;
-    int BIN_COUNT = 5;
+    int MAX_DEPTH = 32;
+    int NODE_FACES = 1;
+    int BIN_COUNT = 11;
 
+    void freeDevice();
     void toDevice();
 
     // Sub-object split faces

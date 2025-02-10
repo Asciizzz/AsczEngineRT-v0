@@ -27,7 +27,14 @@ float DevNode::hitDist(const Flt3 &rO, const Flt3 &rInvD) const {
 
 
 
+void AsczBvh::freeDevice() {
+    if (nNum == 0) return;
+    cudaFree(d_nodes);
+    cudaFree(d_gIdx);
+}
 void AsczBvh::toDevice() {
+    freeDevice();
+
     nNum = h_nodes.size();
 
     cudaMalloc(&d_nodes, h_nodes.size() * sizeof(DevNode));
