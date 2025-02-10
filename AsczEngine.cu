@@ -199,16 +199,6 @@ int main() {
                 window.close();
             }
 
-            // Press f1 to toggle camera focus
-            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::F1) {
-                CAMERA.focus = !CAMERA.focus;
-                // To avoid sudden camera movement when changing focus
-                sf::Mouse::setPosition(sf::Vector2i(winW / 2, winH / 2), window);
-
-                // Hide cursor
-                window.setMouseCursorVisible(!CAMERA.focus);
-            }
-
             // Scroll to change the field of view
             if (event.type == sf::Event::MouseWheelScrolled) {
                 if (event.mouseWheelScroll.delta > 0) CAMERA.fov += 0.1;
@@ -216,6 +206,25 @@ int main() {
 
                 if (CAMERA.fov < 0.1) CAMERA.fov += 0.1;
                 if (CAMERA.fov > M_PI - 0.1) CAMERA.fov -= 0.1;
+            }
+
+            if (event.type == sf::Event::KeyPressed) {
+
+            // Press f1 to toggle camera focus
+                if (event.key.code == sf::Keyboard::F1) {
+                    CAMERA.focus = !CAMERA.focus;
+                    // To avoid sudden camera movement when changing focus
+                    sf::Mouse::setPosition(
+                        sf::Vector2i(winW / 2, winH / 2), window);
+
+                    // Hide cursor
+                    window.setMouseCursorVisible(!CAMERA.focus);
+                }
+
+            // Press F to toggle FXAA
+                if (event.key.code == sf::Keyboard::F) {
+                    hasFXAA = !hasFXAA;
+                }
             }
         }
 

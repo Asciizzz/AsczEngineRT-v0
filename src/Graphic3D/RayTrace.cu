@@ -2,7 +2,7 @@
 
 #include <curand_kernel.h>
 
-_dev_ Flt3 getTextureColor(
+_dev_ Flt4 getTextureColor(
     Flt2 &txtr, Flt4 *txtrFlat, TxtrPtr *txtrPtr, int mKd
 ) {
     txtr.x -= floor(txtr.x);
@@ -16,7 +16,7 @@ _dev_ Flt3 getTextureColor(
     int txtrY = txtr.y * th;
 
     int t = txtrX + txtrY * tw + toff;
-    return txtrFlat[t].f3();
+    return txtrFlat[t];
 }
 
 
@@ -188,12 +188,23 @@ _glb_ void realtimeRayTracing(
         Flt3 hitKd;
         if (hMtl.mKd > -1) {
             if (gHit.type == AzGeom::TRIANGLE) {
-
                 Int3 &tt = geom[hIdx].tri.t;
                 Flt2 &t0 = mt[tt.x], &t1 = mt[tt.y], &t2 = mt[tt.z];
                 Flt2 txtr = t0 * hitw + t1 * hit.u + t2 * hit.v;
 
-                hitKd = getTextureColor(txtr, txtrFlat, txtrPtr, hMtl.mKd);
+                Flt4 txColr = getTextureColor(txtr, txtrFlat, txtrPtr, hMtl.mKd);
+
+                if (txColr.w < 0.95f && rs_top + 1 < MAX_RAYS) {
+                    // Create a new ray
+                    float wLeft = ray.w * txColr.w;
+                    ray.w *= (1 - txColr.w);
+
+                    rstack[rs_top++] = Ray(
+                        vrtx + ray.d * EPSILON_1, ray.d, wLeft, ray.Ni
+                    );
+                }
+
+                hitKd = txColr.f3();
             }
             else if (gHit.type == AzGeom::SPHERE) {
                 float phi = acosf(-nrml.y);
@@ -201,7 +212,19 @@ _glb_ void realtimeRayTracing(
                 float u = theta / (2 * M_PI);
                 float v = phi / M_PI;
 
-                hitKd = getTextureColor(Flt2(u, v), txtrFlat, txtrPtr, hMtl.mKd);
+                Flt4 txColr = getTextureColor(Flt2(u, v), txtrFlat, txtrPtr, hMtl.mKd);
+
+                if (txColr.w < 0.95f && rs_top + 1 < MAX_RAYS) {
+                    // Create a new ray
+                    float wLeft = ray.w * txColr.w;
+                    ray.w *= (1 - txColr.w);
+
+                    rstack[rs_top++] = Ray(
+                        vrtx + ray.d * EPSILON_1, ray.d, wLeft, ray.Ni
+                    );
+                }
+
+                hitKd = txColr.f3();
             }
         } else {
             hitKd = hMtl.Kd;
@@ -339,7 +362,8 @@ _glb_ void realtimeRayTracing(
                         tx.x -= floor(tx.x);
                         tx.y -= floor(tx.y);
 
-                        passColr += getTextureColor(tx, txtrFlat, txtrPtr, mat2.mKd);
+                        Flt4 txColr = getTextureColor(tx, txtrFlat, txtrPtr, mat2.mKd);
+                        passColr += txColr.f3();
                     } else {
                         passColr += mat2.Kd;
                     }
