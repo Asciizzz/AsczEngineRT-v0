@@ -2,6 +2,8 @@
 
 **AsczEngineRT_v0** is built from scratch in C++ and uses only CUDA for parallel processing, oh and SFML for the window lol. Since you're here anyway, I suppose you can learn a thing or two on how and/or how not to create an engine. Suggestions are appreciated my fellow fanum taxers.
 
+This engine is **FAR** from perfect, and that's great!
+
 ### How it worked
 
 The idea behind ray tracing is simple: you trace ray.
@@ -41,7 +43,7 @@ Ray tracing allow for graphically complex and graphically beutiful grapich, sinc
 - Now that we have our bounding boxes, what’s next? Well, there are some **"minor" tweaks** that can help **boost performance** by a sizable margin:
   - **Child ordering** and **Early Exit**: Essentially, "if the left box is closer to the right box, check the left box first." If the ray hits something in the left box, there's no need to check the right box, since that hit intersection is closer than any potential intersection in the right box.
 
-- By using all these optimization techniques, the engine is able to render a ultra-complex scene at a wopping 1 frame per 1 second. Truly a marvel of modern technology (but in all seriousness, the peformance gain is massive, up to 300-400fps on ~20k faces and 100-200fps on ~200k faces).
+- By using all these optimization techniques, the engine is able to render a ultra-complex scene with ~4 million triangles at ~200fps, which is kinda mind-blowing considering the fact this engine was initially built for a static renderer.
 
 ### How to Use
 
