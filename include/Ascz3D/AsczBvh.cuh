@@ -18,6 +18,8 @@ If its a leaf, then the faces vector is pretty much useless
 
 */
 
+#define VecNode std::vector<DevNode>
+
 struct DevNode { // Flattened structure friendly for shader code
     Flt3 min = Flt3(INFINITY);
     Flt3 max = Flt3(-INFINITY);
@@ -48,18 +50,16 @@ public:
     Vec3f h_ABmin; // Geom's AABB min
     Vec3f h_ABmax; // Geom's AABB max
     Vec3f h_gCent; // Geom's centroid (not the AABB centroid)
-    VecUI32t h_gMort; // Geom's Morton code
     VecI h_gIdx; // Geom's index
 
     Flt3 *d_ABmin = nullptr;
     Flt3 *d_ABmax = nullptr;
     Flt3 *d_gCent = nullptr;
-    uint32_t *d_gMort = nullptr;
     int *d_gIdx = nullptr;
 
     void initAABB(AsczMesh &meshMgr);
 
-    std::vector<DevNode> h_nodes;
+    VecNode h_nodes;
     DevNode *d_nodes;
     int nNum;
 
@@ -71,7 +71,9 @@ public:
     void toDevice();
 
     // Sub-object split faces
-    int buildBvh(DevNode &node, int depth);
+    int buildBvh(
+        
+        DevNode &node, int depth);
     void designBVH(AsczMesh &meshMgr);
 };
 
