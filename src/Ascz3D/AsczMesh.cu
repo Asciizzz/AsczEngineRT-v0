@@ -22,8 +22,7 @@ void AsczMesh::appendMesh(MeshStruct mesh) {
     OrSO.push_back(SOrF.size());
     oNum++;
 
-    // Append and calculate AABB
-    GlbAB.recalc(mesh.O_AB);
+    GlbAB.expand(mesh.O_AB);
     O_AB.push_back(mesh.O_AB);
     SO_AB.insert(SO_AB.end(), mesh.SO_AB.begin(), mesh.SO_AB.end());
 
@@ -46,9 +45,9 @@ void AsczMesh::appendMesh(MeshStruct mesh) {
             g.tri.t += tPrev;
             g.tri.n += nPrev;
 
-            ab.recalc(h_v[g.tri.v[0]]);
-            ab.recalc(h_v[g.tri.v[1]]);
-            ab.recalc(h_v[g.tri.v[2]]);
+            ab.expand(h_v[g.tri.v[0]]);
+            ab.expand(h_v[g.tri.v[1]]);
+            ab.expand(h_v[g.tri.v[2]]);
         }
         else if (g.type == AzGeom::SPHERE) {
             g.sph.c += vPrev;

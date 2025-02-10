@@ -81,13 +81,13 @@ int AsczBvh::buildBvh(
                 float cent = ABs[i].cent()[a];
 
                 if (cent < splitPoint) {
-                    l.ab.recalcMin(ABs[i].min);
-                    l.ab.recalcMax(ABs[i].max);
+                    l.ab.expandMin(ABs[i].min);
+                    l.ab.expandMax(ABs[i].max);
                     splitIdx++;
                 }
                 else {
-                    r.ab.recalcMin(ABs[i].min);
-                    r.ab.recalcMax(ABs[i].max);
+                    r.ab.expandMin(ABs[i].min);
+                    r.ab.expandMax(ABs[i].max);
                 }
             }
 

@@ -7,7 +7,7 @@
 #assets/Models/Genshin/Paimon/Paimon.obj 0 2
 #assets/Models/Genshin/Navia/Navia.obj 2 10
 
-#assets/Models/BlueArchive/Arisu/Arisu.obj 2 1
+assets/Models/BlueArchive/Arisu/Arisu.obj 2 1
 #assets/Models/BlueArchive/Shiroko/Shiroko.obj 2 1
 #assets/Models/BlueArchive/Yuuka/Yuuka.obj 2 10
 
@@ -25,5 +25,8 @@
 #assets/Models/Weapon/AK47.obj 2 1
 #assets/Models/Weapon/AWP.obj 2 1
 
-.heavy/Fnaf/Fnaf1.obj 2 1
+#.heavy/Fnaf/Fnaf1.obj 2 1
 #.heavy/AbandonedHouse/AbandonedHouse.obj 2 1
+
+#.heavy/Town/Town.obj 2 1
+#.heavy/Pool/Pool.obj 2 1

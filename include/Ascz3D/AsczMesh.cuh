@@ -48,23 +48,23 @@ struct AABB {
     Flt3 min = Flt3(INFINITY);
     Flt3 max = Flt3(-INFINITY);
 
-    _hst_dev_ void recalcMin(const Flt3 &v) {
+    _hst_dev_ void expandMin(const Flt3 &v) {
         min.x = fminf(min.x, v.x);
         min.y = fminf(min.y, v.y);
         min.z = fminf(min.z, v.z);
     }
-    _hst_dev_ void recalcMax(const Flt3 &v) {
+    _hst_dev_ void expandMax(const Flt3 &v) {
         max.x = fmaxf(max.x, v.x);
         max.y = fmaxf(max.y, v.y);
         max.z = fmaxf(max.z, v.z);
     }
-    _hst_dev_ void recalc(const Flt3 &v) {
-        recalcMin(v);
-        recalcMax(v);
+    _hst_dev_ void expand(const Flt3 &v) {
+        expandMin(v);
+        expandMax(v);
     }
-    _hst_dev_ void recalc(const AABB &ab) {
-        recalcMin(ab.min);
-        recalcMax(ab.max);
+    _hst_dev_ void expand(const AABB &ab) {
+        expandMin(ab.min);
+        expandMax(ab.max);
     }
     _hst_dev_ float getSA() const {
         Flt3 size = max - min;

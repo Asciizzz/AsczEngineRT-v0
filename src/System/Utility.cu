@@ -46,8 +46,8 @@ void Utils::appendObj(
             v.scale(Flt3(), scale);
             mv.push_back(v);
 
-            O_AB.recalc(v);
-            SO_AB.back().recalc(v);
+            O_AB.expand(v);
+            SO_AB.back().expand(v);
         }
 
         else if (type == "f") {
@@ -214,19 +214,35 @@ void Utils::appendObj(
     mSOrF.push_back(mgeom.size());
     mSOrF.erase(mSOrF.begin());
 
+    // ---------------------------------------------------------
+
+    Flt3 shift;
+    if (placement > 0) {
+        shift.x = (O_AB.min.x + O_AB.max.x) / 2;
+        shift.z = (O_AB.min.z + O_AB.max.z) / 2;
+    }
+    if (placement == 1) {
+        shift.y = (O_AB.min.y + O_AB.max.y) / 2;
+    }
+    else if (placement == 2) {
+        shift.y = O_AB.min.y;
+    }
+
     #pragma omp parallel for
     for (size_t i = 0; i < mv.size(); ++i) {
-        // Shift to center of xz plane
-        if (placement > 0) {
-            mv[i].x -= (O_AB.min.x + O_AB.max.x) / 2;
-            mv[i].z -= (O_AB.min.z + O_AB.max.z) / 2;
-        }
-
-        // Shift to center
-        if (placement == 1) mv[i].y -= (O_AB.min.y + O_AB.max.y) / 2;
-        // Shift to floor (y = 0)
-        else if (placement == 2) mv[i].y -= O_AB.min.y;
+        mv[i] -= shift;
     }
+
+    // Shift the AABBs
+    O_AB.min -= shift;
+    O_AB.max -= shift;
+
+    for (AABB &ab : SO_AB) {
+        ab.min -= shift;
+        ab.max -= shift;
+    }
+
+    // ---------------------------------------------------------
 
     MeshStruct mesh;
     mesh.v = mv;
