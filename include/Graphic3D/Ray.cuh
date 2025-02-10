@@ -4,13 +4,6 @@
 #include <Vector.cuh>
 #include <curand_kernel.h>
 
-struct RayHit {
-    int idx = -1;
-    float t = 1e9;
-    float u = 0;
-    float v = 0;
-};
-
 struct Ray {
     Flt3 o;
     Flt3 d;
