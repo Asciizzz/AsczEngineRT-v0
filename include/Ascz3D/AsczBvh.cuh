@@ -65,13 +65,16 @@ public:
 
     int MAX_DEPTH = 48;
     int NODE_FACES = 2;
-
     int BIN_COUNT = 5;
 
     void toDevice();
 
     // Sub-object split faces
-    int buildBvh(VecNode &allNode, DevNode &node, int depth);
+    static int buildBvh(
+        VecNode &allNode, VecI &allGIdx, DevNode &node, int depth,
+        const Vec3f &ABmin, const Vec3f &ABmax, const Vec3f &gCent,
+        const int MAX_DEPTH, const int NODE_FACES, const int BIN_COUNT
+    );
     void designBVH(AsczMesh &meshMgr);
 };
 
