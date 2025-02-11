@@ -8,6 +8,8 @@
 
 Is this a school project? Yesn't.
 
+Sorry for the bloated assets/ folder, I'm too lazy to clean it up. ¯\\_(ツ)_/¯
+
 ## 1. Ray tracing 101
 
 - The idea behind ray tracing is simple: **you trace ray**.
