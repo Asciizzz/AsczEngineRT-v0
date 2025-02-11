@@ -148,6 +148,16 @@ int main() {
     initCurand<<<blocks, threads>>>(d_randState, frmW * frmH, time(0));
     cudaDeviceSynchronize();
 
+    // Allocate Max Rays
+    const int MAX_RAY = 16;
+    Ray *d_rstack;
+    cudaMalloc(&d_rstack, frmW * frmH * MAX_RAY * sizeof(Ray));
+
+    // Allocate Max Nodes
+    const int MAX_NODE = BvhMgr.MAX_DEPTH + 1;
+    int *d_nstack;
+    cudaMalloc(&d_nstack, frmW * frmH * MAX_NODE * sizeof(int));
+
     // Create SFML texture
     SFMLTexture SFTex(frmW, frmH);
     SFTex.sprite.setScale(frmScl, frmScl);
@@ -300,7 +310,9 @@ int main() {
 
             LightMgr.d_lSrc, LightMgr.num,
 
-            d_randState
+            d_randState,
+
+            d_rstack, d_nstack, MAX_RAY, MAX_NODE
         );
         cudaDeviceSynchronize();
 
