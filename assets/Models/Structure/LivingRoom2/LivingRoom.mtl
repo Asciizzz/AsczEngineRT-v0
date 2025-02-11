@@ -181,9 +181,9 @@ Ni 1.0
 d 0.5
 
 newmtl mat18
-NoShade
+#NoShade
 NoShadow
-Kd 1.13287 0.83287 0.63287
+Kd 1.0 0.8 0.8
 d 0.2
 
 newmtl mat19
