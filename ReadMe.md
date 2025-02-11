@@ -105,6 +105,7 @@ Is this a school project? Yesn't.
 ### Contribute
 
 - Whether you have ideas, suggestions, techniques, or just want to discuss rendering techniques, contributions are welcome.
+- This engine is **far** from perfect, so any help is appreciated.
 
 ---
 

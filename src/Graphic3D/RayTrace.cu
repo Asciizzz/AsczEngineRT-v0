@@ -264,7 +264,7 @@ _glb_ void raytraceKernel(
             continue;
         }
 
-        float RdotN = ray.d * nrml * 0.4f;
+        float RdotN = ray.d * nrml;
         RdotN = hMtl.noShade ? 1.0f : RdotN * RdotN;
 
         Flt3 finalColr = (hMtl.Ka & hitKd) * RdotN;
