@@ -131,5 +131,5 @@ Is this a school project? Yesn't.
 
 <p align="center">
   <img src="assets/Textures/Seia.png" alt="Demo Image" />
-  <small><i>"I am no longer muted"</i></small>
+  <small><i>"No longer muted"</i></small>
 </p>
