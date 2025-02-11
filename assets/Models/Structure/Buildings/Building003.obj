@@ -1,6 +1,4 @@
-# Blender v2.78 (sub 0) OBJ File: '01 Residential Buildings Set Array.blend'
-# www.blender.org
-mtllib Residential Buildings 003.mtl
+mtllib Building.mtl
 o Residential_Buildings_003_Cube.011
 v 4.962191 3.721586 -11.837132
 v 4.962191 3.495273 -11.899998
