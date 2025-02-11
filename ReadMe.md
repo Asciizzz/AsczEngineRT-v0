@@ -134,6 +134,6 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
   - I do not have enough sleep.
 
 <p align="center">
-  <img src="assets/Textures/Seia.png" alt="Demo Image" />
+  <img src="assets/Seia.png" alt="Demo Image" />
   <small><i>"No longer muted"</i></small>
 </p>
