@@ -319,10 +319,11 @@ _glb_ void raytraceKernel(
                     int gi = gIdxs[i];
                     if (gi == hIdx) continue;
 
+                    const Material &mat2 = mtls[geom[gi].m];
+                    if (mat2.noShadow) continue;
+
                     RayHit h = RayHitGeom(lPos, lDir, geom[gi], mv);
                     if (h.idx == -1 || h.t > lDist) continue;
-
-                    const Material &mat2 = mtls[geom[gi].m];
 
                     if (mat2.Tr < 0.01f) {
                         shadow = true;

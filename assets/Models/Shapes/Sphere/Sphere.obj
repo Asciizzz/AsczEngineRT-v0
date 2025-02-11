@@ -1,0 +1,21 @@
+
+mtllib Sphere.mtl
+
+v -45.0 88.0 105.0
+v -33.0 88.0 105.0
+v 52.2 88.0 105.0
+v 64.5 88.0 105.0
+
+usemtl light
+
+o light0
+sph 1 0.6
+
+o light0
+sph 2 0.6
+
+o light0
+sph 3 0.6
+
+o light0
+sph 4 0.6
