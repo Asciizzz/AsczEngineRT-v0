@@ -42,9 +42,9 @@ Is this a school project? Yesn't.
     - $\Rightarrow$ **`Result Weight`** `=` `0.5 + 0.3 + 0.2` `=` **`1.0`**.
 
 
-#### Ray tracing is beautiful
+#### Ray tracing is beautiful (debatable)
 
-- Even without advanced techniques like path tracing, ray tracing can produce some beautiful images already (well that also depends on your artistic preference) thanks to its ability to simulate light behavior in a more realistic way.
+- Even without advanced techniques like path tracing, ray tracing can produce some graphically pleasing images already (debatable) thanks to its ability to simulate light behavior in a more realistic way.
 
 <p align="center">
   <img src="assets/Demo1.png" alt="Demo Image"/>
