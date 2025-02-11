@@ -199,14 +199,9 @@ d 0.5
 illum 1
 
 newmtl mat18
-#NoShade
-Ns 0
-#Ka 1.0 1.0 1.0
-Kd 0.13287 0.13287 0.13287
-Ks 0 0 0
-Ke 0 0 0
-Ni 1.0
-d 0.7
+NoShade
+NoShadow
+Kd 1.13287 1.13287 1.13287
 illum 1
 
 newmtl mat19
