@@ -2,7 +2,7 @@
 #assets/Models/Shapes/Sphere/Sphere.obj 0 2
 #assets/Models/Skybox/Sphere.obj 0 1
 
-assets/Models/Genshin/Paimon/Paimon.obj 0 2
+#assets/Models/Genshin/Paimon/Paimon.obj 0 2
 #assets/Models/Genshin/Navia/Navia.obj 2 10
 
 #assets/Models/BlueArchive/Arisu/Arisu.obj 2 1
@@ -10,6 +10,8 @@ assets/Models/Genshin/Paimon/Paimon.obj 0 2
 #assets/Models/BlueArchive/Yuuka/Yuuka.obj 2 10
 
 #assets/Models/Character/Sukuna/Sukuna.obj 2 1
+#assets/Models/Character/Goku.obj 2 1
+assets/Models/Character/Foxy/Foxy.obj 2 0.02
 
 #assets/Models/City/Building001.obj 2 1
 
@@ -21,7 +23,7 @@ assets/Models/Genshin/Paimon/Paimon.obj 0 2
 #assets/Models/Structure/Fnaf.obj 1 1
 
 #assets/Models/Cornell/Cornell.obj 2 10
-assets/Models/Shapes/Floor/Floor.obj 0 2
+#assets/Models/Shapes/Floor/Floor.obj 0 2
 #assets/Models/Shapes/Ceiling/Ceiling.obj 0 1
 
 #assets/Models/Weapon/AK47.obj 2 1
