@@ -146,7 +146,7 @@ _glb_ void raytraceKernel(
         RayHit hit;
 
         // Ray with little contribution
-        if (ray.w < 0.01f) continue;
+        if (ray.w < 0.05f) continue;
 
         ns_top = 0;
         nstack[ns_top++] = 0;
@@ -231,6 +231,7 @@ _glb_ void raytraceKernel(
                     rstack[rs_top++] = Ray(
                         vrtx + ray.d * EPSILON_1, ray.d, wLeft, ray.Ni
                     );
+                    if (ray.w < 0.05f) continue;
                 }
 
                 hitKd = txColr.f3();
@@ -251,6 +252,7 @@ _glb_ void raytraceKernel(
                     rstack[rs_top++] = Ray(
                         vrtx + ray.d * EPSILON_1, ray.d, wLeft, ray.Ni
                     );
+                    if (ray.w < 0.05f) continue;
                 }
 
                 hitKd = txColr.f3();
