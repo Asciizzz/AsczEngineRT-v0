@@ -259,10 +259,7 @@ _glb_ void raytraceKernel(
             hitKd = hMtl.Kd;
         }
 
-        if (hMtl.noShade && hMtl.noShadow) {
-            resultColr += hitKd * ray.w;
-            continue;
-        }
+        // Lighting and shading
 
         float RdotN = ray.d * nrml;
         RdotN = hMtl.noShade ? 1.0f : RdotN * RdotN;

@@ -9,7 +9,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat1
 #NoShade
@@ -20,7 +19,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat2
 #NoShade
@@ -31,7 +29,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat3
 #NoShade
@@ -42,7 +39,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat4
 #NoShade
@@ -53,7 +49,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat5
 #NoShade
@@ -64,7 +59,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat6
 #NoShade
@@ -75,7 +69,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat7
 #NoShade
@@ -86,7 +79,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat8
 #NoShade
@@ -97,7 +89,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 0.7
-illum 1
 
 newmtl mat9
 #NoShade
@@ -108,7 +99,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat10
 #NoShade
@@ -119,7 +109,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat11
 #NoShade
@@ -130,7 +119,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat12
 #NoShade
@@ -141,7 +129,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat13
 #NoShade
@@ -152,7 +139,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat14
 #NoShade
@@ -163,7 +149,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat15
 #NoShade
@@ -174,7 +159,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat16
 #NoShade
@@ -185,7 +169,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat17
 #NoShade
@@ -196,13 +179,12 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 0.5
-illum 1
 
 newmtl mat18
 NoShade
 NoShadow
-Kd 1.13287 1.13287 1.13287
-illum 1
+Kd 1.13287 0.83287 0.63287
+d 0.2
 
 newmtl mat19
 #NoShade
@@ -213,7 +195,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat20
 #NoShade
@@ -224,7 +205,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat21
 #NoShade
@@ -235,7 +215,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat22
 #NoShade
@@ -246,7 +225,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 0.7
-illum 1
 
 newmtl mat23
 #NoShade
@@ -257,7 +235,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 0.7
-illum 1
 
 newmtl mat24
 #NoShade
@@ -268,7 +245,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat25
 #NoShade
@@ -279,7 +255,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat26
 #NoShade
@@ -290,7 +265,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat27
 #NoShade
@@ -301,7 +275,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat28
 #NoShade
@@ -312,7 +285,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat29
 #NoShade
@@ -323,7 +295,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat30
 #NoShade
@@ -334,7 +305,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat31
 #NoShade
@@ -345,7 +315,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat32
 #NoShade
@@ -356,7 +325,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat33
 #NoShade
@@ -367,7 +335,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat34
 #NoShade
@@ -378,7 +345,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat35
 #NoShade
@@ -389,7 +355,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat36
 #NoShade
@@ -400,7 +365,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat37
 #NoShade
@@ -411,7 +375,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat38
 #NoShade
@@ -422,7 +385,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat39
 #NoShade
@@ -433,7 +395,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat40
 #NoShade
@@ -444,7 +405,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat41
 #NoShade
@@ -455,7 +415,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat42
 #NoShade
@@ -466,7 +425,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat43
 #NoShade
@@ -477,7 +435,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat44
 #NoShade
@@ -488,7 +445,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat45
 #NoShade
@@ -499,7 +455,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat46
 #NoShade
@@ -510,7 +465,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat47
 #NoShade
@@ -521,7 +475,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat48
 #NoShade
@@ -532,7 +485,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat49
 #NoShade
@@ -543,7 +495,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat50
 #NoShade
@@ -554,7 +505,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat51
 #NoShade
@@ -565,7 +515,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat52
 #NoShade
@@ -576,7 +525,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat53
 #NoShade
@@ -587,7 +535,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat54
 #NoShade
@@ -598,7 +545,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat55
 #NoShade
@@ -609,7 +555,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat56
 #NoShade
@@ -620,7 +565,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat57
 #NoShade
@@ -631,7 +575,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat58
 #NoShade
@@ -642,7 +585,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 0.7
-illum 1
 
 newmtl mat59
 #NoShade
@@ -653,7 +595,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat60
 #NoShade
@@ -664,7 +605,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat61
 #NoShade
@@ -675,7 +615,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat62
 #NoShade
@@ -686,7 +625,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat63
 #NoShade
@@ -697,7 +635,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat64
 #NoShade
@@ -708,7 +645,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 0.5
-illum 1
 
 newmtl mat65
 #NoShade
@@ -719,7 +655,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 0.7
-illum 1
 
 newmtl mat66
 #NoShade
@@ -730,7 +665,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 0.7
-illum 1
 
 newmtl mat67
 #NoShade
@@ -741,7 +675,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat68
 #NoShade
@@ -752,7 +685,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat69
 #NoShade
@@ -763,7 +695,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat70
 #NoShade
@@ -774,7 +705,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat71
 #NoShade
@@ -785,7 +715,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat72
 #NoShade
@@ -796,7 +725,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat73
 #NoShade
@@ -807,7 +735,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat74
 #NoShade
@@ -818,7 +745,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat75
 #NoShade
@@ -829,7 +755,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat76
 #NoShade
@@ -840,7 +765,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat77
 #NoShade
@@ -851,7 +775,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat78
 #NoShade
@@ -862,7 +785,6 @@ Ks 0 0 0
 Ke 0 0 0
 Ni 1.0
 d 1
-illum 1
 
 newmtl mat79
 #NoShade
@@ -873,5 +795,4 @@ Ks 0 0 0
 Ke 0.0 0.0 0.0
 Ni 1.0
 d 1
-illum 1
 
