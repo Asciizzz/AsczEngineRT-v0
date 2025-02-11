@@ -6,6 +6,8 @@
 
 **AsczEngineRT_v0** is **FAR** from perfect, and that's great since that means there's room for improvement. The engine is built with the intention of learning and experimenting with rendering techniques, so if you're looking for a production-ready engine, you're in the wrong place. But if you're looking to learn and experiment with rendering techniques, gracias amigo, enjoy the show.
 
+Is this a school project? Yesn't.
+
 ## 1. Ray tracing 101
 
 - The idea behind ray tracing is simple: **you trace ray**.
