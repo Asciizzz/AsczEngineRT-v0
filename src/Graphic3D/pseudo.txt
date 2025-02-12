@@ -1,0 +1,60 @@
+Ray{origin, direction, Ni=1.0, weight=1.0}
+
+rayPerThread:
+    // rs: Ray Stack
+    rs_top = 0
+    rstack[rs_top++] = primaryRay
+
+    Flt3 resultColor = {0, 0, 0}
+
+    while rs_top > 0:
+        Ray ray = rstack[--rs_top]
+
+        Hit hit{t, u, v, geomIdx}
+
+        // Node Stack
+        ns_top = 0
+        nstack[ns_top++] = 0 (the root node index)
+
+        while ns_top > 0
+            Traverse the SAH BVH to update hit with the closest intersection
+
+        if hit.geomIdx == -1: continue
+
+        Interpolate vertex, texture and normal
+
+        rayColor = {0, 0, 0}
+
+        for every light:
+            Ray shadowRay = {vertex, lightPos - vertex}
+            
+            bool occluded = false        
+            
+            ns_top = 0
+            nstack[ns_top++] = 0
+
+            while ns_top > 0
+                Traverse to check if point is occluded
+
+            if occluded: continue
+            else:
+
+            rayColor += ComputeLighting()
+
+
+        // Additional ray
+        if geom is reflective and rs_top < MAX_DEPTH:
+            remainingWeight = ray.weight * reflectiveness
+            ray.weight *= (1- reflectiveness)
+
+            rstack[rs_top++] = Refl ray with w = remainingWeight
+
+        if geom is Fresnel:
+            Do weight calculation using Schlick's approx
+
+            rstack[rs_top++] = Refr ray * something
+            rstack[rs_top++] = Refl ray * (1 - something)
+
+        resultColor += rayColor * ray.weight
+
+    framebuffer = resultColor

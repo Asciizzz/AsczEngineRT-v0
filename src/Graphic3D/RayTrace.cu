@@ -136,7 +136,7 @@ _glb_ void raytraceKernel(
     int rs_top = 0; // Start with primary ray
     rstack[rs_off + rs_top++] = primaryRay;
 
-    Flt3 resultColr = Flt3(0, 0, 0);
+    Flt3 resultColr;
 
     while (rs_top > 0) {
         // Copy before pop since there's high chance of overwriting
