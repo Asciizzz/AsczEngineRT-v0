@@ -120,7 +120,7 @@ _glb_ void raytraceKernel(
     curandState *randState, // Random state
     // Some constants
     Ray *rstack, int *nstack,
-    const int MAX_RAYS, const int MAX_NODES 
+    const int MAX_RAYS, const int MAX_NODES
 ) {
     int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
     if (tIdx >= frmW * frmH) return;
