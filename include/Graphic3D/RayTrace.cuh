@@ -31,12 +31,7 @@ _glb_ void raytraceKernel(
     Flt3 *mv, Flt2 *mt, Flt3 *mn, // Primitive data
     AzGeom *geom, int gNum, // Geometry data
     int *gIdx, DevNode *nodes, int nNum, // BVH data
-    LightSrc *lSrc, int lNum, // Light data
-    curandState *randState, // Random state
-
-    // Some constants
-    Ray *rstack, int *nstack,
-    const int MAX_RAYS, const int MAX_NODES 
+    LightSrc *lSrc, int lNum // Light data
 );
 
 _glb_ void pathtraceKernel(
@@ -51,9 +46,7 @@ _glb_ void pathtraceKernel(
     int *gIdx, DevNode *nodes, int nNum,
 
     // Light data
-    LightSrc *lSrc, int lNum,
-
-    curandState *randState
+    LightSrc *lSrc, int lNum
 );
 
 #endif

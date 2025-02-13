@@ -15,15 +15,6 @@
 #include <RayTrace.cuh>
 #include <SFMLTexture.cuh>
 
-#include <curand_kernel.h>
-
-__global__ void initCurand(curandState *randState, int n, unsigned long long seed = 0) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx >= n) return;
-
-    curand_init(seed, idx, 0, &randState[idx]);
-}
-
 int main() {
     // =================== Initialize FPS and Log ==============
     FpsHandler &FPS = FpsHandler::instance();
@@ -76,6 +67,7 @@ int main() {
 
     bool hasFXAA = true;
     bool hasHud = true;
+    bool isPathTracing = false;
 
     // ====================== Some very scuffed init ==========================
     
@@ -129,38 +121,33 @@ int main() {
     // ========================================================================
     // ========================= Buffer Allocation ============================
     // ========================================================================
-    
-    // Allocate frame buffer
-    Flt3 *d_frmbuffer1, *d_frmbuffer2;
-    cudaMalloc(&d_frmbuffer1, frmW * frmH * sizeof(Flt3));
-    cudaMalloc(&d_frmbuffer2, frmW * frmH * sizeof(Flt3));
+
+    // Allocate frame buffers
+
+    Flt3 *d_rtFrmBuffer1, *d_rtFrmBuffer2;
+    cudaMalloc(&d_rtFrmBuffer1, frmW * frmH * sizeof(Flt3));
+    cudaMalloc(&d_rtFrmBuffer2, frmW * frmH * sizeof(Flt3));
+
+    Flt3 *d_ptFrmBuffer;
+    cudaMalloc(&d_ptFrmBuffer, winW * winH * sizeof(Flt3));
 
     // Allocate luminance buffer
     float *d_luminance; bool *d_edge;
     cudaMalloc(&d_luminance, frmW * frmH * sizeof(float));
     cudaMalloc(&d_edge, frmW * frmH * sizeof(bool));
 
-    // Allocate Curand states
-    curandState *d_randState;
     int threads = 256;
-    int blocks = (frmW * frmH + threads - 1) / threads;
-    cudaMalloc(&d_randState, frmW * frmH * sizeof(curandState));
-    initCurand<<<blocks, threads>>>(d_randState, frmW * frmH, time(0));
-    cudaDeviceSynchronize();
+    int blocks1 = (frmW * frmH + threads - 1) / threads;
+    int blocks2 = (winW * winH + threads - 1) / threads;
 
-    // Allocate Max Rays
-    const int MAX_RAY = 16;
-    Ray *d_rstack;
-    cudaMalloc(&d_rstack, frmW * frmH * MAX_RAY * sizeof(Ray));
+    // Create SFML textures
 
-    // Allocate Max Nodes
-    const int MAX_NODE = BvhMgr.MAX_DEPTH + 1;
-    int *d_nstack;
-    cudaMalloc(&d_nstack, frmW * frmH * MAX_NODE * sizeof(int));
+    // Downscaled resolution
+    SFMLTexture SFTex1(frmW, frmH);
+    SFTex1.sprite.setScale(frmScl, frmScl);
 
-    // Create SFML texture
-    SFMLTexture SFTex(frmW, frmH);
-    SFTex.sprite.setScale(frmScl, frmScl);
+    // True resolution
+    SFMLTexture SFTex2(winW, winH);
 
     // ========================================================================
     // ======================= Some test geometries ===========================
@@ -227,7 +214,7 @@ int main() {
 
             if (event.type == sf::Event::KeyPressed) {
 
-            // Press f1 to toggle camera focus
+                // Press f1 to toggle camera focus
                 if (event.key.code == sf::Keyboard::F1) {
                     CAMERA.focus = !CAMERA.focus;
                     // To avoid sudden camera movement when changing focus
@@ -238,18 +225,40 @@ int main() {
                     window.setMouseCursorVisible(!CAMERA.focus);
                 }
 
-            // Press F to toggle FXAA
+                // Press F to toggle FXAA
                 if (event.key.code == sf::Keyboard::F) {
                     hasFXAA = !hasFXAA;
                 }
-            }
             
-            // Press H to toggle HUD
-            if (event.type == sf::Event::KeyPressed) {
+                // Press H to toggle HUD
                 if (event.key.code == sf::Keyboard::H) {
                     hasHud = !hasHud;
                 }
+
+                // Press Q to toggle Path Tracing
+                if (event.key.code == sf::Keyboard::Q) {
+                    isPathTracing = !isPathTracing;
+
+                    if (isPathTracing) {
+                        // Render a single frame
+                        raytraceKernel<<<blocks2, threads>>>(
+                            CAMERA, d_ptFrmBuffer, winW, winH,
+                            TxtrMgr.d_txtrFlat, TxtrMgr.d_txtrPtr, MtlMgr.d_mtls,
+                            MeshMgr.d_v, MeshMgr.d_t, MeshMgr.d_n, MeshMgr.d_geom, MeshMgr.gNum,
+                            BvhMgr.d_gIdx, BvhMgr.d_nodes, BvhMgr.nNum,
+                            LightMgr.d_lSrc, LightMgr.num
+                        );
+                    }
+                }
             }
+        }
+
+        if (isPathTracing) {
+            SFTex2.updateTexture(d_ptFrmBuffer, winW, winH);
+            window.draw(SFTex2.sprite);
+            window.display();
+            FPS.endFrame();
+            continue;
         }
 
         // Setting input activities
@@ -299,45 +308,31 @@ int main() {
         CAMERA.update();
 
         // Render frmbuffer
-        raytraceKernel<<<blocks, threads>>>(
-            CAMERA, d_frmbuffer1, frmW, frmH,
-            TxtrMgr.d_txtrFlat, TxtrMgr.d_txtrPtr,
-            MtlMgr.d_mtls,
-            MeshMgr.d_v, MeshMgr.d_t, MeshMgr.d_n,
-            MeshMgr.d_geom, MeshMgr.gNum,
-
+        raytraceKernel<<<blocks1, threads>>>(
+            CAMERA, d_rtFrmBuffer1, frmW, frmH,
+            TxtrMgr.d_txtrFlat, TxtrMgr.d_txtrPtr, MtlMgr.d_mtls,
+            MeshMgr.d_v, MeshMgr.d_t, MeshMgr.d_n, MeshMgr.d_geom, MeshMgr.gNum,
             BvhMgr.d_gIdx, BvhMgr.d_nodes, BvhMgr.nNum,
-
-            LightMgr.d_lSrc, LightMgr.num,
-
-            d_randState,
-
-            d_rstack, d_nstack, MAX_RAY, MAX_NODE
+            LightMgr.d_lSrc, LightMgr.num
         );
-        cudaDeviceSynchronize();
 
         // FXAA
         if (hasFXAA)
         {
             // FXAA
-            calcLuminance<<<blocks, threads>>>(d_luminance, d_frmbuffer1, frmW, frmH);
-            cudaDeviceSynchronize();
+            calcLuminance<<<blocks1, threads>>>(d_luminance, d_rtFrmBuffer1, frmW, frmH);
+            edgeMask<<<blocks1, threads>>>(d_edge, d_luminance, frmW, frmH);
+            applyFXAAtoBuffer<<<blocks1, threads>>>(d_luminance, d_edge, d_rtFrmBuffer1, d_rtFrmBuffer2, frmW, frmH);
 
-            edgeMask<<<blocks, threads>>>(d_edge, d_luminance, frmW, frmH);
-            cudaDeviceSynchronize();
-
-            applyFXAAtoBuffer<<<blocks, threads>>>(d_luminance, d_edge, d_frmbuffer1, d_frmbuffer2, frmW, frmH);
-            cudaDeviceSynchronize();
-
-            SFTex.updateTexture(d_frmbuffer2, frmW, frmH);
+            SFTex1.updateTexture(d_rtFrmBuffer2, frmW, frmH);
         } else
-            SFTex.updateTexture(d_frmbuffer1, frmW, frmH);
+            SFTex1.updateTexture(d_rtFrmBuffer1, frmW, frmH);
 
 
         // Clear window
         window.clear();
         // Draw the texture
-        window.draw(SFTex.sprite);
+        window.draw(SFTex1.sprite);
 
         if (hasHud) {
             LOG.addLog("Welcome to AsczEngineRT v0", sf::Color::Green, 1);
@@ -362,10 +357,13 @@ int main() {
     MtlMgr.freeDevice();
     MeshMgr.freeDevice();
     BvhMgr.freeDevice();
-    cudaFree(d_frmbuffer1);
-    cudaFree(d_frmbuffer2);
+    cudaFree(d_rtFrmBuffer1);
+    cudaFree(d_rtFrmBuffer2);
     cudaFree(d_luminance);
     cudaFree(d_edge);
+
+    SFTex1.free();
+    SFTex2.free();
 
     return 0;
 }

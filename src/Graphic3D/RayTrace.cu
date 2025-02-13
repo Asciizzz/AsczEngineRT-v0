@@ -116,41 +116,38 @@ _glb_ void raytraceKernel(
     Flt3 *mv, Flt2 *mt, Flt3 *mn, // Primitive data
     AzGeom *geom, int gNum, // Geometry data
     int *gIdxs, DevNode *nodes, int nNum, // BVH data
-    LightSrc *lSrc, int lNum, // Light data
-    curandState *randState, // Random state
-    // Some constants
-    Ray *rstack, int *nstack,
-    const int MAX_RAYS, const int MAX_NODES
+    LightSrc *lSrc, int lNum // Light data
 ) {
     int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
     if (tIdx >= frmW * frmH) return;
 
-    curandState localRand = randState[tIdx];
-
     int x = tIdx % frmW, y = tIdx / frmW;
     Ray primaryRay = camera.castRay(x, y, frmW, frmH);
 
-    int rs_off = tIdx * MAX_RAYS;
-    int ns_off = tIdx * MAX_NODES;
+    const int MAX_RAYS = 16;
+    const int MAX_NODES = 64;
 
-    int rs_top = 0; // Start with primary ray
-    rstack[rs_off + rs_top++] = primaryRay;
+    Ray rstack[MAX_RAYS] = { primaryRay };
+    int rs_top = 1;
+
+    int nstack[MAX_NODES];
+    int ns_top = 0;
 
     Flt3 resultColr;
 
     while (rs_top > 0) {
         // Copy before pop since there's high chance of overwriting
-        Ray ray = rstack[rs_off + --rs_top];
+        Ray ray = rstack[--rs_top];
         RayHit hit;
 
         // Ray with little contribution
         if (ray.w < 0.05f) continue;
 
-        int ns_top = 0;
-        nstack[ns_off + ns_top++] = 0;
+        ns_top = 0;
+        nstack[ns_top++] = 0;
 
         while (ns_top > 0) {
-            int nidx = nstack[ns_off + --ns_top];
+            int nidx = nstack[--ns_top];
             DevNode &node = nodes[nidx];
 
             float hitDist = node.hitDist(ray.o, ray.invd);
@@ -163,12 +160,12 @@ _glb_ void raytraceKernel(
                 // Early exit
                 if (ldist < 0 && rdist < 0) continue;
                 // Push the valid node
-                else if (ldist < 0) nstack[ns_off + ns_top++] = node.cr;
-                else if (rdist < 0) nstack[ns_off + ns_top++] = node.cl;
+                else if (ldist < 0) nstack[ns_top++] = node.cr;
+                else if (rdist < 0) nstack[ns_top++] = node.cl;
                 // Push the closest node first
                 else {
-                    nstack[ns_off + ns_top++] = ldist < rdist ? node.cr : node.cl;
-                    nstack[ns_off + ns_top++] = ldist < rdist ? node.cl : node.cr;
+                    nstack[ns_top++] = ldist < rdist ? node.cr : node.cl;
+                    nstack[ns_top++] = ldist < rdist ? node.cl : node.cr;
                 }
 
                 continue;
@@ -226,7 +223,7 @@ _glb_ void raytraceKernel(
                     float wLeft = ray.w * (1 - txColr.w);
                     ray.w *= txColr.w;
 
-                    rstack[rs_off + rs_top++] = Ray(
+                    rstack[rs_top++] = Ray(
                         vrtx + ray.d * EPSILON_1, ray.d, wLeft, ray.Ni
                     );
                     if (ray.w < 0.05f) continue;
@@ -247,7 +244,7 @@ _glb_ void raytraceKernel(
                     float wLeft = ray.w * (1 - txColr.w);
                     ray.w *= txColr.w;
 
-                    rstack[rs_off + rs_top++] = Ray(
+                    rstack[rs_top++] = Ray(
                         vrtx + ray.d * EPSILON_1, ray.d, wLeft, ray.Ni
                     );
                     if (ray.w < 0.05f) continue;
@@ -281,7 +278,7 @@ _glb_ void raytraceKernel(
             Flt3 lInv = 1.0f / lDir;
 
             ns_top = 0;
-            nstack[ns_off + ns_top++] = 0;
+            nstack[ns_top++] = 0;
 
             // Values for transparency
             float intens = light.intens;
@@ -291,7 +288,7 @@ _glb_ void raytraceKernel(
             while (ns_top > 0) {
                 if (hMtl.noShadow) break;
 
-                int idx = nstack[ns_off + --ns_top];
+                int idx = nstack[--ns_top];
                 DevNode &node = nodes[idx];
 
                 float hitDist = node.hitDist(lPos, lInv);
@@ -302,11 +299,11 @@ _glb_ void raytraceKernel(
                     float rdist = nodes[node.cr].hitDist(lPos, lInv);
 
                     if (ldist < 0 && rdist < 0) continue;
-                    else if (ldist < 0) nstack[ns_off + ns_top++] = node.cr;
-                    else if (rdist < 0) nstack[ns_off + ns_top++] = node.cl;
+                    else if (ldist < 0) nstack[ns_top++] = node.cr;
+                    else if (rdist < 0) nstack[ns_top++] = node.cl;
                     else {
-                        nstack[ns_off + ns_top++] = ldist < rdist ? node.cr : node.cl;
-                        nstack[ns_off + ns_top++] = ldist < rdist ? node.cl : node.cr;
+                        nstack[ns_top++] = ldist < rdist ? node.cr : node.cl;
+                        nstack[ns_top++] = ldist < rdist ? node.cl : node.cr;
                     }
 
                     continue;
@@ -379,7 +376,7 @@ _glb_ void raytraceKernel(
             Flt3 rD = ray.reflect(nrml);
             Flt3 rO = vrtx + nrml * EPSILON_1;
 
-            rstack[rs_off + rs_top++] = Ray(rO, rD, wLeft, ray.Ni);
+            rstack[rs_top++] = Ray(rO, rD, wLeft, ray.Ni);
         }
         // Transparent
         else if (hMtl.Tr > 0.0f && rs_top + 1 < MAX_RAYS) {
@@ -388,7 +385,7 @@ _glb_ void raytraceKernel(
 
             Flt3 rO = vrtx + ray.d * EPSILON_1;
 
-            rstack[rs_off + rs_top++] = Ray(rO, ray.d, wLeft, hMtl.Ni);
+            rstack[rs_top++] = Ray(rO, ray.d, wLeft, hMtl.Ni);
         }
 
         resultColr += finalColr * ray.w;
@@ -416,9 +413,7 @@ _glb_ void pathtraceKernel(
     int *gIdxs, DevNode *nodes, int nNum,
 
     // Light data
-    LightSrc *lSrc, int lNum,
-
-    curandState *randState
+    LightSrc *lSrc, int lNum
 ) {
     // Someday in the near future
 }

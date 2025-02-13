@@ -3,11 +3,13 @@
 SFMLTexture::SFMLTexture(int width, int height) { resize(width, height); }
 
 void SFMLTexture::free() {
-    delete[] sfPixel;
-    cudaFree(d_sfPixel);
+    if (sfPixel) { delete[] sfPixel; sfPixel = nullptr; }
+    if (d_sfPixel) { cudaFree(d_sfPixel); d_sfPixel = nullptr; }
 }
 
 void SFMLTexture::resize(int width, int height) {
+    // free();
+
     texture.create(width, height);
     sprite.setTexture(texture);
 
