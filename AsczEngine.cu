@@ -241,7 +241,7 @@ int main() {
 
                     if (isPathTracing) {
                         // Render a single frame
-                        raytraceKernel<<<blocks2, threads>>>(
+                        pathtraceKernel<<<blocks2, threads>>>(
                             CAMERA, d_ptFrmBuffer, winW, winH,
                             TxtrMgr.d_txtrFlat, TxtrMgr.d_txtrPtr, MtlMgr.d_mtls,
                             MeshMgr.d_v, MeshMgr.d_t, MeshMgr.d_n, MeshMgr.d_geom, MeshMgr.gNum,
