@@ -9,6 +9,8 @@ set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -rdc=true --expt-relaxed-constexpr --e
 
 set(CMAKE_CUDA_SEPARABLE_COMPILATION ON)
 set(CMAKE_CUDA_RESOLVE_DEVICE_SYMBOLS ON)
+set(CMAKE_VERBOSE_MAKEFILE OFF)  # Suppress long compiler command output
+
 
 # Include directories
 include_directories(
@@ -27,14 +29,15 @@ add_executable(AsczEngine
     src/AsczMath/Matrix.cu
 
     src/Ascz3D/Ray.cu
-    src/Ascz3D/Camera.cu
     src/Ascz3D/RayTrace.cu
 
+    src/Ascz3Dx/AsczLight.cu
     src/Ascz3Dx/AsczMtl.cu
     src/Ascz3Dx/AsczTxtr.cu
     src/Ascz3Dx/AsczMesh.cu
     src/Ascz3Dx/AsczBvh.cu
     src/Ascz3Dx/AsczWin.cu
+    src/Ascz3Dx/AsczCam.cu
 
     src/AsczSys/FpsHandler.cu
     src/AsczSys/Utility.cu

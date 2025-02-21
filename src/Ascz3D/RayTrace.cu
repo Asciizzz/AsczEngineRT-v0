@@ -110,7 +110,7 @@ _dev_ RayHit RayHitGeom(const Flt3 &o, const Flt3 &d, AzGeom &g, Flt3 *mv) {
 
 
 _glb_ void raytraceKernel(
-    Camera camera, unsigned int *frmbuffer, int frmW, int frmH, // In-out
+    AsczCam camera, unsigned int *frmbuffer, int frmW, int frmH, // In-out
     Flt4 *txtrFlat, TxtrPtr *txtrPtr, // Textures
     Material *mtls, // Materials
     Flt3 *mv, Flt2 *mt, Flt3 *mn, // Primitive data

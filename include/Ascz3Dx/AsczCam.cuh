@@ -1,10 +1,10 @@
-#ifndef CAMERA_CUH
-#define CAMERA_CUH
+#ifndef ASCZCAM_CUH
+#define ASCZCAM_CUH
 
 #include <string>
 #include <Ray.cuh>
 
-class Camera {
+class AsczCam {
 public:
     float fov = M_PI_2; // The most perfect fov imo
 

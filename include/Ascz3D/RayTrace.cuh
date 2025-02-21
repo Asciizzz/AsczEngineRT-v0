@@ -1,12 +1,12 @@
 #ifndef RAYTRACE_CUH
 #define RAYTRACE_CUH
 
-#include <Camera.cuh>
 #include <AsczTxtr.cuh>
 #include <AsczMtl.cuh>
 #include <AsczMesh.cuh>
 #include <AsczBvh.cuh>
 #include <AsczLight.cuh>
+#include <AsczCam.cuh>
 
 /* Difference:
 
@@ -25,7 +25,7 @@ Static Path Tracing:
 */
 
 _glb_ void raytraceKernel(
-    Camera camera, unsigned int *frmbuffer, int frmW, int frmH, // In-out
+    AsczCam camera, unsigned int *frmbuffer, int frmW, int frmH, // In-out
     Flt4 *txtrFlat, TxtrPtr *txtrPtr, // Textures
     Material *mtls, // Materials
     Flt3 *mv, Flt2 *mt, Flt3 *mn, // Primitive data

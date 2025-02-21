@@ -1,14 +1,13 @@
 #include <FpsHandler.cuh>
 #include <Utility.cuh>
 
+#include <AsczLight.cuh>
+#include <AsczWin.cuh>
 #include <AsczTxtr.cuh>
 #include <AsczMtl.cuh>
 #include <AsczMesh.cuh>
 #include <AsczBvh.cuh>
-#include <AsczLight.cuh>
-#include <AsczWin.cuh>
-
-#include <FXAA.cuh>
+#include <AsczCam.cuh>
 
 #include <RayTrace.cuh>
 
@@ -17,21 +16,15 @@ int main() {
     FpsHandler &FPS = FpsHandler::instance();
     AsczWin WinMgr(1280, 720, L"AsczEngineRT");
 
-    // =================== Initialize window ===================
-
     // =============== Initialize Important Managers ================
 
     // All managers
+    AsczLight LightMgr;
     AsczTxtr TxtrMgr;
     AsczMtl MtlMgr;
     AsczMesh MeshMgr;
     AsczBvh BvhMgr;
-    AsczLight LightMgr;
-
-    // Create Camera
-    // By logic, then this is CameraManager?
-    // Idk, just a funny thought
-    Camera CAMERA;
+    AsczCam CamMgr;
 
     // ====================== Some very scuffed init ==========================
     
@@ -44,17 +37,17 @@ int main() {
         std::string type; ss >> type;
 
         if (type == "CameraPos")
-            ss >> CAMERA.pos.x >> CAMERA.pos.y >> CAMERA.pos.z;
+            ss >> CamMgr.pos.x >> CamMgr.pos.y >> CamMgr.pos.z;
         else if (type == "CameraRot")
-            ss >> CAMERA.rot.x >> CAMERA.rot.y >> CAMERA.rot.z;
+            ss >> CamMgr.rot.x >> CamMgr.rot.y >> CamMgr.rot.z;
         else if (type == "CameraFov")
-            ss >> CAMERA.fov;
+            ss >> CamMgr.fov;
         else if (type == "VelSpec")
-            ss >> CAMERA.velSpec;
+            ss >> CamMgr.velSpec;
         else if (type == "SlowFactor")
-            ss >> CAMERA.slowFactor;
+            ss >> CamMgr.slowFactor;
         else if (type == "FastFactor")
-            ss >> CAMERA.fastFactor;
+            ss >> CamMgr.fastFactor;
 
         if (type == "LightSrc") {
             LightSrc lSrc; ss >>
@@ -120,6 +113,11 @@ int main() {
     // ========================================================================
     // ========================================================================
 
+    // Hide cursor
+    ShowCursor(FALSE);
+
+    std::string LOG = "";
+
     MSG msg = { 0 };
     while (msg.message != WM_QUIT) {
         FPS.startFrame();
@@ -129,7 +127,10 @@ int main() {
             DispatchMessage(&msg);
         }
 
-        if (CAMERA.focus) {
+        // Press ESC to exit
+        if (WinMgr.keys[VK_ESCAPE]) break;
+
+        if (CamMgr.focus) {
             // Get previous cursor position
             POINT prev;
             GetCursorPos(&prev);
@@ -143,8 +144,8 @@ int main() {
             float dy = center.y - prev.y;
 
             // Update camera rotation
-            CAMERA.rot.y += dx * CAMERA.mSens * FPS.dTimeSec;
-            CAMERA.rot.x += dy * CAMERA.mSens * FPS.dTimeSec;
+            CamMgr.rot.y += dx * CamMgr.mSens * FPS.dTimeSec;
+            CamMgr.rot.x += dy * CamMgr.mSens * FPS.dTimeSec;
 
             // For the time being, press the arrow keys to look around
             bool k_up = WinMgr.keys[VK_UP];
@@ -152,13 +153,13 @@ int main() {
             bool k_lf = WinMgr.keys[VK_LEFT];
             bool k_rt = WinMgr.keys[VK_RIGHT];
 
-            if (k_up && !k_dw) CAMERA.rot.x += CAMERA.mSens * FPS.dTimeSec;
-            if (k_dw && !k_up) CAMERA.rot.x -= CAMERA.mSens * FPS.dTimeSec;
-            if (k_lf && !k_rt) CAMERA.rot.y -= CAMERA.mSens * FPS.dTimeSec;
-            if (k_rt && !k_lf) CAMERA.rot.y += CAMERA.mSens * FPS.dTimeSec;
+            if (k_up && !k_dw) CamMgr.rot.x += CamMgr.mSens * FPS.dTimeSec;
+            if (k_dw && !k_up) CamMgr.rot.x -= CamMgr.mSens * FPS.dTimeSec;
+            if (k_lf && !k_rt) CamMgr.rot.y -= CamMgr.mSens * FPS.dTimeSec;
+            if (k_rt && !k_lf) CamMgr.rot.y += CamMgr.mSens * FPS.dTimeSec;
 
             // CSGO perspective movement
-            float vel = CAMERA.velSpec;
+            float vel = CamMgr.velSpec;
             bool k_w = WinMgr.keys['W'];
             bool k_a = WinMgr.keys['A'];
             bool k_s = WinMgr.keys['S'];
@@ -167,33 +168,36 @@ int main() {
             bool k_shift = WinMgr.keys[VK_LSHIFT];
 
             // Hold ctrl to go slow, hold shift to go fast
-            if (k_ctrl && !k_shift)      vel *= CAMERA.slowFactor;
-            else if (k_shift && !k_ctrl) vel *= CAMERA.fastFactor;
+            if (k_ctrl && !k_shift)      vel *= CamMgr.slowFactor;
+            else if (k_shift && !k_ctrl) vel *= CamMgr.fastFactor;
 
             // Press W/S to move forward/backward
-            if (k_w && !k_s) CAMERA.pos += CAMERA.forward * vel * FPS.dTimeSec;
-            if (k_s && !k_w) CAMERA.pos -= CAMERA.forward * vel * FPS.dTimeSec;
+            if (k_w && !k_s) CamMgr.pos += CamMgr.forward * vel * FPS.dTimeSec;
+            if (k_s && !k_w) CamMgr.pos -= CamMgr.forward * vel * FPS.dTimeSec;
 
             // Press A/D to move left/right
-            if (k_a && !k_d) CAMERA.pos -= CAMERA.right * vel * FPS.dTimeSec;
-            if (k_d && !k_a) CAMERA.pos += CAMERA.right * vel * FPS.dTimeSec;
+            if (k_a && !k_d) CamMgr.pos -= CamMgr.right * vel * FPS.dTimeSec;
+            if (k_d && !k_a) CamMgr.pos += CamMgr.right * vel * FPS.dTimeSec;
 
             // Update camera
-            CAMERA.update();
+            CamMgr.update();
         } else {
             ClipCursor(nullptr);
         }
 
         // Render frmbuffer
         raytraceKernel<<<WinMgr.blockCount, WinMgr.threadCount>>>(
-            CAMERA, WinMgr.d_framebuffer, WinMgr.width, WinMgr.height,
+            CamMgr, WinMgr.d_framebuffer, WinMgr.width, WinMgr.height,
             TxtrMgr.d_txtrFlat, TxtrMgr.d_txtrPtr, MtlMgr.d_mtls,
             MeshMgr.d_v, MeshMgr.d_t, MeshMgr.d_n, MeshMgr.d_geom, MeshMgr.gNum,
             BvhMgr.d_gIdx, BvhMgr.d_nodes, BvhMgr.nNum,
             LightMgr.d_lSrc, LightMgr.num
         );
-
         WinMgr.Draw();
+
+        LOG = CamMgr.data();
+
+        std::cout << "\r" << LOG << "    " << std::flush;
 
         FPS.endFrame();
     }

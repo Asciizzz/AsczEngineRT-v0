@@ -24,15 +24,10 @@ public:
 
     AsczLight() {}
 
-    void appendLight(LightSrc light) {
-        h_lSrc.push_back(light);
-    }
+    void appendLight(LightSrc light);
 
-    void toDevice() {
-        num = h_lSrc.size();
-        cudaMalloc(&d_lSrc, num * sizeof(LightSrc));
-        cudaMemcpy(d_lSrc, h_lSrc.data(), num * sizeof(LightSrc), cudaMemcpyHostToDevice);
-    }
+    void toDevice();
+    void freeDevice();
 };
 
 #endif

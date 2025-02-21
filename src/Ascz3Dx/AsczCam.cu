@@ -1,6 +1,6 @@
-#include <Camera.cuh>
+#include <AsczCam.cuh>
 
-void Camera::restrictRot() {
+void AsczCam::restrictRot() {
     if (rot.x <= -M_PI_2) rot.x = -M_PI_2 + 0.001;
     else if (rot.x >= M_PI_2) rot.x = M_PI_2 - 0.001;
 
@@ -8,7 +8,7 @@ void Camera::restrictRot() {
     else if (rot.y < 0) rot.y += M_2_PI;
 }
 
-void Camera::updateView() {
+void AsczCam::updateView() {
     forward.x = sin(rot.y) * cos(rot.x);
     forward.y = sin(rot.x);
     forward.z = cos(rot.y) * cos(rot.x);
@@ -22,12 +22,12 @@ void Camera::updateView() {
 }
 
 
-Flt2 Camera::getScrnNDC(float x, float y, float width, float height) {
+Flt2 AsczCam::getScrnNDC(float x, float y, float width, float height) {
     // Note: w/2 and h/2 are used to center the screen space coordinates
     return Flt2((2 * x - width) / width, (height - 2 * y) / height);
 }
 
-Ray Camera::castRay(float x, float y, float width, float height) {
+Ray AsczCam::castRay(float x, float y, float width, float height) {
     // Step 1: Convert screen space coordinates to NDC
     Flt2 ndc = getScrnNDC(x, y, width, height);
 
@@ -45,13 +45,13 @@ Ray Camera::castRay(float x, float y, float width, float height) {
 }
 
 
-void Camera::update() {
+void AsczCam::update() {
     restrictRot();
     updateView();
 }
 
 // Debug
-std::string Camera::data() {
+std::string AsczCam::data() {
     std::string str = "Camera\n";
     str += "| Pos: " + std::to_string(pos.x) + ", " + std::to_string(pos.y) + ", " + std::to_string(pos.z) + "\n";
     str += "| Rot: " + std::to_string(rot.x) + ", " + std::to_string(rot.y) + ", " + std::to_string(rot.z) + "\n";
