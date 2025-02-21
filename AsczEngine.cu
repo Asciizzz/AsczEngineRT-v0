@@ -130,25 +130,27 @@ int main() {
         }
 
         if (CAMERA.focus) {
-            RECT rect;
-            GetClientRect(WinMgr.hwnd, &rect);
-            ClientToScreen(WinMgr.hwnd, (LPPOINT)&rect.left);
-            ClientToScreen(WinMgr.hwnd, (LPPOINT)&rect.right);
-            ClipCursor(&rect);
-            SetCursorPos(rect.left + (rect.right - rect.left) / 2, rect.top + (rect.bottom - rect.top) / 2);
+            // // Get mouse position
+            // POINT mousePos = WinMgr.mousePos;
 
-            // Get mouse position
-            POINT mousePos = WinMgr.mousePos;
+            // // Move from center
+            // int dMx = mousePos.x - WinMgr.width / 2;
+            // int dMy = mousePos.y - WinMgr.height / 2;
 
-            // Move from center
-            int dMx = mousePos.x - WinMgr.width / 2;
-            int dMy = mousePos.y - WinMgr.height / 2;
+            // // Camera look around
+            // CAMERA.rot.x -= dMy * CAMERA.mSens * FPS.dTimeSec;
+            // CAMERA.rot.y += dMx * CAMERA.mSens * FPS.dTimeSec;
 
-            SetCursorPos(WinMgr.width / 2, WinMgr.height / 2);
+            // For the time being, press the arrow keys to look around
+            bool k_up = WinMgr.keys[VK_UP];
+            bool k_dw = WinMgr.keys[VK_DOWN];
+            bool k_lf = WinMgr.keys[VK_LEFT];
+            bool k_rt = WinMgr.keys[VK_RIGHT];
 
-            // Camera look around
-            CAMERA.rot.x -= dMy * CAMERA.mSens * FPS.dTimeSec;
-            CAMERA.rot.y += dMx * CAMERA.mSens * FPS.dTimeSec;
+            if (k_up && !k_dw) CAMERA.rot.x += CAMERA.mSens * FPS.dTimeSec;
+            if (k_dw && !k_up) CAMERA.rot.x -= CAMERA.mSens * FPS.dTimeSec;
+            if (k_lf && !k_rt) CAMERA.rot.y -= CAMERA.mSens * FPS.dTimeSec;
+            if (k_rt && !k_lf) CAMERA.rot.y += CAMERA.mSens * FPS.dTimeSec;
 
             // CSGO perspective movement
             float vel = CAMERA.velSpec;
