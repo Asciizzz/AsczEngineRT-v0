@@ -30,14 +30,16 @@ public:
     int threadCount = 256;
     int blockCount;
 
+    // Constructor
     AsczWin(int w, int h, std::wstring t);
     void InitConsole();
     void InitWindow();
     void InitGDI();
 
+    // Draw Framebuffer
     void Draw();
-
-    void Clear();
+    // Destroy Window
+    void Terminate();
 
     // 📦 Static Window Procedure
     static LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);

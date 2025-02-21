@@ -55,9 +55,9 @@ void AsczCam::update() {
 
 // Debug
 void AsczCam::debug() {
-    std::cout << "\033[7A";
+    std::cout << "\033[8A";
 
-    std::string str = "Camera\n";
+    std::string str = "\rCamera\n";
     str += "| Pos: " + std::to_string(pos.x) + ", " + std::to_string(pos.y) + ", " + std::to_string(pos.z) + "\n";
     str += "| Rot: " + std::to_string(rot.x) + ", " + std::to_string(rot.y) + ", " + std::to_string(rot.z) + "\n";
     str += "| Fd: " + std::to_string(forward.x) + ", " + std::to_string(forward.y) + ", " + std::to_string(forward.z) + "\n";

@@ -62,7 +62,7 @@ void AsczWin::Draw() {
 
 
 // Clear everything
-void AsczWin::Clear() {
+void AsczWin::Terminate() {
     delete[] h_framebuffer;
     cudaFree(d_framebuffer);
     ReleaseDC(hwnd, hdc);

@@ -210,7 +210,7 @@ int main() {
     MeshMgr.freeDevice();
     BvhMgr.freeDevice();
 
-    WinMgr.Clear();
+    WinMgr.Terminate();
 
     return 0;
 }
