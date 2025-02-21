@@ -130,16 +130,26 @@ int main() {
         }
 
         if (CAMERA.focus) {
-            // // Get mouse position
-            // POINT mousePos = WinMgr.mousePos;
+            // Lock cursor to center of the screen
+            POINT center = { WinMgr.width / 2, WinMgr.height / 2 };
+            ClientToScreen(WinMgr.hwnd, &center);
+            SetCursorPos(center.x, center.y);
 
-            // // Move from center
-            // int dMx = mousePos.x - WinMgr.width / 2;
-            // int dMy = mousePos.y - WinMgr.height / 2;
+            // Get mouse movement
+            POINT mouse;
+            GetCursorPos(&mouse);
+            ScreenToClient(WinMgr.hwnd, &mouse);
 
-            // // Camera look around
-            // CAMERA.rot.x -= dMy * CAMERA.mSens * FPS.dTimeSec;
-            // CAMERA.rot.y += dMx * CAMERA.mSens * FPS.dTimeSec;
+            float dx = mouse.x - center.x;
+            float dy = mouse.y - center.y;
+
+            // IF mouse movement is too small, ignore
+            if (abs(dx) < 10) dx = 0;
+            if (abs(dy) < 10) dy = 0;
+
+            // Update camera rotation
+            CAMERA.rot.y += dx * CAMERA.mSens * FPS.dTimeSec;
+            CAMERA.rot.x += dy * CAMERA.mSens * FPS.dTimeSec;
 
             // For the time being, press the arrow keys to look around
             bool k_up = WinMgr.keys[VK_UP];
