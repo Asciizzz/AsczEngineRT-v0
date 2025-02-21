@@ -37,6 +37,8 @@ public:
 
     void Draw();
 
+    void Clear();
+
     // 📦 Static Window Procedure
     static LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 };

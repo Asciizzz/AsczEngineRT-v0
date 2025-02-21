@@ -56,7 +56,20 @@ void AsczWin::InitGDI() {
 
 // Draw Framebuffer to Window
 void AsczWin::Draw() {
+    // Copy d_framebuffer to h_framebuffer
+    cudaMemcpy(h_framebuffer, d_framebuffer, width * height * sizeof(unsigned int), cudaMemcpyDeviceToHost);
     StretchDIBits(hdc, 0, 0, width, height, 0, 0, width, height, h_framebuffer, &bmi, DIB_RGB_COLORS, SRCCOPY);
+}
+
+
+// Clear everything
+void AsczWin::Clear() {
+    delete[] h_framebuffer;
+    cudaFree(d_framebuffer);
+    ReleaseDC(hwnd, hdc);
+    DestroyWindow(hwnd);
+    UnregisterClass(L"Win32App", GetModuleHandle(nullptr));
+    FreeConsole();
 }
 
 

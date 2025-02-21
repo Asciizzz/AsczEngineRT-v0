@@ -193,22 +193,21 @@ int main() {
             LightMgr.d_lSrc, LightMgr.num
         );
 
-        cudaMemcpy(WinMgr.h_framebuffer, WinMgr.d_framebuffer, WinMgr.width * WinMgr.height * sizeof(unsigned int), cudaMemcpyDeviceToHost);
         WinMgr.Draw();
 
         FPS.endFrame();
     }
 
-    ReleaseDC(WinMgr.hwnd, WinMgr.hdc);
-
     // ========================================================================
     // ========================================================================
 
-    // Free device memory
+    // Free everything
     TxtrMgr.freeDevice();
     MtlMgr.freeDevice();
     MeshMgr.freeDevice();
     BvhMgr.freeDevice();
+
+    WinMgr.Clear();
 
     return 0;
 }
