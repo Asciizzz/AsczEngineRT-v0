@@ -41,8 +41,7 @@ __global__ void pathtraceKernel(
     Flt3 *mv, Flt2 *mt, Flt3 *mn, // Primitive data
     AzGeom *geom, int gNum, // Geometry data
     int *gIdx, DevNode *nodes, int nNum, // BVH data
-    LightSrc *lSrc, int lNum, // Light data
-    curandState *randState
+    LightSrc *lSrc, int lNum // Light data
 );
 
 #endif

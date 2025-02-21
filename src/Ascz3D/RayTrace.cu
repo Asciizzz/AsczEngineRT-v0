@@ -149,8 +149,9 @@ __global__ void raytraceKernel(
     int nstack[MAX_NODES];
     int ns_top = 0;
 
-    Flt3 resultColr;
+    int bounceLeft = 4;
 
+    Flt3 resultColr;
     while (rs_top > 0) {
         // Copy before pop since there's high chance of overwriting
         Ray ray = rstack[--rs_top];
@@ -381,6 +382,17 @@ __global__ void raytraceKernel(
             finalColr += passColr & (spec + diff) * intens;
         }
 
+                // Diffuse Indirect Lighting
+
+        // // For the time being just shoot a ray straight from the normal
+        if (bounceLeft > 0) {
+            Flt3 rD = nrml;
+            Flt3 rO = vrtx + nrml * EPSILON_1;
+
+            rstack[rs_top++] = Ray(rO, rD, ray.w * 0.1f, ray.Ni);
+            --bounceLeft;
+        }
+
         // ======== Additional rays ========
 
         // Reflective
@@ -447,8 +459,9 @@ __global__ void pathtraceKernel(
     int nstack[MAX_NODES];
     int ns_top = 0;
 
-    Flt3 resultColr;
+    int bounceLeft = 4;
 
+    Flt3 resultColr;
     while (rs_top > 0) {
         // Copy before pop since there's high chance of overwriting
         Ray ray = rstack[--rs_top];
@@ -569,7 +582,7 @@ __global__ void pathtraceKernel(
 
         Flt3 finalColr = (hMtl.Ka & hitKd) * RdotN;
 
-        // Global illumination
+        // ============ Global illumination ============
 
         // Direct lighting
         for (int l = 0; l < lNum; ++l) {
@@ -672,7 +685,16 @@ __global__ void pathtraceKernel(
             finalColr += passColr & (spec + diff) * intens;
         }
 
-        // ======== Diffuse Indirect Lighting ========
+        // Diffuse Indirect Lighting
+
+        // // For the time being just shoot a ray straight from the normal
+        if (bounceLeft > 0) {
+            Flt3 rD = nrml;
+            Flt3 rO = vrtx + nrml * EPSILON_1;
+
+            rstack[rs_top++] = Ray(rO, rD, 0.2f, ray.Ni);
+            --bounceLeft;
+        }
 
         // ======== Additional rays ========
 
