@@ -37,21 +37,6 @@ public:
 
     void Draw();
 
-    // 🎮 Handle input and print to the debug console
-    // void HandleInput() {
-    //     std::cout   << "\rMouse: (" << mousePos.x << ", " << mousePos.y << ") "
-    //                 << "LMB: " << leftMouseDown
-    //                 << " RMB: " << rightMouseDown
-    //                 << " W: " << keys['W']
-    //                 << " A: " << keys['A']
-    //                 << " S: " << keys['S']
-    //                 << " D: " << keys['D']
-    //                 << " Space: " << keys[VK_SPACE]
-    //                 << " LShift: " << keys[VK_LSHIFT]
-    //                 << " LCtrl: " << keys[VK_LCONTROL]
-    //                 << "         " << std::flush;
-    // }
-
     // 🚀 Run the main loop
     void Run() {
 

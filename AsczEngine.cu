@@ -129,8 +129,53 @@ int main() {
             DispatchMessage(&msg);
         }
 
-        // Update camera
-        CAMERA.update();
+        if (CAMERA.focus) {
+            RECT rect;
+            GetClientRect(WinMgr.hwnd, &rect);
+            ClientToScreen(WinMgr.hwnd, (LPPOINT)&rect.left);
+            ClientToScreen(WinMgr.hwnd, (LPPOINT)&rect.right);
+            ClipCursor(&rect);
+            SetCursorPos(rect.left + (rect.right - rect.left) / 2, rect.top + (rect.bottom - rect.top) / 2);
+
+            // Get mouse position
+            POINT mousePos = WinMgr.mousePos;
+
+            // Move from center
+            int dMx = mousePos.x - WinMgr.width / 2;
+            int dMy = mousePos.y - WinMgr.height / 2;
+
+            SetCursorPos(WinMgr.width / 2, WinMgr.height / 2);
+
+            // Camera look around
+            CAMERA.rot.x -= dMy * CAMERA.mSens * FPS.dTimeSec;
+            CAMERA.rot.y += dMx * CAMERA.mSens * FPS.dTimeSec;
+
+            // CSGO perspective movement
+            float vel = CAMERA.velSpec;
+            bool k_w = WinMgr.keys['W'];
+            bool k_a = WinMgr.keys['A'];
+            bool k_s = WinMgr.keys['S'];
+            bool k_d = WinMgr.keys['D'];
+            bool k_ctrl = WinMgr.keys[VK_LCONTROL];
+            bool k_shift = WinMgr.keys[VK_LSHIFT];
+
+            // Hold ctrl to go slow, hold shift to go fast
+            if (k_ctrl && !k_shift)      vel *= CAMERA.slowFactor;
+            else if (k_shift && !k_ctrl) vel *= CAMERA.fastFactor;
+
+            // Press W/S to move forward/backward
+            if (k_w && !k_s) CAMERA.pos += CAMERA.forward * vel * FPS.dTimeSec;
+            if (k_s && !k_w) CAMERA.pos -= CAMERA.forward * vel * FPS.dTimeSec;
+
+            // Press A/D to move left/right
+            if (k_a && !k_d) CAMERA.pos -= CAMERA.right * vel * FPS.dTimeSec;
+            if (k_d && !k_a) CAMERA.pos += CAMERA.right * vel * FPS.dTimeSec;
+
+            // Update camera
+            CAMERA.update();
+        } else {
+            ClipCursor(nullptr);
+        }
 
         // Render frmbuffer
         raytraceKernel<<<WinMgr.blockCount, WinMgr.threadCount>>>(
