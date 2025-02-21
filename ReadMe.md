@@ -48,6 +48,10 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
     - $\Rightarrow$ **`Result Color`** `=` **`Red * 0.5`** *`(from primary ray)`* `+` **`Blue * 0.3`** *`(from new ray 1)`* `+` **`Green * 0.2`** *`(from new ray 2)`* `=` **`Something idk do the math yourself`**.
     - $\Rightarrow$ **`Result Weight`** `=` `0.5 + 0.3 + 0.2` `=` **`1.0`**.
 
+<p align="center">
+  <img src="assets/Explain1.png" alt="Visual Explanation"/>
+</p>
+
 
 #### Ray tracing is beautiful (debatable)
 
