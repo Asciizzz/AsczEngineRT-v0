@@ -7,6 +7,8 @@ AsczWin::AsczWin(int w, int h, std::wstring t) : width(w), height(h), title(t) {
     InitWindow();
     InitGDI();
 
+    blockCount = (width * height + threadCount - 1) / threadCount;
+
     h_framebuffer = new unsigned int[width * height];
     cudaMalloc(&d_framebuffer, width * height * sizeof(unsigned int));
 }

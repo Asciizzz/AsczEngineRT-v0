@@ -122,6 +122,23 @@ int main() {
 
     WinMgr.Run();
 
+    // Update camera
+    CAMERA.update();
+
+    // Render frmbuffer
+    raytraceKernel<<<WinMgr.blockCount, WinMgr.threadCount>>>(
+        CAMERA, WinMgr.d_framebuffer, WinMgr.width, WinMgr.height,
+        TxtrMgr.d_txtrFlat, TxtrMgr.d_txtrPtr, MtlMgr.d_mtls,
+        MeshMgr.d_v, MeshMgr.d_t, MeshMgr.d_n, MeshMgr.d_geom, MeshMgr.gNum,
+        BvhMgr.d_gIdx, BvhMgr.d_nodes, BvhMgr.nNum,
+        LightMgr.d_lSrc, LightMgr.num
+    );
+
+    // Copy framebuffer to host
+    cudaMemcpy(WinMgr.h_framebuffer, WinMgr.d_framebuffer, WinMgr.width * WinMgr.height * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+
+    WinMgr.Run();
+
     // ========================================================================
     // ========================================================================
 

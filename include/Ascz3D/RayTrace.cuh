@@ -25,7 +25,7 @@ Static Path Tracing:
 */
 
 _glb_ void raytraceKernel(
-    Camera camera, Flt3 *frmbuffer, int frmW, int frmH, // In-out
+    Camera camera, unsigned int *frmbuffer, int frmW, int frmH, // In-out
     Flt4 *txtrFlat, TxtrPtr *txtrPtr, // Textures
     Material *mtls, // Materials
     Flt3 *mv, Flt2 *mt, Flt3 *mn, // Primitive data
