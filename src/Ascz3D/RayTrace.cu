@@ -234,10 +234,9 @@ _glb_ void raytraceKernel(
             else if (gHit.type == AzGeom::SPHERE) {
                 float phi = acosf(-nrml.y);
                 float theta = atan2f(-nrml.z, -nrml.x) + M_PI;
-                float u = theta / (2 * M_PI);
-                float v = phi / M_PI;
+                Flt2 uv = Flt2(theta / M_2_PI, phi / M_PI);
 
-                Flt4 txColr = getTextureColor(Flt2(u, v), txtrFlat, txtrPtr, hMtl.mKd);
+                Flt4 txColr = getTextureColor(uv, txtrFlat, txtrPtr, hMtl.mKd);
 
                 if (txColr.w < 0.98f && rs_top + 1 < MAX_RAYS) {
                     // Create a new ray
@@ -390,6 +389,11 @@ _glb_ void raytraceKernel(
 
         resultColr += finalColr * ray.w;
     }
+
+    // Clamp the color
+    resultColr.x = resultColr.x > 1.0f ? 1.0f : resultColr.x;
+    resultColr.y = resultColr.y > 1.0f ? 1.0f : resultColr.y;
+    resultColr.z = resultColr.z > 1.0f ? 1.0f : resultColr.z;
 
     // Gamma correction
     float gamma = 2.2f;
