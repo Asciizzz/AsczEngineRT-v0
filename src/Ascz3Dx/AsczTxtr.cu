@@ -15,17 +15,17 @@ int AsczTxtr::appendTexture(const char *path) {
     h_txtrPtr.push_back({w, h, txtrSize});
     txtrCount++;
 
-    for (int i = 0; i < w * h; i++) {
-        int off = i * 4;
-        float r = data[off + 0] / 255.0f;
-        float g = data[off + 1] / 255.0f;
-        float b = data[off + 2] / 255.0f;
-        float a = data[off + 3] / 255.0f;
+    for (int y = 0; y < h; y++) {
+        for (int x = 0; x < w; x++) {
+            int i = ((h - y - 1) * w + x) * 4;
+            float r = data[i + 0] / 255.0f;
+            float g = data[i + 1] / 255.0f;
+            float b = data[i + 2] / 255.0f;
+            float a = data[i + 3] / 255.0f;
 
-        h_txtrFlat.push_back({r, g, b, a});
+            h_txtrFlat.push_back({r, g, b, a});
+        }
     }
-
-    std::cout << "Loaded texture: " << path << " (" << w << "x" << h << ")\n";
 
     txtrSize += w * h;
 

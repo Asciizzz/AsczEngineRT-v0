@@ -391,10 +391,9 @@ _glb_ void raytraceKernel(
         resultColr += finalColr * ray.w;
     }
 
-    // Convert to BGRA
-    unsigned char r = (unsigned char)(resultColr.x * 255);
-    unsigned char g = (unsigned char)(resultColr.y * 255);
-    unsigned char b = (unsigned char)(resultColr.z * 255);
+    int r = (int)(resultColr.x * 255);
+    int g = (int)(resultColr.y * 255);
+    int b = (int)(resultColr.z * 255);
 
-    frmbuffer[tIdx] = (b << 16) | (g << 8) | r;
+    frmbuffer[tIdx] = (r << 16) | (g << 8) | b;
 }
