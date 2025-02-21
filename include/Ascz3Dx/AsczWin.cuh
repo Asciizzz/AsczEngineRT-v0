@@ -30,6 +30,27 @@ public:
     int threadCount = 256;
     int blockCount;
 
+    // Debugs
+    std::vector<std::string> debug_lines;
+    int debug_line_count = 0;
+    void appendDebug(std::string str, int line_count = 1) {
+        debug_lines.push_back(str);
+        debug_line_count += line_count;
+    }
+    void displayDebug() {
+        if (debug_line_count == 0) return;
+
+        std::cout << "\033[" << debug_line_count << "A";  // Move cursor up
+        for (int i = 0; i < debug_line_count; i++) {
+            std::cout << debug_lines[i] << "\n";
+        }
+        std::cout << std::flush;
+
+        // Clear debug lines
+        debug_lines.clear();
+        debug_line_count = 0;
+    }
+
     // Constructor
     AsczWin(int w, int h, std::wstring t);
     void InitConsole();

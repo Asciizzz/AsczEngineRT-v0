@@ -150,17 +150,6 @@ int main() {
             CamMgr.rot.y += dx * CamMgr.mSens * FPS.dTimeSec;
             CamMgr.rot.x += dy * CamMgr.mSens * FPS.dTimeSec;
 
-            // For the time being, press the arrow keys to look around
-            bool k_up = WinMgr.keys[VK_UP];
-            bool k_dw = WinMgr.keys[VK_DOWN];
-            bool k_lf = WinMgr.keys[VK_LEFT];
-            bool k_rt = WinMgr.keys[VK_RIGHT];
-
-            if (k_up && !k_dw) CamMgr.rot.x += CamMgr.mSens * FPS.dTimeSec;
-            if (k_dw && !k_up) CamMgr.rot.x -= CamMgr.mSens * FPS.dTimeSec;
-            if (k_lf && !k_rt) CamMgr.rot.y -= CamMgr.mSens * FPS.dTimeSec;
-            if (k_rt && !k_lf) CamMgr.rot.y += CamMgr.mSens * FPS.dTimeSec;
-
             // CSGO perspective movement
             float vel = CamMgr.velSpec;
             bool k_w = WinMgr.keys['W'];
@@ -196,7 +185,10 @@ int main() {
         );
         WinMgr.Draw();
 
-        CamMgr.debug();
+        // WinMgr.appendDebug(std::to_string(FPS.fps) + " FPS");
+
+        // // Display debug
+        // WinMgr.displayDebug();
 
         FPS.endFrame();
     }
