@@ -43,7 +43,7 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
   - Example: 
     - Primary ray `weight = 1.0` $\rightarrow$ Hit a red surface with a `reflective = 0.5` $\rightarrow$ Primary ray `weight = 1.0 * 0.5 = 0.5` + New ray 1 `weight = 1.0 * 0.5 = 0.5`.
     - New ray 1 hit a blue surface with a `reflective = 0.4` $\rightarrow$ New ray 1 `weight = 0.5 * 0.6 = 0.3` + New ray 2 `weight = 0.5 * 0.4 = 0.2`.
-    - New ray 2 hit a solid green surface $\rightarrow$ New ray 2 `weight = 0.2`.
+    - New ray 2 hit a solid green surface.
     - --- 
     - $\Rightarrow$ **`Result Color`** `=` **`Red * 0.5`** *`(from primary ray)`* `+` **`Blue * 0.3`** *`(from new ray 1)`* `+` **`Green * 0.2`** *`(from new ray 2)`* `=` **`Something idk do the math yourself`**.
     - $\Rightarrow$ **`Result Weight`** `=` `0.5 + 0.3 + 0.2` `=` **`1.0`**.
