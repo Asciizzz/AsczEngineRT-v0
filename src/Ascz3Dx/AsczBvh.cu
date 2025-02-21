@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-float DevNode::hitDist(const Flt3 &rO, const Flt3 &rInvD) const {
+__device__ float DevNode::hitDist(const Flt3 &rO, const Flt3 &rInvD) const {
     const Flt3 &min = ab.min;
     const Flt3 &max = ab.max;
 

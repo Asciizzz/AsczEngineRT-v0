@@ -9,7 +9,7 @@ struct RayHit {
     float v = 0;
 };
 
-_dev_ Flt4 getTextureColor(
+__device__ Flt4 getTextureColor(
     Flt2 &txtr, Flt4 *txtrFlat, TxtrPtr *txtrPtr, int mKd
 ) {
     txtr.x -= floor(txtr.x);
@@ -28,7 +28,7 @@ _dev_ Flt4 getTextureColor(
 
 // Ray intersection
 
-_dev_ RayHit RayHitTriangle(const Flt3 &o, const Flt3 &d, const Flt3 &v0, const Flt3 &v1, const Flt3 &v2) {
+__device__ RayHit RayHitTriangle(const Flt3 &o, const Flt3 &d, const Flt3 &v0, const Flt3 &v1, const Flt3 &v2) {
     RayHit hit;
 
     Flt3 e1 = v1 - v0;
@@ -61,7 +61,7 @@ _dev_ RayHit RayHitTriangle(const Flt3 &o, const Flt3 &d, const Flt3 &v0, const 
     return hit;
 }
 
-_dev_ RayHit RayHitSphere(const Flt3 &o, const Flt3 &d, const Flt3 &sc, float sr) {
+__device__ RayHit RayHitSphere(const Flt3 &o, const Flt3 &d, const Flt3 &sc, float sr) {
     RayHit hit;
 
     Flt3 l = sc - o;
@@ -84,7 +84,7 @@ _dev_ RayHit RayHitSphere(const Flt3 &o, const Flt3 &d, const Flt3 &sc, float sr
     return hit;
 }
 
-_dev_ RayHit RayHitGeom(const Flt3 &o, const Flt3 &d, AzGeom &g, Flt3 *mv) {
+__device__ RayHit RayHitGeom(const Flt3 &o, const Flt3 &d, AzGeom &g, Flt3 *mv) {
     RayHit hit;
 
     if (g.type == AzGeom::TRIANGLE) {
@@ -109,7 +109,7 @@ _dev_ RayHit RayHitGeom(const Flt3 &o, const Flt3 &d, AzGeom &g, Flt3 *mv) {
 }
 
 
-_glb_ void raytraceKernel(
+__global__ void raytraceKernel(
     AsczCam camera, unsigned int *frmbuffer, int frmW, int frmH, // In-out
     Flt4 *txtrFlat, TxtrPtr *txtrPtr, // Textures
     Material *mtls, // Materials

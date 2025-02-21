@@ -11,13 +11,13 @@ struct Ray {
     float w = 1.0f; // Weight
     float Ni = 1.0f; // Refractive index
 
-    _hst_dev_ Ray();
-    _hst_dev_ Ray(Flt3 o, Flt3 d, float w=1.0f, float Ni=1.0f);
+    __host__ __device__ Ray();
+    __host__ __device__ Ray(Flt3 o, Flt3 d, float w=1.0f, float Ni=1.0f);
 
-    _hst_dev_ Flt3 reflect(const Flt3 &n);
-    _hst_dev_ Flt3 refract(const Flt3 &n, float Ni2);
+    __host__ __device__ Flt3 reflect(const Flt3 &n);
+    __host__ __device__ Flt3 refract(const Flt3 &n, float Ni2);
 
-    static _hst_dev_ Flt3 reflect(const Flt3 &d, const Flt3 &n);
+    static __host__ __device__ Flt3 reflect(const Flt3 &d, const Flt3 &n);
 
     // Generate a random point on a unit disk using cosine-weighted sampling
     static __device__ Flt3 randomInUnitDisk(curandState *randState) {

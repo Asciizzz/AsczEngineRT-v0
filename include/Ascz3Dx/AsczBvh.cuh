@@ -25,9 +25,9 @@ struct DevNode { // Flattened structure friendly for shader code
     int ll = -1;
     int lr = -1;
 
-    _dev_ float hitDist(const Flt3 &rO, const Flt3 &rInvD) const;
+    __device__ float hitDist(const Flt3 &rO, const Flt3 &rInvD) const;
 
-    _hst_ static float findCost(AABB &ab, int nG) {
+    __host__ static float findCost(AABB &ab, int nG) {
         return ab.getSA() * nG;
     }
 };

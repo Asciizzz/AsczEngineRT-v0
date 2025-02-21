@@ -24,7 +24,7 @@ Static Path Tracing:
 
 */
 
-_glb_ void raytraceKernel(
+__global__ void raytraceKernel(
     AsczCam camera, unsigned int *frmbuffer, int frmW, int frmH, // In-out
     Flt4 *txtrFlat, TxtrPtr *txtrPtr, // Textures
     Material *mtls, // Materials

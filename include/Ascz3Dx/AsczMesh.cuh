@@ -48,30 +48,30 @@ struct AABB {
     Flt3 min = Flt3(INFINITY);
     Flt3 max = Flt3(-INFINITY);
 
-    _hst_dev_ void expandMin(const Flt3 &v) {
+    __host__ __device__ void expandMin(const Flt3 &v) {
         min.x = fminf(min.x, v.x);
         min.y = fminf(min.y, v.y);
         min.z = fminf(min.z, v.z);
     }
-    _hst_dev_ void expandMax(const Flt3 &v) {
+    __host__ __device__ void expandMax(const Flt3 &v) {
         max.x = fmaxf(max.x, v.x);
         max.y = fmaxf(max.y, v.y);
         max.z = fmaxf(max.z, v.z);
     }
-    _hst_dev_ void expand(const Flt3 &v) {
+    __host__ __device__ void expand(const Flt3 &v) {
         expandMin(v);
         expandMax(v);
     }
-    _hst_dev_ void expand(const AABB &ab) {
+    __host__ __device__ void expand(const AABB &ab) {
         expandMin(ab.min);
         expandMax(ab.max);
     }
-    _hst_dev_ float getSA() const {
+    __host__ __device__ float getSA() const {
         Flt3 size = max - min;
         return size.x * size.y + size.y * size.z + size.z * size.x;
     }
 
-    _hst_dev_ Flt3 cent() const {
+    __host__ __device__ Flt3 cent() const {
         return (min + max) * 0.5f;
     }
 };
