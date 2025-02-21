@@ -37,56 +37,8 @@ public:
 
     void Draw();
 
-    // 🚀 Run the main loop
-    void Run() {
-
-        MSG msg = { 0 };
-        while (msg.message != WM_QUIT) {
-            if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
-                TranslateMessage(&msg);
-                DispatchMessage(&msg);
-            }
-
-            Draw();
-            Sleep(16);  // ~60 FPS
-        }
-
-        ReleaseDC(hwnd, hdc);
-    }
-
     // 📦 Static Window Procedure
-    static LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-        AsczWin* self = nullptr;
-        if (uMsg == WM_NCCREATE) {
-            self = static_cast<AsczWin*>(((CREATESTRUCT*)lParam)->lpCreateParams);
-            SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)self);
-        } else {
-            self = (AsczWin*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
-        }
-
-        if (self) {
-            switch (uMsg) {
-                case WM_DESTROY: PostQuitMessage(0); return 0;
-
-                // Mouse input
-                case WM_MOUSEMOVE:
-                    self->mousePos.x = LOWORD(lParam);
-                    self->mousePos.y = HIWORD(lParam);
-                    return 0;
-
-                case WM_LBUTTONDOWN: self->leftMouseDown = true; return 0;
-                case WM_LBUTTONUP: self->leftMouseDown = false; return 0;
-                case WM_RBUTTONDOWN: self->rightMouseDown = true; return 0;
-                case WM_RBUTTONUP: self->rightMouseDown = false; return 0;
-                
-                // Keyboard input
-                case WM_KEYDOWN: self->keys[wParam] = true; return 0;
-                case WM_KEYUP: self->keys[wParam] = false; return 0;
-            }
-        }
-
-        return DefWindowProc(hwnd, uMsg, wParam, lParam);
-    }
+    static LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 };
 
 #endif

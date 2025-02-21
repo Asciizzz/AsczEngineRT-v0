@@ -58,3 +58,38 @@ void AsczWin::InitGDI() {
 void AsczWin::Draw() {
     StretchDIBits(hdc, 0, 0, width, height, 0, 0, width, height, h_framebuffer, &bmi, DIB_RGB_COLORS, SRCCOPY);
 }
+
+
+// 📦 Static Window Procedure
+LRESULT CALLBACK AsczWin::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+    AsczWin* self = nullptr;
+    if (uMsg == WM_NCCREATE) {
+        self = static_cast<AsczWin*>(((CREATESTRUCT*)lParam)->lpCreateParams);
+        SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)self);
+    } else {
+        self = (AsczWin*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+    }
+
+    if (self) {
+        switch (uMsg) {
+            case WM_DESTROY: PostQuitMessage(0); return 0;
+
+            // Mouse input
+            case WM_MOUSEMOVE:
+                self->mousePos.x = LOWORD(lParam);
+                self->mousePos.y = HIWORD(lParam);
+                return 0;
+
+            case WM_LBUTTONDOWN: self->leftMouseDown = true; return 0;
+            case WM_LBUTTONUP: self->leftMouseDown = false; return 0;
+            case WM_RBUTTONDOWN: self->rightMouseDown = true; return 0;
+            case WM_RBUTTONUP: self->rightMouseDown = false; return 0;
+            
+            // Keyboard input
+            case WM_KEYDOWN: self->keys[wParam] = true; return 0;
+            case WM_KEYUP: self->keys[wParam] = false; return 0;
+        }
+    }
+
+    return DefWindowProc(hwnd, uMsg, wParam, lParam);
+}

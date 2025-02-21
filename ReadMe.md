@@ -2,7 +2,7 @@
 
 **AsczEngineRT_v0** is a personal project that tries to make me a graphic programmer without any knowledge regarding graphic libraries/apis or graphic engines.
 
-**AsczEngineRT_v0** is built from scratch in C++ and uses only CUDA for parallel processing, oh and SFML for the window lol. Since you're here anyway, I suppose you can learn a thing or two on how and/or how not to create an engine. Suggestions are appreciated my fellow fanum taxers.
+**AsczEngineRT_v0** is built from scratch in C++ and uses only CUDA for parallel processing. Since you're here anyway, I suppose you can learn a thing or two on how and/or how not to create an engine. Suggestions are appreciated my fellow fanum taxers.
 
 **AsczEngineRT_v0** is **FAR** from perfect, and that's great since that means there's room for improvement. The engine is built with the intention of learning and experimenting with rendering techniques, so if you're looking for a production-ready engine, you're in the wrong place. But if you're looking to learn and experiment with rendering techniques, gracias amigo, enjoy the show.
 
