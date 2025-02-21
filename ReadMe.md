@@ -12,7 +12,7 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 ¯\\_(ツ)_/¯
 
 
-###### Cmake *`"cmake .. -G "Visual Studio 17 2022" -T host=x64"`*
+###### Cmake *`cmake .. -G "Visual Studio 17 2022" -T host=x64`*
 
 ## 1. Ray tracing 101
 
