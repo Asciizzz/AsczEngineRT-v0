@@ -185,10 +185,10 @@ int main() {
         );
         WinMgr.Draw();
 
-        // WinMgr.appendDebug(std::to_string(FPS.fps) + " FPS");
+        WinMgr.appendDebug(std::to_string(FPS.fps) + " FPS");
 
-        // // Display debug
-        // WinMgr.displayDebug();
+        // Display debug
+        WinMgr.displayDebug();
 
         FPS.endFrame();
     }
