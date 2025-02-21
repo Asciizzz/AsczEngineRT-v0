@@ -23,7 +23,7 @@ public:
     void update();
 
     // Some beta settings
-    float mSens = 1.0f;
+    float mSens = 0.2f;
     float slowFactor = 0.2f;
     float fastFactor = 5.0f;
     float velSpec = 20;

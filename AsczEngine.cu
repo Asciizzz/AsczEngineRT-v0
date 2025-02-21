@@ -130,22 +130,17 @@ int main() {
         }
 
         if (CAMERA.focus) {
-            // Lock cursor to center of the screen
+            // Get previous cursor position
+            POINT prev;
+            GetCursorPos(&prev);
+
+            // Set cursor position to the center of the window
             POINT center = { WinMgr.width / 2, WinMgr.height / 2 };
             ClientToScreen(WinMgr.hwnd, &center);
             SetCursorPos(center.x, center.y);
 
-            // Get mouse movement
-            POINT mouse;
-            GetCursorPos(&mouse);
-            ScreenToClient(WinMgr.hwnd, &mouse);
-
-            float dx = mouse.x - center.x;
-            float dy = mouse.y - center.y;
-
-            // IF mouse movement is too small, ignore
-            if (abs(dx) < 10) dx = 0;
-            if (abs(dy) < 10) dy = 0;
+            float dx = prev.x - center.x;
+            float dy = center.y - prev.y;
 
             // Update camera rotation
             CAMERA.rot.y += dx * CAMERA.mSens * FPS.dTimeSec;
