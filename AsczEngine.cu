@@ -18,8 +18,8 @@
 int main() {
     // =================== Initialize FPS and Log ==============
     FpsHandler &FPS = FpsHandler::instance();
-    CsLogHandler LOG = CsLogHandler();
-    LOG.fontSize = 24;
+    // CsLogHandler LOG = CsLogHandler();
+    // LOG.fontSize = 24;
 
     // =================== Initialize window ===================
 
@@ -241,7 +241,7 @@ int main() {
 
                     if (isPathTracing) {
                         // Render a single frame
-                        pathtraceKernel<<<blocks2, threads>>>(
+                        raytraceKernel<<<blocks2, threads>>>(
                             CAMERA, d_ptFrmBuffer, winW, winH,
                             TxtrMgr.d_txtrFlat, TxtrMgr.d_txtrPtr, MtlMgr.d_mtls,
                             MeshMgr.d_v, MeshMgr.d_t, MeshMgr.d_n, MeshMgr.d_geom, MeshMgr.gNum,
@@ -334,17 +334,17 @@ int main() {
         // Draw the texture
         window.draw(SFTex1.sprite);
 
-        if (hasHud) {
-            LOG.addLog("Welcome to AsczEngineRT v0", sf::Color::Green, 1);
-            LOG.addLog("FPS: " + std::to_string(FPS.fps), sf::Color::Blue);
-            LOG.addLog(CAMERA.data(), sf::Color::White, 0);
+        // if (hasHud) {
+        //     LOG.addLog("Welcome to AsczEngineRT v0", sf::Color::Green, 1);
+        //     LOG.addLog("FPS: " + std::to_string(FPS.fps), sf::Color::Blue);
+        //     LOG.addLog(CAMERA.data(), sf::Color::White, 0);
 
-            // Draw the crosshair
-            window.draw(crosshair1);
-            window.draw(crosshair2);
+        //     // Draw the crosshair
+        //     window.draw(crosshair1);
+        //     window.draw(crosshair2);
 
-            LOG.drawLog(window);
-        }
+        //     LOG.drawLog(window);
+        // }
 
         window.display();
 

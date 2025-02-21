@@ -2,3 +2,4 @@
 .backup/
 .test/
 .heavy/
+build/
