@@ -18,7 +18,6 @@ void AsczWin::InitConsole() {
     freopen("CONOUT$", "w", stdout);
     freopen("CONOUT$", "w", stderr);
     freopen("CONIN$", "r", stdin);
-    std::cout << "[Debug Console] Initialized!\n";
 }
 
 void AsczWin::InitWindow() {

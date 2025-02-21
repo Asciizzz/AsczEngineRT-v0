@@ -14,7 +14,7 @@
 int main() {
     // =================== Initialize FPS and Window ==============
     FpsHandler &FPS = FpsHandler::instance();
-    AsczWin WinMgr(1280, 720, L"AsczEngineRT");
+    AsczWin WinMgr(1800, 1000, L"AsczEngineRT");
 
     // =============== Initialize Important Managers ================
 
@@ -64,12 +64,6 @@ int main() {
         else if (type == "BinCount")
             ss >> BvhMgr.BIN_COUNT;
     };
-
-    // ========================================================================
-    // ========================= Buffer Allocation ============================
-    // ========================================================================
-
-    // Allocate frame buffers
 
     // ========================================================================
     // ======================= Some test geometries ===========================
@@ -127,10 +121,19 @@ int main() {
             DispatchMessage(&msg);
         }
 
-        // Press ESC to exit
-        if (WinMgr.keys[VK_ESCAPE]) break;
+
+        // Press F1 to toggle focus
+        if (WinMgr.keys[VK_F1]) {
+            WinMgr.keys[VK_F1] = false;
+
+            CamMgr.focus = !CamMgr.focus;
+            ShowCursor(CamMgr.focus);
+        }
 
         if (CamMgr.focus) {
+            // Press ESC to exit
+            if (WinMgr.keys[VK_ESCAPE]) break;
+
             // Get previous cursor position
             POINT prev;
             GetCursorPos(&prev);
@@ -181,8 +184,6 @@ int main() {
 
             // Update camera
             CamMgr.update();
-        } else {
-            ClipCursor(nullptr);
         }
 
         // Render frmbuffer
@@ -195,9 +196,7 @@ int main() {
         );
         WinMgr.Draw();
 
-        LOG = CamMgr.data();
-
-        std::cout << "\r" << LOG << "    " << std::flush;
+        CamMgr.debug();
 
         FPS.endFrame();
     }

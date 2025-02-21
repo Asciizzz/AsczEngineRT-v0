@@ -1,7 +1,6 @@
 #ifndef ASCZCAM_CUH
 #define ASCZCAM_CUH
 
-#include <string>
 #include <Ray.cuh>
 
 class AsczCam {
@@ -31,7 +30,7 @@ public:
     bool focus = true;
 
     // Debug
-    std::string data();
+    void debug();
 };
 
 #endif

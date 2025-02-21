@@ -1,5 +1,8 @@
 #include <AsczCam.cuh>
 
+#include <string>
+#include <iostream>
+
 void AsczCam::restrictRot() {
     if (rot.x <= -M_PI_2) rot.x = -M_PI_2 + 0.001;
     else if (rot.x >= M_PI_2) rot.x = M_PI_2 - 0.001;
@@ -51,13 +54,18 @@ void AsczCam::update() {
 }
 
 // Debug
-std::string AsczCam::data() {
+void AsczCam::debug() {
+    std::cout << "\033[7A";
+
     std::string str = "Camera\n";
     str += "| Pos: " + std::to_string(pos.x) + ", " + std::to_string(pos.y) + ", " + std::to_string(pos.z) + "\n";
     str += "| Rot: " + std::to_string(rot.x) + ", " + std::to_string(rot.y) + ", " + std::to_string(rot.z) + "\n";
     str += "| Fd: " + std::to_string(forward.x) + ", " + std::to_string(forward.y) + ", " + std::to_string(forward.z) + "\n";
     str += "| Rg: " + std::to_string(right.x) + ", " + std::to_string(right.y) + ", " + std::to_string(right.z) + "\n";
     str += "| Up: " + std::to_string(up.x) + ", " + std::to_string(up.y) + ", " + std::to_string(up.z) + "\n";
-    str += "| Fov: " + std::to_string(fov * 180 / M_PI) + "\n";
-    return str;
+    str += "| Fov: " + std::to_string(fov * 180 / M_PI);
+
+    std::cout << str;
+
+    std::cout << std::flush;
 }
