@@ -80,6 +80,10 @@ struct Flt3 {
     __host__ __device__ friend Flt3 operator*(const float scl, const Flt3 &v);
     __host__ __device__ friend Flt3 operator/(const float scl, const Flt3 &v);
 
+    // Clamping
+    __host__ __device__ Flt3 clamp(float min, float max) const;
+    __host__ __device__ Flt3 clamp(const Flt3 &min, const Flt3 &max) const;
+
     // Comparison
     __host__ __device__ bool operator==(const Flt3 &v) const;
     __host__ __device__ bool operator!=(const Flt3 &v) const;

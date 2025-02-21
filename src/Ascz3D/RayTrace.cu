@@ -396,14 +396,24 @@ __global__ void raytraceKernel(
     resultColr.z = resultColr.z > 1.0f ? 1.0f : resultColr.z;
 
     // Gamma correction
-    float gamma = 2.2f;
-    resultColr.x = powf(resultColr.x, 1.0f / gamma);
-    resultColr.y = powf(resultColr.y, 1.0f / gamma);
-    resultColr.z = powf(resultColr.z, 1.0f / gamma);
+    float _gamma = 2.2f;
+    resultColr.x = powf(resultColr.x, _gamma);
+    resultColr.y = powf(resultColr.y, _gamma);
+    resultColr.z = powf(resultColr.z, _gamma);
 
     int r = (int)(resultColr.x * 255);
     int g = (int)(resultColr.y * 255);
     int b = (int)(resultColr.z * 255);
 
     frmbuffer[tIdx] = (r << 16) | (g << 8) | b;
+}
+
+__device__ Flt3 ASESFilm(const Flt3 &x) {
+    const float a = 2.51f;
+    const float b = 0.03f;
+    const float c = 2.43f;
+    const float d = 0.59f;
+    const float e = 0.14f;
+
+    Flt3 c = (x * (a * x + b)) / (x * (c * x + d) + e);
 }
