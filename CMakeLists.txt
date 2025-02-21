@@ -12,11 +12,10 @@ set(CMAKE_CUDA_RESOLVE_DEVICE_SYMBOLS ON)
 
 # Include directories
 include_directories(
-    ${CMAKE_SOURCE_DIR}/include/Ascz3D
     ${CMAKE_SOURCE_DIR}/include/AsczMath
-    ${CMAKE_SOURCE_DIR}/include/Graphic3D
-    ${CMAKE_SOURCE_DIR}/include/System
-    ${CMAKE_SOURCE_DIR}/libraries/SFML/include
+    ${CMAKE_SOURCE_DIR}/include/Ascz3D
+    ${CMAKE_SOURCE_DIR}/include/Ascz3Dx
+    ${CMAKE_SOURCE_DIR}/include/AsczSys
 )
 
 link_directories(
@@ -30,27 +29,20 @@ set(CMAKE_CUDA_ARCHITECTURES 75)
 add_executable(AsczEngine
     src/AsczMath/Vector.cu
     src/AsczMath/Matrix.cu
-    src/Graphic3D/Ray.cu
-    src/Graphic3D/Camera.cu
-    src/Graphic3D/RayTrace.cu
-    src/Ascz3D/AsczMtl.cu
-    src/Ascz3D/AsczTxtr.cu
-    src/Ascz3D/AsczMesh.cu
-    src/Ascz3D/AsczBvh.cu
-    src/System/FpsHandler.cu
-    src/System/CsLogHandler.cu
-    src/System/Utility.cu
-    src/Graphic3D/SFMLTexture.cu
-    AsczEngine.cu
-)
 
-# Link SFML libraries
-target_link_libraries(AsczEngine PRIVATE
-    sfml-system
-    sfml-window
-    sfml-graphics
-    sfml-audio
-    openal32
+    src/Ascz3D/Ray.cu
+    src/Ascz3D/Camera.cu
+    src/Ascz3D/RayTrace.cu
+
+    src/Ascz3Dx/AsczMtl.cu
+    src/Ascz3Dx/AsczTxtr.cu
+    src/Ascz3Dx/AsczMesh.cu
+    src/Ascz3Dx/AsczBvh.cu
+
+    src/AsczSys/FpsHandler.cu
+    src/AsczSys/Utility.cu
+
+    AsczEngine.cu
 )
 
 # Copy .model and .cfg files
