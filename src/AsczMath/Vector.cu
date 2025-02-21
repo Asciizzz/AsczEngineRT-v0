@@ -101,6 +101,7 @@ Flt3 operator/(const float scl, const Flt3& v) {
     return Flt3(scl / v.x, scl / v.y, scl / v.z);
 }
 
+// Comparison
 bool Flt3::operator==(const Flt3& v) const {
     return x == v.x && y == v.y && z == v.z;
 }
@@ -116,13 +117,16 @@ Flt3 Flt3::operator&=(const Flt3& v) {
     x *= v.x; y *= v.y; z *= v.z;
     return *this;
 }
-float Flt3::operator*(const Flt3& v) const { // Dot product
+// Dot product
+float Flt3::operator*(const Flt3& v) const {
     return x * v.x + y * v.y + z * v.z;
 }
-Flt3 Flt3::operator^(const Flt3& v) const { // Cross product
+// Cross product
+Flt3 Flt3::operator^(const Flt3& v) const {
     return Flt3(y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x);
 }
 
+// Some other common operations
 float Flt3::mag() {
     return sqrt(x * x + y * y + z * z);
 }
@@ -136,6 +140,33 @@ void Flt3::abs() {
     y = y < 0 ? -y : y;
     z = z < 0 ? -z : z;
 }
+
+// Clamp
+Flt3 Flt3::clamp(const Flt3& min, const Flt3& max) {
+    x = x < min.x ? min.x : (x > max.x ? max.x : x);
+    y = y < min.y ? min.y : (y > max.y ? max.y : y);
+    z = z < min.z ? min.z : (z > max.z ? max.z : z);
+
+    return *this;
+}
+Flt3 Flt3::clamp(const float min, const float max) {
+    x = x < min ? min : (x > max ? max : x);
+    y = y < min ? min : (y > max ? max : y);
+    z = z < min ? min : (z > max ? max : z);
+
+    return *this;
+}
+
+
+// Power
+Flt3 Flt3::pow(float p) {
+    x = powf(x, p);
+    y = powf(y, p);
+    z = powf(z, p);
+
+    return *this;
+}
+
 
 // Transformations
 Flt3 Flt3::translate(Flt3& v, const Flt3& t) {

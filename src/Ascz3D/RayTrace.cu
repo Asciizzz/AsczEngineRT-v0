@@ -108,6 +108,22 @@ __device__ RayHit RayHitGeom(const Flt3 &o, const Flt3 &d, AzGeom &g, Flt3 *mv) 
     return hit;
 }
 
+__device__ Flt3 ASESFilm(const Flt3 &P) {
+    const float a = 2.51f;
+    const float b = 0.03f;
+    const float c = 2.43f;
+    const float d = 0.59f;
+    const float e = 0.14f;
+
+    Flt3 y = Flt3(
+        (P.x * (a * P.x + b)) / (P.x * (c * P.x + d) + e),
+        (P.y * (a * P.y + b)) / (P.y * (c * P.y + d) + e),
+        (P.z * (a * P.z + b)) / (P.z * (c * P.z + d) + e)
+    ).clamp(0.0f, 1.0f);
+
+    return y;
+}
+
 
 __global__ void raytraceKernel(
     AsczCam camera, unsigned int *frmbuffer, int frmW, int frmH, // In-out
@@ -390,30 +406,15 @@ __global__ void raytraceKernel(
         resultColr += finalColr * ray.w;
     }
 
-    // Clamp the color
-    resultColr.x = resultColr.x > 1.0f ? 1.0f : resultColr.x;
-    resultColr.y = resultColr.y > 1.0f ? 1.0f : resultColr.y;
-    resultColr.z = resultColr.z > 1.0f ? 1.0f : resultColr.z;
+    // Tone mapping
+    resultColr = ASESFilm(resultColr);
 
-    // Gamma correction
-    float _gamma = 2.2f;
-    resultColr.x = powf(resultColr.x, _gamma);
-    resultColr.y = powf(resultColr.y, _gamma);
-    resultColr.z = powf(resultColr.z, _gamma);
+    float _gamma = 1.0f / 2.2f;
+    resultColr = resultColr.pow(_gamma);
 
     int r = (int)(resultColr.x * 255);
     int g = (int)(resultColr.y * 255);
     int b = (int)(resultColr.z * 255);
 
     frmbuffer[tIdx] = (r << 16) | (g << 8) | b;
-}
-
-__device__ Flt3 ASESFilm(const Flt3 &x) {
-    const float a = 2.51f;
-    const float b = 0.03f;
-    const float c = 2.43f;
-    const float d = 0.59f;
-    const float e = 0.14f;
-
-    Flt3 c = (x * (a * x + b)) / (x * (c * x + d) + e);
 }
