@@ -1,12 +1,12 @@
 #include <FpsHandler.cuh>
 #include <Utility.cuh>
-#include <Window.cuh>
 
 #include <AsczTxtr.cuh>
 #include <AsczMtl.cuh>
 #include <AsczMesh.cuh>
 #include <AsczBvh.cuh>
 #include <AsczLight.cuh>
+#include <AsczWin.cuh>
 
 #include <FXAA.cuh>
 
@@ -15,7 +15,7 @@
 int main() {
     // =================== Initialize FPS and Window ==============
     FpsHandler &FPS = FpsHandler::instance();
-    AsczWindow AsczWin(1280, 720, L"AsczEngineRT");
+    AsczWin WinMgr(1280, 720, L"AsczEngineRT");
 
     // =================== Initialize window ===================
 
@@ -32,10 +32,6 @@ int main() {
     // By logic, then this is CameraManager?
     // Idk, just a funny thought
     Camera CAMERA;
-
-    bool hasFXAA = true;
-    bool hasHud = true;
-    bool isPathTracing = false;
 
     // ====================== Some very scuffed init ==========================
     
@@ -70,10 +66,6 @@ int main() {
             LightMgr.appendLight(lSrc);
         }
 
-        if (type == "FXAA") {
-            ss >> hasFXAA;
-        }
-
         if (type == "MaxDepth")
             ss >> BvhMgr.MAX_DEPTH;
         else if (type == "BinCount")
@@ -85,20 +77,6 @@ int main() {
     // ========================================================================
 
     // Allocate frame buffers
-
-    int bufferSize = AsczWin.width * AsczWin.height;
-
-    Flt3 *d_rtFrmBuffer1, *d_rtFrmBuffer2;
-    cudaMalloc(&d_rtFrmBuffer1, bufferSize * sizeof(Flt3));
-    cudaMalloc(&d_rtFrmBuffer2, bufferSize * sizeof(Flt3));
-
-    // Allocate luminance buffer
-    float *d_luminance; bool *d_edge;
-    cudaMalloc(&d_luminance, bufferSize * sizeof(float));
-    cudaMalloc(&d_edge, bufferSize * sizeof(bool));
-
-    int threads = 256;
-    int blocks = (bufferSize + threads - 1) / threads;
 
     // ========================================================================
     // ======================= Some test geometries ===========================
@@ -142,15 +120,16 @@ int main() {
     // ========================================================================
     // ========================================================================
 
+    WinMgr.Run();
+
+    // ========================================================================
+    // ========================================================================
+
     // Free device memory
     TxtrMgr.freeDevice();
     MtlMgr.freeDevice();
     MeshMgr.freeDevice();
     BvhMgr.freeDevice();
-    cudaFree(d_rtFrmBuffer1);
-    cudaFree(d_rtFrmBuffer2);
-    cudaFree(d_luminance);
-    cudaFree(d_edge);
 
     return 0;
 }

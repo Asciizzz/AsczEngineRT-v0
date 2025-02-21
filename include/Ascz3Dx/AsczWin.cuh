@@ -3,75 +3,35 @@
 
 #define WIN32_LEAN_AND_MEAN  // Reduce Windows header bloat
 
+#define UNICODE
+#define _UNICODE
+
 #include <Vector.cuh>
 #include <windows.h>
 
 class AsczWin {
 public:
+    // Window properties
     int width, height;
     std::wstring title;
     HWND hwnd;
     HDC hdc;
     BITMAPINFO bmi;
+
+    // Input state handling
     POINT mousePos = { 0, 0 };
     bool leftMouseDown = false;
     bool rightMouseDown = false;
     bool keys[256] = { false };
 
+    // Framebuffers
     unsigned int* h_framebuffer;
     unsigned int* d_framebuffer;
 
-    // 🎯 Constructor
-    AsczWin(int w, int h, std::wstring t) : width(w), height(h), title(t) {
-        InitConsole();
-        InitWindow();
-        InitGDI();
-
-        h_framebuffer = new unsigned int[width * height];
-    }
-
-    // 📺 Initialize the debug console
-    void InitConsole() {
-        AllocConsole();
-        freopen("CONOUT$", "w", stdout);
-        freopen("CONOUT$", "w", stderr);
-        freopen("CONIN$", "r", stdin);
-        std::cout << "[Debug Console] Initialized!\n";
-    }
-
-    // 📦 Create and register the window
-    void InitWindow() {
-        WNDCLASS wc = { 0 };
-        wc.lpfnWndProc = WindowProc;
-        wc.hInstance = GetModuleHandle(nullptr);
-        wc.lpszClassName = L"Win32App";
-        wc.cbWndExtra = sizeof(AsczWin*);  // Store pointer to our Window instance
-        RegisterClass(&wc);
-
-        hwnd = CreateWindowEx(
-            0, L"Win32App", title.c_str(),
-            WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-            CW_USEDEFAULT, CW_USEDEFAULT, width, height, nullptr, nullptr, GetModuleHandle(nullptr), this
-        );
-
-        if (!hwnd) {
-            std::cerr << "Failed to create window!\n";
-            exit(1);
-        }
-
-        hdc = GetDC(hwnd);
-    }
-
-    // 🎨 Initialize GDI for drawing
-    void InitGDI() {
-        bmi = {};
-        bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-        bmi.bmiHeader.biWidth = width;
-        bmi.bmiHeader.biHeight = -height;  // Negative to ensure top-down DIB
-        bmi.bmiHeader.biPlanes = 1;
-        bmi.bmiHeader.biBitCount = 32;
-        bmi.bmiHeader.biCompression = BI_RGB;
-    }
+    AsczWin(int w, int h, std::wstring t);
+    void InitConsole();
+    void InitWindow();
+    void InitGDI();
 
     // 🎨 Fill the framebuffer with a gradient
     void RenderGradient() {
@@ -95,11 +55,7 @@ public:
         }
     }
 
-    // 🎯 Draw the framebuffer to the window
-    void Draw() {
-        StretchDIBits(hdc, 0, 0, width, height, 0, 0, width, height,
-            h_framebuffer, &bmi, DIB_RGB_COLORS, SRCCOPY);
-    }
+    void Draw();
 
     // 🎮 Handle input and print to the debug console
     void HandleInput() {
@@ -109,7 +65,11 @@ public:
                     << " W: " << keys['W']
                     << " A: " << keys['A']
                     << " S: " << keys['S']
-                    << " D: " << keys['D'] << "         " << std::flush;
+                    << " D: " << keys['D']
+                    << " Space: " << keys[VK_SPACE]
+                    << " LShift: " << keys[VK_LSHIFT]
+                    << " LCtrl: " << keys[VK_LCONTROL]
+                    << "         " << std::flush;
     }
 
     // 🚀 Run the main loop

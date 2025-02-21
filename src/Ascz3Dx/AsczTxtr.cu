@@ -3,6 +3,7 @@
 #include <AsczTxtr.cuh>
 #include <stb_image.h>
 #include <cuda_runtime.h>
+#include <iostream>
 
 int AsczTxtr::appendTexture(const char *path) {
     int w, h, n;
@@ -23,6 +24,8 @@ int AsczTxtr::appendTexture(const char *path) {
 
         h_txtrFlat.push_back({r, g, b, a});
     }
+
+    std::cout << "Loaded texture: " << path << " (" << w << "x" << h << ")\n";
 
     txtrSize += w * h;
 

@@ -34,19 +34,4 @@ _glb_ void raytraceKernel(
     LightSrc *lSrc, int lNum // Light data
 );
 
-_glb_ void pathtraceKernel(
-    Camera camera, Flt3 *frmbuffer, int frmW, int frmH, // In-out
-    Flt4 *txtrFlat, TxtrPtr *txtrPtr, // Textures
-    Material *mtls, // Materials
-    // Mesh data
-    Flt3 *mv, Flt2 *mt, Flt3 *mn, // Primitive data
-    AzGeom *geom, int gNum, // Geometry data
-
-    // BVH data
-    int *gIdx, DevNode *nodes, int nNum,
-
-    // Light data
-    LightSrc *lSrc, int lNum
-);
-
 #endif

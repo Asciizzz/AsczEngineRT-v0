@@ -5,7 +5,7 @@ project(AsczEngine LANGUAGES CUDA CXX)
 enable_language(CUDA)
 
 # Set CUDA Compilation Flags (similar to your Makefile)
-set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -rdc=true --expt-relaxed-constexpr --extended-lambda -lgdiplus -municode -mwindows -fexec-charset=UTF-8")
+set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -rdc=true --expt-relaxed-constexpr --extended-lambda -Xlinker -lgdiplus")
 
 set(CMAKE_CUDA_SEPARABLE_COMPILATION ON)
 set(CMAKE_CUDA_RESOLVE_DEVICE_SYMBOLS ON)
@@ -34,6 +34,7 @@ add_executable(AsczEngine
     src/Ascz3Dx/AsczTxtr.cu
     src/Ascz3Dx/AsczMesh.cu
     src/Ascz3Dx/AsczBvh.cu
+    src/Ascz3Dx/AsczWin.cu
 
     src/AsczSys/FpsHandler.cu
     src/AsczSys/Utility.cu
