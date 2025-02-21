@@ -391,6 +391,12 @@ _glb_ void raytraceKernel(
         resultColr += finalColr * ray.w;
     }
 
+    // Gamma correction
+    float gamma = 2.2f;
+    resultColr.x = powf(resultColr.x, 1.0f / gamma);
+    resultColr.y = powf(resultColr.y, 1.0f / gamma);
+    resultColr.z = powf(resultColr.z, 1.0f / gamma);
+
     int r = (int)(resultColr.x * 255);
     int g = (int)(resultColr.y * 255);
     int b = (int)(resultColr.z * 255);

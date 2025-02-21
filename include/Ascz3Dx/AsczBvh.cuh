@@ -18,7 +18,7 @@ Refer to AsczMesh.cuh for detail regarding object and sub-object
 
 #define VecNode std::vector<DevNode>
 
-struct  DevNode { // Flattened structure friendly for shader code
+struct DevNode { // Flattened structure friendly for shader code
     AABB ab; // AABB
 
     int cl, cr; // Children
