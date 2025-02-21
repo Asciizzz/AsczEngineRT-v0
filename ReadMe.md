@@ -112,11 +112,12 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 
 - Me (Asciiz) for the engine.
 - Youtubers, articles, documentations, and forums for the knowledge (sorry I can't list them all, but thank you).
+- `stb_image.h` for image loading.
 
 ### Contribute
 
 - Whether you have ideas, suggestions, techniques, or just want to discuss rendering techniques, contributions are welcome.
-- This engine is **far** from perfect, so any help is appreciated.
+- Oncec again, this engine is **far** from perfect, so any help is appreciated.
 
 ---
 
