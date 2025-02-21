@@ -1,37 +1,32 @@
+#define STB_IMAGE_IMPLEMENTATION
+
 #include <AsczTxtr.cuh>
-#include <SFML/Graphics.hpp>
+#include <stb_image.h>
 #include <cuda_runtime.h>
 
-#include <iostream>
-
 int AsczTxtr::appendTexture(const char *path) {
-    sf::Image img;
-    img.loadFromFile(path);
+    int w, h, n;
+    unsigned char *data = stbi_load(path, &w, &h, &n, 4);
 
-    int w = img.getSize().x;
-    int h = img.getSize().y;
+    if (data == nullptr) return -1;
 
-    TxtrPtr txtrPtr = {w, h, txtrSize};
-    h_txtrPtr.push_back(txtrPtr);
     h_paths.push_back(path);
+    h_txtrPtr.push_back({w, h, txtrSize});
+    txtrCount++;
+
+    for (int i = 0; i < w * h; i++) {
+        int off = i * 4;
+        float r = data[off + 0] / 255.0f;
+        float g = data[off + 1] / 255.0f;
+        float b = data[off + 2] / 255.0f;
+        float a = data[off + 3] / 255.0f;
+
+        h_txtrFlat.push_back({r, g, b, a});
+    }
 
     txtrSize += w * h;
 
-    for (int y = 0; y < h; ++y) {
-        for (int x = 0; x < w; ++x) {
-            sf::Color c = img.getPixel(x, h - y - 1);
-
-            float r = c.r / 255.0f;
-            float g = c.g / 255.0f;
-            float b = c.b / 255.0f;
-            float a = c.a / 255.0f;
-
-            h_txtrFlat.push_back(Flt4{r, g, b, a});
-        }
-    }
-
-    // Return the index of the texture
-    return txtrCount++;
+    return txtrCount - 1;
 }
 
 void AsczTxtr::freeDevice() {

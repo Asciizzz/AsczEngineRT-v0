@@ -5,7 +5,7 @@ project(AsczEngine LANGUAGES CUDA CXX)
 enable_language(CUDA)
 
 # Set CUDA Compilation Flags (similar to your Makefile)
-set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -rdc=true --expt-relaxed-constexpr --extended-lambda")
+set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -rdc=true --expt-relaxed-constexpr --extended-lambda -lgdiplus -municode -mwindows -fexec-charset=UTF-8")
 
 set(CMAKE_CUDA_SEPARABLE_COMPILATION ON)
 set(CMAKE_CUDA_RESOLVE_DEVICE_SYMBOLS ON)
@@ -16,10 +16,6 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/include/Ascz3D
     ${CMAKE_SOURCE_DIR}/include/Ascz3Dx
     ${CMAKE_SOURCE_DIR}/include/AsczSys
-)
-
-link_directories(
-    ${CMAKE_SOURCE_DIR}/libraries/SFML/lib
 )
 
 # Set CUDA architectures (modify based on GPU, 75 = Turing, 86 = Ampere)
