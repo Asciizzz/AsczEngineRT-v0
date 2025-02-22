@@ -124,6 +124,30 @@ __device__ Flt3 ASESFilm(const Flt3 &P) {
     return y;
 }
 
+__device__ Flt3 randomHemisphereSample(curandState *rnd, const Flt3 &n) {
+    float r1 = curand_uniform(rnd);  // Random number [0,1]
+    float r2 = curand_uniform(rnd);
+
+    float theta = acos(sqrt(1.0f - r1));  // Importance sampling (cosine-weighted)
+    float phi = 2.0f * M_PI * r2;         // Uniform azimuthal angle
+
+    // Convert to Cartesian coordinates
+    float x = sin(theta) * cos(phi);
+    float y = sin(theta) * sin(phi);
+    float z = cos(theta);
+
+    // Construct a coordinate system
+    Flt3 tangent, bitangent;
+
+    tangent = n.x > 0.9f || n.x < -0.9f ? Flt3(0, 1, 0) : Flt3(1, 0, 0);
+    tangent = (tangent ^ n).norm();
+    bitangent = n ^ tangent;
+
+    // Transform to world space
+    return tangent * x + bitangent * y + n * z;
+}
+
+
 
 __global__ void raytraceKernel(
     AsczCam camera, unsigned int *frmbuffer, int frmW, int frmH, // In-out
@@ -415,7 +439,7 @@ __global__ void pathtraceKernel(
     int x = tIdx % frmW, y = tIdx / frmW;
     Ray primaryRay = camera.castRay(x, y, frmW, frmH);
 
-    const int MAX_RAYS = 128;
+    const int MAX_RAYS = 1024;
     const int MAX_NODES = 64;
 
     Ray rstack[MAX_RAYS] = { primaryRay };
@@ -423,6 +447,9 @@ __global__ void pathtraceKernel(
 
     int nstack[MAX_NODES];
     int ns_top = 0;
+
+    curandState rnd;
+    int bounceLeft = 1;
 
     Flt3 resultColr;
     while (rs_top > 0) {
@@ -649,6 +676,23 @@ __global__ void pathtraceKernel(
             spec = hMtl.noShade ? Flt3(0, 0, 0) : spec;
 
             finalColr += lColor & (spec + diff) * lIntense;
+        }
+
+        // Indirect lighting
+        if (bounceLeft > 0) {
+            int rayPerBounce = 128;
+            for (int i = 0; i < rayPerBounce; ++i) {
+                Flt3 rO = vrtx + nrml * EPSILON_2;
+                Flt3 rD = randomHemisphereSample(&rnd, nrml);
+                float NdotL = nrml * rD;
+                float rW = ray.w * NdotL * 0.4f/rayPerBounce;
+
+                Ray rRay = Ray(rO, rD, rW, ray.Ni);
+
+                rstack[rs_top++] = rRay;
+            }
+
+            bounceLeft--;
         }
 
         // ======== Additional rays ========
