@@ -1,5 +1,6 @@
 newmtl ground
 Kd 1 1 1
+Ka 0 0 0
 
 newmtl glass
 Tr 0.6
