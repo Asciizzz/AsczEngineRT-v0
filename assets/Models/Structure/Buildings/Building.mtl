@@ -3,6 +3,5 @@ Kd 1 1 1
 Ka 0 0 0
 
 newmtl glass
-Tr 0.6
-#refl 0.6
+#Tr 0.6
 Kd 1 0.1 0.7
