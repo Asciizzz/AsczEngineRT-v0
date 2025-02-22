@@ -109,7 +109,9 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 - Shadows are not an on/off switch, but more of a grayscale gradient.
 - To simulate sof shadows, you need to sample multiple rays from the light source and average the result.
 
-![](assets/SoftShadow.png)
+<p align="center">
+  <img src="assets/SoftShadow.png" alt="Soft Shadow"/>
+</p>
 
 ##### Anti-Aliasing
 
