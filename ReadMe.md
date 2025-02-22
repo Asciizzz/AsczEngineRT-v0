@@ -67,7 +67,7 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
   <small><i>Apples with shadings.</i></small>
 </p>
 
-## 2. Optimization 101s
+## 2. Optimization 101
 
 - Now that you have a basic understanding of how ray tracing works, let's talk about how to make it **faster**. There's this little thing called **BVH (Bounding Volume Hierarchy)**, basically: *"If I don't see the box, I don't see anything in the box."*
 
@@ -96,6 +96,8 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
   - **Child ordering** and **Early Exit**: Essentially, *"If the left box is closer to the right box, check the left box first"*. If the ray hits something in the left box, there's no need to check the right box, since that hit intersection is closer than any potential intersection in the right box.
 
 - By using all these optimization techniques, the engine is able to render a ultra-complex scene with `~4 million triangles` at `~200fps`, which is kinda mind-blowing considering the fact this engine was initially built for a static renderer.
+
+## 3. Path Tracing 101
 
 ---
 

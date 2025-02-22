@@ -684,7 +684,7 @@ __global__ void pathtraceKernel(
             for (int i = 0; i < rayPerBounce; ++i) {
                 Flt3 rO = vrtx + nrml * EPSILON_2;
                 Flt3 rD = randomHemisphereSample(&rnd, nrml);
-                float NdotL = nrml * rD;
+                float NdotL = nrml * rD; NdotL *= NdotL;
                 float rW = ray.w * NdotL * 1.0f/rayPerBounce;
 
                 Ray rRay = Ray(rO, rD, rW, ray.Ni);
