@@ -53,8 +53,12 @@ usemtl BackWall
 f 1/1/6 2/2/6 3/3/6
 f 1/1/6 3/3/6 4/4/6
 
-o Object
+o Objects
 
 usemtl Sphere
-v 0.2 -0.6 0.3
-sph 9 0.4
+v 0.3 -0.7 0.3
+sph 9 0.3
+
+
+v -0.3 -0.7 -0.3
+sph 10 0.3
