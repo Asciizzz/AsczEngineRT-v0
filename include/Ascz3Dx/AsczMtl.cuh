@@ -5,12 +5,12 @@
 
 struct Material {
     // True mtl attributes
-    Flt3 Ka = 0.0f;
+    Flt3 Ka = 0.05f;
     Flt3 Kd = 0.8f;
     Flt3 Ks = 0.3f;
     int mKd = -1;
 
-    float Ns = 10.0f;
+    float Ns = 32.0f;
     float Tr = 0.0f;
 
     // Not in a usual mtl file

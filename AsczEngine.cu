@@ -112,6 +112,8 @@ int main() {
 
     std::string LOG = "";
 
+    bool pathTracing = false;
+
     MSG msg = { 0 };
     while (msg.message != WM_QUIT) {
         FPS.startFrame();
@@ -130,7 +132,13 @@ int main() {
             ShowCursor(CamMgr.focus);
         }
 
-        if (CamMgr.focus) {
+        // Press Q to toggle path tracing
+        if (WinMgr.keys['Q']) {
+            WinMgr.keys['Q'] = false;
+            pathTracing = !pathTracing;
+        }
+
+        if (CamMgr.focus && !pathTracing) {
             // Press ESC to exit
             if (WinMgr.keys[VK_ESCAPE]) break;
 
@@ -175,20 +183,33 @@ int main() {
             CamMgr.update();
         }
 
-        // Render frmbuffer
-        raytraceKernel<<<WinMgr.blockCount, WinMgr.threadCount>>>(
-            CamMgr, WinMgr.d_framebuffer, WinMgr.width, WinMgr.height,
-            TxtrMgr.d_txtrFlat, TxtrMgr.d_txtrPtr, MtlMgr.d_mtls,
-            MeshMgr.d_v, MeshMgr.d_t, MeshMgr.d_n, MeshMgr.d_geom, MeshMgr.gNum,
-            BvhMgr.d_gIdx, BvhMgr.d_nodes, BvhMgr.nNum,
-            LightMgr.d_lSrc, LightMgr.num
-        );
+        if (CamMgr.focus) {
+            POINT center = { WinMgr.width / 2, WinMgr.height / 2 };
+            ClientToScreen(WinMgr.hwnd, &center);
+            SetCursorPos(center.x, center.y);
+        }
+
+        // Render
+        if (pathTracing) {
+            pathtraceKernel<<<WinMgr.blockCount, WinMgr.threadCount>>>(
+                CamMgr, WinMgr.d_framebuffer, WinMgr.width, WinMgr.height,
+                TxtrMgr.d_txtrFlat, TxtrMgr.d_txtrPtr, MtlMgr.d_mtls,
+                MeshMgr.d_v, MeshMgr.d_t, MeshMgr.d_n, MeshMgr.d_geom, MeshMgr.gNum,
+                BvhMgr.d_gIdx, BvhMgr.d_nodes, BvhMgr.nNum,
+                LightMgr.d_lSrc, LightMgr.num
+            );
+        } else {
+            raytraceKernel<<<WinMgr.blockCount, WinMgr.threadCount>>>(
+                CamMgr, WinMgr.d_framebuffer, WinMgr.width, WinMgr.height,
+                TxtrMgr.d_txtrFlat, TxtrMgr.d_txtrPtr, MtlMgr.d_mtls,
+                MeshMgr.d_v, MeshMgr.d_t, MeshMgr.d_n, MeshMgr.d_geom, MeshMgr.gNum,
+                BvhMgr.d_gIdx, BvhMgr.d_nodes, BvhMgr.nNum,
+                LightMgr.d_lSrc, LightMgr.num
+            );
+        }
+
+
         WinMgr.Draw();
-
-        WinMgr.appendDebug(std::to_string(FPS.fps) + " FPS");
-
-        // Display debug
-        WinMgr.displayDebug();
 
         FPS.endFrame();
     }

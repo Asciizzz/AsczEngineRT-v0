@@ -140,7 +140,7 @@ __global__ void raytraceKernel(
     int x = tIdx % frmW, y = tIdx / frmW;
     Ray primaryRay = camera.castRay(x, y, frmW, frmH);
 
-    const int MAX_RAYS = 16;
+    const int MAX_RAYS = 8;
     const int MAX_NODES = 64;
 
     Ray rstack[MAX_RAYS] = { primaryRay };
@@ -154,9 +154,6 @@ __global__ void raytraceKernel(
         // Copy before pop since there's high chance of overwriting
         Ray ray = rstack[--rs_top];
         RayHit hit;
-
-        // Ray with little contribution
-        if (ray.w < 0.05f) continue;
 
         ns_top = 0;
         nstack[ns_top++] = 0;
@@ -208,6 +205,7 @@ __global__ void raytraceKernel(
 
         float hitw = 1 - hit.u - hit.v;
 
+        // Interpolated vertex
         Flt3 vrtx = ray.o + ray.d * hit.t;
 
         // Interpolated normal
@@ -272,10 +270,7 @@ __global__ void raytraceKernel(
 
         // Lighting and shading
 
-        float RdotN = ray.d * nrml;
-        RdotN = hMtl.noShade ? 1.0f : RdotN * RdotN;
-
-        Flt3 finalColr = (hMtl.Ka & hitKd) * RdotN;
+        Flt3 finalColr = (hMtl.Ka & hitKd);
 
         // Global illumination
 
@@ -283,6 +278,7 @@ __global__ void raytraceKernel(
         for (int l = 0; l < lNum; ++l) {
             const LightSrc &light = lSrc[l];
 
+            // Light properties
             Flt3 lPos = light.pos;
 
             Flt3 lDir = vrtx - lPos;
@@ -291,12 +287,12 @@ __global__ void raytraceKernel(
 
             Flt3 lInv = 1.0f / lDir;
 
+            float lIntense = light.intens;
+            Flt3 lColor = light.colr;
+
+            // Reset the stack
             ns_top = 0;
             nstack[ns_top++] = 0;
-
-            // Values for transparency
-            float intens = light.intens;
-            Flt3 passColr = light.colr;
 
             bool shadow = false;
             while (ns_top > 0) {
@@ -331,28 +327,9 @@ __global__ void raytraceKernel(
                     if (mat2.noShadow) continue;
 
                     RayHit h = RayHitGeom(lPos, lDir, geom[gi], mv);
-                    if (h.idx == -1 || h.t > lDist) continue;
-
-                    if (mat2.Tr < 0.01f) {
+                    if (h.idx > -1 && h.t < lDist) {
                         shadow = true;
                         break;
-                    }
-
-                    intens *= mat2.Tr;
-
-                    if (mat2.mKd > -1) {
-                        float hw = 1 - h.u - h.v;
-
-                        Int3 &tt = geom[gi].tri.t;
-                        Flt2 &t0 = mt[tt.x], &t1 = mt[tt.y], &t2 = mt[tt.z];
-                        Flt2 tx = t0 * hw + t1 * h.u + t2 * h.v;
-                        tx.x -= floor(tx.x);
-                        tx.y -= floor(tx.y);
-
-                        Flt4 txColr = getTextureColor(tx, txtrFlat, txtrPtr, mat2.mKd);
-                        passColr += txColr.f3() * txColr.w;
-                    } else {
-                        passColr += mat2.Kd;
                     }
                 }
 
@@ -365,19 +342,20 @@ __global__ void raytraceKernel(
             if (light.falloff) {
                 float dist = lDist - light.bias;
                 float falloff = 1.0f / (1.0f + pow(dist / light.falloffDist, light.exp));
-                intens *= falloff;
+                lIntense *= falloff;
             }
 
             float NdotL = nrml * -lDir;
-            Flt3 diff = hitKd * NdotL * NdotL;
+            NdotL = NdotL < 0 ? 0 : NdotL;
+            Flt3 diff = hitKd * NdotL;
 
             Flt3 refl = Ray::reflect(-lDir, nrml);
-            Flt3 spec = hMtl.Ks * pow(refl * -ray.d, hMtl.Ns);
+            Flt3 spec = hMtl.Ks * pow(refl * -ray.d, hMtl.Ns) * NdotL;
 
             diff = hMtl.noShade ? hitKd : diff;
             spec = hMtl.noShade ? Flt3(0, 0, 0) : spec;
 
-            finalColr += passColr & (spec + diff) * intens;
+            finalColr += lColor & (spec + diff) * lIntense;
         }
 
         // ======== Additional rays ========
@@ -446,8 +424,6 @@ __global__ void pathtraceKernel(
     int nstack[MAX_NODES];
     int ns_top = 0;
 
-    int bounceLeft = 4;
-
     Flt3 resultColr;
     while (rs_top > 0) {
         // Copy before pop since there's high chance of overwriting
@@ -486,10 +462,12 @@ __global__ void pathtraceKernel(
                 int gi = gIdxs[i];
 
                 RayHit h = RayHitGeom(ray.o, ray.d, geom[gi], mv);
-                if (h.idx == -1 || h.t > hit.t) continue;
+                if (h.idx == -1) continue;
 
-                hit = h;
-                hit.idx = gi;
+                if (h.t < hit.t) {
+                    hit = h;
+                    hit.idx = gi;
+                }
             }
         }
 
@@ -502,6 +480,7 @@ __global__ void pathtraceKernel(
 
         float hitw = 1 - hit.u - hit.v;
 
+        // Interpolated vertex
         Flt3 vrtx = ray.o + ray.d * hit.t;
 
         // Interpolated normal
@@ -535,6 +514,7 @@ __global__ void pathtraceKernel(
                     rstack[rs_top++] = Ray(
                         vrtx + ray.d * EPSILON_1, ray.d, wLeft, ray.Ni
                     );
+                    if (ray.w < 0.05f) continue;
                 }
 
                 hitKd = txColr.f3();
@@ -554,6 +534,7 @@ __global__ void pathtraceKernel(
                     rstack[rs_top++] = Ray(
                         vrtx + ray.d * EPSILON_1, ray.d, wLeft, ray.Ni
                     );
+                    if (ray.w < 0.05f) continue;
                 }
 
                 hitKd = txColr.f3();
@@ -564,12 +545,9 @@ __global__ void pathtraceKernel(
 
         // Lighting and shading
 
-        float RdotN = ray.d * nrml;
-        RdotN = hMtl.noShade ? 1.0f : RdotN * RdotN;
+        Flt3 finalColr = (hMtl.Ka & hitKd);
 
-        Flt3 finalColr = (hMtl.Ka & hitKd) * RdotN;
-
-        // ============ Global illumination ============
+        // Global illumination
 
         // Direct lighting
         for (int l = 0; l < lNum; ++l) {
@@ -587,8 +565,8 @@ __global__ void pathtraceKernel(
             nstack[ns_top++] = 0;
 
             // Values for transparency
-            float intens = light.intens;
-            Flt3 passColr = light.colr;
+            float lIntense = light.intens;
+            Flt3 lColor = light.colr;
 
             bool shadow = false;
             while (ns_top > 0) {
@@ -630,7 +608,7 @@ __global__ void pathtraceKernel(
                         break;
                     }
 
-                    intens *= mat2.Tr;
+                    lIntense *= mat2.Tr;
 
                     if (mat2.mKd > -1) {
                         float hw = 1 - h.u - h.v;
@@ -642,9 +620,9 @@ __global__ void pathtraceKernel(
                         tx.y -= floor(tx.y);
 
                         Flt4 txColr = getTextureColor(tx, txtrFlat, txtrPtr, mat2.mKd);
-                        passColr += txColr.f3() * txColr.w;
+                        lColor += txColr.f3() * txColr.w;
                     } else {
-                        passColr += mat2.Kd;
+                        lColor += mat2.Kd;
                     }
                 }
 
@@ -657,30 +635,20 @@ __global__ void pathtraceKernel(
             if (light.falloff) {
                 float dist = lDist - light.bias;
                 float falloff = 1.0f / (1.0f + pow(dist / light.falloffDist, light.exp));
-                intens *= falloff;
+                lIntense *= falloff;
             }
 
             float NdotL = nrml * -lDir;
-            Flt3 diff = hitKd * NdotL * NdotL;
+            NdotL = NdotL < 0 ? 0 : NdotL;
+            Flt3 diff = hitKd * NdotL;
 
             Flt3 refl = Ray::reflect(-lDir, nrml);
-            Flt3 spec = hMtl.Ks * pow(refl * -ray.d, hMtl.Ns);
+            Flt3 spec = hMtl.Ks * pow(refl * -ray.d, hMtl.Ns) * NdotL;
 
             diff = hMtl.noShade ? hitKd : diff;
             spec = hMtl.noShade ? Flt3(0, 0, 0) : spec;
 
-            finalColr += passColr & (spec + diff) * intens;
-        }
-
-        // Diffuse Indirect Lighting
-
-        // // For the time being just shoot a ray straight from the normal
-        if (bounceLeft > 0) {
-            Flt3 rD = nrml;
-            Flt3 rO = vrtx + nrml * EPSILON_1;
-
-            rstack[rs_top++] = Ray(rO, rD, 0.2f, ray.Ni);
-            --bounceLeft;
+            finalColr += lColor & (spec + diff) * lIntense;
         }
 
         // ======== Additional rays ========
