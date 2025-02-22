@@ -449,8 +449,8 @@ __global__ void pathtraceKernel(
     int ns_top = 0;
 
     curandState rnd;
-    int bounceLeft = 2;
-    int rayPerBounce = 64;
+    int bounceLeft = 1;
+    int rayPerBounce = 1024;
 
     Flt3 resultColr;
     while (rs_top > 0) {

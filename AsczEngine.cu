@@ -209,7 +209,6 @@ int main() {
                 LightMgr.d_lSrc, LightMgr.num
             );
 
-
         WinMgr.Draw();
 
         FPS.endFrame();
