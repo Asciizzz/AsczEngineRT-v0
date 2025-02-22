@@ -439,7 +439,7 @@ __global__ void pathtraceKernel(
     int x = tIdx % frmW, y = tIdx / frmW;
     Ray primaryRay = camera.castRay(x, y, frmW, frmH);
 
-    const int MAX_RAYS = 2500;
+    const int MAX_RAYS = 1024;
     const int MAX_NODES = 64;
 
     Ray rstack[MAX_RAYS] = { primaryRay };
@@ -450,8 +450,8 @@ __global__ void pathtraceKernel(
 
     curandState rnd;
     int bounce = 0;
-    int maxBounce = 5;
-    int rayPerBounce = 1024;
+    int maxBounce = 1;
+    int rayPerBounce = 512;
 
     Flt3 resultColr;
     while (rs_top > 0) {
@@ -686,7 +686,7 @@ __global__ void pathtraceKernel(
             int curRayPerBounce = rayPerBounce / bounce;
             float weightPerRay = ray.w / curRayPerBounce;
             for (int i = 0; i < curRayPerBounce; ++i) {
-                Flt3 rO = vrtx + nrml * EPSILON_2;
+                Flt3 rO = vrtx + nrml * EPSILON_1;
                 Flt3 rD = randomHemisphereSample(&rnd, nrml);
                 float NdotL = nrml * rD;
                 float rW = weightPerRay * NdotL;
