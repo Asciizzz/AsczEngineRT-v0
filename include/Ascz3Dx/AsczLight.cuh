@@ -5,7 +5,7 @@
 
 struct LightSrc {
     Flt3 pos;
-    Flt3 colr = Flt3(1.0f);
+    Flt3 colr = 1.0f;
     float intens = 1.0f;
 
     // Light falloff

@@ -51,7 +51,7 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
     - $\Rightarrow$ **`Result Weight`** `=` `0.5 + 0.3 + 0.2` `=` **`1.0`**.
 
 <p align="center">
-  <img src="assets/Explain1.png" alt="Visual Explanation"/>
+  <img src="assets/Demos/Explain1.png" alt="Visual Explanation"/>
 </p>
 
 
@@ -60,12 +60,12 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 - Even without advanced techniques like path tracing, ray tracing can produce some graphically pleasing images already (debatable) thanks to its ability to simulate light behavior in a more realistic way.
 
 <p align="center">
-  <img src="assets/Demo1.png" alt="Demo Image"/>
+  <img src="assets/Demos/RayTracing1.png" alt="Demo Image"/>
   <small><i>A living room with candles lighting up the scene.</i></small>
 </p>
 
 <p align="center">
-  <img src="assets/Demo2.png" alt="Demo Image"/>
+  <img src="assets/Demos/RayTracing2.png" alt="Demo Image"/>
   <small><i>Apples with shadings.</i></small>
 </p>
 
@@ -110,7 +110,7 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 - To simulate sof shadows, you need to sample multiple rays from the light source and average the result.
 
 <p align="center">
-  <img src="assets/SoftShadow.png" alt="Soft Shadow"/>
+  <img src="assets/Demos/SoftShadow.png" alt="Soft Shadow"/>
 </p>
 
 #### Anti-Aliasing
@@ -134,7 +134,7 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 - To accurately simulate this, we use a little something called a **Bidirectional Reflectance Distribution Function (BRDF)**, I won't bore you with the details but it's basically a function that tells you how a surface reflects light.
 
 <p align="center">
-  <img src="assets/BRDF.png" alt="BRDF"/>
+  <img src="assets/Demos/BRDF.png" alt="BRDF"/>
 </p>
 
 ### 4. Path Tracing 101
@@ -188,6 +188,6 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
   - I do not have enough sleep.
 
 <p align="center">
-  <img src="assets/Seia.png" alt="Demo Image" />
+  <img src="assets/Demos/Seia.png" alt="Demo Image" />
   <small><i>"No longer muted"</i></small>
 </p>

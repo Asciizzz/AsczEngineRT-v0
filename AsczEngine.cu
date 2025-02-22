@@ -139,6 +139,7 @@ int main() {
         if (WinMgr.keys['Q']) {
             WinMgr.keys['Q'] = false;
             pathTracing = !pathTracing;
+            CamMgr.focus = !pathTracing;
 
             // Render a single frame
             if (pathTracing)

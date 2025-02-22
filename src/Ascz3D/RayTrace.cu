@@ -311,8 +311,8 @@ __global__ void raytraceKernel(
 
             Flt3 lInv = 1.0f / lDir;
 
-            float lIntense = light.intens;
-            Flt3 lColor = light.colr;
+            float passIntense = light.intens;
+            Flt3 passColor = light.colr;
 
             // Reset the stack
             ns_top = 0;
@@ -366,7 +366,7 @@ __global__ void raytraceKernel(
             if (light.falloff) {
                 float dist = lDist - light.bias;
                 float falloff = 1.0f / (1.0f + pow(dist / light.falloffDist, light.exp));
-                lIntense *= falloff;
+                passIntense *= falloff;
             }
 
             float NdotL = nrml * -lDir;
@@ -379,7 +379,7 @@ __global__ void raytraceKernel(
             diff = hMtl.noShade ? hitKd : diff;
             spec = hMtl.noShade ? Flt3(0, 0, 0) : spec;
 
-            finalColr += lColor & (spec + diff) * lIntense;
+            finalColr += passColor & (spec + diff) * passIntense;
         }
 
         // ======== Additional rays ========
@@ -439,7 +439,7 @@ __global__ void pathtraceKernel(
     int x = tIdx % frmW, y = tIdx / frmW;
     Ray primaryRay = camera.castRay(x, y, frmW, frmH);
 
-    const int MAX_RAYS = 2048;
+    const int MAX_RAYS = 2500;
     const int MAX_NODES = 64;
 
     Ray rstack[MAX_RAYS] = { primaryRay };
@@ -449,7 +449,8 @@ __global__ void pathtraceKernel(
     int ns_top = 0;
 
     curandState rnd;
-    int bounceLeft = 1;
+    int bounce = 0;
+    int maxBounce = 5;
     int rayPerBounce = 1024;
 
     Flt3 resultColr;
@@ -593,8 +594,8 @@ __global__ void pathtraceKernel(
             nstack[ns_top++] = 0;
 
             // Values for transparency
-            float lIntense = light.intens;
-            Flt3 lColor = light.colr;
+            float passIntense = light.intens;
+            Flt3 passColor = light.colr;
 
             bool shadow = false;
             while (ns_top > 0) {
@@ -636,7 +637,7 @@ __global__ void pathtraceKernel(
                         break;
                     }
 
-                    lIntense *= mat2.Tr;
+                    passIntense *= mat2.Tr;
 
                     if (mat2.mKd > -1) {
                         float hw = 1 - h.u - h.v;
@@ -648,9 +649,9 @@ __global__ void pathtraceKernel(
                         tx.y -= floor(tx.y);
 
                         Flt4 txColr = getTextureColor(tx, txtrFlat, txtrPtr, mat2.mKd);
-                        lColor += txColr.f3() * txColr.w;
+                        passColor += txColr.f3() * txColr.w;
                     } else {
-                        lColor += mat2.Kd;
+                        passColor += mat2.Kd;
                     }
                 }
 
@@ -663,7 +664,7 @@ __global__ void pathtraceKernel(
             if (light.falloff) {
                 float dist = lDist - light.bias;
                 float falloff = 1.0f / (1.0f + pow(dist / light.falloffDist, light.exp));
-                lIntense *= falloff;
+                passIntense *= falloff;
             }
 
             float NdotL = nrml * -lDir;
@@ -676,12 +677,14 @@ __global__ void pathtraceKernel(
             diff = hMtl.noShade ? hitKd : diff;
             spec = hMtl.noShade ? Flt3(0, 0, 0) : spec;
 
-            finalColr += lColor & (spec + diff) * lIntense;
+            finalColr += passColor & (spec + diff) * passIntense;
         }
 
         // Indirect lighting
-        if (bounceLeft > 0) {
-            for (int i = 0; i < rayPerBounce; ++i) {
+        if (bounce < maxBounce) {
+            ++bounce;
+            int curRayPerBounce = rayPerBounce / bounce;
+            for (int i = 0; i < curRayPerBounce; ++i) {
                 Flt3 rO = vrtx + nrml * EPSILON_2;
                 Flt3 rD = randomHemisphereSample(&rnd, nrml);
                 float NdotL = nrml * rD; NdotL *= NdotL;
@@ -691,8 +694,6 @@ __global__ void pathtraceKernel(
 
                 rstack[rs_top++] = rRay;
             }
-
-            bounceLeft--;
         }
 
         // ======== Additional rays ========
