@@ -14,7 +14,9 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 
 ###### Run *`cmake .. -G "Visual Studio 17 2022" -T host=x64`* inside of the `build/` folder to generate the project files.
 
-## 1. Ray tracing 101
+## Introduction to Ray Tracing - Path Tracing
+
+### 1. Ray tracing 101
 
 - The idea behind ray tracing is simple: **you trace ray**.
 
@@ -67,7 +69,7 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
   <small><i>Apples with shadings.</i></small>
 </p>
 
-## 2. Optimization 101
+### 2. Optimization 101
 
 - Now that you have a basic understanding of how ray tracing works, let's talk about how to make it **faster**. There's this little thing called **BVH (Bounding Volume Hierarchy)**, basically: *"If I don't see the box, I don't see anything in the box."*
 
@@ -97,7 +99,38 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 
 - By using all these optimization techniques, the engine is able to render a ultra-complex scene with `~4 million triangles` at `~200fps`, which is kinda mind-blowing considering the fact this engine was initially built for a static renderer.
 
-## 3. Path Tracing 101
+### 3. Sampling 101
+
+- Heavily used in ray and path tracing, a single ray won't cut it, if you want to achieve realistic lighting, you need to sample multiple rays.
+
+##### Soft Shadows
+
+- Light sources are usually not a single point, but an area (or a volume). Shadows are not an on/off switch, but more of a grayscale gradient. To simulate this, you need to sample multiple rays from the light source and average the result.
+
+##### Anti-Aliasing
+
+- See those jags, that’s aliasing, and it fcking sucks.
+- Instead of shooting a single ray from the camera, we shoot more rays then slightly jitter them and average the result for a smoother looking image.
+- Honestly, I kinda not recommend using this, stick to screen space AA methods like FXAA or TAA instead
+
+##### Reflectance
+
+- When light hits a surface, it can do a couple of things:
+  - It can bounce off perfectly like a mirror (aka specular reflection).
+  - It can scatter in random directions like a rough wall (aka diffuse reflection).
+  - It can kinda do both, depending on the material (glossy reflection).
+- How Do We Sample This?
+  - Diffuse Surfaces → Use cosine-weighted hemisphere sampling (favor directions near the surface normal).
+  - Glossy Surfaces → Use importance sampling, biasing rays toward the reflection vector.
+  - Metals and Dielectrics → Use the Fresnel equations to determine how much is reflected vs. refracted.
+
+
+- To accurately simulate this, we use a little something called a **Bidirectional Reflectance Distribution Function (BRDF)**, I won't bore you with the details but it's basically a function that tells you how a surface reflects light.
+
+### 4. Path Tracing 101
+
+- This is what most people meant when they say "ray tracing". Path tracing is ray tracing on steriods.
+- I cast path tracing signature move: **Global Illumination**, or more specifically, **Indirect Lighting**. Irl, light bounces off multiple surfaces while obeying the law of energy conservation, and path tracing tries to simulate that.
 
 ---
 
