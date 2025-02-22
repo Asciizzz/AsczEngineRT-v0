@@ -211,6 +211,13 @@ void Utils::appendObj(
         else if (type == "sph") {
             int c; float r; ss >> c >> r;
             mgeom.push_back(AzGeom(c - fIdxBased, r, matIdx));
+
+            // Get the AABB of the sphere
+            Flt3 sc = mv[c - fIdxBased];
+            AABB ab(sc - r, sc + r);
+
+            mO_AB.expand(ab);
+            mSO_AB.back().expand(ab);
         }
     }
     mSOrF.push_back(mgeom.size());

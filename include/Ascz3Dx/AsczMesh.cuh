@@ -45,8 +45,11 @@ To handle this, I have came up with a way to handle objects as well as their sub
 #define VecAB std::vector<AABB>
 
 struct AABB {
-    Flt3 min = Flt3(INFINITY);
-    Flt3 max = Flt3(-INFINITY);
+    Flt3 min, max;
+
+    __host__ __device__ AABB(
+        Flt3 min = Flt3(INFINITY), Flt3 max = Flt3(-INFINITY)
+    ) : min(min), max(max) {}
 
     __host__ __device__ void expandMin(const Flt3 &v) {
         min.x = fminf(min.x, v.x);

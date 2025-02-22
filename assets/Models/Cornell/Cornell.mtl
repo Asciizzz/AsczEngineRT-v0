@@ -1,0 +1,21 @@
+newmtl LeftWall
+Kd 0.63 0.065 0.05
+
+newmtl RightWall
+Kd 0.05 0.065 0.63
+
+newmtl Ceiling
+Kd 0.05 0.63 0.05
+
+newmtl Floor
+Kd 0.63 0.63 0.63
+
+newmtl FrontWall
+Kd 0.63 0.63 0.05
+
+newmtl BackWall
+Kd 0.63 0.05 0.63
+
+
+newmtl Sphere
+Ka 0.2 0.2 0.2

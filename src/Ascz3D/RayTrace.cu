@@ -149,8 +149,6 @@ __global__ void raytraceKernel(
     int nstack[MAX_NODES];
     int ns_top = 0;
 
-    int bounceLeft = 4;
-
     Flt3 resultColr;
     while (rs_top > 0) {
         // Copy before pop since there's high chance of overwriting
@@ -380,17 +378,6 @@ __global__ void raytraceKernel(
             spec = hMtl.noShade ? Flt3(0, 0, 0) : spec;
 
             finalColr += passColr & (spec + diff) * intens;
-        }
-
-                // Diffuse Indirect Lighting
-
-        // // For the time being just shoot a ray straight from the normal
-        if (bounceLeft > 0) {
-            Flt3 rD = nrml;
-            Flt3 rO = vrtx + nrml * EPSILON_1;
-
-            rstack[rs_top++] = Ray(rO, rD, ray.w * 0.1f, ray.Ni);
-            --bounceLeft;
         }
 
         // ======== Additional rays ========

@@ -5,7 +5,7 @@
 
 struct Material {
     // True mtl attributes
-    Flt3 Ka = 0.1f;
+    Flt3 Ka = 0.0f;
     Flt3 Kd = 0.8f;
     Flt3 Ks = 0.3f;
     int mKd = -1;
