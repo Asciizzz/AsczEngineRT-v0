@@ -133,6 +133,10 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 
 - To accurately simulate this, we use a little something called a **Bidirectional Reflectance Distribution Function (BRDF)**, I won't bore you with the details but it's basically a function that tells you how a surface reflects light.
 
+<p align="center">
+  <img src="assets/BRDF.png" alt="BRDF"/>
+</p>
+
 ### 4. Path Tracing 101
 
 - This is what most people meant when they say "ray tracing". Path tracing is ray tracing on steriods.
