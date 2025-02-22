@@ -122,13 +122,13 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 #### Reflectance
 
 - When light hits a surface, it can do a couple of things:
-  - It can bounce off perfectly like a mirror (aka specular reflection).
-  - It can scatter in random directions like a rough wall (aka diffuse reflection).
-  - It can kinda do both, depending on the material (glossy reflection).
+  - It can **bounce off** perfectly like a mirror (aka specular reflection).
+  - It can **scatter in random directions** like a rough wall (aka diffuse reflection).
+  - It can kinda do **both**, depending on the material (glossy reflection).
 - How Do We Sample This?
-  - Diffuse Surfaces → Use cosine-weighted hemisphere sampling (favor directions near the surface normal).
-  - Glossy Surfaces → Use importance sampling, biasing rays toward the reflection vector.
-  - Metals and Dielectrics → Use the Fresnel equations to determine how much is reflected vs. refracted.
+  - *Diffuse Surfaces*: Use cosine-weighted hemisphere sampling (favor directions near the surface normal).
+  - *Glossy Surfaces*: Use importance sampling, biasing rays toward the reflection vector.
+  - *Metals and Dielectrics*: Use the Fresnel equations to determine how much is reflected vs. refracted.
 
 
 - To accurately simulate this, we use a little something called a **Bidirectional Reflectance Distribution Function (BRDF)**, I won't bore you with the details but it's basically a function that tells you how a surface reflects light.
@@ -140,7 +140,7 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 ### 4. Path Tracing 101
 
 - This is what most people meant when they say "ray tracing". Path tracing is ray tracing on steriods.
-- I cast path tracing signature move: **Global Illumination**, or more specifically, **Indirect Lighting**. Irl, light bounces off multiple surfaces while obeying the law of energy conservation, and path tracing tries to simulate that.
+- I cast path tracing signature move: **Global Illumination**, or more specifically, **Indirect Lighting**. Irl, light bounces off multiple surfaces while obeying the law of energy conservation, and path tracing tries to simulate that by casting multiple rays per pixel and averaging the result using contribution calculations and stuff.
 
 ---
 
