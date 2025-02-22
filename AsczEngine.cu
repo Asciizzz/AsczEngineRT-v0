@@ -123,6 +123,9 @@ int main() {
             DispatchMessage(&msg);
         }
 
+        
+        // Press ESC to exit
+        if (WinMgr.keys[VK_ESCAPE]) break;
 
         // Press F1 to toggle focus
         if (WinMgr.keys[VK_F1]) {
@@ -149,8 +152,6 @@ int main() {
         }
 
         if (CamMgr.focus && !pathTracing) {
-            // Press ESC to exit
-            if (WinMgr.keys[VK_ESCAPE]) break;
 
             // Get previous cursor position
             POINT prev;
