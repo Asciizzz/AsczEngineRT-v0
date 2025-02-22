@@ -103,7 +103,7 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 
 - Heavily used in ray and path tracing, because let’s be real - a single ray won’t cut it.
 
-##### Soft Shadows
+#### Soft Shadows
 
 - Light sources are usually not a single point, but an area (or a volume). 
 - Shadows are not an on/off switch, but more of a grayscale gradient.
@@ -113,13 +113,13 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
   <img src="assets/SoftShadow.png" alt="Soft Shadow"/>
 </p>
 
-##### Anti-Aliasing
+#### Anti-Aliasing
 
 - See those jags, that’s aliasing, and it fcking sucks.
 - Instead of shooting a single ray from the camera, we shoot more rays then slightly jitter them and average the result for a smoother looking image.
 - Honestly, I kinda not recommend using this, stick to screen space AA methods like FXAA or TAA instead
 
-##### Reflectance
+#### Reflectance
 
 - When light hits a surface, it can do a couple of things:
   - It can bounce off perfectly like a mirror (aka specular reflection).
