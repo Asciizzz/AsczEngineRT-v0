@@ -97,16 +97,16 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 
 - By using all these optimization techniques, the engine is able to render a ultra-complex scene with `~4 million triangles` at `~200fps`, which is kinda mind-blowing considering the fact this engine was initially built for a static renderer.
 
-## 3. What's Next
+---
+
+## What's Next
 
 - Path Tracing, I've read like 420.69 articles on how to implement it. The idea is simple enough, you sample, but how tf do you sample? I have no idea, but I'll figure it out eventually, that's kinda my thing.
 - GPU-based BVH construction.
 
-## 4. How to Use
+## How to Use
 
 - Honestly, I am quite terrible when it comes to interface and stuff, so for the time being just run the `AsczEngine.exe` I guess. You can mess with the `.model` and `.cfg` files to idk, figure things out I guess.
-
---- 
 
 ### Credits
 
