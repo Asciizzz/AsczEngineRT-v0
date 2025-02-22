@@ -142,6 +142,12 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 - This is what most people meant when they say "ray tracing". Path tracing is ray tracing on steriods.
 - I cast path tracing signature move: **Global Illumination**, or more specifically, **Indirect Lighting**. Irl, light bounces off multiple surfaces while obeying the law of energy conservation, and path tracing tries to simulate that by casting multiple rays per pixel and averaging the result using contribution calculations and stuff.
 
+<p align="center">
+  <img src="assets/Demos/PathTracing.png" alt="Demo Image"/>
+  <small><i>Path tracing with indirect lighting.</i></small>
+
+###### Notice how the wall color bleeds onto the sphere, that's indirect lighting.
+
 ---
 
 ## What's Next
