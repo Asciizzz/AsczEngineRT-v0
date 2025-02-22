@@ -152,7 +152,7 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 
 ## What's Next
 
-- Path Tracing, I've read like 420.69 articles on how to implement it. The idea is simple enough, you sample, but how tf do you sample? I have no idea, but I'll figure it out eventually, that's kinda my thing.
+- Real-time path tracing. This is a whole different beast, but doable.
 - GPU-based BVH construction.
 
 ## How to Use
