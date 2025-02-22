@@ -153,6 +153,7 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 ## What's Next
 
 - GPU-based BVH construction.
+- Dynamic BVH.
 - Real-time path tracing. This is a whole different beast, but doable.
 
 ## How to Use
