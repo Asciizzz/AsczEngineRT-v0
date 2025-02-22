@@ -101,11 +101,15 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 
 ### 3. Sampling 101
 
-- Heavily used in ray and path tracing, a single ray won't cut it, if you want to achieve realistic lighting, you need to sample multiple rays.
+- Heavily used in ray and path tracing, because let’s be real - a single ray won’t cut it.
 
 ##### Soft Shadows
 
-- Light sources are usually not a single point, but an area (or a volume). Shadows are not an on/off switch, but more of a grayscale gradient. To simulate this, you need to sample multiple rays from the light source and average the result.
+- Light sources are usually not a single point, but an area (or a volume). 
+- Shadows are not an on/off switch, but more of a grayscale gradient.
+- To simulate sof shadows, you need to sample multiple rays from the light source and average the result.
+
+![](assets/SoftShadow.png)
 
 ##### Anti-Aliasing
 
