@@ -85,6 +85,7 @@ struct MeshStruct {
     Vec3f n;
 
     VecGeom geom;
+    VecI lSrc; // Light sources
 
     VecI  SOrF; // Sub-objects
 
@@ -103,10 +104,7 @@ public:
     int appendTxtr(Flt2 t);
     int appendNrml(Flt3 n);
 
-    // Extra geometry data for exclusive use (skybox, etc.)
-    VecGeom h_geomEx;
-
-    // The main geometry data
+    // Geometry
     VecGeom h_geom;
 
     int oNum = 0; // Number of objects
@@ -118,6 +116,9 @@ public:
     VecAB SO_AB; // Sub-objects AABB
     VecAB G_AB; // Geoms AABB
 
+    // Light sources (geometry act as light sources)
+    VecI h_lSrc;
+
     void appendMesh(MeshStruct mesh);
 
     // Device memory
@@ -125,11 +126,8 @@ public:
     Flt2 *d_t = nullptr; int tNum = 0;
     Flt3 *d_n = nullptr; int nNum = 0;
 
-    AzGeom *d_geom = nullptr;
-    int gNum = 0;
-
-    AzGeom *d_geomEx = nullptr;
-    int gNumEx = 0;
+    AzGeom *d_geom = nullptr; int gNum = 0;
+    int *d_lSrc = nullptr; int lNum = 0;
 
     void freeDevice();
     void toDevice();

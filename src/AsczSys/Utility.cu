@@ -12,12 +12,15 @@ void Utils::appendObj(
     Vec3f mn;
 
     VecGeom mgeom;
+    VecI mlSrc;
+
     VecI mSOrF;
 
     AABB mO_AB; // Object AABB
     VecAB mSO_AB; // Sub-objects AABB
 
     int matIdx = 0;
+    bool matEms = false;
     std::unordered_map<std::string, int> matMap;
 
     std::string path(objPath);
@@ -84,6 +87,8 @@ void Utils::appendObj(
 
             // Triangulate the face
             for (int i = 1; i < vs.size() - 1; ++i) {
+                if (matEms) mlSrc.push_back(mgeom.size());
+
                 mgeom.push_back(AzGeom(
                     Int3(vs[0], vs[i], vs[i + 1]),
                     Int3(ts[0], ts[i], ts[i + 1]),
@@ -118,6 +123,9 @@ void Utils::appendObj(
             ss >> matName;
 
             matIdx = matMap[matName];
+
+            // Check if the material is emissive
+            matEms = !MatMgr.h_mtls[matIdx].Ems.isZero();
         }
 
         else if (type == "mtllib") {
@@ -141,20 +149,30 @@ void Utils::appendObj(
                     std::string matName; mtlSS >> matName;
                     matMap[matName] = matIdx;
                 }
-
-                else if (mtlType == "Kd") {
+                // Albedo
+                else if (mtlType == "Kd" || mtlType == "Alb") {
                     Flt3 Kd; mtlSS >> Kd.x >> Kd.y >> Kd.z;
                     MatMgr.h_mtls[matIdx].Alb = Kd;
                 }
-
-                else if (mtlType == "map_Kd") {
+                // Albedo map   
+                else if (mtlType == "map_Kd" || mtlType == "AlbMap") {
                     std::string txtrPath; mtlSS >> txtrPath;
 
                     MatMgr.h_mtls[matIdx].AlbMap = TxtrMgr.appendTexture(
                         (mtlDir + txtrPath).c_str()
                     );
                 }
-
+                // Roughness
+                else if (mtlType == "Ns" || mtlType == "Rough") {
+                    float Ns; mtlSS >> Ns;
+                    MatMgr.h_mtls[matIdx].Rough = 1 - Ns / 1000;
+                }
+                // Metallic
+                else if (mtlType == "Ks" || mtlType == "Metal") {
+                    Flt3 Ks; mtlSS >> Ks.x >> Ks.y >> Ks.z;
+                    MatMgr.h_mtls[matIdx].Metal = Ks.x;
+                }
+                // Transmission
                 else if (mtlType == "Tr") {
                     float Tr; mtlSS >> Tr;
                     MatMgr.h_mtls[matIdx].Tr = Tr;
@@ -163,10 +181,15 @@ void Utils::appendObj(
                     float Tr; mtlSS >> Tr;
                     MatMgr.h_mtls[matIdx].Tr = 1 - Tr;
                 }
-
-                else if (mtlType == "Ni") {
+                // Index of refraction
+                else if (mtlType == "Ni" || mtlType == "Ior") {
                     float Ni; mtlSS >> Ni;
                     MatMgr.h_mtls[matIdx].Ior = Ni;
+                }
+                // Emission
+                else if (mtlType == "Ke" || mtlType == "Ems") {
+                    Flt3 Ke; mtlSS >> Ke.x >> Ke.y >> Ke.z;
+                    MatMgr.h_mtls[matIdx].Ems = Ke;
                 }
             }
         }
@@ -225,6 +248,7 @@ void Utils::appendObj(
     mesh.SOrF = mSOrF;
     mesh.O_AB = mO_AB;
     mesh.SO_AB = mSO_AB;
+    mesh.lSrc = VecI();
 
     MeshMgr.appendMesh(mesh);
 }
