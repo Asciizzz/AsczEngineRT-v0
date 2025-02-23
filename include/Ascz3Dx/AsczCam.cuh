@@ -28,9 +28,6 @@ public:
     float velSpec = 20;
 
     bool focus = true;
-
-    // Debug
-    void debug();
 };
 
 #endif

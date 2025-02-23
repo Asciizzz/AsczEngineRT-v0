@@ -1,6 +1,10 @@
 #include <AsczWin.cuh>
 #include <cuda_runtime.h>
 
+#include <string>
+#include <sstream>
+#include <iomanip>
+
 // Constructor
 AsczWin::AsczWin(int w, int h, std::wstring t) : width(w), height(h), title(t) {
     InitConsole();
@@ -53,11 +57,36 @@ void AsczWin::InitGDI() {
 }
 
 
-// Draw Framebuffer to Window
-void AsczWin::Draw() {
-    // Copy d_framebuffer to h_framebuffer
+// Debug
+void AsczWin::DrawText(HDC hdc, int x, int y, const AsczDebug &db) {
+    SetBkMode(hdc, TRANSPARENT);
+    SetTextColor(hdc, RGB(db.color.x, db.color.y, db.color.z));
+    TextOut(hdc, x, y, db.text.c_str(), db.text.length());
+}
+void AsczWin::appendDebug(std::wstring text, Int3 color) {
+    AsczDebug db;
+    db.text = text;
+    db.color = color;
+    debugs.push_back(db);
+}
+void AsczWin::appendDebug(std::string text, Int3 color) {
+    appendDebug(std::wstring(text.begin(), text.end()), color);
+}
+
+// Framebuffer
+void AsczWin::DrawFramebuffer() {
     cudaMemcpy(h_framebuffer, d_framebuffer, width * height * sizeof(unsigned int), cudaMemcpyDeviceToHost);
     StretchDIBits(hdc, 0, 0, width, height, 0, 0, width, height, h_framebuffer, &bmi, DIB_RGB_COLORS, SRCCOPY);
+}
+
+// Draw everything
+void AsczWin::Draw() {
+    DrawFramebuffer();
+
+    for (int i = 0; i < debugs.size(); i++) {
+        DrawText(hdc, 10, 10 + i * 20, debugs[i]);
+    }
+    debugs.clear();
 }
 
 

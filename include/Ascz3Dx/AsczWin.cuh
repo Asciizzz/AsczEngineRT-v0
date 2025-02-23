@@ -9,6 +9,11 @@
 #include <Vector.cuh>
 #include <windows.h>
 
+struct AsczDebug {
+    std::wstring text;
+    Int3 color;
+};
+
 class AsczWin {
 public:
     // Window properties
@@ -24,32 +29,6 @@ public:
     bool rightMouseDown = false;
     bool keys[256] = { false };
 
-    // Framebuffers
-    unsigned int* h_framebuffer;
-    unsigned int* d_framebuffer;
-    int threadCount = 256;
-    int blockCount;
-
-    // Debugs
-    std::vector<std::string> debug_lines;
-    int debug_line_count = 0;
-    void appendDebug(std::string str, int line_count = 1) {
-        debug_lines.push_back(str);
-        debug_line_count += line_count;
-    }
-    void displayDebug() {
-        if (debug_line_count == 0) return;
-
-        std::cout << "\033[" << debug_line_count << "A";  // Move cursor up
-        for (int i = 0; i < debug_line_count; i++) {
-            std::cout << debug_lines[i] << "\n";
-        }
-        std::cout << std::flush;
-
-        // Clear debug lines
-        debug_lines.clear();
-        debug_line_count = 0;
-    }
 
     // Constructor
     AsczWin(int w, int h, std::wstring t);
@@ -57,8 +36,24 @@ public:
     void InitWindow();
     void InitGDI();
 
-    // Draw Framebuffer
+    // Debug
+    std::vector<AsczDebug> debugs;
+
+    void DrawText(HDC hdc, int x, int y, const AsczDebug &db);
+    void appendDebug(std::wstring text, Int3 color=255);
+    void appendDebug(std::string text, Int3 color=255);
+
+    // Framebuffers
+    int threadCount = 256;
+    int blockCount;
+    unsigned int* h_framebuffer;
+    unsigned int* d_framebuffer;
+    void DrawFramebuffer();
+
+
+    // Draw
     void Draw();
+
     // Destroy Window
     void Terminate();
 

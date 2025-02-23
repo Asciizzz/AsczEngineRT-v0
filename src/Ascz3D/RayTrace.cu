@@ -10,17 +10,17 @@ struct RayHit {
 };
 
 __device__ Flt4 getTextureColor(
-    Flt2 &txtr, Flt4 *txtrFlat, TxtrPtr *txtrPtr, int mKd
+    float u, float v, Flt4 *txtrFlat, TxtrPtr *txtrPtr, int mKd
 ) {
-    txtr.x -= floor(txtr.x);
-    txtr.y -= floor(txtr.y);
+    u -= floor(u);
+    v -= floor(v);
 
     int tw = txtrPtr[mKd].w;
     int th = txtrPtr[mKd].h;
     int toff = txtrPtr[mKd].off;
 
-    int txtrX = txtr.x * tw;
-    int txtrY = txtr.y * th;
+    int txtrX = (int)(u * tw);
+    int txtrY = (int)(v * th);
 
     int t = txtrX + txtrY * tw + toff;
     return txtrFlat[t];
@@ -253,7 +253,7 @@ __global__ void raytraceKernel(
                 Flt2 &t0 = mt[tt.x], &t1 = mt[tt.y], &t2 = mt[tt.z];
                 Flt2 txtr = t0 * hitw + t1 * hit.u + t2 * hit.v;
 
-                Flt4 txColr = getTextureColor(txtr, txtrFlat, txtrPtr, hMtl.mKd);
+                Flt4 txColr = getTextureColor(txtr.x, txtr.y, txtrFlat, txtrPtr, hMtl.mKd);
 
                 if (txColr.w < 0.98f && rs_top + 1 < MAX_RAYS) {
                     // Create a new ray
@@ -271,9 +271,10 @@ __global__ void raytraceKernel(
             else if (gHit.type == AzGeom::SPHERE) {
                 float phi = acosf(-nrml.y);
                 float theta = atan2f(-nrml.z, -nrml.x) + M_PI;
-                Flt2 uv = Flt2(theta / M_2_PI, phi / M_PI);
+                float u = theta / M_2_PI;
+                float v = phi / M_PI;
 
-                Flt4 txColr = getTextureColor(uv, txtrFlat, txtrPtr, hMtl.mKd);
+                Flt4 txColr = getTextureColor(u, v, txtrFlat, txtrPtr, hMtl.mKd);
 
                 if (txColr.w < 0.98f && rs_top + 1 < MAX_RAYS) {
                     // Create a new ray
@@ -407,11 +408,11 @@ __global__ void raytraceKernel(
         resultColr += finalColr * ray.w;
     }
 
-    // Tone mapping
-    resultColr = ASESFilm(resultColr);
+    // // Tone mapping
+    // resultColr = ASESFilm(resultColr);
 
-    float _gamma = 1.0f / 2.2f;
-    resultColr = resultColr.pow(_gamma);
+    // float _gamma = 1.0f / 2.2f;
+    // resultColr = resultColr.pow(_gamma);
 
     int r = (int)(resultColr.x * 255);
     int g = (int)(resultColr.y * 255);
@@ -533,7 +534,7 @@ __global__ void pathtraceKernel(
                 Flt2 &t0 = mt[tt.x], &t1 = mt[tt.y], &t2 = mt[tt.z];
                 Flt2 txtr = t0 * hitw + t1 * hit.u + t2 * hit.v;
 
-                Flt4 txColr = getTextureColor(txtr, txtrFlat, txtrPtr, hMtl.mKd);
+                Flt4 txColr = getTextureColor(txtr.x, txtr.y, txtrFlat, txtrPtr, hMtl.mKd);
 
                 if (txColr.w < 0.98f && rs_top + 1 < MAX_RAYS) {
                     // Create a new ray
@@ -551,9 +552,10 @@ __global__ void pathtraceKernel(
             else if (gHit.type == AzGeom::SPHERE) {
                 float phi = acosf(-nrml.y);
                 float theta = atan2f(-nrml.z, -nrml.x) + M_PI;
-                Flt2 uv = Flt2(theta / M_2_PI, phi / M_PI);
+                float u = theta / M_2_PI;
+                float v = phi / M_PI;
 
-                Flt4 txColr = getTextureColor(uv, txtrFlat, txtrPtr, hMtl.mKd);
+                Flt4 txColr = getTextureColor(u, v, txtrFlat, txtrPtr, hMtl.mKd);
 
                 if (txColr.w < 0.98f && rs_top + 1 < MAX_RAYS) {
                     // Create a new ray
@@ -630,28 +632,9 @@ __global__ void pathtraceKernel(
                     if (mat2.noShadow) continue;
 
                     RayHit h = RayHitGeom(lPos, lDir, geom[gi], mv);
-                    if (h.idx == -1 || h.t > lDist) continue;
-
-                    if (mat2.Tr < 0.01f) {
+                    if (h.idx > -1 && h.t < lDist) {
                         shadow = true;
                         break;
-                    }
-
-                    passIntense *= mat2.Tr;
-
-                    if (mat2.mKd > -1) {
-                        float hw = 1 - h.u - h.v;
-
-                        Int3 &tt = geom[gi].tri.t;
-                        Flt2 &t0 = mt[tt.x], &t1 = mt[tt.y], &t2 = mt[tt.z];
-                        Flt2 tx = t0 * hw + t1 * h.u + t2 * h.v;
-                        tx.x -= floor(tx.x);
-                        tx.y -= floor(tx.y);
-
-                        Flt4 txColr = getTextureColor(tx, txtrFlat, txtrPtr, mat2.mKd);
-                        passColor += txColr.f3() * txColr.w;
-                    } else {
-                        passColor += mat2.Kd;
                     }
                 }
 

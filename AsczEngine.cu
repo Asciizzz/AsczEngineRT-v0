@@ -14,7 +14,7 @@
 int main() {
     // =================== Initialize FPS and Window ==============
     FpsHandler &FPS = FpsHandler::instance();
-    AsczWin WinMgr(900, 900, L"AsczEngineRT");
+    AsczWin WinMgr(900, 900, L"AsczEngineRT_v0");
 
     // =============== Initialize Important Managers ================
 
@@ -210,6 +210,15 @@ int main() {
                 BvhMgr.d_gIdx, BvhMgr.d_nodes, BvhMgr.nNum,
                 LightMgr.d_lSrc, LightMgr.num
             );
+
+        WinMgr.appendDebug(L"CAMERA", Int3(255));
+        WinMgr.appendDebug(L"Pos: " + std::to_wstring(CamMgr.pos.x) + L", " + std::to_wstring(CamMgr.pos.y) + L", " + std::to_wstring(CamMgr.pos.z), Int3(255));    
+        WinMgr.appendDebug(L"Rot: " + std::to_wstring(CamMgr.rot.x) + L", " + std::to_wstring(CamMgr.rot.y) + L", " + std::to_wstring(CamMgr.rot.z), Int3(255));
+        WinMgr.appendDebug(L"Fd: " + std::to_wstring(CamMgr.forward.x) + L", " + std::to_wstring(CamMgr.forward.y) + L", " + std::to_wstring(CamMgr.forward.z), Int3(255));
+        WinMgr.appendDebug(L"Rg: " + std::to_wstring(CamMgr.right.x) + L", " + std::to_wstring(CamMgr.right.y) + L", " + std::to_wstring(CamMgr.right.z), Int3(255));
+        WinMgr.appendDebug(L"Up: " + std::to_wstring(CamMgr.up.x) + L", " + std::to_wstring(CamMgr.up.y) + L", " + std::to_wstring(CamMgr.up.z), Int3(255));
+        WinMgr.appendDebug(L"Fov: " + std::to_wstring(CamMgr.fov * 180 / M_PI), Int3(255));
+        WinMgr.appendDebug(L"FPS: " + std::to_wstring(FPS.fps), Int3(255));
 
         WinMgr.Draw();
 
