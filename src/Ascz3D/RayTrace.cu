@@ -282,18 +282,23 @@ __global__ void raytraceKernel(
         // Lighting and shading
         Flt3 finalColr = alb * 0.1f;
 
+        if (!hMat.Ems.isZero()) {
+            resultColr += hMat.Ems * ray.w;
+            continue;
+        }
+
         // Direct lighting
         for (int l = 0; l < lNum; ++l) {
             // Get material and geometry data of light
-            const AzGeom &lGeom = geom[lSrc[l]];
+            int lIdx = lSrc[l];
+            const AzGeom &lGeom = geom[lIdx];
             const Material &lMat = mats[lGeom.m];
 
             // Get position based on the geometry type
             Flt3 lPos;
             if (lGeom.type == AzGeom::TRIANGLE) {
                 Int3 tv = lGeom.tri.v;
-                Flt3 &v0 = mv[tv.x], &v1 = mv[tv.y], &v2 = mv[tv.z];
-                lPos = (v0 + v1 + v2) / 3;
+                lPos = mv[tv.x] * hitw + mv[tv.y] * hit.u + mv[tv.z] * hit.v;
             }
             else if (lGeom.type == AzGeom::SPHERE) {
                 lPos = mv[lGeom.sph.c];
@@ -302,7 +307,6 @@ __global__ void raytraceKernel(
             Flt3 lDir = vrtx - lPos;
             float lDist = lDir.mag();
             lDir /= lDist;
-
             Flt3 lInv = 1.0f / lDir;
 
             // Reset the stack
@@ -334,7 +338,7 @@ __global__ void raytraceKernel(
 
                 for (int i = node.ll; i < node.lr; ++i) {
                     int gi = gIdxs[i];
-                    if (gi == hIdx || gi == lSrc[l]) continue;
+                    if (gi == hIdx || gi == lIdx) continue;
 
                     RayHit h = RayHitGeom(lPos, lDir, geom[gi], mv);
                     if (h.idx > -1 && h.t < lDist) {
@@ -369,6 +373,12 @@ __global__ void raytraceKernel(
 
         resultColr += finalColr * ray.w;
     }
+
+    // Tone mapping
+    resultColr = ASESFilm(resultColr);
+
+    float _gamma = 1.0f / 2.2f;
+    resultColr = resultColr.pow(_gamma);
 
     int r = (int)(resultColr.x * 255);
     int g = (int)(resultColr.y * 255);

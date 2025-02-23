@@ -107,7 +107,7 @@ struct Flt3 {
     __host__ __device__ Flt3 pow(float p);
 
     // Other
-    __host__ __device__ bool isZero();
+    __host__ __device__ bool isZero() const;
 
     // Transformations
     __host__ __device__ static Flt3 translate(Flt3 &v, const Flt3 &t);

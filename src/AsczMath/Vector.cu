@@ -168,7 +168,7 @@ Flt3 Flt3::pow(float p) {
 }
 
 // Other
-bool Flt3::isZero() {
+bool Flt3::isZero() const {
     return x == 0 && y == 0 && z == 0;
 }   
 
