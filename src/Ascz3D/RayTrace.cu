@@ -152,7 +152,7 @@ __device__ Flt3 randomHemisphereSample(curandState *rnd, const Flt3 &n) {
 __global__ void raytraceKernel(
     AsczCam camera, unsigned int *frmbuffer, int frmW, int frmH, // In-out
     Flt4 *txtrFlat, TxtrPtr *txtrPtr, // Textures
-    Material *mtls, // Materials
+    Material *mats, // Materials
     Flt3 *mv, Flt2 *mt, Flt3 *mn, // Primitive data
     AzGeom *geom, int gNum, // Geometry data
     int *gIdxs, DevNode *nodes, int nNum, // BVH data
@@ -225,7 +225,7 @@ __global__ void raytraceKernel(
         // Get the face data
         int hIdx = hit.idx;
         const AzGeom &gHit = geom[hIdx];
-        const Material &hMtl = mtls[gHit.m];
+        const Material &hMtl = mats[gHit.m];
 
         float hitw = 1 - hit.u - hit.v;
 
@@ -347,7 +347,7 @@ __global__ void raytraceKernel(
                     int gi = gIdxs[i];
                     if (gi == hIdx) continue;
 
-                    const Material &mat2 = mtls[geom[gi].m];
+                    const Material &mat2 = mats[geom[gi].m];
                     if (mat2.noShadow) continue;
 
                     RayHit h = RayHitGeom(lPos, lDir, geom[gi], mv);
@@ -427,7 +427,7 @@ __global__ void raytraceKernel(
 __global__ void pathtraceKernel(
     AsczCam camera, unsigned int *frmbuffer, int frmW, int frmH, // In-out
     Flt4 *txtrFlat, TxtrPtr *txtrPtr, // Textures
-    Material *mtls, // Materials
+    Material *mats, // Materials
     Flt3 *mv, Flt2 *mt, Flt3 *mn, // Primitive data
     AzGeom *geom, int gNum, // Geometry data
     int *gIdxs, DevNode *nodes, int nNum, // BVH data
@@ -450,8 +450,8 @@ __global__ void pathtraceKernel(
 
     curandState rnd;
     int bounce = 0;
-    int maxBounce = 1;
-    int rayPerBounce = 512;
+    int maxBounce = 4;
+    int rayPerBounce = 256;
 
     Flt3 resultColr;
     while (rs_top > 0) {
@@ -505,7 +505,7 @@ __global__ void pathtraceKernel(
         // Get the face data
         int hIdx = hit.idx;
         const AzGeom &gHit = geom[hIdx];
-        const Material &hMtl = mtls[gHit.m];
+        const Material &hMtl = mats[gHit.m];
 
         float hitw = 1 - hit.u - hit.v;
 
@@ -626,7 +626,7 @@ __global__ void pathtraceKernel(
                     int gi = gIdxs[i];
                     if (gi == hIdx) continue;
 
-                    const Material &mat2 = mtls[geom[gi].m];
+                    const Material &mat2 = mats[geom[gi].m];
                     if (mat2.noShadow) continue;
 
                     RayHit h = RayHitGeom(lPos, lDir, geom[gi], mv);

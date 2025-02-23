@@ -2,7 +2,7 @@
 #define UTILITY_CUH
 
 #include <AsczTxtr.cuh>
-#include <AsczMtl.cuh>
+#include <AsczMat.cuh>
 #include <AsczMesh.cuh>
 
 #include <fstream>
@@ -14,7 +14,7 @@
 class Utils {
 public:
     static void appendObj(
-        AsczMesh &meshMgr, AsczMtl &matMgr, AsczTxtr &txtrMgr,
+        AsczMesh &meshMgr, AsczMat &matMgr, AsczTxtr &txtrMgr,
         const char *objPath, short placement=0, float scale=1.0f, short fIdxBased=1
     );
 };

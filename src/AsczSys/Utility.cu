@@ -1,7 +1,7 @@
 #include <Utility.cuh>
 
 void Utils::appendObj(
-    AsczMesh &MeshMgr, AsczMtl &MtlMgr, AsczTxtr &TxtrMgr,
+    AsczMesh &MeshMgr, AsczMat &MatMgr, AsczTxtr &TxtrMgr,
     const char *objPath, short placement, float scale, short fIdxBased 
 ) {
     std::ifstream file(objPath);
@@ -137,51 +137,51 @@ void Utils::appendObj(
                 mtlSS >> mtlType;
 
                 if (mtlType == "newmtl") {
-                    matIdx = MtlMgr.appendMaterial(Material());
+                    matIdx = MatMgr.appendMaterial(Material());
                     std::string matName; mtlSS >> matName;
                     matMap[matName] = matIdx;
                 }
 
                 else if (mtlType == "Ka") {
                     Flt3 Ka; mtlSS >> Ka.x >> Ka.y >> Ka.z;
-                    MtlMgr.h_mtls[matIdx].Ka = Ka;
+                    MatMgr.h_mtls[matIdx].Ka = Ka;
                 }
 
                 else if (mtlType == "Kd") {
                     Flt3 Kd; mtlSS >> Kd.x >> Kd.y >> Kd.z;
-                    MtlMgr.h_mtls[matIdx].Kd = Kd;
+                    MatMgr.h_mtls[matIdx].Kd = Kd;
                 }
 
                 else if (mtlType == "Ks") {
                     Flt3 Ks; mtlSS >> Ks.x >> Ks.y >> Ks.z;
-                    MtlMgr.h_mtls[matIdx].Ks = Ks;
+                    MatMgr.h_mtls[matIdx].Ks = Ks;
                 } 
 
                 else if (mtlType == "map_Kd") {
                     std::string txtrPath; mtlSS >> txtrPath;
 
-                    MtlMgr.h_mtls[matIdx].mKd = TxtrMgr.appendTexture(
+                    MatMgr.h_mtls[matIdx].mKd = TxtrMgr.appendTexture(
                         (mtlDir + txtrPath).c_str()
                     );
                 }
 
                 else if (mtlType == "Ns") {
                     float Ns; mtlSS >> Ns;
-                    MtlMgr.h_mtls[matIdx].Ns = Ns;
+                    MatMgr.h_mtls[matIdx].Ns = Ns;
                 }
 
                 else if (mtlType == "Tr") {
                     float Tr; mtlSS >> Tr;
-                    MtlMgr.h_mtls[matIdx].Tr = Tr;
+                    MatMgr.h_mtls[matIdx].Tr = Tr;
                 }
                 else if (mtlType == "d") { // The opposite of Tr
                     float Tr; mtlSS >> Tr;
-                    MtlMgr.h_mtls[matIdx].Tr = 1 - Tr;
+                    MatMgr.h_mtls[matIdx].Tr = 1 - Tr;
                 }
 
                 else if (mtlType == "Ni") {
                     float Ni; mtlSS >> Ni;
-                    MtlMgr.h_mtls[matIdx].Ni = Ni;
+                    MatMgr.h_mtls[matIdx].Ni = Ni;
                 }
 
                 // Additional attributes can be added here
@@ -190,19 +190,19 @@ void Utils::appendObj(
 
                 else if (mtlType == "refl") {
                     float refl; mtlSS >> refl;
-                    MtlMgr.h_mtls[matIdx].reflect = refl;
+                    MatMgr.h_mtls[matIdx].reflect = refl;
                 }
 
                 else if (mtlType == "Fresnel") {
                     float fresnel; mtlSS >> fresnel;
-                    MtlMgr.h_mtls[matIdx].Fresnel = fresnel;
+                    MatMgr.h_mtls[matIdx].Fresnel = fresnel;
                 }
 
                 else if (mtlType == "NoShade") {
-                    MtlMgr.h_mtls[matIdx].noShade = true;
+                    MatMgr.h_mtls[matIdx].noShade = true;
                 }
                 else if (mtlType == "NoShadow") {
-                    MtlMgr.h_mtls[matIdx].noShadow = true;
+                    MatMgr.h_mtls[matIdx].noShadow = true;
                 }
             }
         }

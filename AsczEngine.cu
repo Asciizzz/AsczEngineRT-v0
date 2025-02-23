@@ -4,7 +4,7 @@
 #include <AsczLight.cuh>
 #include <AsczWin.cuh>
 #include <AsczTxtr.cuh>
-#include <AsczMtl.cuh>
+#include <AsczMat.cuh>
 #include <AsczMesh.cuh>
 #include <AsczBvh.cuh>
 #include <AsczCam.cuh>
@@ -21,7 +21,7 @@ int main() {
     // All managers
     AsczLight LightMgr;
     AsczTxtr TxtrMgr;
-    AsczMtl MtlMgr;
+    AsczMat MatMgr;
     AsczMesh MeshMgr;
     AsczBvh BvhMgr;
     AsczCam CamMgr;
@@ -87,7 +87,7 @@ int main() {
         ss >> objPath >> objPlacement >> objScale;
 
         Utils::appendObj(
-            MeshMgr, MtlMgr, TxtrMgr,
+            MeshMgr, MatMgr, TxtrMgr,
             objPath.c_str(), objPlacement, objScale
         );
     }
@@ -96,7 +96,7 @@ int main() {
 
     // Copy to device memory
     TxtrMgr.toDevice();
-    MtlMgr.toDevice();
+    MatMgr.toDevice();
     MeshMgr.toDevice();
 
     BvhMgr.designBVH(MeshMgr);
@@ -145,7 +145,7 @@ int main() {
             if (pathTracing)
                 pathtraceKernel<<<WinMgr.blockCount, WinMgr.threadCount>>>(
                     CamMgr, WinMgr.d_framebuffer, WinMgr.width, WinMgr.height,
-                    TxtrMgr.d_txtrFlat, TxtrMgr.d_txtrPtr, MtlMgr.d_mtls,
+                    TxtrMgr.d_txtrFlat, TxtrMgr.d_txtrPtr, MatMgr.d_mtls,
                     MeshMgr.d_v, MeshMgr.d_t, MeshMgr.d_n, MeshMgr.d_geom, MeshMgr.gNum,
                     BvhMgr.d_gIdx, BvhMgr.d_nodes, BvhMgr.nNum,
                     LightMgr.d_lSrc, LightMgr.num
@@ -205,7 +205,7 @@ int main() {
         if (!pathTracing)
             raytraceKernel<<<WinMgr.blockCount, WinMgr.threadCount>>>(
                 CamMgr, WinMgr.d_framebuffer, WinMgr.width, WinMgr.height,
-                TxtrMgr.d_txtrFlat, TxtrMgr.d_txtrPtr, MtlMgr.d_mtls,
+                TxtrMgr.d_txtrFlat, TxtrMgr.d_txtrPtr, MatMgr.d_mtls,
                 MeshMgr.d_v, MeshMgr.d_t, MeshMgr.d_n, MeshMgr.d_geom, MeshMgr.gNum,
                 BvhMgr.d_gIdx, BvhMgr.d_nodes, BvhMgr.nNum,
                 LightMgr.d_lSrc, LightMgr.num
@@ -221,7 +221,7 @@ int main() {
 
     // Free everything
     TxtrMgr.freeDevice();
-    MtlMgr.freeDevice();
+    MatMgr.freeDevice();
     MeshMgr.freeDevice();
     BvhMgr.freeDevice();
 

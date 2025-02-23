@@ -1,5 +1,5 @@
-#ifndef ASCZMTL_CUH
-#define ASCZMTL_CUH
+#ifndef AsczMat_CUH
+#define AsczMat_CUH
 
 #include <Vector.cuh>
 
@@ -23,7 +23,7 @@ struct Material {
     bool noShadow = false;
 };
 
-class AsczMtl {
+class AsczMat {
 public:
     // Host memory
     std::vector<Material> h_mtls = { Material() };

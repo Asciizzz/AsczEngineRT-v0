@@ -1,19 +1,19 @@
-#include <AsczMtl.cuh>
+#include <AsczMat.cuh>
 #include <cuda_runtime.h>
 
-int AsczMtl::appendMaterial(Material mtl) {
+int AsczMat::appendMaterial(Material mtl) {
     h_mtls.push_back(mtl);
     return mtlsNum++;
 }
 
-void AsczMtl::freeDevice() {
+void AsczMat::freeDevice() {
     if (d_mtls) {
         cudaFree(d_mtls);
         d_mtls = nullptr;
     }
 }
 
-void AsczMtl::toDevice() {
+void AsczMat::toDevice() {
     freeDevice();
     if (mtlsNum) {
         cudaMalloc(&d_mtls, mtlsNum * sizeof(Material));

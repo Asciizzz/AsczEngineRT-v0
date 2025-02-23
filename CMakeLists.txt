@@ -44,7 +44,7 @@ add_executable(AsczEngine
     src/Ascz3D/RayTrace.cu
 
     src/Ascz3Dx/AsczLight.cu
-    src/Ascz3Dx/AsczMtl.cu
+    src/Ascz3Dx/AsczMat.cu
     src/Ascz3Dx/AsczTxtr.cu
     src/Ascz3Dx/AsczMesh.cu
     src/Ascz3Dx/AsczBvh.cu
