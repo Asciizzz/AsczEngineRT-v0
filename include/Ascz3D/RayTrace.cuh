@@ -26,7 +26,7 @@ Static Path Tracing:
 __global__ void raytraceKernel(
     AsczCam camera, unsigned int *frmbuffer, int frmW, int frmH, // In-out
     Flt4 *txtrFlat, TxtrPtr *txtrPtr, // Textures
-    Material *mats, // Materials
+    AzMtl *mats, // Materials
     Flt3 *mv, Flt2 *mt, Flt3 *mn, // Primitive data
     AzGeom *geom, int gNum, // Geometry data
     int *lSrc, int lNum, // Light data
@@ -39,7 +39,7 @@ __global__ void raytraceKernel(
 __global__ void pathtraceKernel(
     AsczCam camera, unsigned int *frmbuffer, int frmW, int frmH, // In-out
     Flt4 *txtrFlat, TxtrPtr *txtrPtr, // Textures
-    Material *mats, // Materials
+    AzMtl *mats, // Materials
     Flt3 *mv, Flt2 *mt, Flt3 *mn, // Primitive data
     AzGeom *geom, int gNum, // Geometry data
     int *lSrc, int lNum, // Light data

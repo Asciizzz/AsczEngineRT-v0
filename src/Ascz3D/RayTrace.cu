@@ -152,7 +152,7 @@ __device__ Flt3 randomHemisphereSample(curandState *rnd, const Flt3 &n) {
 __global__ void raytraceKernel(
     AsczCam camera, unsigned int *frmbuffer, int frmW, int frmH, // In-out
     Flt4 *txtrFlat, TxtrPtr *txtrPtr, // Textures
-    Material *mats, // Materials
+    AzMtl *mats, // Materials
     Flt3 *mv, Flt2 *mt, Flt3 *mn, // Primitive data
     AzGeom *geom, int gNum, // Geometry data
     int *lSrc, int lNum, // Light data
@@ -228,7 +228,7 @@ __global__ void raytraceKernel(
         // Get the face data
         int hIdx = hit.idx;
         const AzGeom &gHit = geom[hIdx];
-        const Material &hMat = mats[gHit.m];
+        const AzMtl &hMat = mats[gHit.m];
 
         float hitw = 1 - hit.u - hit.v;
 
@@ -296,7 +296,7 @@ __global__ void raytraceKernel(
             // Get material and geometry data of light
             int lIdx = lSrc[l];
             const AzGeom &lGeom = geom[lIdx];
-            const Material &lMat = mats[lGeom.m];
+            const AzMtl &lMat = mats[lGeom.m];
 
             // Get position based on the geometry type
             Flt3 lPos;
@@ -395,7 +395,7 @@ __global__ void raytraceKernel(
 __global__ void pathtraceKernel(
     AsczCam camera, unsigned int *frmbuffer, int frmW, int frmH, // In-out
     Flt4 *txtrFlat, TxtrPtr *txtrPtr, // Textures
-    Material *mats, // Materials
+    AzMtl *mats, // Materials
     Flt3 *mv, Flt2 *mt, Flt3 *mn, // Primitive data
     AzGeom *geom, int gNum, // Geometry data
     int *lSrc, int lNum, // Light data
@@ -474,7 +474,7 @@ __global__ void pathtraceKernel(
         // Get the face data
         int hIdx = hit.idx;
         const AzGeom &gHit = geom[hIdx];
-        const Material &hMat = mats[gHit.m];
+        const AzMtl &hMat = mats[gHit.m];
 
         float hitw = 1 - hit.u - hit.v;
 
@@ -541,7 +541,7 @@ __global__ void pathtraceKernel(
             // Get material and geometry data of light
             int lIdx = lSrc[l];
             const AzGeom &lGeom = geom[lIdx];
-            const Material &lMat = mats[lGeom.m];
+            const AzMtl &lMat = mats[lGeom.m];
 
             // Get position based on the geometry type
             Flt3 lPos;

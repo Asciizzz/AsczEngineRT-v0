@@ -128,7 +128,7 @@ void Utils::appendObj(
             matEms = !MatMgr.h_mtls[matIdx].Ems.isZero();
         }
 
-        else if (type == "mtllib") {
+        else if (type == "mtllib" || type == "azmlib") {
             std::string mtlPath;
             ss >> mtlPath;
 
@@ -144,8 +144,8 @@ void Utils::appendObj(
                 std::string mtlType;
                 mtlSS >> mtlType;
 
-                if (mtlType == "newmtl") {
-                    matIdx = MatMgr.appendMaterial(Material());
+                if (mtlType == "newmtl" || mtlType == "newazm") {
+                    matIdx = MatMgr.appendMaterial(AzMtl());
                     std::string matName; mtlSS >> matName;
                     matMap[matName] = matIdx;
                 }

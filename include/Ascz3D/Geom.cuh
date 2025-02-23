@@ -19,7 +19,7 @@ struct AzGeom {
         } sph;
     };
 
-    int m = 0; // Material index
+    int m = 0; // AzMtl index
 
     AzGeom(Int3 tv, Int3 tt, Int3 tn, int m) :
         type(TRIANGLE), tri({ tv, tt, tn }), m(m) {}

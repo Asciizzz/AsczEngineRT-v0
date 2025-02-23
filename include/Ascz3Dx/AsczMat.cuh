@@ -3,7 +3,7 @@
 
 #include <Vector.cuh>
 
-struct Material {
+struct AzMtl {
     Flt3 Alb = 0.8f;
     int AlbMap = -1;
 
@@ -27,13 +27,13 @@ Diamond: 2.42
 class AsczMat {
 public:
     // Host memory
-    std::vector<Material> h_mtls = { Material() };
+    std::vector<AzMtl> h_mtls = { AzMtl() };
 
     // Device memory
-    Material *d_mtls = nullptr;
+    AzMtl *d_mtls = nullptr;
     int mtlsNum = 1;
 
-    int appendMaterial(Material mtl);
+    int appendMaterial(AzMtl mtl);
     void freeDevice();
     void toDevice();
 };
