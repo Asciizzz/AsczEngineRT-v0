@@ -30,7 +30,10 @@ __global__ void raytraceKernel(
     Flt3 *mv, Flt2 *mt, Flt3 *mn, // Primitive data
     AzGeom *geom, int gNum, // Geometry data
     int *lSrc, int lNum, // Light data
-    int *gIdx, DevNode *nodes, int nNum // BVH data
+    int *gIdx, DevNode *nodes, int nNum, // BVH data
+
+    // Additional Debug Data
+    bool falseAmbient = false
 );
 
 __global__ void pathtraceKernel(

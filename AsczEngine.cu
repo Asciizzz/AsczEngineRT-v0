@@ -99,6 +99,7 @@ int main() {
     std::string LOG = "";
 
     bool pathTracing = false;
+    bool falseAmbient = true; // Good for pitch black areas
 
     MSG msg = { 0 };
     while (msg.message != WM_QUIT) {
@@ -119,6 +120,12 @@ int main() {
 
             CamMgr.focus = !CamMgr.focus;
             ShowCursor(CamMgr.focus);
+        }
+
+        // Press E to toggle false ambient
+        if (WinMgr.keys['E']) {
+            WinMgr.keys['E'] = false;
+            falseAmbient = !falseAmbient;
         }
 
         // Press Q to toggle path tracing
@@ -194,9 +201,13 @@ int main() {
                 TxtrMgr.d_txtrFlat, TxtrMgr.d_txtrPtr, MatMgr.d_mtls,
                 MeshMgr.d_v, MeshMgr.d_t, MeshMgr.d_n, MeshMgr.d_geom, MeshMgr.gNum,
                 MeshMgr.d_lSrc, MeshMgr.lNum,
-                BvhMgr.d_gIdx, BvhMgr.d_nodes, BvhMgr.nNum
+                BvhMgr.d_gIdx, BvhMgr.d_nodes, BvhMgr.nNum,
+
+                falseAmbient
             );
 
+        WinMgr.appendDebug(L"AsczEngineRT_v0", Int3(155, 255, 155));
+        WinMgr.appendDebug(L"FPS: " + std::to_wstring(FPS.fps), Int3(0, 255, 0));
         WinMgr.appendDebug(L"CAMERA", Int3(255, 0, 0));
         WinMgr.appendDebug(L"Pos: " + std::to_wstring(CamMgr.pos.x) + L", " + std::to_wstring(CamMgr.pos.y) + L", " + std::to_wstring(CamMgr.pos.z), Int3(255));    
         WinMgr.appendDebug(L"Rot: " + std::to_wstring(CamMgr.rot.x) + L", " + std::to_wstring(CamMgr.rot.y) + L", " + std::to_wstring(CamMgr.rot.z), Int3(255));
@@ -204,7 +215,6 @@ int main() {
         WinMgr.appendDebug(L"Rg: " + std::to_wstring(CamMgr.right.x) + L", " + std::to_wstring(CamMgr.right.y) + L", " + std::to_wstring(CamMgr.right.z), Int3(255));
         WinMgr.appendDebug(L"Up: " + std::to_wstring(CamMgr.up.x) + L", " + std::to_wstring(CamMgr.up.y) + L", " + std::to_wstring(CamMgr.up.z), Int3(255));
         WinMgr.appendDebug(L"Fov: " + std::to_wstring(CamMgr.fov * 180 / M_PI), Int3(255));
-        WinMgr.appendDebug(L"FPS: " + std::to_wstring(FPS.fps), Int3(255));
 
         WinMgr.Draw();
 

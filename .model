@@ -21,7 +21,7 @@
 
 assets/Models/Structure/Buildings/Building001.obj 2 1
 
-#assets/Models/Shapes/Floor/Floor.obj 0 2
+assets/Models/Shapes/Floor/Floor.obj 0 2
 #assets/Models/Shapes/Ceiling/Ceiling.obj 0 1
 
 #assets/Models/Weapon/AK47.obj 2 0.2

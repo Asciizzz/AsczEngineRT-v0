@@ -156,7 +156,10 @@ __global__ void raytraceKernel(
     Flt3 *mv, Flt2 *mt, Flt3 *mn, // Primitive data
     AzGeom *geom, int gNum, // Geometry data
     int *lSrc, int lNum, // Light data
-    int *gIdxs, DevNode *nodes, int nNum // BVH data
+    int *gIdxs, DevNode *nodes, int nNum, // BVH data
+
+    // Additional Debug Data
+    bool falseAmbient
 ) {
     int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
     if (tIdx >= frmW * frmH) return;
@@ -280,7 +283,7 @@ __global__ void raytraceKernel(
         }
 
         // Lighting and shading
-        float NdotL = nrml * ray.d;
+        float NdotL = falseAmbient ? nrml * -ray.d : 0.0f;
         Flt3 finalColr = alb * 0.02f * NdotL * NdotL;
 
         if (!hMat.Ems.isZero()) {
@@ -415,7 +418,7 @@ __global__ void pathtraceKernel(
 
     curandState rnd;
     int bounce = 0;
-    int maxBounce = 4;
+    int maxBounce = 5;
     int rayPerBounce = 256;
 
     Flt3 resultColr;
