@@ -211,7 +211,7 @@ int main() {
                 LightMgr.d_lSrc, LightMgr.num
             );
 
-        WinMgr.appendDebug(L"CAMERA", Int3(255));
+        WinMgr.appendDebug(L"CAMERA", Int3(255, 0, 0));
         WinMgr.appendDebug(L"Pos: " + std::to_wstring(CamMgr.pos.x) + L", " + std::to_wstring(CamMgr.pos.y) + L", " + std::to_wstring(CamMgr.pos.z), Int3(255));    
         WinMgr.appendDebug(L"Rot: " + std::to_wstring(CamMgr.rot.x) + L", " + std::to_wstring(CamMgr.rot.y) + L", " + std::to_wstring(CamMgr.rot.z), Int3(255));
         WinMgr.appendDebug(L"Fd: " + std::to_wstring(CamMgr.forward.x) + L", " + std::to_wstring(CamMgr.forward.y) + L", " + std::to_wstring(CamMgr.forward.z), Int3(255));

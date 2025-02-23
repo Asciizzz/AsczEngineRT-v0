@@ -705,11 +705,11 @@ __global__ void pathtraceKernel(
         resultColr += finalColr * ray.w;
     }
 
-    // Tone mapping
-    resultColr = ASESFilm(resultColr);
+    // // Tone mapping
+    // resultColr = ASESFilm(resultColr);
 
-    float _gamma = 1.0f / 2.2f;
-    resultColr = resultColr.pow(_gamma);
+    // float _gamma = 1.0f / 2.2f;
+    // resultColr = resultColr.pow(_gamma);
 
     int r = (int)(resultColr.x * 255);
     int g = (int)(resultColr.y * 255);
