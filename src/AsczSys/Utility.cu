@@ -142,32 +142,17 @@ void Utils::appendObj(
                     matMap[matName] = matIdx;
                 }
 
-                else if (mtlType == "Ka") {
-                    Flt3 Ka; mtlSS >> Ka.x >> Ka.y >> Ka.z;
-                    MatMgr.h_mtls[matIdx].Ka = Ka;
-                }
-
                 else if (mtlType == "Kd") {
                     Flt3 Kd; mtlSS >> Kd.x >> Kd.y >> Kd.z;
-                    MatMgr.h_mtls[matIdx].Kd = Kd;
+                    MatMgr.h_mtls[matIdx].Alb = Kd;
                 }
-
-                else if (mtlType == "Ks") {
-                    Flt3 Ks; mtlSS >> Ks.x >> Ks.y >> Ks.z;
-                    MatMgr.h_mtls[matIdx].Ks = Ks;
-                } 
 
                 else if (mtlType == "map_Kd") {
                     std::string txtrPath; mtlSS >> txtrPath;
 
-                    MatMgr.h_mtls[matIdx].mKd = TxtrMgr.appendTexture(
+                    MatMgr.h_mtls[matIdx].AlbMap = TxtrMgr.appendTexture(
                         (mtlDir + txtrPath).c_str()
                     );
-                }
-
-                else if (mtlType == "Ns") {
-                    float Ns; mtlSS >> Ns;
-                    MatMgr.h_mtls[matIdx].Ns = Ns;
                 }
 
                 else if (mtlType == "Tr") {
@@ -181,28 +166,7 @@ void Utils::appendObj(
 
                 else if (mtlType == "Ni") {
                     float Ni; mtlSS >> Ni;
-                    MatMgr.h_mtls[matIdx].Ni = Ni;
-                }
-
-                // Additional attributes can be added here
-                // Even those that do no exist in a typical .mtl file
-                // for debugging of course
-
-                else if (mtlType == "refl") {
-                    float refl; mtlSS >> refl;
-                    MatMgr.h_mtls[matIdx].reflect = refl;
-                }
-
-                else if (mtlType == "Fresnel") {
-                    float fresnel; mtlSS >> fresnel;
-                    MatMgr.h_mtls[matIdx].Fresnel = fresnel;
-                }
-
-                else if (mtlType == "NoShade") {
-                    MatMgr.h_mtls[matIdx].noShade = true;
-                }
-                else if (mtlType == "NoShadow") {
-                    MatMgr.h_mtls[matIdx].noShadow = true;
+                    MatMgr.h_mtls[matIdx].Ior = Ni;
                 }
             }
         }

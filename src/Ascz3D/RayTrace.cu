@@ -10,14 +10,14 @@ struct RayHit {
 };
 
 __device__ Flt4 getTextureColor(
-    float u, float v, Flt4 *txtrFlat, TxtrPtr *txtrPtr, int mKd
+    float u, float v, Flt4 *txtrFlat, TxtrPtr *txtrPtr, int AlbMap
 ) {
     u -= floor(u);
     v -= floor(v);
 
-    int tw = txtrPtr[mKd].w;
-    int th = txtrPtr[mKd].h;
-    int toff = txtrPtr[mKd].off;
+    int tw = txtrPtr[AlbMap].w;
+    int th = txtrPtr[AlbMap].h;
+    int toff = txtrPtr[AlbMap].off;
 
     int txtrX = (int)(u * tw);
     int txtrY = (int)(v * th);
@@ -247,13 +247,13 @@ __global__ void raytraceKernel(
         }
 
         Flt3 hitKd;
-        if (hMtl.mKd > -1) {
+        if (hMtl.AlbMap > -1) {
             if (gHit.type == AzGeom::TRIANGLE) {
                 Int3 &tt = geom[hIdx].tri.t;
                 Flt2 &t0 = mt[tt.x], &t1 = mt[tt.y], &t2 = mt[tt.z];
                 Flt2 txtr = t0 * hitw + t1 * hit.u + t2 * hit.v;
 
-                Flt4 txColr = getTextureColor(txtr.x, txtr.y, txtrFlat, txtrPtr, hMtl.mKd);
+                Flt4 txColr = getTextureColor(txtr.x, txtr.y, txtrFlat, txtrPtr, hMtl.AlbMap);
 
                 if (txColr.w < 0.98f && rs_top + 1 < MAX_RAYS) {
                     // Create a new ray
@@ -261,7 +261,7 @@ __global__ void raytraceKernel(
                     ray.w *= txColr.w;
 
                     rstack[rs_top++] = Ray(
-                        vrtx + ray.d * EPSILON_1, ray.d, wLeft, ray.Ni
+                        vrtx + ray.d * EPSILON_1, ray.d, wLeft, ray.Ior
                     );
                     if (ray.w < 0.05f) continue;
                 }
@@ -274,28 +274,16 @@ __global__ void raytraceKernel(
                 float u = theta / M_2_PI;
                 float v = phi / M_PI;
 
-                Flt4 txColr = getTextureColor(u, v, txtrFlat, txtrPtr, hMtl.mKd);
-
-                if (txColr.w < 0.98f && rs_top + 1 < MAX_RAYS) {
-                    // Create a new ray
-                    float wLeft = ray.w * (1 - txColr.w);
-                    ray.w *= txColr.w;
-
-                    rstack[rs_top++] = Ray(
-                        vrtx + ray.d * EPSILON_1, ray.d, wLeft, ray.Ni
-                    );
-                    if (ray.w < 0.05f) continue;
-                }
-
+                Flt4 txColr = getTextureColor(u, v, txtrFlat, txtrPtr, hMtl.AlbMap);
                 hitKd = txColr.f3();
             }
         } else {
-            hitKd = hMtl.Kd;
+            hitKd = hMtl.Alb;
         }
 
         // Lighting and shading
 
-        Flt3 finalColr = (hMtl.Ka & hitKd);
+        Flt3 finalColr;
 
         // Global illumination
 
@@ -321,8 +309,6 @@ __global__ void raytraceKernel(
 
             bool shadow = false;
             while (ns_top > 0) {
-                if (hMtl.noShadow) break;
-
                 int idx = nstack[--ns_top];
                 DevNode &node = nodes[idx];
 
@@ -348,9 +334,6 @@ __global__ void raytraceKernel(
                     int gi = gIdxs[i];
                     if (gi == hIdx) continue;
 
-                    const Material &mat2 = mats[geom[gi].m];
-                    if (mat2.noShadow) continue;
-
                     RayHit h = RayHitGeom(lPos, lDir, geom[gi], mv);
                     if (h.idx > -1 && h.t < lDist) {
                         shadow = true;
@@ -374,342 +357,23 @@ __global__ void raytraceKernel(
             NdotL = NdotL < 0 ? 0 : NdotL;
             Flt3 diff = hitKd * NdotL;
 
-            Flt3 refl = Ray::reflect(-lDir, nrml);
-            Flt3 spec = hMtl.Ks * pow(refl * -ray.d, hMtl.Ns) * NdotL;
-
-            diff = hMtl.noShade ? hitKd : diff;
-            spec = hMtl.noShade ? Flt3(0, 0, 0) : spec;
-
-            finalColr += passColor & (spec + diff) * passIntense;
+            finalColr += passColor & diff * passIntense;
         }
 
         // ======== Additional rays ========
 
-        // Reflective
-        if (hMtl.reflect > 0.0f && rs_top + 1 < MAX_RAYS) {
-            float wLeft = ray.w * hMtl.reflect;
-            ray.w *= (1 - hMtl.reflect);
-
-            Flt3 rD = ray.reflect(nrml);
-            Flt3 rO = vrtx + nrml * EPSILON_1;
-
-            rstack[rs_top++] = Ray(rO, rD, wLeft, ray.Ni);
-        }
         // Transparent
-        else if (hMtl.Tr > 0.0f && rs_top + 1 < MAX_RAYS) {
+        if (hMtl.Tr > 0.0f && rs_top + 1 < MAX_RAYS) {
             float wLeft = ray.w * hMtl.Tr;
             ray.w *= (1 - hMtl.Tr);
 
             Flt3 rO = vrtx + ray.d * EPSILON_1;
 
-            rstack[rs_top++] = Ray(rO, ray.d, wLeft, hMtl.Ni);
+            rstack[rs_top++] = Ray(rO, ray.d, wLeft, hMtl.Ior);
         }
 
         resultColr += finalColr * ray.w;
     }
-
-    // // Tone mapping
-    // resultColr = ASESFilm(resultColr);
-
-    // float _gamma = 1.0f / 2.2f;
-    // resultColr = resultColr.pow(_gamma);
-
-    int r = (int)(resultColr.x * 255);
-    int g = (int)(resultColr.y * 255);
-    int b = (int)(resultColr.z * 255);
-
-    frmbuffer[tIdx] = (r << 16) | (g << 8) | b;
-}
-
-
-
-
-
-__global__ void pathtraceKernel(
-    AsczCam camera, unsigned int *frmbuffer, int frmW, int frmH, // In-out
-    Flt4 *txtrFlat, TxtrPtr *txtrPtr, // Textures
-    Material *mats, // Materials
-    Flt3 *mv, Flt2 *mt, Flt3 *mn, // Primitive data
-    AzGeom *geom, int gNum, // Geometry data
-    int *gIdxs, DevNode *nodes, int nNum, // BVH data
-    LightSrc *lSrc, int lNum // Light data
-) {
-    int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (tIdx >= frmW * frmH) return;
-
-    int x = tIdx % frmW, y = tIdx / frmW;
-    Ray primaryRay = camera.castRay(x, y, frmW, frmH);
-
-    const int MAX_RAYS = 1024;
-    const int MAX_NODES = 64;
-
-    Ray rstack[MAX_RAYS] = { primaryRay };
-    int rs_top = 1;
-
-    int nstack[MAX_NODES];
-    int ns_top = 0;
-
-    curandState rnd;
-    int bounce = 0;
-    int maxBounce = 4;
-    int rayPerBounce = 256;
-
-    Flt3 resultColr;
-    while (rs_top > 0) {
-        // Copy before pop since there's high chance of overwriting
-        Ray ray = rstack[--rs_top];
-        RayHit hit;
-
-        ns_top = 0;
-        nstack[ns_top++] = 0;
-
-        while (ns_top > 0) {
-            int nidx = nstack[--ns_top];
-            DevNode &node = nodes[nidx];
-
-            float hitDist = node.hitDist(ray.o, ray.invd);
-            if (hitDist < 0 || hitDist > hit.t) continue;
-
-            if (node.cl > -1) { // If node not a leaf
-                float ldist = nodes[node.cl].hitDist(ray.o, ray.invd);
-                float rdist = nodes[node.cr].hitDist(ray.o, ray.invd);
-
-                // Early exit
-                if (ldist < 0 && rdist < 0) continue;
-                // Push the valid node
-                else if (ldist < 0) nstack[ns_top++] = node.cr;
-                else if (rdist < 0) nstack[ns_top++] = node.cl;
-                // Push the closest node first
-                else {
-                    nstack[ns_top++] = ldist < rdist ? node.cr : node.cl;
-                    nstack[ns_top++] = ldist < rdist ? node.cl : node.cr;
-                }
-
-                continue;
-            }
-
-            for (int i = node.ll; i < node.lr; ++i) {
-                int gi = gIdxs[i];
-
-                RayHit h = RayHitGeom(ray.o, ray.d, geom[gi], mv);
-                if (h.idx == -1) continue;
-
-                if (h.t < hit.t) {
-                    hit = h;
-                    hit.idx = gi;
-                }
-            }
-        }
-
-        if (hit.idx == -1) continue;
-
-        // Get the face data
-        int hIdx = hit.idx;
-        const AzGeom &gHit = geom[hIdx];
-        const Material &hMtl = mats[gHit.m];
-
-        float hitw = 1 - hit.u - hit.v;
-
-        // Interpolated vertex
-        Flt3 vrtx = ray.o + ray.d * hit.t;
-
-        // Interpolated normal
-        Flt3 nrml;
-        if (gHit.type == AzGeom::TRIANGLE) {
-            Int3 &tn = geom[hIdx].tri.n;
-            if (tn.x > -1) {
-                Flt3 &n0 = mn[tn.x], &n1 = mn[tn.y], &n2 = mn[tn.z];
-                nrml = n0 * hitw + n1 * hit.u + n2 * hit.v;
-            }
-        }
-        else if (gHit.type == AzGeom::SPHERE) {
-            const int &cIdx = geom[hIdx].sph.c;
-            nrml = (vrtx - mv[cIdx]).norm();
-        }
-
-        Flt3 hitKd;
-        if (hMtl.mKd > -1) {
-            if (gHit.type == AzGeom::TRIANGLE) {
-                Int3 &tt = geom[hIdx].tri.t;
-                Flt2 &t0 = mt[tt.x], &t1 = mt[tt.y], &t2 = mt[tt.z];
-                Flt2 txtr = t0 * hitw + t1 * hit.u + t2 * hit.v;
-
-                Flt4 txColr = getTextureColor(txtr.x, txtr.y, txtrFlat, txtrPtr, hMtl.mKd);
-
-                if (txColr.w < 0.98f && rs_top + 1 < MAX_RAYS) {
-                    // Create a new ray
-                    float wLeft = ray.w * (1 - txColr.w);
-                    ray.w *= txColr.w;
-
-                    rstack[rs_top++] = Ray(
-                        vrtx + ray.d * EPSILON_1, ray.d, wLeft, ray.Ni
-                    );
-                    if (ray.w < 0.05f) continue;
-                }
-
-                hitKd = txColr.f3();
-            }
-            else if (gHit.type == AzGeom::SPHERE) {
-                float phi = acosf(-nrml.y);
-                float theta = atan2f(-nrml.z, -nrml.x) + M_PI;
-                float u = theta / M_2_PI;
-                float v = phi / M_PI;
-
-                Flt4 txColr = getTextureColor(u, v, txtrFlat, txtrPtr, hMtl.mKd);
-
-                if (txColr.w < 0.98f && rs_top + 1 < MAX_RAYS) {
-                    // Create a new ray
-                    float wLeft = ray.w * (1 - txColr.w);
-                    ray.w *= txColr.w;
-
-                    rstack[rs_top++] = Ray(
-                        vrtx + ray.d * EPSILON_1, ray.d, wLeft, ray.Ni
-                    );
-                    if (ray.w < 0.05f) continue;
-                }
-
-                hitKd = txColr.f3();
-            }
-        } else {
-            hitKd = hMtl.Kd;
-        }
-
-        // Lighting and shading
-
-        Flt3 finalColr;
-
-        // Global illumination
-
-        // Direct lighting
-        for (int l = 0; l < lNum; ++l) {
-            const LightSrc &light = lSrc[l];
-
-            Flt3 lPos = light.pos;
-
-            Flt3 lDir = vrtx - lPos;
-            float lDist = lDir.mag();
-            lDir /= lDist;
-
-            Flt3 lInv = 1.0f / lDir;
-
-            ns_top = 0;
-            nstack[ns_top++] = 0;
-
-            // Values for transparency
-            float passIntense = light.intens;
-            Flt3 passColor = light.colr;
-
-            bool shadow = false;
-            while (ns_top > 0) {
-                if (hMtl.noShadow) break;
-
-                int idx = nstack[--ns_top];
-                DevNode &node = nodes[idx];
-
-                float hitDist = node.hitDist(lPos, lInv);
-                if (hitDist < 0 || hitDist > lDist) continue;
-
-                if (node.cl > -1) { // If node not a leaf
-                    float ldist = nodes[node.cl].hitDist(lPos, lInv);
-                    float rdist = nodes[node.cr].hitDist(lPos, lInv);
-
-                    if (ldist < 0 && rdist < 0) continue;
-                    else if (ldist < 0) nstack[ns_top++] = node.cr;
-                    else if (rdist < 0) nstack[ns_top++] = node.cl;
-                    else {
-                        nstack[ns_top++] = ldist < rdist ? node.cr : node.cl;
-                        nstack[ns_top++] = ldist < rdist ? node.cl : node.cr;
-                    }
-
-                    continue;
-                }
-
-                for (int i = node.ll; i < node.lr; ++i) {
-                    int gi = gIdxs[i];
-                    if (gi == hIdx) continue;
-
-                    const Material &mat2 = mats[geom[gi].m];
-                    if (mat2.noShadow) continue;
-
-                    RayHit h = RayHitGeom(lPos, lDir, geom[gi], mv);
-                    if (h.idx > -1 && h.t < lDist) {
-                        shadow = true;
-                        break;
-                    }
-                }
-
-                if (shadow) break;
-            }
-
-            if (shadow) continue;
-
-            // Exponential falloff
-            if (light.falloff) {
-                float dist = lDist - light.bias;
-                float falloff = 1.0f / (1.0f + pow(dist / light.falloffDist, light.exp));
-                passIntense *= falloff;
-            }
-
-            float NdotL = nrml * -lDir;
-            NdotL = NdotL < 0 ? 0 : NdotL;
-            Flt3 diff = hitKd * NdotL;
-
-            Flt3 refl = Ray::reflect(-lDir, nrml);
-            Flt3 spec = hMtl.Ks * pow(refl * -ray.d, hMtl.Ns) * NdotL;
-
-            diff = hMtl.noShade ? hitKd : diff;
-            spec = hMtl.noShade ? Flt3(0, 0, 0) : spec;
-
-            finalColr += passColor & (spec + diff) * passIntense;
-        }
-
-        // Indirect lighting
-        if (bounce < maxBounce) {
-            ++bounce;
-            int curRayPerBounce = rayPerBounce / bounce;
-            float weightPerRay = ray.w / curRayPerBounce;
-            for (int i = 0; i < curRayPerBounce; ++i) {
-                Flt3 rO = vrtx + nrml * EPSILON_1;
-                Flt3 rD = randomHemisphereSample(&rnd, nrml);
-                float NdotL = nrml * rD;
-                float rW = weightPerRay * NdotL;
-
-                Ray rRay = Ray(rO, rD, rW, ray.Ni);
-
-                rstack[rs_top++] = rRay;
-            }
-        }
-
-        // ======== Additional rays ========
-
-        // Reflective
-        if (hMtl.reflect > 0.0f && rs_top + 1 < MAX_RAYS) {
-            float wLeft = ray.w * hMtl.reflect;
-            ray.w *= (1 - hMtl.reflect);
-
-            Flt3 rD = ray.reflect(nrml);
-            Flt3 rO = vrtx + nrml * EPSILON_1;
-
-            rstack[rs_top++] = Ray(rO, rD, wLeft, ray.Ni);
-        }
-        // Transparent
-        else if (hMtl.Tr > 0.0f && rs_top + 1 < MAX_RAYS) {
-            float wLeft = ray.w * hMtl.Tr;
-            ray.w *= (1 - hMtl.Tr);
-
-            Flt3 rO = vrtx + ray.d * EPSILON_1;
-
-            rstack[rs_top++] = Ray(rO, ray.d, wLeft, hMtl.Ni);
-        }
-
-        resultColr += finalColr * ray.w;
-    }
-
-    // // Tone mapping
-    // resultColr = ASESFilm(resultColr);
-
-    // float _gamma = 1.0f / 2.2f;
-    // resultColr = resultColr.pow(_gamma);
 
     int r = (int)(resultColr.x * 255);
     int g = (int)(resultColr.y * 255);

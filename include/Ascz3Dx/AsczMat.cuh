@@ -4,23 +4,15 @@
 #include <Vector.cuh>
 
 struct Material {
-    // True mtl attributes
-    Flt3 Ka = 0.0f;
-    Flt3 Kd = 0.8f;
-    Flt3 Ks = 0.3f;
-    int mKd = -1;
+    Flt3 Alb = 0.8f;
+    int AlbMap = -1;
 
-    float Ns = 32.0f;
+    float Rough = 0.5f;
+    float Metal = 0.0f;
+    Flt3 Ems = 0.0f;
+    float Ior = 1.5;
+    float Spec = 0.0f;
     float Tr = 0.0f;
-
-    // Not in a usual mtl file
-    float reflect = 0.0f;
-
-    float Fresnel = 0.0f;
-    float Ni = 1.0f;
-
-    bool noShade = false;
-    bool noShadow = false;
 };
 
 class AsczMat {

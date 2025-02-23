@@ -106,6 +106,9 @@ struct Flt3 {
     // Power
     __host__ __device__ Flt3 pow(float p);
 
+    // Other
+    __host__ __device__ bool isZero();
+
     // Transformations
     __host__ __device__ static Flt3 translate(Flt3 &v, const Flt3 &t);
     __host__ __device__ static Flt3 rotate(Flt3 &v, const Flt3 &o, const Flt3 &n, const float w); // RIght-hand rule

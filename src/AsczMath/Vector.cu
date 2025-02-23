@@ -167,6 +167,11 @@ Flt3 Flt3::pow(float p) {
     return *this;
 }
 
+// Other
+bool Flt3::isZero() {
+    return x == 0 && y == 0 && z == 0;
+}   
+
 
 // Transformations
 Flt3 Flt3::translate(Flt3& v, const Flt3& t) {
