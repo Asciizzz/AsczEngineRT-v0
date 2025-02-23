@@ -155,8 +155,8 @@ __global__ void raytraceKernel(
     Material *mats, // Materials
     Flt3 *mv, Flt2 *mt, Flt3 *mn, // Primitive data
     AzGeom *geom, int gNum, // Geometry data
-    int *gIdxs, DevNode *nodes, int nNum, // BVH data
-    LightSrc *lSrc, int lNum // Light data
+    int *lSrc, int lNum, // Light data
+    int *gIdxs, DevNode *nodes, int nNum // BVH data
 ) {
     int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
     if (tIdx >= frmW * frmH) return;
@@ -225,7 +225,7 @@ __global__ void raytraceKernel(
         // Get the face data
         int hIdx = hit.idx;
         const AzGeom &gHit = geom[hIdx];
-        const Material &hMtl = mats[gHit.m];
+        const Material &hMat = mats[gHit.m];
 
         float hitw = 1 - hit.u - hit.v;
 
@@ -237,8 +237,7 @@ __global__ void raytraceKernel(
         if (gHit.type == AzGeom::TRIANGLE) {
             Int3 &tn = geom[hIdx].tri.n;
             if (tn.x > -1) {
-                Flt3 &n0 = mn[tn.x], &n1 = mn[tn.y], &n2 = mn[tn.z];
-                nrml = n0 * hitw + n1 * hit.u + n2 * hit.v;
+                nrml = mn[tn.x] * hitw + mn[tn.y] * hit.u + mn[tn.z] * hit.v;
             }
         }
         else if (gHit.type == AzGeom::SPHERE) {
@@ -246,14 +245,13 @@ __global__ void raytraceKernel(
             nrml = (vrtx - mv[cIdx]).norm();
         }
 
-        Flt3 hitKd;
-        if (hMtl.AlbMap > -1) {
+        Flt3 alb;
+        if (hMat.AlbMap > -1) {
             if (gHit.type == AzGeom::TRIANGLE) {
                 Int3 &tt = geom[hIdx].tri.t;
-                Flt2 &t0 = mt[tt.x], &t1 = mt[tt.y], &t2 = mt[tt.z];
-                Flt2 txtr = t0 * hitw + t1 * hit.u + t2 * hit.v;
+                Flt2 txtr = mt[tt.x] * hitw + mt[tt.y] * hit.u + mt[tt.z] * hit.v;
 
-                Flt4 txColr = getTextureColor(txtr.x, txtr.y, txtrFlat, txtrPtr, hMtl.AlbMap);
+                Flt4 txColr = getTextureColor(txtr.x, txtr.y, txtrFlat, txtrPtr, hMat.AlbMap);
 
                 if (txColr.w < 0.98f && rs_top + 1 < MAX_RAYS) {
                     // Create a new ray
@@ -266,7 +264,7 @@ __global__ void raytraceKernel(
                     if (ray.w < 0.05f) continue;
                 }
 
-                hitKd = txColr.f3();
+                alb = txColr.f3();
             }
             else if (gHit.type == AzGeom::SPHERE) {
                 float phi = acosf(-nrml.y);
@@ -274,34 +272,38 @@ __global__ void raytraceKernel(
                 float u = theta / M_2_PI;
                 float v = phi / M_PI;
 
-                Flt4 txColr = getTextureColor(u, v, txtrFlat, txtrPtr, hMtl.AlbMap);
-                hitKd = txColr.f3();
+                Flt4 txColr = getTextureColor(u, v, txtrFlat, txtrPtr, hMat.AlbMap);
+                alb = txColr.f3();
             }
         } else {
-            hitKd = hMtl.Alb;
+            alb = hMat.Alb;
         }
 
         // Lighting and shading
-
-        Flt3 finalColr;
-
-        // Global illumination
+        Flt3 finalColr = alb * 0.1f;
 
         // Direct lighting
         for (int l = 0; l < lNum; ++l) {
-            const LightSrc &light = lSrc[l];
+            // Get material and geometry data of light
+            const AzGeom &lGeom = geom[lSrc[l]];
+            const Material &lMat = mats[lGeom.m];
 
-            // Light properties
-            Flt3 lPos = light.pos;
+            // Get position based on the geometry type
+            Flt3 lPos;
+            if (lGeom.type == AzGeom::TRIANGLE) {
+                Int3 tv = lGeom.tri.v;
+                Flt3 &v0 = mv[tv.x], &v1 = mv[tv.y], &v2 = mv[tv.z];
+                lPos = (v0 + v1 + v2) / 3;
+            }
+            else if (lGeom.type == AzGeom::SPHERE) {
+                lPos = mv[lGeom.sph.c];
+            }
 
             Flt3 lDir = vrtx - lPos;
             float lDist = lDir.mag();
             lDir /= lDist;
 
             Flt3 lInv = 1.0f / lDir;
-
-            float passIntense = light.intens;
-            Flt3 passColor = light.colr;
 
             // Reset the stack
             ns_top = 0;
@@ -332,7 +334,7 @@ __global__ void raytraceKernel(
 
                 for (int i = node.ll; i < node.lr; ++i) {
                     int gi = gIdxs[i];
-                    if (gi == hIdx) continue;
+                    if (gi == hIdx || gi == lSrc[l]) continue;
 
                     RayHit h = RayHitGeom(lPos, lDir, geom[gi], mv);
                     if (h.idx > -1 && h.t < lDist) {
@@ -346,30 +348,23 @@ __global__ void raytraceKernel(
 
             if (shadow) continue;
 
-            // Exponential falloff
-            if (light.falloff) {
-                float dist = lDist - light.bias;
-                float falloff = 1.0f / (1.0f + pow(dist / light.falloffDist, light.exp));
-                passIntense *= falloff;
-            }
-
             float NdotL = nrml * -lDir;
             NdotL = NdotL < 0 ? 0 : NdotL;
-            Flt3 diff = hitKd * NdotL;
+            Flt3 diff = alb * NdotL;
 
-            finalColr += passColor & diff * passIntense;
+            finalColr += lMat.Ems & diff;
         }
 
         // ======== Additional rays ========
 
         // Transparent
-        if (hMtl.Tr > 0.0f && rs_top + 1 < MAX_RAYS) {
-            float wLeft = ray.w * hMtl.Tr;
-            ray.w *= (1 - hMtl.Tr);
+        if (hMat.Tr > 0.0f && rs_top + 1 < MAX_RAYS) {
+            float wLeft = ray.w * hMat.Tr;
+            ray.w *= (1 - hMat.Tr);
 
             Flt3 rO = vrtx + ray.d * EPSILON_1;
 
-            rstack[rs_top++] = Ray(rO, ray.d, wLeft, hMtl.Ior);
+            rstack[rs_top++] = Ray(rO, ray.d, wLeft, hMat.Ior);
         }
 
         resultColr += finalColr * ray.w;

@@ -1,7 +1,6 @@
 #include <FpsHandler.cuh>
 #include <Utility.cuh>
 
-#include <AsczLight.cuh>
 #include <AsczWin.cuh>
 #include <AsczTxtr.cuh>
 #include <AsczMat.cuh>
@@ -19,7 +18,6 @@ int main() {
     // =============== Initialize Important Managers ================
 
     // All managers
-    AsczLight LightMgr;
     AsczTxtr TxtrMgr;
     AsczMat MatMgr;
     AsczMesh MeshMgr;
@@ -48,16 +46,6 @@ int main() {
             ss >> CamMgr.slowFactor;
         else if (type == "FastFactor")
             ss >> CamMgr.fastFactor;
-
-        if (type == "LightSrc") {
-            LightSrc lSrc; ss >>
-                lSrc.pos.x >> lSrc.pos.y >> lSrc.pos.z >>
-                lSrc.colr.x >> lSrc.colr.y >> lSrc.colr.z >>
-                lSrc.intens >>
-                lSrc.falloff >> lSrc.bias >> lSrc.exp >> lSrc.falloffDist;
-
-            LightMgr.appendLight(lSrc);
-        }
 
         if (type == "MaxDepth")
             ss >> BvhMgr.MAX_DEPTH;
@@ -101,8 +89,6 @@ int main() {
 
     BvhMgr.designBVH(MeshMgr);
     BvhMgr.toDevice();
-
-    LightMgr.toDevice();
 
     // ========================================================================
     // ========================================================================
@@ -207,8 +193,8 @@ int main() {
                 CamMgr, WinMgr.d_framebuffer, WinMgr.width, WinMgr.height,
                 TxtrMgr.d_txtrFlat, TxtrMgr.d_txtrPtr, MatMgr.d_mtls,
                 MeshMgr.d_v, MeshMgr.d_t, MeshMgr.d_n, MeshMgr.d_geom, MeshMgr.gNum,
-                BvhMgr.d_gIdx, BvhMgr.d_nodes, BvhMgr.nNum,
-                LightMgr.d_lSrc, LightMgr.num
+                MeshMgr.d_lSrc, MeshMgr.lNum,
+                BvhMgr.d_gIdx, BvhMgr.d_nodes, BvhMgr.nNum
             );
 
         WinMgr.appendDebug(L"CAMERA", Int3(255, 0, 0));
