@@ -127,15 +127,15 @@ int main() {
             pathTracing = !pathTracing;
             CamMgr.focus = !pathTracing;
 
-            // // Render a single frame
-            // if (pathTracing)
-            //     pathtraceKernel<<<WinMgr.blockCount, WinMgr.threadCount>>>(
-            //         CamMgr, WinMgr.d_framebuffer, WinMgr.width, WinMgr.height,
-            //         TxtrMgr.d_txtrFlat, TxtrMgr.d_txtrPtr, MatMgr.d_mtls,
-            //         MeshMgr.d_v, MeshMgr.d_t, MeshMgr.d_n, MeshMgr.d_geom, MeshMgr.gNum,
-            //         BvhMgr.d_gIdx, BvhMgr.d_nodes, BvhMgr.nNum,
-            //         LightMgr.d_lSrc, LightMgr.num
-            //     );
+            // Render a single frame
+            if (pathTracing)
+                pathtraceKernel<<<WinMgr.blockCount, WinMgr.threadCount>>>(
+                    CamMgr, WinMgr.d_framebuffer, WinMgr.width, WinMgr.height,
+                    TxtrMgr.d_txtrFlat, TxtrMgr.d_txtrPtr, MatMgr.d_mtls,
+                    MeshMgr.d_v, MeshMgr.d_t, MeshMgr.d_n, MeshMgr.d_geom, MeshMgr.gNum,
+                    MeshMgr.d_lSrc, MeshMgr.lNum,
+                    BvhMgr.d_gIdx, BvhMgr.d_nodes, BvhMgr.nNum
+                );
         }
 
         if (CamMgr.focus && !pathTracing) {

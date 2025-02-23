@@ -2,8 +2,8 @@
 
 // Constructors
 Ray::Ray() {};
-Ray::Ray(Flt3 o, Flt3 d, float w, float Ior) :
-    o(o), d(d), invd(1.0f / d), w(w), Ior(Ior) {};
+Ray::Ray(Flt3 o, Flt3 d, float w, float Ior, int ignore) :
+    o(o), d(d), invd(1.0f / d), w(w), Ior(Ior), ignore(ignore) {}
 
 // Reflection + refraction
 Flt3 Ray::reflect(const Flt3 &n) {
