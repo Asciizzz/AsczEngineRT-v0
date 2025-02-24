@@ -145,8 +145,8 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 <p align="center">
   <img src="assets/Demos/PathTracing.png" alt="Demo Image"/>
   <small><i>Path tracing with indirect lighting.</i></small>
-
-###### Notice how the wall color bleeds onto the sphere, that's indirect lighting.
+  <small><i>Notice how the wall color bleeds onto the sphere, that's indirect lighting.</i></small>
+</p>
 
 ---
 

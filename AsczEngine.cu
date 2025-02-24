@@ -96,8 +96,6 @@ int main() {
     // Hide cursor
     ShowCursor(FALSE);
 
-    std::string LOG = "";
-
     bool pathTracing = false;
     bool falseAmbient = true; // Good for pitch black areas
 
