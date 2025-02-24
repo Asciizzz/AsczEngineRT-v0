@@ -242,6 +242,8 @@ __global__ void raytraceKernel(
             alb = hMat.Alb;
         }
 
+        // resultColr += alb; continue;
+
         // Lighting and shading
         float NdotL = falseAmbient ? nrml * ray.d : 0.0f;
         Flt3 finalColr = alb * 0.02f * NdotL * NdotL;
