@@ -144,14 +144,12 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 
 <p align="center">
   <img src="assets/Demos/PathTracing1.png" alt="Demo Image"/>
-  <small><i>Path tracing with indirect lighting.</i></small>
+  <small><i>Cornell Box with Path tracing.</i></small>
 </p>
 
 <p align="center">
-  <img src="assets/Demos/PathTracing2off.png" alt="Demo Image"/>
-  <small><i>Without Path Tracing</i></small>
-  <img src="assets/Demos/PathTracing2on.png" alt="Demo Image"/>
-  <small><i>With Path Tracing</i></small>
+  <img src="assets/Demos/PathTracing2.png" alt="Demo Image"/>
+  <small><i>Without vs With Path Tracing</i></small>
 </p>
 
 ---
