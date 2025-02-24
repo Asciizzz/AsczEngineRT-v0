@@ -382,8 +382,6 @@ __global__ void pathtraceKernel(
     int maxBounce = 5;
     int rayPerBounce = 256;
 
-    int shadowRay = 12;
-
     Flt3 resultColr;
     while (rs_top > 0) {
         // Copy before pop since there's high chance of overwriting
@@ -497,18 +495,7 @@ __global__ void pathtraceKernel(
             Flt3 lPos;
             if (lGeom.type == AzGeom::TRIANGLE) {
                 Int3 tv = lGeom.tri.v;
-                // lPos = (mv[tv.x] + mv[tv.y] + mv[tv.z]) / 3;
-
-                // Generate random u, v
-                float u = curand_uniform(&rnd);
-                float v = curand_uniform(&rnd);
-                if (u + v > 1) {
-                    u = 1 - u;
-                    v = 1 - v;
-                }
-                float w = 1 - u - v;
-
-                lPos = mv[tv.x] * w + mv[tv.y] * u + mv[tv.z] * v;
+                lPos = (mv[tv.x] + mv[tv.y] + mv[tv.z]) / 3;
             }
             else if (lGeom.type == AzGeom::SPHERE) {
                 lPos = mv[lGeom.sph.c];
