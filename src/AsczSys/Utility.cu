@@ -63,11 +63,8 @@ void Utils::appendObj(
                 // Check for texture index (skip if missing)
                 if (ss2.peek() == '/') {
                     ss2.ignore(1); // Ignore the first '/'
-                    if (ss2.peek() != '/') {
-                        ss2 >> t; // Read texture index if present
-                    } else {
-                        t = fIdxBased - 1; // No texture index provided
-                    }
+                    if (ss2.peek() != '/') ss2 >> t;
+                    else t = fIdxBased - 1;
                 } else {
                     t = fIdxBased - 1; // No slashes, so no texture coordinate
                 }
@@ -118,7 +115,7 @@ void Utils::appendObj(
             mSO_AB.push_back(AABB());
         }
 
-        else if (type == "usemtl") {
+        else if (type == "usemtl" || type == "AzMtl") {
             std::string matName;
             ss >> matName;
 
@@ -128,7 +125,7 @@ void Utils::appendObj(
             matEms = !MatMgr.h_mtls[matIdx].Ems.isZero();
         }
 
-        else if (type == "mtllib" || type == "azmlib") {
+        else if (type == "mtllib" || type == "AzmLib") {
             std::string mtlPath;
             ss >> mtlPath;
 
