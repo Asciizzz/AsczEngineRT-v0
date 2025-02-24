@@ -360,7 +360,8 @@ __global__ void raytraceKernel(
             float wLeft = ray.w * hMat.Tr;
             ray.w *= (1 - hMat.Tr);
 
-            rstack[rs_top++] = Ray(vrtx, ray.d, wLeft, hMat.Ior, hIdx);
+            Flt3 rO = vrtx + ray.d * EPSILON_1;
+            rstack[rs_top++] = Ray(rO, ray.d, wLeft, hMat.Ior, hIdx);
         }
 
         resultColr += finalColr * ray.w;
@@ -541,7 +542,6 @@ __global__ void pathtraceKernel(
             Flt3 lDir = vrtx - lPos;
             float lDist = lDir.mag();
             if (lDist < 0.01f) continue;
-
             lDir /= lDist;
             Flt3 lInv = 1.0f / lDir;
 
