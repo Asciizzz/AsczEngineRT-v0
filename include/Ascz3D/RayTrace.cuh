@@ -32,23 +32,13 @@ __global__ void raytraceKernel(
     // Textures
     float *tr, float *tg, float *tb, float *ta, int *tw, int *th, int *toff,
     // Geometry data
-    AzGeom *geom, int gNum,
+    int *fv0, int *fv1, int *fv2, int *ft0, int *ft1, int *ft2, int *fn0, int *fn1, int *fn2, int *fm,
     // Light data
     int *lSrc, int lNum, 
     // BVH data
     int *gIdx, DevNode *nodes, int nNum, 
     // Additional Debug Data
-    bool falseAmbient = false
+    bool falseAmbient
 );
-
-// __global__ void pathtraceKernel(
-//     AsczCam camera, unsigned int *frmbuffer, int frmW, int frmH, // In-out
-//     Flt4 *txtrFlat, TxtrPtr *txtrPtr, // Textures
-//     AzMtl *mats, // Materials
-//     Flt3 *mv, Flt2 *mt, Flt3 *mn, // Primitive data
-//     AzGeom *geom, int gNum, // Geometry data
-//     int *lSrc, int lNum, // Light data
-//     int *gIdx, DevNode *nodes, int nNum // BVH data
-// );
 
 #endif

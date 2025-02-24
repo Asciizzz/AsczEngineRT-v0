@@ -86,30 +86,6 @@ __device__ RayHit RayHitSphere(const Flt3 &o, const Flt3 &d, const Flt3 &sc, flo
     return hit;
 }
 
-__device__ RayHit RayHitGeom(const Flt3 &o, const Flt3 &d, AzGeom &g, float *vx, float *vy, float *vz) {
-    RayHit hit;
-
-    if (g.type == AzGeom::TRIANGLE) {
-        Int3 &fv = g.tri.v;
-
-        Flt3 v0 = { vx[fv.x], vy[fv.x], vz[fv.x] };
-        Flt3 v1 = { vx[fv.y], vy[fv.y], vz[fv.y] };
-        Flt3 v2 = { vx[fv.z], vy[fv.z], vz[fv.z] };
-
-        hit = RayHitTriangle(o, d, v0, v1, v2);
-    }
-    else if (g.type == AzGeom::SPHERE) {
-        int cIdx = g.sph.c;
-
-        Flt3 sc = { vx[cIdx], vy[cIdx], vz[cIdx] };
-        float sr = g.sph.r;
-
-        hit = RayHitSphere(o, d, sc, sr);
-    }
-
-    return hit;
-}
-
 __device__ Flt3 ASESFilm(const Flt3 &P) {
     const float a = 2.51f;
     const float b = 0.03f;
@@ -160,7 +136,7 @@ __global__ void raytraceKernel(
     // Textures
     float *tr, float *tg, float *tb, float *ta, int *tw, int *th, int *toff,
     // Geometry data
-    AzGeom *geom, int gNum,
+    int *fv0, int *fv1, int *fv2, int *ft0, int *ft1, int *ft2, int *fn0, int *fn1, int *fn2, int *fm,
     // Light data
     int *lSrc, int lNum, 
     // BVH data
@@ -221,7 +197,12 @@ __global__ void raytraceKernel(
                 int gi = gIdx[i];
                 if (gi == ray.ignore) continue;
 
-                RayHit h = RayHitGeom(ray.o, ray.d, geom[gi], vx, vy, vz);
+                // Create the data since SoA is super unreadable
+                Flt3 v0 = Flt3(vx[fv0[gi]], vy[fv0[gi]], vz[fv0[gi]]);
+                Flt3 v1 = Flt3(vx[fv1[gi]], vy[fv1[gi]], vz[fv1[gi]]);
+                Flt3 v2 = Flt3(vx[fv2[gi]], vy[fv2[gi]], vz[fv2[gi]]);
+
+                RayHit h = RayHitTriangle(ray.o, ray.d, v0, v1, v2);
                 if (h.idx == -1) continue;
 
                 if (h.t < hit.t) {
@@ -235,53 +216,32 @@ __global__ void raytraceKernel(
         if (hIdx == -1) continue;
 
         // Get the face data
-        const AzGeom &gHit = geom[hIdx];
-        const AzMtl &hMat = mats[gHit.m];
+        const AzMtl &hMat = mats[fm[hIdx]];
 
         float hitw = 1 - hit.u - hit.v;
 
-        // Interpolated vertex
         Flt3 vrtx = ray.o + ray.d * hit.t;
 
-        // Interpolated normal
         Flt3 nrml;
-        if (gHit.type == AzGeom::TRIANGLE) {
-            Int3 &tn = geom[hIdx].tri.n;
-            if (tn.x > -1) {
-                nrml.x = nx[tn.x] * hitw + nx[tn.y] * hit.u + nx[tn.z] * hit.v;
-                nrml.y = ny[tn.x] * hitw + ny[tn.y] * hit.u + ny[tn.z] * hit.v;
-                nrml.z = nz[tn.x] * hitw + nz[tn.y] * hit.u + nz[tn.z] * hit.v;
-            }
-        }
-        else if (gHit.type == AzGeom::SPHERE) {
-            int cIdx = geom[hIdx].sph.c;
-            nrml.x = vrtx.x - vx[cIdx];
-            nrml.y = vrtx.y - vy[cIdx];
-            nrml.z = vrtx.z - vz[cIdx];
-        }
+        Int3 tn = Int3(fn0[hIdx], fn1[hIdx], fn2[hIdx]);
+        nrml.x = nx[tn.x] * hitw + nx[tn.y] * hit.u + nx[tn.z] * hit.v;
+        nrml.y = ny[tn.x] * hitw + ny[tn.y] * hit.u + ny[tn.z] * hit.v;
+        nrml.z = nz[tn.x] * hitw + nz[tn.y] * hit.u + nz[tn.z] * hit.v;
 
         Flt3 alb;
         if (hMat.AlbMap > -1) {
-            if (gHit.type == AzGeom::TRIANGLE) {
-                Int3 &tt = geom[hIdx].tri.t;
-                float u = tx[tt.x] * hitw + tx[tt.y] * hit.u + tx[tt.z] * hit.v;
-                float v = ty[tt.x] * hitw + ty[tt.y] * hit.u + ty[tt.z] * hit.v;
+            Int3 tt = Int3(ft0[hIdx], ft1[hIdx], ft2[hIdx]);
+            float u = tx[tt.x] * hitw + tx[tt.y] * hit.u + tx[tt.z] * hit.v;
+            float v = ty[tt.x] * hitw + ty[tt.y] * hit.u + ty[tt.z] * hit.v;
 
-                Flt4 txColr = getTextureColor(u, v, tr, tg, tb, ta, tw, th, toff, hMat.AlbMap);
-                alb = txColr.f3();
-            }
-            else if (gHit.type == AzGeom::SPHERE) {
-                float phi = acosf(-nrml.y);
-                float theta = atan2f(-nrml.z, -nrml.x) + M_PI;
-                float u = theta / M_2_PI;
-                float v = phi / M_PI;
-
-                Flt4 txColr = getTextureColor(u, v, tr, tg, tb, ta, tw, th, toff, hMat.AlbMap);
-                alb = txColr.f3();
-            }
+            Flt4 txColr = getTextureColor(u, v, tr, tg, tb, ta, tw, th, toff, hMat.AlbMap);
+            alb = txColr.f3();
         } else {
             alb = hMat.Alb;
         }
+
+        // resultColr += alb * ray.w;
+        // continue;
 
         // Lighting and shading
         float NdotL = falseAmbient ? nrml * ray.d : 0.0f;
@@ -296,22 +256,14 @@ __global__ void raytraceKernel(
         for (int l = 0; l < lNum; ++l) {
             // Get material and geometry data of light
             int lIdx = lSrc[l];
-            const AzGeom &lGeom = geom[lIdx];
-            const AzMtl &lMat = mats[lGeom.m];
+            const AzMtl &lMat = mats[fm[lIdx]];
 
             // Get position based on the geometry type
             Flt3 lPos;
-            if (lGeom.type == AzGeom::TRIANGLE) {
-                Int3 tv = lGeom.tri.v;
-                lPos.x = (vx[tv.x] + vx[tv.y] + vx[tv.z]) / 3;
-                lPos.y = (vy[tv.x] + vy[tv.y] + vy[tv.z]) / 3;
-                lPos.z = (vz[tv.x] + vz[tv.y] + vz[tv.z]) / 3;
-            }
-            else if (lGeom.type == AzGeom::SPHERE) {
-                lPos.x = vx[lGeom.sph.c];
-                lPos.y = vy[lGeom.sph.c];
-                lPos.z = vz[lGeom.sph.c];
-            }
+            Int3 tv = Int3(fv0[lIdx], fv1[lIdx], fv2[lIdx]);
+            lPos.x = (vx[tv.x] + vx[tv.y] + vx[tv.z]) / 3;
+            lPos.y = (vy[tv.x] + vy[tv.y] + vy[tv.z]) / 3;
+            lPos.z = (vz[tv.x] + vz[tv.y] + vz[tv.z]) / 3;
 
             Flt3 lDir = vrtx - lPos;
             float lDist = lDir.mag();
@@ -351,7 +303,10 @@ __global__ void raytraceKernel(
                     int gi = gIdx[i];
                     if (gi == hIdx || gi == lIdx) continue;
 
-                    RayHit h = RayHitGeom(lPos, lDir, geom[gi], vx, vy, vz);
+                    Flt3 v0 = Flt3(vx[fv0[gi]], vy[fv0[gi]], vz[fv0[gi]]);
+                    Flt3 v1 = Flt3(vx[fv1[gi]], vy[fv1[gi]], vz[fv1[gi]]);
+                    Flt3 v2 = Flt3(vx[fv2[gi]], vy[fv2[gi]], vz[fv2[gi]]);
+                    RayHit h = RayHitTriangle(lPos, lDir, v0, v1, v2);
                     if (h.idx > -1 && h.t < lDist) {
                         shadow = true;
                         break;

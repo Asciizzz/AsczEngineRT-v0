@@ -201,8 +201,9 @@ int main() {
                 MatMgr.d_mtls,
                 TxtrMgr.d_tr, TxtrMgr.d_tg, TxtrMgr.d_tb, TxtrMgr.d_ta, TxtrMgr.d_tw, TxtrMgr.d_th, TxtrMgr.d_toff,
 
-                MeshMgr.d_geom, MeshMgr.gNum,
+                MeshMgr.d_fv0, MeshMgr.d_fv1, MeshMgr.d_fv2, MeshMgr.d_ft0, MeshMgr.d_ft1, MeshMgr.d_ft2, MeshMgr.d_fn0, MeshMgr.d_fn1, MeshMgr.d_fn2, MeshMgr.d_fm,
                 MeshMgr.d_lSrc, MeshMgr.lNum,
+
                 BvhMgr.d_gIdx, BvhMgr.d_nodes, BvhMgr.nNum,
 
                 falseAmbient

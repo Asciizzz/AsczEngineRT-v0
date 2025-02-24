@@ -11,7 +11,10 @@ void Utils::appendObj(
     Vec2f mt;
     Vec3f mn;
 
-    VecGeom mgeom;
+    Vec3i mfv;
+    Vec3i mft;
+    Vec3i mfn;
+    VecI mfm;
     VecI mlSrc;
 
     VecI mSOrF;
@@ -84,13 +87,12 @@ void Utils::appendObj(
 
             // Triangulate the face
             for (int i = 1; i < vs.size() - 1; ++i) {
-                if (matEms) mlSrc.push_back(mgeom.size());
+                if (matEms) mlSrc.push_back(mfv.size());
 
-                mgeom.push_back(AzGeom(
-                    Int3(vs[0], vs[i], vs[i + 1]),
-                    Int3(ts[0], ts[i], ts[i + 1]),
-                    Int3(ns[0], ns[i], ns[i + 1]),
-                matIdx));
+                mfv.push_back(Int3(vs[0], vs[i], vs[i + 1]));
+                mft.push_back(Int3(ts[0], ts[i], ts[i + 1]));
+                mfn.push_back(Int3(ns[0], ns[i], ns[i + 1]));
+                mfm.push_back(matIdx);
             }
 
             // Expand the AABB  
@@ -111,7 +113,7 @@ void Utils::appendObj(
         }
 
         else if (type == "o") {
-            mSOrF.push_back(mgeom.size());
+            mSOrF.push_back(mfv.size());
             mSO_AB.push_back(AABB());
         }
 
@@ -190,21 +192,8 @@ void Utils::appendObj(
                 }
             }
         }
-
-        // STUFF THAT DO NOT EXIST IN A TYPICAL .OBJ FILE
-        else if (type == "sph") {
-            int c; float r; ss >> c >> r;
-            mgeom.push_back(AzGeom(c - fIdxBased, r, matIdx));
-
-            // Get the AABB of the sphere
-            Flt3 sc = mv[c - fIdxBased];
-            AABB ab(sc - r, sc + r);
-
-            mO_AB.expand(ab);
-            mSO_AB.back().expand(ab);
-        }
     }
-    mSOrF.push_back(mgeom.size());
+    mSOrF.push_back(mfv.size());
     mSOrF.erase(mSOrF.begin());
 
     // ---------------------------------------------------------
@@ -241,7 +230,10 @@ void Utils::appendObj(
     mesh.v = mv;
     mesh.t = mt;
     mesh.n = mn;
-    mesh.geom = mgeom;
+    mesh.fv = mfv;
+    mesh.ft = mft;
+    mesh.fn = mfn;
+    mesh.fm = mfm;
     mesh.SOrF = mSOrF;
     mesh.O_AB = mO_AB;
     mesh.SO_AB = mSO_AB;

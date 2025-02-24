@@ -1,7 +1,7 @@
 #ifndef ASCZMESH_CUH
 #define ASCZMESH_CUH
 
-#include <Geom.cuh>
+#include <Vector.cuh>
 
 /* OrSO and SOrF explanation:
 
@@ -84,7 +84,11 @@ struct MeshStruct {
     Vec2f t;
     Vec3f n;
 
-    VecGeom geom;
+    Vec3i fv;
+    Vec3i ft;
+    Vec3i fn;
+    VecI  fm; // Face materials
+
     VecI lSrc; // Light sources
 
     VecI  SOrF; // Sub-objects
@@ -106,7 +110,11 @@ public:
     VecF h_nz;
 
     // Geometry
-    VecGeom h_geom;
+    // VecGeom h_geom;
+    VecI h_fv0, h_fv1, h_fv2; // Face vertices index
+    VecI h_ft0, h_ft1, h_ft2; // Face textures index
+    VecI h_fn0, h_fn1, h_fn2; // Face normals index
+    VecI h_fm; // Face materials index
 
     int oNum = 0; // Number of objects
     VecI  OrSO = {0}; // Object references sub-objects
@@ -123,11 +131,17 @@ public:
     void appendMesh(MeshStruct mesh);
 
     // Device memory
-    float *d_vx = nullptr, *d_vy = nullptr, *d_vz = nullptr; int vNum = 0;
-    float *d_tx = nullptr, *d_ty = nullptr; int tNum = 0;
-    float *d_nx = nullptr, *d_ny = nullptr, *d_nz = nullptr; int nNum = 0;
+    float *d_vx = nullptr, *d_vy = nullptr, *d_vz = nullptr;  int vNum = 0;
+    float *d_tx = nullptr, *d_ty = nullptr;                   int tNum = 0;
+    float *d_nx = nullptr, *d_ny = nullptr, *d_nz = nullptr;  int nNum = 0;
 
-    AzGeom *d_geom = nullptr; int gNum = 0;
+    // AzGeom *d_geom = nullptr; int gNum = 0;
+    int *d_fv0 = nullptr, *d_fv1 = nullptr, *d_fv2 = nullptr;
+    int *d_ft0 = nullptr, *d_ft1 = nullptr, *d_ft2 = nullptr;
+    int *d_fn0 = nullptr, *d_fn1 = nullptr, *d_fn2 = nullptr;
+    int *d_fm  = nullptr;
+    int gNum   = 0;
+
     int *d_lSrc = nullptr; int lNum = 0;
 
     void freeDevice();
