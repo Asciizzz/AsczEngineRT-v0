@@ -379,8 +379,8 @@ __global__ void pathtraceKernel(
 
     curandState rnd;
     int bounce = 0;
-    int maxBounce = 5;
-    int rayPerBounce = 256;
+    int maxBounce = 2;
+    int rayPerBounce = 512;
 
     Flt3 resultColr;
     while (rs_top > 0) {

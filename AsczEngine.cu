@@ -205,7 +205,8 @@ int main() {
             );
 
         WinMgr.appendDebug(L"AsczEngineRT_v0", Int3(155, 255, 155));
-        WinMgr.appendDebug(L"FPS: " + std::to_wstring(FPS.fps), Int3(0, 255, 0));
+        std::wstring fps = pathTracing ? L"-" : std::to_wstring(FPS.fps);
+        WinMgr.appendDebug(L"FPS: " + fps, Int3(0, 255, 0));
         WinMgr.appendDebug(L"CAMERA", Int3(255, 0, 0));
         WinMgr.appendDebug(L"Pos: " + std::to_wstring(CamMgr.pos.x) + L", " + std::to_wstring(CamMgr.pos.y) + L", " + std::to_wstring(CamMgr.pos.z), Int3(255));    
         WinMgr.appendDebug(L"Rot: " + std::to_wstring(CamMgr.rot.x) + L", " + std::to_wstring(CamMgr.rot.y) + L", " + std::to_wstring(CamMgr.rot.z), Int3(255));
