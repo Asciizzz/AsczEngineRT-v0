@@ -10,7 +10,7 @@ struct RayHit {
 };
 
 __device__ Flt4 getTextureColor(
-    float u, float v, Flt4 *flat, TxtrPtr *ptr, int AlbMap
+    float u, float v, Flt4 *flat, TxPtr *ptr, int AlbMap
 ) {
     u -= floor(u);
     v -= floor(v);
@@ -122,7 +122,7 @@ __device__ Flt3 randomHemisphereSample(curandState *rnd, const Flt3 &n) {
 
 __global__ void raytraceKernel(
     AsczCam camera, unsigned int *frmbuffer, int frmW, int frmH, // In-out
-    Flt4 *tflat, TxtrPtr *tptr, // Textures
+    Flt4 *tflat, TxPtr *tptr, // Textures
     AzMtl *mats, // Materials
     Flt3 *mv, Flt2 *mt, Flt3 *mn, // Primitive data
     AzGeom *geom, int gNum, // Geometry data
@@ -355,7 +355,7 @@ __global__ void raytraceKernel(
 
 __global__ void pathtraceKernel(
     AsczCam camera, unsigned int *frmbuffer, int frmW, int frmH, // In-out
-    Flt4 *tflat, TxtrPtr *tptr, // Textures
+    Flt4 *tflat, TxPtr *tptr, // Textures
     AzMtl *mats, // Materials
     Flt3 *mv, Flt2 *mt, Flt3 *mn, // Primitive data
     AzGeom *geom, int gNum, // Geometry data

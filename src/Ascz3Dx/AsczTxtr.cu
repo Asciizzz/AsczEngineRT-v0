@@ -41,8 +41,8 @@ void AsczTxtr::toDevice() {
     freeDevice();
 
     cudaMalloc(&d_flat, size * sizeof(Flt4));
-    cudaMalloc(&d_ptr, count * sizeof(TxtrPtr));
+    cudaMalloc(&d_ptr, count * sizeof(TxPtr));
 
     cudaMemcpy(d_flat, h_flat.data(), size * sizeof(Flt4), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_ptr, h_ptr.data(), count * sizeof(TxtrPtr), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_ptr, h_ptr.data(), count * sizeof(TxPtr), cudaMemcpyHostToDevice);
 }
