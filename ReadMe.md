@@ -94,6 +94,10 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
     - If total cost < current cost, this is a better split point => Update
     - Do this many times until you find the best split point, or until you reach the max depth.
 
+<p align="center">
+  <img src="assets/Demos/SAHBVH.png" alt="SAH BVH"/>
+</p>
+
 - Now that we have our bounding boxes, what’s next? Well, there are some **"minor" tweaks** that can help **boost performance** by a sizable margin:
   - **Child ordering** and **Early Exit**: Essentially, *"If the left box is closer to the right box, check the left box first"*. If the ray hits something in the left box, there's no need to check the right box, since that hit intersection is closer than any potential intersection in the right box.
 
