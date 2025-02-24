@@ -614,14 +614,13 @@ __global__ void pathtraceKernel(
         // ======== Additional rays ========
 
         // Transparent
-        if (hMat.Tr > 0.0f && rs_top + 1 < MAX_RAYS) {
+        if (hMat.Tr > 0.0f && rs_top + 2 < MAX_RAYS) {
             float wLeft = ray.w * hMat.Tr;
             ray.w *= (1 - hMat.Tr);
 
-            rstack[rs_top++] = Ray(vrtx, ray.d, wLeft, hMat.Ior, hIdx);
+            Flt3 rO = vrtx + ray.d * EPSILON_1;
+            rstack[rs_top++] = Ray(rO, ray.d, wLeft, hMat.Ior, hIdx);
         }
-
-        resultColr += finalColr * ray.w;
     }
 
     // Tone mapping
