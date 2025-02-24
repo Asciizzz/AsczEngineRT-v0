@@ -212,6 +212,7 @@ __global__ void raytraceKernel(
 
             for (int i = node.ll; i < node.lr; ++i) {
                 int gi = gIdxs[i];
+                if (gi == ray.ignore) continue;
 
                 RayHit h = RayHitGeom(ray.o, ray.d, geom[gi], mv);
                 if (h.idx == -1) continue;
@@ -239,12 +240,11 @@ __global__ void raytraceKernel(
         Flt3 nrml;
         if (gHit.type == AzGeom::TRIANGLE) {
             Int3 &tn = geom[hIdx].tri.n;
-            if (tn.x > -1) {
+            if (tn.x > -1)
                 nrml = mn[tn.x] * hitw + mn[tn.y] * hit.u + mn[tn.z] * hit.v;
-            }
         }
         else if (gHit.type == AzGeom::SPHERE) {
-            const int &cIdx = geom[hIdx].sph.c;
+            int cIdx = geom[hIdx].sph.c;
             nrml = (vrtx - mv[cIdx]).norm();
         }
 
@@ -255,18 +255,6 @@ __global__ void raytraceKernel(
                 Flt2 txtr = mt[tt.x] * hitw + mt[tt.y] * hit.u + mt[tt.z] * hit.v;
 
                 Flt4 txColr = getTextureColor(txtr.x, txtr.y, txtrFlat, txtrPtr, hMat.AlbMap);
-
-                if (txColr.w < 0.98f && rs_top + 1 < MAX_RAYS) {
-                    // Create a new ray
-                    float wLeft = ray.w * (1 - txColr.w);
-                    ray.w *= txColr.w;
-
-                    rstack[rs_top++] = Ray(
-                        vrtx + ray.d * EPSILON_1, ray.d, wLeft, ray.Ior
-                    );
-                    if (ray.w < 0.05f) continue;
-                }
-
                 alb = txColr.f3();
             }
             else if (gHit.type == AzGeom::SPHERE) {
@@ -370,9 +358,7 @@ __global__ void raytraceKernel(
             float wLeft = ray.w * hMat.Tr;
             ray.w *= (1 - hMat.Tr);
 
-            Flt3 rO = vrtx + ray.d * EPSILON_1;
-
-            rstack[rs_top++] = Ray(rO, ray.d, wLeft, hMat.Ior);
+            rstack[rs_top++] = Ray(vrtx, ray.d, wLeft, hMat.Ior, hIdx);
         }
 
         resultColr += finalColr * ray.w;
@@ -632,9 +618,7 @@ __global__ void pathtraceKernel(
             float wLeft = ray.w * hMat.Tr;
             ray.w *= (1 - hMat.Tr);
 
-            Flt3 rO = vrtx + ray.d * EPSILON_1;
-
-            rstack[rs_top++] = Ray(rO, ray.d, wLeft, hMat.Ior, hIdx);
+            rstack[rs_top++] = Ray(vrtx, ray.d, wLeft, hMat.Ior, hIdx);
         }
 
         resultColr += finalColr * ray.w;
