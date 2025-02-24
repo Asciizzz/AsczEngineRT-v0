@@ -534,6 +534,7 @@ __global__ void pathtraceKernel(
                     u = 1 - u;
                     v = 1 - v;
                 }
+
                 float w = 1 - u - v;
 
                 lPos = mv[tv.x] * w + mv[tv.y] * u + mv[tv.z] * v;
