@@ -36,7 +36,8 @@ __global__ void raytraceKernel(
     // Light data
     int *lSrc, int lNum, 
     // BVH data
-    int *gIdx, DevNode *nodes, int nNum, 
+    int *gIdx, DevNode *nodes, int nNum,
+
     // Additional Debug Data
     bool falseAmbient
 );

@@ -30,37 +30,28 @@ __device__ Flt4 getTextureColor(
 
 // Ray intersection
 
-__device__ RayHit RayHitTriangle(const Flt3 &o, const Flt3 &d, const Flt3 &v0, const Flt3 &v1, const Flt3 &v2) {
-    RayHit hit;
-
+__device__ Flt3 RayHitTriangle(const Flt3 &o, const Flt3 &d, const Flt3 &v0, const Flt3 &v1, const Flt3 &v2) {
     Flt3 e1 = v1 - v0;
     Flt3 e2 = v2 - v0;
     Flt3 h = d ^ e2;
     float a = e1 * h;
 
-    if (a == 0) return hit;
+    if (a == 0) return -1.0f;
 
     float f = 1.0f / a;
     Flt3 s = o - v0;
     float u = f * (s * h);
 
-    if (u < 0.0f || u > 1.0f) return hit;
+    if (u < 0.0f || u > 1.0f) return -1.0f;
 
     Flt3 q = s ^ e1;
     float v = f * (d * q);
 
-    if (v < 0.0f || u + v > 1.0f) return hit;
+    if (v < 0.0f || u + v > 1.0f) return -1.0f;
 
     float t = f * (e2 * q);
 
-    if (t > 0) {
-        hit.idx = 1;
-        hit.t = t;
-        hit.u = u;
-        hit.v = v;
-    }
-
-    return hit;
+    return Flt3(t, u, v);
 }
 
 __device__ RayHit RayHitSphere(const Flt3 &o, const Flt3 &d, const Flt3 &sc, float sr) {
@@ -202,11 +193,12 @@ __global__ void raytraceKernel(
                 Flt3 v1 = Flt3(vx[fv1[gi]], vy[fv1[gi]], vz[fv1[gi]]);
                 Flt3 v2 = Flt3(vx[fv2[gi]], vy[fv2[gi]], vz[fv2[gi]]);
 
-                RayHit h = RayHitTriangle(ray.o, ray.d, v0, v1, v2);
-                if (h.idx == -1) continue;
-
-                if (h.t < hit.t) {
-                    hit = h;
+                // x: t, y: u, z: v
+                Flt3 h = RayHitTriangle(ray.o, ray.d, v0, v1, v2);
+                if (h.x > 0 && h.x < hit.t) {
+                    hit.t = h.x;
+                    hit.u = h.y;
+                    hit.v = h.z;
                     hit.idx = gi;
                 }
             }
@@ -216,28 +208,27 @@ __global__ void raytraceKernel(
         if (hIdx == -1) continue;
 
         // Get the face data
-        const AzMtl &hMat = mats[fm[hIdx]];
+        const AzMtl &hm = mats[fm[hIdx]];
 
         float hitw = 1 - hit.u - hit.v;
 
         Flt3 vrtx = ray.o + ray.d * hit.t;
 
         Flt3 nrml;
-        Int3 tn = Int3(fn0[hIdx], fn1[hIdx], fn2[hIdx]);
-        nrml.x = nx[tn.x] * hitw + nx[tn.y] * hit.u + nx[tn.z] * hit.v;
-        nrml.y = ny[tn.x] * hitw + ny[tn.y] * hit.u + ny[tn.z] * hit.v;
-        nrml.z = nz[tn.x] * hitw + nz[tn.y] * hit.u + nz[tn.z] * hit.v;
+        nrml.x = nx[fn0[hIdx]] * hitw + nx[fn1[hIdx]] * hit.u + nx[fn2[hIdx]] * hit.v;
+        nrml.y = ny[fn0[hIdx]] * hitw + ny[fn1[hIdx]] * hit.u + ny[fn2[hIdx]] * hit.v;
+        nrml.z = nz[fn0[hIdx]] * hitw + nz[fn1[hIdx]] * hit.u + nz[fn2[hIdx]] * hit.v;
 
         Flt3 alb;
-        if (hMat.AlbMap > -1) {
+        if (hm.AlbMap > -1) {
             Int3 tt = Int3(ft0[hIdx], ft1[hIdx], ft2[hIdx]);
             float u = tx[tt.x] * hitw + tx[tt.y] * hit.u + tx[tt.z] * hit.v;
             float v = ty[tt.x] * hitw + ty[tt.y] * hit.u + ty[tt.z] * hit.v;
 
-            Flt4 txColr = getTextureColor(u, v, tr, tg, tb, ta, tw, th, toff, hMat.AlbMap);
+            Flt4 txColr = getTextureColor(u, v, tr, tg, tb, ta, tw, th, toff, hm.AlbMap);
             alb = txColr.f3();
         } else {
-            alb = hMat.Alb;
+            alb = hm.Alb;
         }
 
         // resultColr += alb * ray.w;
@@ -247,8 +238,8 @@ __global__ void raytraceKernel(
         float NdotL = falseAmbient ? nrml * ray.d : 0.0f;
         Flt3 finalColr = alb * 0.02f * NdotL * NdotL;
 
-        if (!hMat.Ems.isZero()) {
-            resultColr += hMat.Ems * ray.w;
+        if (!hm.Ems.isZero()) {
+            resultColr += hm.Ems * ray.w;
             continue;
         }
 
@@ -306,8 +297,8 @@ __global__ void raytraceKernel(
                     Flt3 v0 = Flt3(vx[fv0[gi]], vy[fv0[gi]], vz[fv0[gi]]);
                     Flt3 v1 = Flt3(vx[fv1[gi]], vy[fv1[gi]], vz[fv1[gi]]);
                     Flt3 v2 = Flt3(vx[fv2[gi]], vy[fv2[gi]], vz[fv2[gi]]);
-                    RayHit h = RayHitTriangle(lPos, lDir, v0, v1, v2);
-                    if (h.idx > -1 && h.t < lDist) {
+                    Flt3 h = RayHitTriangle(lPos, lDir, v0, v1, v2);
+                    if (h.x > 0 && h.x < lDist) {
                         shadow = true;
                         break;
                     }
@@ -328,12 +319,12 @@ __global__ void raytraceKernel(
         // ======== Additional rays ========
 
         // Transparent
-        if (hMat.Tr > 0.0f && rs_top + 2 < MAX_RAYS) {
-            float wLeft = ray.w * hMat.Tr;
-            ray.w *= (1 - hMat.Tr);
+        if (hm.Tr > 0.0f && rs_top + 2 < MAX_RAYS) {
+            float wLeft = ray.w * hm.Tr;
+            ray.w *= (1 - hm.Tr);
 
             Flt3 rO = vrtx + ray.d * EPSILON_1;
-            rstack[rs_top++] = Ray(rO, ray.d, wLeft, hMat.Ior, hIdx);
+            rstack[rs_top++] = Ray(rO, ray.d, wLeft, hm.Ior, hIdx);
         }
 
         resultColr += finalColr * ray.w;

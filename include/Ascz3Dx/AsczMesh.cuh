@@ -135,7 +135,6 @@ public:
     float *d_tx = nullptr, *d_ty = nullptr;                   int tNum = 0;
     float *d_nx = nullptr, *d_ny = nullptr, *d_nz = nullptr;  int nNum = 0;
 
-    // AzGeom *d_geom = nullptr; int gNum = 0;
     int *d_fv0 = nullptr, *d_fv1 = nullptr, *d_fv2 = nullptr;
     int *d_ft0 = nullptr, *d_ft1 = nullptr, *d_ft2 = nullptr;
     int *d_fn0 = nullptr, *d_fn1 = nullptr, *d_fn2 = nullptr;
