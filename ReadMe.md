@@ -143,9 +143,15 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 - I cast path tracing signature move: **Global Illumination**, or more specifically, **Indirect Lighting**. Irl, light bounces off multiple surfaces while obeying the law of energy conservation, and path tracing tries to simulate that by casting multiple rays per pixel and averaging the result using contribution calculations and stuff.
 
 <p align="center">
-  <img src="assets/Demos/PathTracing.png" alt="Demo Image"/>
+  <img src="assets/Demos/PathTracing1.png" alt="Demo Image"/>
   <small><i>Path tracing with indirect lighting.</i></small>
-  <small><i>Notice how the wall color bleeds onto the sphere, that's indirect lighting.</i></small>
+</p>
+
+<p align="center">
+  <img src="assets/Demos/PathTracing2off.png" alt="Demo Image"/>
+  <small><i>Without Path Tracing</i></small>
+  <img src="assets/Demos/PathTracing2on.png" alt="Demo Image"/>
+  <small><i>With Path Tracing</i></small>
 </p>
 
 ---
