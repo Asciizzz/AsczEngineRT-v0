@@ -54,27 +54,44 @@ __device__ Flt3 RayHitTriangle(const Flt3 &o, const Flt3 &d, const Flt3 &v0, con
     return Flt3(t, u, v);
 }
 
-__device__ RayHit RayHitSphere(const Flt3 &o, const Flt3 &d, const Flt3 &sc, float sr) {
-    RayHit hit;
+__device__ Flt3 RayHitTriangle(const Flt3 &o, const Flt3 &d, const float vx[3], const float vy[3], const float vz[3]) {
+    float e1x = vx[1] - vx[0];
+    float e1y = vy[1] - vy[0];
+    float e1z = vz[1] - vz[0];
 
-    Flt3 l = sc - o;
-    float tca = l * d;
-    float d2 = l * l - tca * tca;
+    float e2x = vx[2] - vx[0];
+    float e2y = vy[2] - vy[0];
+    float e2z = vz[2] - vz[0];
 
-    if (d2 > sr * sr) return hit;
+    float hx = d.y * e2z - d.z * e2y;
+    float hy = d.z * e2x - d.x * e2z;
+    float hz = d.x * e2y - d.y * e2x;
 
-    float thc = sqrt(sr * sr - d2);
-    float t0 = tca - thc;
-    float t1 = tca + thc;
+    float a = e1x * hx + e1y * hy + e1z * hz;
 
-    t0 = t0 < 0 ? t1 : t0;
+    if (a == 0) return -1.0f;
 
-    if (t0 > 0) {
-        hit.idx = 1;
-        hit.t = t0;
-    }
+    float f = 1.0f / a;
 
-    return hit;
+    float sx = o.x - vx[0];
+    float sy = o.y - vy[0];
+    float sz = o.z - vz[0];
+
+    float u = f * (sx * hx + sy * hy + sz * hz);
+
+    if (u < 0.0f || u > 1.0f) return -1.0f;
+
+    float qx = sy * e1z - sz * e1y;
+    float qy = sz * e1x - sx * e1z;
+    float qz = sx * e1y - sy * e1x;
+
+    float v = f * (d.x * qx + d.y * qy + d.z * qz);
+
+    if (v < 0.0f || u + v > 1.0f) return -1.0f;
+
+    float t = f * (e2x * qx + e2y * qy + e2z * qz);
+
+    return Flt3(t, u, v);
 }
 
 __device__ Flt3 ASESFilm(const Flt3 &P) {
@@ -188,13 +205,12 @@ __global__ void raytraceKernel(
                 int gi = gIdx[i];
                 if (gi == ray.ignore) continue;
 
-                // Create the data since SoA is super unreadable
-                Flt3 v0 = Flt3(vx[fv0[gi]], vy[fv0[gi]], vz[fv0[gi]]);
-                Flt3 v1 = Flt3(vx[fv1[gi]], vy[fv1[gi]], vz[fv1[gi]]);
-                Flt3 v2 = Flt3(vx[fv2[gi]], vy[fv2[gi]], vz[fv2[gi]]);
-
                 // x: t, y: u, z: v
-                Flt3 h = RayHitTriangle(ray.o, ray.d, v0, v1, v2);
+                Flt3 h = RayHitTriangle(ray.o, ray.d,
+                    { vx[fv0[gi]], vy[fv0[gi]], vz[fv0[gi]] },
+                    { vx[fv1[gi]], vy[fv1[gi]], vz[fv1[gi]] },
+                    { vx[fv2[gi]], vy[fv2[gi]], vz[fv2[gi]] }
+                );
                 if (h.x > 0 && h.x < hit.t) {
                     hit.t = h.x;
                     hit.u = h.y;
@@ -294,10 +310,11 @@ __global__ void raytraceKernel(
                     int gi = gIdx[i];
                     if (gi == hIdx || gi == lIdx) continue;
 
-                    Flt3 v0 = Flt3(vx[fv0[gi]], vy[fv0[gi]], vz[fv0[gi]]);
-                    Flt3 v1 = Flt3(vx[fv1[gi]], vy[fv1[gi]], vz[fv1[gi]]);
-                    Flt3 v2 = Flt3(vx[fv2[gi]], vy[fv2[gi]], vz[fv2[gi]]);
-                    Flt3 h = RayHitTriangle(lPos, lDir, v0, v1, v2);
+                    Flt3 h = RayHitTriangle(lPos, lDir,
+                        { vx[fv0[gi]], vy[fv0[gi]], vz[fv0[gi]] },
+                        { vx[fv1[gi]], vy[fv1[gi]], vz[fv1[gi]] },
+                        { vx[fv2[gi]], vy[fv2[gi]], vz[fv2[gi]] }
+                    );
                     if (h.x > 0 && h.x < lDist) {
                         shadow = true;
                         break;
