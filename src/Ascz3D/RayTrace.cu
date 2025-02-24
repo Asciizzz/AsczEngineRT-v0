@@ -28,7 +28,7 @@ __device__ Flt4 getTextureColor(
 
 // Ray intersection
 
-__device__ RayHit RayHitTriangle(const Flt3 &o, const Flt3 &d, const Flt3 &v0, const Flt3 &v1, const Flt3 &v2) {
+__device__ Flt3 RayHitTriangle(const Flt3 &o, const Flt3 &d, const Flt3 &v0, const Flt3 &v1, const Flt3 &v2) {
     RayHit hit;
 
     Flt3 e1 = v1 - v0;
@@ -36,39 +36,30 @@ __device__ RayHit RayHitTriangle(const Flt3 &o, const Flt3 &d, const Flt3 &v0, c
     Flt3 h = d ^ e2;
     float a = e1 * h;
 
-    if (a == 0) return hit;
+    if (a == 0) return -1.0f;
 
     float f = 1.0f / a;
     Flt3 s = o - v0;
     float u = f * (s * h);
 
-    if (u < 0.0f || u > 1.0f) return hit;
+    if (u < 0.0f || u > 1.0f) return -1.0f;
 
     Flt3 q = s ^ e1;
     float v = f * (d * q);
 
-    if (v < 0.0f || u + v > 1.0f) return hit;
+    if (v < 0.0f || u + v > 1.0f) return -1.0f;
 
     float t = f * (e2 * q);
 
-    if (t > 0) {
-        hit.idx = 1;
-        hit.t = t;
-        hit.u = u;
-        hit.v = v;
-    }
-
-    return hit;
+    return Flt3(u, v, t);
 }
 
-__device__ RayHit RayHitSphere(const Flt3 &o, const Flt3 &d, const Flt3 &sc, float sr) {
-    RayHit hit;
-
+__device__ Flt3 RayHitSphere(const Flt3 &o, const Flt3 &d, const Flt3 &sc, float sr) {
     Flt3 l = sc - o;
     float tca = l * d;
     float d2 = l * l - tca * tca;
 
-    if (d2 > sr * sr) return hit;
+    if (d2 > sr * sr) return -1.0f;
 
     float thc = sqrt(sr * sr - d2);
     float t0 = tca - thc;
@@ -76,17 +67,10 @@ __device__ RayHit RayHitSphere(const Flt3 &o, const Flt3 &d, const Flt3 &sc, flo
 
     t0 = t0 < 0 ? t1 : t0;
 
-    if (t0 > 0) {
-        hit.idx = 1;
-        hit.t = t0;
-    }
-
-    return hit;
+    return t0 > 0 ? t0 : -1.0f;
 }
 
-__device__ RayHit RayHitGeom(const Flt3 &o, const Flt3 &d, AzGeom &g, Flt3 *mv) {
-    RayHit hit;
-
+__device__ Flt3 RayHitGeom(const Flt3 &o, const Flt3 &d, AzGeom &g, Flt3 *mv) {
     if (g.type == AzGeom::TRIANGLE) {
         Int3 &fv = g.tri.v;
 
@@ -94,7 +78,7 @@ __device__ RayHit RayHitGeom(const Flt3 &o, const Flt3 &d, AzGeom &g, Flt3 *mv) 
         Flt3 v1 = mv[fv.y];
         Flt3 v2 = mv[fv.z];
 
-        hit = RayHitTriangle(o, d, v0, v1, v2);
+        return RayHitTriangle(o, d, v0, v1, v2);
     }
     else if (g.type == AzGeom::SPHERE) {
         int cIdx = g.sph.c;
@@ -102,10 +86,8 @@ __device__ RayHit RayHitGeom(const Flt3 &o, const Flt3 &d, AzGeom &g, Flt3 *mv) 
         Flt3 sc = mv[cIdx];
         float sr = g.sph.r;
 
-        hit = RayHitSphere(o, d, sc, sr);
+        return RayHitSphere(o, d, sc, sr);
     }
-
-    return hit;
 }
 
 __device__ Flt3 ASESFilm(const Flt3 &P) {
@@ -214,11 +196,11 @@ __global__ void raytraceKernel(
                 int gi = gIdxs[i];
                 if (gi == ray.ignore) continue;
 
-                RayHit h = RayHitGeom(ray.o, ray.d, geom[gi], mv);
-                if (h.idx == -1) continue;
-
-                if (h.t < hit.t) {
-                    hit = h;
+                Flt3 h = RayHitGeom(ray.o, ray.d, geom[gi], mv);
+                if (h.z > -1 && h.z < hit.t) {
+                    hit.u = h.x;
+                    hit.v = h.y;
+                    hit.t = h.z;
                     hit.idx = gi;
                 }
             }
@@ -334,8 +316,8 @@ __global__ void raytraceKernel(
                     int gi = gIdxs[i];
                     if (gi == hIdx || gi == lIdx) continue;
 
-                    RayHit h = RayHitGeom(lPos, lDir, geom[gi], mv);
-                    if (h.idx > -1 && h.t < lDist) {
+                    Flt3 h = RayHitGeom(lPos, lDir, geom[gi], mv);
+                    if (h.z > -1 && h.z < lDist) {
                         shadow = true;
                         break;
                     }
@@ -450,11 +432,11 @@ __global__ void pathtraceKernel(
                 int gi = gIdxs[i];
                 if (gi == ray.ignore) continue;
 
-                RayHit h = RayHitGeom(ray.o, ray.d, geom[gi], mv);
-                if (h.idx == -1) continue;
-
-                if (h.t < hit.t) {
-                    hit = h;
+                Flt3 h = RayHitGeom(ray.o, ray.d, geom[gi], mv);
+                if (h.z > -1 && h.z < hit.t) {
+                    hit.u = h.x;
+                    hit.v = h.y;
+                    hit.t = h.z;
                     hit.idx = gi;
                 }
             }
@@ -580,8 +562,8 @@ __global__ void pathtraceKernel(
                     int gi = gIdxs[i];
                     if (gi == hIdx || gi == lIdx) continue;
 
-                    RayHit h = RayHitGeom(lPos, lDir, geom[gi], mv);
-                    if (h.idx > -1 && h.t < lDist) {
+                    Flt3 h = RayHitGeom(lPos, lDir, geom[gi], mv);
+                    if (h.z > -1 && h.z < lDist) {
                         shadow = true;
                         break;
                     }
