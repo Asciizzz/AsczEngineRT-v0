@@ -3,25 +3,30 @@
 
 #include <Vector.cuh>
 
-struct TxtrPtr {
-    int w, h, off;
-};
-
 class AsczTxtr {
 public:
     // Host memory
-    std::vector<Flt4> h_txtrFlat;
-    std::vector<TxtrPtr> h_txtrPtr;
-    std::vector<const char *> h_paths;
+    VecF h_tr;
+    VecF h_tg;
+    VecF h_tb;
+    VecF h_ta;
+    VecI h_tw;
+    VecI h_th;
+    VecI h_toff;
 
     int appendTexture(const char *path);
 
     // Device memory
-    Flt4 *d_txtrFlat;
-    TxtrPtr *d_txtrPtr;
+    float *d_tr = nullptr;
+    float *d_tg = nullptr;
+    float *d_tb = nullptr;
+    float *d_ta = nullptr;
+    int size = 0;
 
-    int txtrSize = 0;
-    int txtrCount = 0;
+    int *d_tw = nullptr;
+    int *d_th = nullptr;
+    int *d_toff = nullptr;
+    int count = 0;
 
     void freeDevice();
     void toDevice();

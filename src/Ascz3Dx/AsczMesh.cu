@@ -2,17 +2,6 @@
 #include <cuda_runtime.h>
 #include <omp.h>
 
-int AsczMesh::appendVrtx(Flt3 v) {
-    h_v.push_back(v); return vNum++;
-}
-int AsczMesh::appendTxtr(Flt2 t) {
-    h_t.push_back(t); return tNum++;
-}
-int AsczMesh::appendNrml(Flt3 n) {
-    h_n.push_back(n); return nNum++;
-}
-
-
 
 void AsczMesh::appendMesh(MeshStruct mesh) {
     #pragma omp parallel for
@@ -26,13 +15,24 @@ void AsczMesh::appendMesh(MeshStruct mesh) {
     O_AB.push_back(mesh.O_AB);
     SO_AB.insert(SO_AB.end(), mesh.SO_AB.begin(), mesh.SO_AB.end());
 
-    int vPrev = h_v.size();
-    int tPrev = h_t.size();
-    int nPrev = h_n.size();
+    int vPrev = h_vx.size();
+    int tPrev = h_tx.size();
+    int nPrev = h_nx.size();
 
-    h_v.insert(h_v.end(), mesh.v.begin(), mesh.v.end());
-    h_t.insert(h_t.end(), mesh.t.begin(), mesh.t.end());
-    h_n.insert(h_n.end(), mesh.n.begin(), mesh.n.end());
+    for (int i = 0; i < mesh.v.size(); ++i) {
+        h_vx.push_back(mesh.v[i].x);
+        h_vy.push_back(mesh.v[i].y);
+        h_vz.push_back(mesh.v[i].z);
+    }
+    for (int i = 0; i < mesh.t.size(); ++i) {
+        h_tx.push_back(mesh.t[i].x);
+        h_ty.push_back(mesh.t[i].y);
+    }
+    for (int i = 0; i < mesh.n.size(); ++i) {
+        h_nx.push_back(mesh.n[i].x);
+        h_ny.push_back(mesh.n[i].y);
+        h_nz.push_back(mesh.n[i].z);
+    }
 
     for (int i = 0; i < mesh.lSrc.size(); ++i) {
         h_lSrc.push_back(mesh.lSrc[i] + h_geom.size());
@@ -48,14 +48,18 @@ void AsczMesh::appendMesh(MeshStruct mesh) {
             g.tri.t += tPrev;
             g.tri.n += nPrev;
 
-            ab.expand(h_v[g.tri.v[0]]);
-            ab.expand(h_v[g.tri.v[1]]);
-            ab.expand(h_v[g.tri.v[2]]);
+            Flt3 v0 = { h_vx[g.tri.v[0]], h_vy[g.tri.v[0]], h_vz[g.tri.v[0]] };
+            Flt3 v1 = { h_vx[g.tri.v[1]], h_vy[g.tri.v[1]], h_vz[g.tri.v[1]] };
+            Flt3 v2 = { h_vx[g.tri.v[2]], h_vy[g.tri.v[2]], h_vz[g.tri.v[2]] };
+
+            ab.expand(v0);
+            ab.expand(v1);
+            ab.expand(v2);
         }
         else if (g.type == AzGeom::SPHERE) {
             g.sph.c += vPrev;
 
-            Flt3 c = h_v[g.sph.c];
+            Flt3 c = { h_vx[g.sph.c], h_vy[g.sph.c], h_vz[g.sph.c] };
             ab.min = c - g.sph.r;
             ab.max = c + g.sph.r;
         }
@@ -64,18 +68,23 @@ void AsczMesh::appendMesh(MeshStruct mesh) {
         G_AB.push_back(ab);
     }
 
-    vNum = h_v.size();
-    tNum = h_t.size();
-    nNum = h_n.size();
+    vNum = h_vx.size();
+    tNum = h_tx.size();
+    nNum = h_nx.size();
 
     gNum = h_geom.size();
     lNum = h_lSrc.size();
 }
 
 void AsczMesh::freeDevice() {
-    if (d_v) { cudaFree(d_v); d_v = nullptr; }
-    if (d_t) { cudaFree(d_t); d_t = nullptr; }
-    if (d_n) { cudaFree(d_n); d_n = nullptr; }
+    if (d_vx) { cudaFree(d_vx); d_vx = nullptr; }
+    if (d_vy) { cudaFree(d_vy); d_vy = nullptr; }
+    if (d_vz) { cudaFree(d_vz); d_vz = nullptr; }
+    if (d_tx) { cudaFree(d_tx); d_tx = nullptr; }
+    if (d_ty) { cudaFree(d_ty); d_ty = nullptr; }
+    if (d_nx) { cudaFree(d_nx); d_nx = nullptr; }
+    if (d_ny) { cudaFree(d_ny); d_ny = nullptr; }
+    if (d_nz) { cudaFree(d_nz); d_nz = nullptr; }
 
     if (d_geom) { cudaFree(d_geom); d_geom = nullptr; }
     if (d_lSrc) { cudaFree(d_lSrc); d_lSrc = nullptr; }
@@ -84,15 +93,27 @@ void AsczMesh::freeDevice() {
 void AsczMesh::toDevice() {
     freeDevice();
 
-    cudaMalloc(&d_v, vNum * sizeof(Flt3));
-    cudaMalloc(&d_t, tNum * sizeof(Flt2));
-    cudaMalloc(&d_n, nNum * sizeof(Flt3));
+    cudaMalloc(&d_vx, vNum * sizeof(float));
+    cudaMalloc(&d_vy, vNum * sizeof(float));
+    cudaMalloc(&d_vz, vNum * sizeof(float));
+    cudaMalloc(&d_tx, tNum * sizeof(float));
+    cudaMalloc(&d_ty, tNum * sizeof(float));
+    cudaMalloc(&d_nx, nNum * sizeof(float));
+    cudaMalloc(&d_ny, nNum * sizeof(float));
+    cudaMalloc(&d_nz, nNum * sizeof(float));
+
+    cudaMemcpy(d_vx, h_vx.data(), vNum * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_vy, h_vy.data(), vNum * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_vz, h_vz.data(), vNum * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_tx, h_tx.data(), tNum * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_ty, h_ty.data(), tNum * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_nx, h_nx.data(), nNum * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_ny, h_ny.data(), nNum * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_nz, h_nz.data(), nNum * sizeof(float), cudaMemcpyHostToDevice);
+
     cudaMalloc(&d_geom, gNum * sizeof(AzGeom));
     cudaMalloc(&d_lSrc, h_lSrc.size() * sizeof(int));
 
-    cudaMemcpy(d_v, h_v.data(), vNum * sizeof(Flt3), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_t, h_t.data(), tNum * sizeof(Flt2), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_n, h_n.data(), nNum * sizeof(Flt3), cudaMemcpyHostToDevice);
     cudaMemcpy(d_geom, h_geom.data(), gNum * sizeof(AzGeom), cudaMemcpyHostToDevice);
     cudaMemcpy(d_lSrc, h_lSrc.data(), h_lSrc.size() * sizeof(int), cudaMemcpyHostToDevice);
 }

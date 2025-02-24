@@ -95,14 +95,15 @@ struct MeshStruct {
 
 class AsczMesh {
 public:
-    // Host memory
-    Vec3f h_v;
-    Vec2f h_t;
-    Vec3f h_n;
-
-    int appendVrtx(Flt3 v);
-    int appendTxtr(Flt2 t);
-    int appendNrml(Flt3 n);
+    // SoA for better memory access
+    VecF h_vx;
+    VecF h_vy;
+    VecF h_vz;  
+    VecF h_tx;
+    VecF h_ty;
+    VecF h_nx;
+    VecF h_ny;
+    VecF h_nz;
 
     // Geometry
     VecGeom h_geom;
@@ -122,9 +123,9 @@ public:
     void appendMesh(MeshStruct mesh);
 
     // Device memory
-    Flt3 *d_v = nullptr; int vNum = 0;
-    Flt2 *d_t = nullptr; int tNum = 0;
-    Flt3 *d_n = nullptr; int nNum = 0;
+    float *d_vx = nullptr, *d_vy = nullptr, *d_vz = nullptr; int vNum = 0;
+    float *d_tx = nullptr, *d_ty = nullptr; int tNum = 0;
+    float *d_nx = nullptr, *d_ny = nullptr, *d_nz = nullptr; int nNum = 0;
 
     AzGeom *d_geom = nullptr; int gNum = 0;
     int *d_lSrc = nullptr; int lNum = 0;

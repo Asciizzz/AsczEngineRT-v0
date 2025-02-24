@@ -133,14 +133,14 @@ int main() {
             CamMgr.focus = !pathTracing;
 
             // Render a single frame
-            if (pathTracing)
-                pathtraceKernel<<<WinMgr.blockCount, WinMgr.threadCount>>>(
-                    CamMgr, WinMgr.d_framebuffer, WinMgr.width, WinMgr.height,
-                    TxtrMgr.d_txtrFlat, TxtrMgr.d_txtrPtr, MatMgr.d_mtls,
-                    MeshMgr.d_v, MeshMgr.d_t, MeshMgr.d_n, MeshMgr.d_geom, MeshMgr.gNum,
-                    MeshMgr.d_lSrc, MeshMgr.lNum,
-                    BvhMgr.d_gIdx, BvhMgr.d_nodes, BvhMgr.nNum
-                );
+            // if (pathTracing)
+            //     pathtraceKernel<<<WinMgr.blockCount, WinMgr.threadCount>>>(
+            //         CamMgr, WinMgr.d_framebuffer, WinMgr.width, WinMgr.height,
+            //         TxtrMgr.d_txtrFlat, TxtrMgr.d_txtrPtr, MatMgr.d_mtls,
+            //         MeshMgr.d_v, MeshMgr.d_t, MeshMgr.d_n, MeshMgr.d_geom, MeshMgr.gNum,
+            //         MeshMgr.d_lSrc, MeshMgr.lNum,
+            //         BvhMgr.d_gIdx, BvhMgr.d_nodes, BvhMgr.nNum
+            //     );
         }
 
         if (CamMgr.focus && !pathTracing) {
@@ -196,8 +196,12 @@ int main() {
         if (!pathTracing)
             raytraceKernel<<<WinMgr.blockCount, WinMgr.threadCount>>>(
                 CamMgr, WinMgr.d_framebuffer, WinMgr.width, WinMgr.height,
-                TxtrMgr.d_txtrFlat, TxtrMgr.d_txtrPtr, MatMgr.d_mtls,
-                MeshMgr.d_v, MeshMgr.d_t, MeshMgr.d_n, MeshMgr.d_geom, MeshMgr.gNum,
+
+                MeshMgr.d_vx, MeshMgr.d_vy, MeshMgr.d_vz, MeshMgr.d_tx, MeshMgr.d_ty, MeshMgr.d_nx, MeshMgr.d_ny, MeshMgr.d_nz,
+                MatMgr.d_mtls,
+                TxtrMgr.d_tr, TxtrMgr.d_tg, TxtrMgr.d_tb, TxtrMgr.d_ta, TxtrMgr.d_tw, TxtrMgr.d_th, TxtrMgr.d_toff,
+
+                MeshMgr.d_geom, MeshMgr.gNum,
                 MeshMgr.d_lSrc, MeshMgr.lNum,
                 BvhMgr.d_gIdx, BvhMgr.d_nodes, BvhMgr.nNum,
 

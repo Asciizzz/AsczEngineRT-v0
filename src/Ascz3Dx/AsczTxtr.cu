@@ -11,40 +11,57 @@ int AsczTxtr::appendTexture(const char *path) {
 
     if (data == nullptr) return -1;
 
-    h_paths.push_back(path);
-    h_txtrPtr.push_back({w, h, txtrSize});
-    txtrCount++;
+    h_tw.push_back(w);
+    h_th.push_back(h);
+    h_toff.push_back(size);
 
     for (int y = 0; y < h; y++) {
         for (int x = 0; x < w; x++) {
             int i = ((h - y - 1) * w + x) * 4;
-            float r = data[i + 0] / 255.0f;
-            float g = data[i + 1] / 255.0f;
-            float b = data[i + 2] / 255.0f;
-            float a = data[i + 3] / 255.0f;
 
-            h_txtrFlat.push_back({r, g, b, a});
+            h_tr.push_back(data[i + 0] / 255.0f);
+            h_tg.push_back(data[i + 1] / 255.0f);
+            h_tb.push_back(data[i + 2] / 255.0f);
+            h_ta.push_back(data[i + 3] / 255.0f);
         }
     }
 
-    txtrSize += w * h;
+    size += w * h;
 
-    return txtrCount - 1;
+    return count++;
 }
 
 void AsczTxtr::freeDevice() {
-    if (txtrSize == 0) return;
+    if (size == 0 || count == 0) return;
 
-    cudaFree(d_txtrFlat);
-    cudaFree(d_txtrPtr);
+    cudaFree(d_tr);
+    cudaFree(d_tg);
+    cudaFree(d_tb);
+    cudaFree(d_ta);
+
+    cudaFree(d_tw);
+    cudaFree(d_th);
+    cudaFree(d_toff);
 }
 
 void AsczTxtr::toDevice() {
     freeDevice();
 
-    cudaMalloc(&d_txtrFlat, txtrSize * sizeof(Flt4));
-    cudaMalloc(&d_txtrPtr, txtrCount * sizeof(TxtrPtr));
+    cudaMalloc(&d_tr, size * sizeof(float));
+    cudaMalloc(&d_tg, size * sizeof(float));
+    cudaMalloc(&d_tb, size * sizeof(float));
+    cudaMalloc(&d_ta, size * sizeof(float));
 
-    cudaMemcpy(d_txtrFlat, h_txtrFlat.data(), txtrSize * sizeof(Flt4), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_txtrPtr, h_txtrPtr.data(), txtrCount * sizeof(TxtrPtr), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_tr, h_tr.data(), size * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_tg, h_tg.data(), size * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_tb, h_tb.data(), size * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_ta, h_ta.data(), size * sizeof(float), cudaMemcpyHostToDevice);
+
+    cudaMalloc(&d_tw, count * sizeof(int));
+    cudaMalloc(&d_th, count * sizeof(int));
+    cudaMalloc(&d_toff, count * sizeof(int));
+
+    cudaMemcpy(d_tw, h_tw.data(), count * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_th, h_th.data(), count * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_toff, h_toff.data(), count * sizeof(int), cudaMemcpyHostToDevice);
 }
