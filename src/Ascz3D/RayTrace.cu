@@ -266,11 +266,15 @@ __global__ void raytraceKernel(
             const AzMtl &lMat = mats[fm[lIdx]];
 
             // Get position based on the geometry type
-            Flt3 lPos;
-            Int3 tv = Int3(fv0[lIdx], fv1[lIdx], fv2[lIdx]);
-            lPos.x = (vx[tv.x] + vx[tv.y] + vx[tv.z]) / 3;
-            lPos.y = (vy[tv.x] + vy[tv.y] + vy[tv.z]) / 3;
-            lPos.z = (vz[tv.x] + vz[tv.y] + vz[tv.z]) / 3;
+            Flt3 lPos = {
+                vx[fv0[lIdx]] * hitw + vx[fv1[lIdx]] * hit.u + vx[fv2[lIdx]] * hit.v,
+                vy[fv0[lIdx]] * hitw + vy[fv1[lIdx]] * hit.u + vy[fv2[lIdx]] * hit.v,
+                vz[fv0[lIdx]] * hitw + vz[fv1[lIdx]] * hit.u + vz[fv2[lIdx]] * hit.v
+            };
+            // Int3 tv = Int3(fv0[lIdx], fv1[lIdx], fv2[lIdx]);
+            // lPos.x = (vx[tv.x] + vx[tv.y] + vx[tv.z]) / 3;
+            // lPos.y = (vy[tv.x] + vy[tv.y] + vy[tv.z]) / 3;
+            // lPos.z = (vz[tv.x] + vz[tv.y] + vz[tv.z]) / 3;
 
             Flt3 lDir = vrtx - lPos;
             float lDist = lDir.mag();
