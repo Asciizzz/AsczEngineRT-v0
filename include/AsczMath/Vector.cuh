@@ -49,8 +49,8 @@ struct Flt2 {
     __host__ __device__ Flt2 operator/(const float scl) const;
 };
 
-struct Flt3 {
-    float x, y, z;
+struct alignas(16) Flt3 {
+    float x, y, z, pad;
     __host__ __device__ Flt3();
     __host__ __device__ Flt3(float x, float y, float z);
     __host__ __device__ Flt3(float a);
