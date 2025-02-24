@@ -224,10 +224,10 @@ __global__ void raytraceKernel(
             }
         }
 
-        if (hit.idx == -1) continue;
+        int hIdx = hit.idx;
+        if (hIdx == -1) continue;
 
         // Get the face data
-        int hIdx = hit.idx;
         const AzGeom &gHit = geom[hIdx];
         const AzMtl &hMat = mats[gHit.m];
 
@@ -271,7 +271,7 @@ __global__ void raytraceKernel(
         }
 
         // Lighting and shading
-        float NdotL = falseAmbient ? nrml * -ray.d : 0.0f;
+        float NdotL = falseAmbient ? nrml * ray.d : 0.0f;
         Flt3 finalColr = alb * 0.02f * NdotL * NdotL;
 
         if (!hMat.Ems.isZero()) {
@@ -298,6 +298,8 @@ __global__ void raytraceKernel(
 
             Flt3 lDir = vrtx - lPos;
             float lDist = lDir.mag();
+            if (lDist < 0.01f) continue;
+
             lDir /= lDist;
             Flt3 lInv = 1.0f / lDir;
 
@@ -354,7 +356,7 @@ __global__ void raytraceKernel(
         // ======== Additional rays ========
 
         // Transparent
-        if (hMat.Tr > 0.0f && rs_top + 1 < MAX_RAYS) {
+        if (hMat.Tr > 0.0f && rs_top + 2 < MAX_RAYS) {
             float wLeft = ray.w * hMat.Tr;
             ray.w *= (1 - hMat.Tr);
 
@@ -493,10 +495,7 @@ __global__ void pathtraceKernel(
                     float wLeft = ray.w * (1 - txColr.w);
                     ray.w *= txColr.w;
 
-                    rstack[rs_top++] = Ray(
-                        vrtx + ray.d * EPSILON_1, ray.d, wLeft, ray.Ior
-                    );
-                    if (ray.w < 0.05f) continue;
+                    rstack[rs_top++] = Ray(vrtx, ray.d, wLeft, ray.Ior, hIdx);
                 }
 
                 alb = txColr.f3();
@@ -541,6 +540,8 @@ __global__ void pathtraceKernel(
 
             Flt3 lDir = vrtx - lPos;
             float lDist = lDir.mag();
+            if (lDist < 0.01f) continue;
+
             lDir /= lDist;
             Flt3 lInv = 1.0f / lDir;
 
@@ -600,12 +601,11 @@ __global__ void pathtraceKernel(
             int curRayPerBounce = rayPerBounce / bounce;
             float weightPerRay = ray.w / curRayPerBounce;
             for (int i = 0; i < curRayPerBounce; ++i) {
-                Flt3 rO = vrtx + nrml * EPSILON_1;
                 Flt3 rD = randomHemisphereSample(&rnd, nrml);
                 float NdotL = nrml * rD;
                 float rW = weightPerRay * NdotL;
 
-                Ray rRay = Ray(rO, rD, rW, ray.Ior, hIdx);
+                Ray rRay = Ray(vrtx, rD, rW, ray.Ior, hIdx);
 
                 rstack[rs_top++] = rRay;
             }
