@@ -10,27 +10,25 @@ struct RayHit {
 };
 
 __device__ Flt4 getTextureColor(
-    float u, float v, Flt4 *txtrFlat, TxtrPtr *txtrPtr, int AlbMap
+    float u, float v, Flt4 *flat, TxtrPtr *ptr, int AlbMap
 ) {
     u -= floor(u);
     v -= floor(v);
 
-    int tw = txtrPtr[AlbMap].w;
-    int th = txtrPtr[AlbMap].h;
-    int toff = txtrPtr[AlbMap].off;
+    int tw = ptr[AlbMap].w;
+    int th = ptr[AlbMap].h;
+    int toff = ptr[AlbMap].off;
 
-    int txtrX = (int)(u * tw);
-    int txtrY = (int)(v * th);
+    int tx = (int)(u * tw);
+    int ty = (int)(v * th);
 
-    int t = txtrX + txtrY * tw + toff;
-    return txtrFlat[t];
+    int t = tx + ty * tw + toff;
+    return flat[t];
 }
 
 // Ray intersection
 
 __device__ Flt3 RayHitTriangle(const Flt3 &o, const Flt3 &d, const Flt3 &v0, const Flt3 &v1, const Flt3 &v2) {
-    RayHit hit;
-
     Flt3 e1 = v1 - v0;
     Flt3 e2 = v2 - v0;
     Flt3 h = d ^ e2;
@@ -73,20 +71,11 @@ __device__ Flt3 RayHitSphere(const Flt3 &o, const Flt3 &d, const Flt3 &sc, float
 __device__ Flt3 RayHitGeom(const Flt3 &o, const Flt3 &d, AzGeom &g, Flt3 *mv) {
     if (g.type == AzGeom::TRIANGLE) {
         Int3 &fv = g.tri.v;
-
-        Flt3 v0 = mv[fv.x];
-        Flt3 v1 = mv[fv.y];
-        Flt3 v2 = mv[fv.z];
-
-        return RayHitTriangle(o, d, v0, v1, v2);
+        return RayHitTriangle(o, d, mv[fv.x], mv[fv.y], mv[fv.z]);
     }
     else if (g.type == AzGeom::SPHERE) {
         int cIdx = g.sph.c;
-
-        Flt3 sc = mv[cIdx];
-        float sr = g.sph.r;
-
-        return RayHitSphere(o, d, sc, sr);
+        return RayHitSphere(o, d, mv[cIdx], g.sph.r);   
     }
 }
 
@@ -133,12 +122,12 @@ __device__ Flt3 randomHemisphereSample(curandState *rnd, const Flt3 &n) {
 
 __global__ void raytraceKernel(
     AsczCam camera, unsigned int *frmbuffer, int frmW, int frmH, // In-out
-    Flt4 *txtrFlat, TxtrPtr *txtrPtr, // Textures
+    Flt4 *tflat, TxtrPtr *tptr, // Textures
     AzMtl *mats, // Materials
     Flt3 *mv, Flt2 *mt, Flt3 *mn, // Primitive data
     AzGeom *geom, int gNum, // Geometry data
     int *lSrc, int lNum, // Light data
-    int *gIdxs, DevNode *nodes, int nNum, // BVH data
+    int *gIdx, DevNode *nodes, int nNum, // BVH data
 
     // Additional Debug Data
     bool falseAmbient
@@ -193,11 +182,11 @@ __global__ void raytraceKernel(
             }
 
             for (int i = node.ll; i < node.lr; ++i) {
-                int gi = gIdxs[i];
+                int gi = gIdx[i];
                 if (gi == ray.ignore) continue;
 
                 Flt3 h = RayHitGeom(ray.o, ray.d, geom[gi], mv);
-                if (h.z > -1 && h.z < hit.t) {
+                if (h.z > 0 && h.z < hit.t) {
                     hit.u = h.x;
                     hit.v = h.y;
                     hit.t = h.z;
@@ -234,9 +223,10 @@ __global__ void raytraceKernel(
         if (hMat.AlbMap > -1) {
             if (gHit.type == AzGeom::TRIANGLE) {
                 Int3 &tt = geom[hIdx].tri.t;
-                Flt2 txtr = mt[tt.x] * hitw + mt[tt.y] * hit.u + mt[tt.z] * hit.v;
+                float u = mt[tt.x].x * hitw + mt[tt.y].x * hit.u + mt[tt.z].x * hit.v;
+                float v = mt[tt.x].y * hitw + mt[tt.y].y * hit.u + mt[tt.z].y * hit.v;
 
-                Flt4 txColr = getTextureColor(txtr.x, txtr.y, txtrFlat, txtrPtr, hMat.AlbMap);
+                Flt4 txColr = getTextureColor(u, v, tflat, tptr, hMat.AlbMap);
                 alb = txColr.f3();
             }
             else if (gHit.type == AzGeom::SPHERE) {
@@ -245,7 +235,7 @@ __global__ void raytraceKernel(
                 float u = theta / M_2_PI;
                 float v = phi / M_PI;
 
-                Flt4 txColr = getTextureColor(u, v, txtrFlat, txtrPtr, hMat.AlbMap);
+                Flt4 txColr = getTextureColor(u, v, tflat, tptr, hMat.AlbMap);
                 alb = txColr.f3();
             }
         } else {
@@ -313,11 +303,11 @@ __global__ void raytraceKernel(
                 }
 
                 for (int i = node.ll; i < node.lr; ++i) {
-                    int gi = gIdxs[i];
+                    int gi = gIdx[i];
                     if (gi == hIdx || gi == lIdx) continue;
 
                     Flt3 h = RayHitGeom(lPos, lDir, geom[gi], mv);
-                    if (h.z > -1 && h.z < lDist) {
+                    if (h.z > 0 && h.z < lDist) {
                         shadow = true;
                         break;
                     }
@@ -365,12 +355,12 @@ __global__ void raytraceKernel(
 
 __global__ void pathtraceKernel(
     AsczCam camera, unsigned int *frmbuffer, int frmW, int frmH, // In-out
-    Flt4 *txtrFlat, TxtrPtr *txtrPtr, // Textures
+    Flt4 *tflat, TxtrPtr *tptr, // Textures
     AzMtl *mats, // Materials
     Flt3 *mv, Flt2 *mt, Flt3 *mn, // Primitive data
     AzGeom *geom, int gNum, // Geometry data
     int *lSrc, int lNum, // Light data
-    int *gIdxs, DevNode *nodes, int nNum // BVH data
+    int *gIdx, DevNode *nodes, int nNum // BVH data
 ) {
     int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
     if (tIdx >= frmW * frmH) return;
@@ -429,11 +419,11 @@ __global__ void pathtraceKernel(
             }
 
             for (int i = node.ll; i < node.lr; ++i) {
-                int gi = gIdxs[i];
+                int gi = gIdx[i];
                 if (gi == ray.ignore) continue;
 
                 Flt3 h = RayHitGeom(ray.o, ray.d, geom[gi], mv);
-                if (h.z > -1 && h.z < hit.t) {
+                if (h.z > 0 && h.z < hit.t) {
                     hit.u = h.x;
                     hit.v = h.y;
                     hit.t = h.z;
@@ -472,7 +462,7 @@ __global__ void pathtraceKernel(
                 Int3 &tt = geom[hIdx].tri.t;
                 Flt2 txtr = mt[tt.x] * hitw + mt[tt.y] * hit.u + mt[tt.z] * hit.v;
 
-                Flt4 txColr = getTextureColor(txtr.x, txtr.y, txtrFlat, txtrPtr, hMat.AlbMap);
+                Flt4 txColr = getTextureColor(txtr.x, txtr.y, tflat, tptr, hMat.AlbMap);
                 alb = txColr.f3();
             }
             else if (gHit.type == AzGeom::SPHERE) {
@@ -481,7 +471,7 @@ __global__ void pathtraceKernel(
                 float u = theta / M_2_PI;
                 float v = phi / M_PI;
 
-                Flt4 txColr = getTextureColor(u, v, txtrFlat, txtrPtr, hMat.AlbMap);
+                Flt4 txColr = getTextureColor(u, v, tflat, tptr, hMat.AlbMap);
                 alb = txColr.f3();
             }
         } else {
@@ -559,11 +549,11 @@ __global__ void pathtraceKernel(
                 }
 
                 for (int i = node.ll; i < node.lr; ++i) {
-                    int gi = gIdxs[i];
+                    int gi = gIdx[i];
                     if (gi == hIdx || gi == lIdx) continue;
 
                     Flt3 h = RayHitGeom(lPos, lDir, geom[gi], mv);
-                    if (h.z > -1 && h.z < lDist) {
+                    if (h.z > 0 && h.z < lDist) {
                         shadow = true;
                         break;
                     }

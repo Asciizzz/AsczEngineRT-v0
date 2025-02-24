@@ -136,7 +136,7 @@ int main() {
             if (pathTracing)
                 pathtraceKernel<<<WinMgr.blockCount, WinMgr.threadCount>>>(
                     CamMgr, WinMgr.d_framebuffer, WinMgr.width, WinMgr.height,
-                    TxtrMgr.d_txtrFlat, TxtrMgr.d_txtrPtr, MatMgr.d_mtls,
+                    TxtrMgr.d_flat, TxtrMgr.d_ptr, MatMgr.d_mtls,
                     MeshMgr.d_v, MeshMgr.d_t, MeshMgr.d_n, MeshMgr.d_geom, MeshMgr.gNum,
                     MeshMgr.d_lSrc, MeshMgr.lNum,
                     BvhMgr.d_gIdx, BvhMgr.d_nodes, BvhMgr.nNum
@@ -196,7 +196,7 @@ int main() {
         if (!pathTracing)
             raytraceKernel<<<WinMgr.blockCount, WinMgr.threadCount>>>(
                 CamMgr, WinMgr.d_framebuffer, WinMgr.width, WinMgr.height,
-                TxtrMgr.d_txtrFlat, TxtrMgr.d_txtrPtr, MatMgr.d_mtls,
+                TxtrMgr.d_flat, TxtrMgr.d_ptr, MatMgr.d_mtls,
                 MeshMgr.d_v, MeshMgr.d_t, MeshMgr.d_n, MeshMgr.d_geom, MeshMgr.gNum,
                 MeshMgr.d_lSrc, MeshMgr.lNum,
                 BvhMgr.d_gIdx, BvhMgr.d_nodes, BvhMgr.nNum,
