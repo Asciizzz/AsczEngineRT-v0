@@ -5,6 +5,17 @@
 #include <sstream>
 #include <iomanip>
 
+__global__ void copyToDrawBuffer(Flt3 *frmbuffer, unsigned int *drawbuffer, int width, int height) {
+    int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (tIdx < width * height) {
+        int x = tIdx % width;
+        int y = tIdx / width;
+        int i = y * width + x;
+        Flt3 color = frmbuffer[i];
+        drawbuffer[i] = (int(color.x * 255) << 16) | (int(color.y * 255) << 8) | int(color.z * 255);
+    }
+}
+
 // Constructor
 AsczWin::AsczWin(int w, int h, std::wstring t) : width(w), height(h), title(t) {
     InitConsole();
@@ -13,8 +24,9 @@ AsczWin::AsczWin(int w, int h, std::wstring t) : width(w), height(h), title(t) {
 
     blockCount = (width * height + threadCount - 1) / threadCount;
 
-    h_framebuffer = new unsigned int[width * height];
-    cudaMalloc(&d_framebuffer, width * height * sizeof(unsigned int));
+    cudaMalloc(&d_frmbuffer, width * height * sizeof(Flt3));
+    cudaMalloc(&d_drawbuffer, width * height * sizeof(unsigned int));
+    h_drawbuffer = new unsigned int[width * height];
 }
 
 void AsczWin::InitConsole() {
@@ -75,8 +87,11 @@ void AsczWin::appendDebug(std::string text, Int3 color) {
 
 // Framebuffer
 void AsczWin::DrawFramebuffer() {
-    cudaMemcpy(h_framebuffer, d_framebuffer, width * height * sizeof(unsigned int), cudaMemcpyDeviceToHost);
-    StretchDIBits(hdc, 0, 0, width, height, 0, 0, width, height, h_framebuffer, &bmi, DIB_RGB_COLORS, SRCCOPY);
+    copyToDrawBuffer<<<blockCount, threadCount>>>(d_frmbuffer, d_drawbuffer, width, height);
+    cudaDeviceSynchronize();
+
+    cudaMemcpy(h_drawbuffer, d_drawbuffer, width * height * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+    StretchDIBits(hdc, 0, 0, width, height, 0, 0, width, height, h_drawbuffer, &bmi, DIB_RGB_COLORS, SRCCOPY);
 }
 
 // Draw everything
@@ -92,8 +107,10 @@ void AsczWin::Draw() {
 
 // Clear everything
 void AsczWin::Terminate() {
-    delete[] h_framebuffer;
-    cudaFree(d_framebuffer);
+    cudaFree(d_frmbuffer);
+    cudaFree(d_drawbuffer);
+    delete[] h_drawbuffer;
+
     ReleaseDC(hwnd, hdc);
     DestroyWindow(hwnd);
     UnregisterClass(L"Win32App", GetModuleHandle(nullptr));

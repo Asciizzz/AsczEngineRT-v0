@@ -46,8 +46,9 @@ public:
     // Framebuffers
     int threadCount = 256;
     int blockCount;
-    unsigned int* h_framebuffer;
-    unsigned int* d_framebuffer;
+    Flt3 *d_frmbuffer;
+    unsigned int *d_drawbuffer;
+    unsigned int *h_drawbuffer;
     void DrawFramebuffer();
 
 

@@ -77,6 +77,7 @@ __device__ Flt3 RayHitGeom(const Flt3 &o, const Flt3 &d, AzGeom &g, Flt3 *mv) {
         int cIdx = g.sph.c;
         return RayHitSphere(o, d, mv[cIdx], g.sph.r);   
     }
+    return -1.0f;
 }
 
 __device__ Flt3 ASESFilm(const Flt3 &P) {
@@ -121,7 +122,7 @@ __device__ Flt3 randomHemisphereSample(curandState *rnd, const Flt3 &n) {
 
 
 __global__ void raytraceKernel(
-    AsczCam camera, unsigned int *frmbuffer, int frmW, int frmH, // In-out
+    AsczCam camera, Flt3 *frmbuffer, int frmW, int frmH, // In-out
     Flt4 *tflat, TxPtr *tptr, // Textures
     AzMtl *mats, // Materials
     Flt3 *mv, Flt2 *mt, Flt3 *mn, // Primitive data
@@ -347,16 +348,12 @@ __global__ void raytraceKernel(
     float _gamma = 1.0f / 2.2f;
     resultColr = resultColr.pow(_gamma);
 
-    int r = (int)(resultColr.x * 255);
-    int g = (int)(resultColr.y * 255);
-    int b = (int)(resultColr.z * 255);
-
-    frmbuffer[tIdx] = (r << 16) | (g << 8) | b;
+    frmbuffer[tIdx] = resultColr;
 }
 
 
 __global__ void pathtraceKernel(
-    AsczCam camera, unsigned int *frmbuffer, int frmW, int frmH, // In-out
+    AsczCam camera, Flt3 *frmbuffer, int frmW, int frmH, // In-out
     Flt4 *tflat, TxPtr *tptr, // Textures
     AzMtl *mats, // Materials
     Flt3 *mv, Flt2 *mt, Flt3 *mn, // Primitive data
@@ -596,9 +593,104 @@ __global__ void pathtraceKernel(
     float _gamma = 1.0f / 2.2f;
     resultColr = resultColr.pow(_gamma);
 
-    int r = (int)(resultColr.x * 255);
-    int g = (int)(resultColr.y * 255);
-    int b = (int)(resultColr.z * 255);
+    frmbuffer[tIdx] = resultColr;
+}
 
-    frmbuffer[tIdx] = (r << 16) | (g << 8) | b;
+
+__global__ void raycastKernel(
+    AsczCam camera, Flt3 *frmbuffer, int frmW, int frmH, // In-out
+    Flt4 *tflat, TxPtr *tptr, // Textures
+    AzMtl *mats, // Materials
+    Flt3 *mv, Flt2 *mt, Flt3 *mn, // Primitive data
+    AzGeom *geom, int gNum, // Geometry data
+    int *gIdx, DevNode *nodes, int nNum // BVH data
+) {
+    int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (tIdx >= frmW * frmH) return;
+
+    int x = tIdx % frmW, y = tIdx / frmW;
+    Ray ray = camera.castRay(x, y, frmW, frmH);
+
+    const int MAX_NODES = 64;
+
+    int nstack[MAX_NODES] = { 0 };
+    int ns_top = 1;
+
+    int hIdx = -1;
+    float u, v, t = 1e9;
+
+    while (ns_top > 0) {
+        int nidx = nstack[--ns_top];
+        DevNode &node = nodes[nidx];
+
+        float hitDist = node.hitDist(ray.o, ray.invd);
+        if (hitDist < 0 || hitDist > t) continue;
+
+        if (node.cl > -1) { // If node not a leaf
+            float ldist = nodes[node.cl].hitDist(ray.o, ray.invd);
+            float rdist = nodes[node.cr].hitDist(ray.o, ray.invd);
+
+            // Early exit
+            if (ldist < 0 && rdist < 0) continue;
+            // Push the valid node
+            else if (ldist < 0) nstack[ns_top++] = node.cr;
+            else if (rdist < 0) nstack[ns_top++] = node.cl;
+            // Push the closest node first
+            else {
+                nstack[ns_top++] = ldist < rdist ? node.cr : node.cl;
+                nstack[ns_top++] = ldist < rdist ? node.cl : node.cr;
+            }
+
+            continue;
+        }
+
+        for (int i = node.ll; i < node.lr; ++i) {
+            int gi = gIdx[i];
+            if (gi == ray.ignore) continue;
+
+            Flt3 h = RayHitGeom(ray.o, ray.d, geom[gi], mv);
+            if (h.z > 0 && h.z < t) {
+                u = h.x;
+                v = h.y;
+                t = h.z;
+                hIdx = gi;
+            }
+        }
+    }
+
+    if (hIdx == -1) {
+        frmbuffer[tIdx] = 0;
+        return;
+    }
+
+    // Get the face data
+    const AzGeom &gHit = geom[hIdx];
+    const AzMtl &hMat = mats[gHit.m];
+
+    float w = 1 - u - v;
+
+    Flt3 alb;
+    if (hMat.AlbMap > -1) {
+        if (gHit.type == AzGeom::TRIANGLE) {
+            Int3 &tt = geom[hIdx].tri.t;
+            float tu = mt[tt.x].x * w + mt[tt.y].x * u + mt[tt.z].x * v;
+            float tv = mt[tt.x].y * w + mt[tt.y].y * u + mt[tt.z].y * v;
+
+            Flt4 txColr = getTextureColor(tu, tv, tflat, tptr, hMat.AlbMap);
+            alb = txColr.f3();
+        }
+        else if (gHit.type == AzGeom::SPHERE) {
+            float phi = acosf(-mn[hIdx].y);
+            float theta = atan2f(-mn[hIdx].z, -mn[hIdx].x) + M_PI;
+            float tu = theta / M_2_PI;
+            float tv = phi / M_PI;
+
+            Flt4 txColr = getTextureColor(tu, tv, tflat, tptr, hMat.AlbMap);
+            alb = txColr.f3();
+        }
+    } else {
+        alb = hMat.Alb;
+    }
+
+    frmbuffer[tIdx] = alb;
 }

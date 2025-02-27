@@ -96,7 +96,7 @@ int main() {
     // Hide cursor
     ShowCursor(FALSE);
 
-    bool pathTracing = false;
+    short rtMode = 0; // 0: Raytracing, 1: Pathtracing, 2: Raycasting
     bool falseAmbient = true; // Good for pitch black areas
 
     MSG msg = { 0 };
@@ -107,7 +107,6 @@ int main() {
             TranslateMessage(&msg);
             DispatchMessage(&msg);
         }
-
         
         // Press ESC to exit
         if (WinMgr.keys[VK_ESCAPE]) break;
@@ -126,25 +125,35 @@ int main() {
             falseAmbient = !falseAmbient;
         }
 
-        // Press Q to toggle path tracing
-        if (WinMgr.keys['Q']) {
-            WinMgr.keys['Q'] = false;
-            pathTracing = !pathTracing;
-            CamMgr.focus = !pathTracing;
+        // Press 1 to toggle ray tracing
+        if (WinMgr.keys['1']) {
+            WinMgr.keys['1'] = false;
+            rtMode = 0;
+            CamMgr.focus = true;
+        }
+        // Press 2 to toggle ray casting
+        if (WinMgr.keys['2']) {
+            WinMgr.keys['2'] = false;
+            rtMode = 1;
+            CamMgr.focus = true;
+        }
+        // Press 3 to toggle path tracing
+        if (WinMgr.keys['3'] && rtMode != 2) {
+            WinMgr.keys['3'] = false;
+            rtMode = 2;
+            CamMgr.focus = false;
 
             // Render a single frame
-            if (pathTracing)
-                pathtraceKernel<<<WinMgr.blockCount, WinMgr.threadCount>>>(
-                    CamMgr, WinMgr.d_framebuffer, WinMgr.width, WinMgr.height,
-                    TxtrMgr.d_flat, TxtrMgr.d_ptr, MatMgr.d_mtls,
-                    MeshMgr.d_v, MeshMgr.d_t, MeshMgr.d_n, MeshMgr.d_geom, MeshMgr.gNum,
-                    MeshMgr.d_lSrc, MeshMgr.lNum,
-                    BvhMgr.d_gIdx, BvhMgr.d_nodes, BvhMgr.nNum
-                );
+            pathtraceKernel<<<WinMgr.blockCount, WinMgr.threadCount>>>(
+                CamMgr, WinMgr.d_frmbuffer, WinMgr.width, WinMgr.height,
+                TxtrMgr.d_flat, TxtrMgr.d_ptr, MatMgr.d_mtls,
+                MeshMgr.d_v, MeshMgr.d_t, MeshMgr.d_n, MeshMgr.d_geom, MeshMgr.gNum,
+                MeshMgr.d_lSrc, MeshMgr.lNum,
+                BvhMgr.d_gIdx, BvhMgr.d_nodes, BvhMgr.nNum
+            );
         }
 
-        if (CamMgr.focus && !pathTracing) {
-
+        if (CamMgr.focus && rtMode != 2) {
             // Get previous cursor position
             POINT prev;
             GetCursorPos(&prev);
@@ -193,9 +202,9 @@ int main() {
         }
 
         // Render
-        if (!pathTracing)
+        if (rtMode == 0)
             raytraceKernel<<<WinMgr.blockCount, WinMgr.threadCount>>>(
-                CamMgr, WinMgr.d_framebuffer, WinMgr.width, WinMgr.height,
+                CamMgr, WinMgr.d_frmbuffer, WinMgr.width, WinMgr.height,
                 TxtrMgr.d_flat, TxtrMgr.d_ptr, MatMgr.d_mtls,
                 MeshMgr.d_v, MeshMgr.d_t, MeshMgr.d_n, MeshMgr.d_geom, MeshMgr.gNum,
                 MeshMgr.d_lSrc, MeshMgr.lNum,
@@ -203,9 +212,16 @@ int main() {
 
                 falseAmbient
             );
+        else if (rtMode == 1)
+            raycastKernel<<<WinMgr.blockCount, WinMgr.threadCount>>>(
+                CamMgr, WinMgr.d_frmbuffer, WinMgr.width, WinMgr.height,
+                TxtrMgr.d_flat, TxtrMgr.d_ptr, MatMgr.d_mtls,
+                MeshMgr.d_v, MeshMgr.d_t, MeshMgr.d_n, MeshMgr.d_geom, MeshMgr.gNum,
+                BvhMgr.d_gIdx, BvhMgr.d_nodes, BvhMgr.nNum
+            );
 
         WinMgr.appendDebug(L"AsczEngineRT_v0", Int3(155, 255, 155));
-        std::wstring fps = pathTracing ? L"-" : std::to_wstring(FPS.fps);
+        std::wstring fps = rtMode == 2 ? L"-" : std::to_wstring(FPS.fps);
         WinMgr.appendDebug(L"FPS: " + fps, Int3(0, 255, 0));
         WinMgr.appendDebug(L"CAMERA", Int3(255, 0, 0));
         WinMgr.appendDebug(L"Pos: " + std::to_wstring(CamMgr.pos.x) + L", " + std::to_wstring(CamMgr.pos.y) + L", " + std::to_wstring(CamMgr.pos.z), Int3(255));    
