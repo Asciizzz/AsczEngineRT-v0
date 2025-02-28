@@ -319,6 +319,7 @@ Flt4 Flt4::operator/(const float scl) const {
 Int3::Int3() : x(0), y(0), z(0) {}
 Int3::Int3(int x, int y, int z) : x(x), y(y), z(z) {}
 Int3::Int3(int a) : x(a), y(a), z(a) {}
+Int3::Int3(Flt3 v) : x(v.x), y(v.y), z(v.z) {}
 
 int& Int3::operator[](int i) {
     return i == 0 ? x : (i == 1 ? y : z);

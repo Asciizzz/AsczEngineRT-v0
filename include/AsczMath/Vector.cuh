@@ -151,6 +151,7 @@ struct Int3 {
     __host__ __device__ Int3();
     __host__ __device__ Int3(int x, int y, int z);
     __host__ __device__ Int3(int a);
+    __host__ __device__ Int3(Flt3 v);
 
     // Bracket operator
     __host__ __device__ int& operator[](int i);
