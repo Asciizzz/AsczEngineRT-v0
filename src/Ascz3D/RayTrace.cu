@@ -128,7 +128,7 @@ __global__ void raytraceKernel(
                         ray.o.z < mi_z[nidx] | ray.o.z > mx_z[nidx];
             float nDist = ((tmaxn < tminn | tminn < 0) ? -1 : tminn) * nOut;
 
-            if (nDist < 0 || nDist > rhit.t) continue;
+            if (nDist < 0 | nDist > rhit.t) continue;
 
             if (cl[nidx] > -1) {
                 float t1l = (mi_x[cl[nidx]] - ray.o.x) * ray.invd.x;
@@ -203,7 +203,7 @@ __global__ void raytraceKernel(
 
                 float u = f * (sx * hx + sy * hy + sz * hz);
 
-                hit &= u >= 0.0f && u <= 1.0f;
+                hit &= u >= 0.0f & u <= 1.0f;
 
                 float qx = sy * e1z - sz * e1y;
                 float qy = sz * e1x - sx * e1z;
@@ -211,11 +211,11 @@ __global__ void raytraceKernel(
 
                 float v = f * (ray.d.x * qx + ray.d.y * qy + ray.d.z * qz);
 
-                hit &= v >= 0.0f && u + v <= 1.0f;
+                hit &= v >= 0.0f & u + v <= 1.0f;
 
                 float t = f * (e2x * qx + e2y * qy + e2z * qz);
 
-                hit &= t > 0.0f && t < rhit.t;
+                hit &= t > 0.0f & t < rhit.t;
 
                 rhit.t = t * hit + rhit.t * !hit;
                 rhit.u = u * hit + rhit.u * !hit;
@@ -305,7 +305,7 @@ __global__ void raytraceKernel(
                             lPos.z < mi_z[nidx] | lPos.z > mx_z[nidx];
                 float nDist = ((tmaxn < tminn | tminn < 0) ? -1 : tminn) * nOut;
 
-                if (nDist < 0 || nDist > lDist) continue;
+                if (nDist < 0 | nDist > lDist) continue;
 
                 if (cl[nidx] > -1) {
                     float t1l = (mi_x[cl[nidx]] - lPos.x) * lInv.x;
@@ -352,7 +352,7 @@ __global__ void raytraceKernel(
                 for (int i = ll[nidx]; i < lr[nidx]; ++i) {
                     int gi = gIdx[i];
 
-                    bool hit = gi != hIdx && gi != lIdx;
+                    bool hit = gi != hIdx & gi != lIdx;
 
                     float e1x = vx[fv1[gi]] - vx[fv0[gi]];
                     float e1y = vy[fv1[gi]] - vy[fv0[gi]];
@@ -379,7 +379,7 @@ __global__ void raytraceKernel(
 
                     float u = f * (sx * hx + sy * hy + sz * hz);
 
-                    hit &= u >= 0 && u <= 1;
+                    hit &= u >= 0 & u <= 1;
 
                     float qx = sy * e1z - sz * e1y;
                     float qy = sz * e1x - sx * e1z;
@@ -387,11 +387,11 @@ __global__ void raytraceKernel(
 
                     float v = f * (lDir.x * qx + lDir.y * qy + lDir.z * qz);
 
-                    hit &= v >= 0 && u + v <= 1;
+                    hit &= v >= 0 & u + v <= 1;
 
                     float t = f * (e2x * qx + e2y * qy + e2z * qz);
 
-                    hit &= t > 0 && t < lDist;
+                    hit &= t > 0 & t < lDist;
 
                     shadow |= hit;
                     ns_top *= !shadow;
@@ -408,7 +408,7 @@ __global__ void raytraceKernel(
         // ======== Additional rays ========
 
         // Transparent
-        if (hm.Tr > 0.0f && rs_top + 2 < MAX_RAYS) {
+        if (hm.Tr > 0.0f & rs_top + 2 < MAX_RAYS) {
             float wLeft = ray.w * hm.Tr;
             ray.w *= (1 - hm.Tr);
 
