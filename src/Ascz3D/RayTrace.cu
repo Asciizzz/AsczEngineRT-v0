@@ -113,79 +113,86 @@ __global__ void raytraceKernel(
         while (ns_top > 0) {
             int nidx = nstack[--ns_top];
 
-            float hDist;
-            if (ray.o.x >= mi_x[nidx] && ray.o.x <= mx_x[nidx] &&
+            // float hDist;
+            // if (ray.o.x >= mi_x[nidx] && ray.o.x <= mx_x[nidx] &&
+            //     ray.o.y >= mi_y[nidx] && ray.o.y <= mx_y[nidx] &&
+            //     ray.o.z >= mi_z[nidx] && ray.o.z <= mx_z[nidx]) hDist = 0;
+            // else {
+            //     float t1 = (mi_x[nidx] - ray.o.x) * ray.invd.x;
+            //     float t2 = (mx_x[nidx] - ray.o.x) * ray.invd.x;
+            //     float t3 = (mi_y[nidx] - ray.o.y) * ray.invd.y;
+            //     float t4 = (mx_y[nidx] - ray.o.y) * ray.invd.y;
+            //     float t5 = (mi_z[nidx] - ray.o.z) * ray.invd.z;
+            //     float t6 = (mx_z[nidx] - ray.o.z) * ray.invd.z;
+
+            //     float tmin = fmaxf(fmaxf(fminf(t1, t2), fminf(t3, t4)), fminf(t5, t6));
+            //     float tmax = fminf(fminf(fmaxf(t1, t2), fmaxf(t3, t4)), fmaxf(t5, t6));
+
+            //     if (tmax < tmin) hDist = -1;
+            //     else if (tmin < 0) hDist = -1;
+            //     else hDist = tmin;
+            // }
+            
+            float t1 = (mi_x[nidx] - ray.o.x) * ray.invd.x;
+            float t2 = (mx_x[nidx] - ray.o.x) * ray.invd.x;
+            float t3 = (mi_y[nidx] - ray.o.y) * ray.invd.y;
+            float t4 = (mx_y[nidx] - ray.o.y) * ray.invd.y;
+            float t5 = (mi_z[nidx] - ray.o.z) * ray.invd.z;
+            float t6 = (mx_z[nidx] - ray.o.z) * ray.invd.z;
+
+            float tmin = fmaxf(fmaxf(fminf(t1, t2), fminf(t3, t4)), fminf(t5, t6));
+            float tmax = fminf(fminf(fmaxf(t1, t2), fmaxf(t3, t4)), fmaxf(t5, t6));
+
+            float hDist =
+                (ray.o.x >= mi_x[nidx] && ray.o.x <= mx_x[nidx] &&
                 ray.o.y >= mi_y[nidx] && ray.o.y <= mx_y[nidx] &&
-                ray.o.z >= mi_z[nidx] && ray.o.z <= mx_z[nidx]) hDist = 0;
-            else {
-                float t1 = (mi_x[nidx] - ray.o.x) * ray.invd.x;
-                float t2 = (mx_x[nidx] - ray.o.x) * ray.invd.x;
-                float t3 = (mi_y[nidx] - ray.o.y) * ray.invd.y;
-                float t4 = (mx_y[nidx] - ray.o.y) * ray.invd.y;
-                float t5 = (mi_z[nidx] - ray.o.z) * ray.invd.z;
-                float t6 = (mx_z[nidx] - ray.o.z) * ray.invd.z;
-
-                float tmin = fmaxf(fmaxf(fminf(t1, t2), fminf(t3, t4)), fminf(t5, t6));
-                float tmax = fminf(fminf(fmaxf(t1, t2), fmaxf(t3, t4)), fmaxf(t5, t6));
-
-                if (tmax < tmin) hDist = -1;
-                else if (tmin < 0) hDist = -1;
-                else hDist = tmin;
-            }
+                ray.o.z >= mi_z[nidx] && ray.o.z <= mx_z[nidx]) ? 0 :
+                (tmax < tmin || tmin < 0) ? -1 : tmin;
 
             if (hDist < 0 || hDist > hit.t) continue;
 
             if (cl[nidx] > -1) {
-                float ldist;
-                if (ray.o.x >= mi_x[cl[nidx]] && ray.o.x <= mx_x[cl[nidx]] &&
+
+                float t1l = (mi_x[cl[nidx]] - ray.o.x) * ray.invd.x;
+                float t2l = (mx_x[cl[nidx]] - ray.o.x) * ray.invd.x;
+                float t3l = (mi_y[cl[nidx]] - ray.o.y) * ray.invd.y;
+                float t4l = (mx_y[cl[nidx]] - ray.o.y) * ray.invd.y;
+                float t5l = (mi_z[cl[nidx]] - ray.o.z) * ray.invd.z;
+                float t6l = (mx_z[cl[nidx]] - ray.o.z) * ray.invd.z;
+
+                float tminl = fmaxf(fmaxf(fminf(t1l, t2l), fminf(t3l, t4l)), fminf(t5l, t6l));
+                float tmaxl = fminf(fminf(fmaxf(t1l, t2l), fmaxf(t3l, t4l)), fmaxf(t5l, t6l));
+
+                float ldist =
+                    (ray.o.x >= mi_x[cl[nidx]] && ray.o.x <= mx_x[cl[nidx]] &&
                     ray.o.y >= mi_y[cl[nidx]] && ray.o.y <= mx_y[cl[nidx]] &&
-                    ray.o.z >= mi_z[cl[nidx]] && ray.o.z <= mx_z[cl[nidx]]) ldist = 0;
-                else {
-                    float t1 = (mi_x[cl[nidx]] - ray.o.x) * ray.invd.x;
-                    float t2 = (mx_x[cl[nidx]] - ray.o.x) * ray.invd.x;
-                    float t3 = (mi_y[cl[nidx]] - ray.o.y) * ray.invd.y;
-                    float t4 = (mx_y[cl[nidx]] - ray.o.y) * ray.invd.y;
-                    float t5 = (mi_z[cl[nidx]] - ray.o.z) * ray.invd.z;
-                    float t6 = (mx_z[cl[nidx]] - ray.o.z) * ray.invd.z;
+                    ray.o.z >= mi_z[cl[nidx]] && ray.o.z <= mx_z[cl[nidx]]) ? 0 :
+                    (tmaxl < tminl || tminl < 0) ? -1 : tminl;
 
-                    float tmin = fmaxf(fmaxf(fminf(t1, t2), fminf(t3, t4)), fminf(t5, t6));
-                    float tmax = fminf(fminf(fmaxf(t1, t2), fmaxf(t3, t4)), fmaxf(t5, t6));
+                
+                float t1r = (mi_x[cr[nidx]] - ray.o.x) * ray.invd.x;
+                float t2r = (mx_x[cr[nidx]] - ray.o.x) * ray.invd.x;
+                float t3r = (mi_y[cr[nidx]] - ray.o.y) * ray.invd.y;
+                float t4r = (mx_y[cr[nidx]] - ray.o.y) * ray.invd.y;
+                float t5r = (mi_z[cr[nidx]] - ray.o.z) * ray.invd.z;
+                float t6r = (mx_z[cr[nidx]] - ray.o.z) * ray.invd.z;
 
-                    if (tmax < tmin) ldist = -1;
-                    else if (tmin < 0) ldist = -1;
-                    else ldist = tmin;
-                }
+                float tminr = fmaxf(fmaxf(fminf(t1r, t2r), fminf(t3r, t4r)), fminf(t5r, t6r));
+                float tmaxr = fminf(fminf(fmaxf(t1r, t2r), fmaxf(t3r, t4r)), fmaxf(t5r, t6r));
 
-                float rdist;
-                if (ray.o.x >= mi_x[cr[nidx]] && ray.o.x <= mx_x[cr[nidx]] &&
+                float rdist =
+                    (ray.o.x >= mi_x[cr[nidx]] && ray.o.x <= mx_x[cr[nidx]] &&
                     ray.o.y >= mi_y[cr[nidx]] && ray.o.y <= mx_y[cr[nidx]] &&
-                    ray.o.z >= mi_z[cr[nidx]] && ray.o.z <= mx_z[cr[nidx]]) rdist = 0;
-                else {
-                    float t1 = (mi_x[cr[nidx]] - ray.o.x) * ray.invd.x;
-                    float t2 = (mx_x[cr[nidx]] - ray.o.x) * ray.invd.x;
-                    float t3 = (mi_y[cr[nidx]] - ray.o.y) * ray.invd.y;
-                    float t4 = (mx_y[cr[nidx]] - ray.o.y) * ray.invd.y;
-                    float t5 = (mi_z[cr[nidx]] - ray.o.z) * ray.invd.z;
-                    float t6 = (mx_z[cr[nidx]] - ray.o.z) * ray.invd.z;
+                    ray.o.z >= mi_z[cr[nidx]] && ray.o.z <= mx_z[cr[nidx]]) ? 0 :
+                    (tmaxr < tminr || tminr < 0) ? -1 : tminr;
 
-                    float tmin = fmaxf(fmaxf(fminf(t1, t2), fminf(t3, t4)), fminf(t5, t6));
-                    float tmax = fminf(fminf(fmaxf(t1, t2), fmaxf(t3, t4)), fmaxf(t5, t6));
+                    bool lcloser = ldist < rdist;
 
-                    if (tmax < tmin) rdist = -1;
-                    else if (tmin < 0) rdist = -1;
-                    else rdist = tmin;
-                }
+                    nstack[ns_top] = lcloser ? cr[nidx] : cl[nidx];
+                    ns_top += lcloser ? (rdist >= 0) : (ldist >= 0);
 
-                // Early exit
-                if (ldist < 0 && rdist < 0) continue;
-                // Push the valid node
-                else if (ldist < 0) nstack[ns_top++] = cr[nidx];
-                else if (rdist < 0) nstack[ns_top++] = cl[nidx];
-                // Push the closest node first
-                else {
-                    nstack[ns_top++] = ldist < rdist ? cr[nidx] : cl[nidx];
-                    nstack[ns_top++] = ldist < rdist ? cl[nidx] : cr[nidx];
-                }
+                    nstack[ns_top] = lcloser ? cl[nidx] : cr[nidx];
+                    ns_top += lcloser ? (ldist >= 0) : (rdist >= 0);
 
                 continue;
             }
@@ -305,71 +312,63 @@ __global__ void raytraceKernel(
             while (ns_top > 0) {
                 int nidx = nstack[--ns_top];
 
-                float hDist;
-                if (lPos.x >= mi_x[nidx] && lPos.x <= mx_x[nidx] &&
+                float t1 = (mi_x[nidx] - lPos.x) * lInv.x;
+                float t2 = (mx_x[nidx] - lPos.x) * lInv.x;
+                float t3 = (mi_y[nidx] - lPos.y) * lInv.y;
+                float t4 = (mx_y[nidx] - lPos.y) * lInv.y;
+                float t5 = (mi_z[nidx] - lPos.z) * lInv.z;
+                float t6 = (mx_z[nidx] - lPos.z) * lInv.z;
+
+                float tmin = fmaxf(fmaxf(fminf(t1, t2), fminf(t3, t4)), fminf(t5, t6));
+                float tmax = fminf(fminf(fmaxf(t1, t2), fmaxf(t3, t4)), fmaxf(t5, t6));
+
+                float hDist =
+                    (lPos.x >= mi_x[nidx] && lPos.x <= mx_x[nidx] &&
                     lPos.y >= mi_y[nidx] && lPos.y <= mx_y[nidx] &&
-                    lPos.z >= mi_z[nidx] && lPos.z <= mx_z[nidx]) hDist = 0;
-                else {
-                    float t1 = (mi_x[nidx] - lPos.x) * lInv.x;
-                    float t2 = (mx_x[nidx] - lPos.x) * lInv.x;
-                    float t3 = (mi_y[nidx] - lPos.y) * lInv.y;
-                    float t4 = (mx_y[nidx] - lPos.y) * lInv.y;
-                    float t5 = (mi_z[nidx] - lPos.z) * lInv.z;
-                    float t6 = (mx_z[nidx] - lPos.z) * lInv.z;
-    
-                    float tmin = fmaxf(fmaxf(fminf(t1, t2), fminf(t3, t4)), fminf(t5, t6));
-                    float tmax = fminf(fminf(fmaxf(t1, t2), fmaxf(t3, t4)), fmaxf(t5, t6));
-    
-                    if (tmax < tmin) hDist = -1;
-                    else if (tmin < 0) hDist = -1;
-                    else hDist = tmin;
-                }
+                    lPos.z >= mi_z[nidx] && lPos.z <= mx_z[nidx]) ? 0 :
+                    (tmax < tmin || tmin < 0) ? -1 : tmin;
 
                 if (hDist < 0 || hDist > lDist) continue;
     
                 if (cl[nidx] > -1) {
-                    float ldist;
-                    if (lPos.x >= mi_x[cl[nidx]] && lPos.x <= mx_x[cl[nidx]] &&
-                        lPos.y >= mi_y[cl[nidx]] && lPos.y <= mx_y[cl[nidx]] &&
-                        lPos.z >= mi_z[cl[nidx]] && lPos.z <= mx_z[cl[nidx]]) ldist = 0;
-                    else {
-                        float t1 = (mi_x[cl[nidx]] - lPos.x) * lInv.x;
-                        float t2 = (mx_x[cl[nidx]] - lPos.x) * lInv.x;
-                        float t3 = (mi_y[cl[nidx]] - lPos.y) * lInv.y;
-                        float t4 = (mx_y[cl[nidx]] - lPos.y) * lInv.y;
-                        float t5 = (mi_z[cl[nidx]] - lPos.z) * lInv.z;
-                        float t6 = (mx_z[cl[nidx]] - lPos.z) * lInv.z;
-    
-                        float tmin = fmaxf(fmaxf(fminf(t1, t2), fminf(t3, t4)), fminf(t5, t6));
-                        float tmax = fminf(fminf(fmaxf(t1, t2), fmaxf(t3, t4)), fmaxf(t5, t6));
-    
-                        if (tmax < tmin) ldist = -1;
-                        else if (tmin < 0) ldist = -1;
-                        else ldist = tmin;
-                    }
+                    float t1l = (mi_x[cl[nidx]] - lPos.x) * lInv.x;
+                    float t2l = (mx_x[cl[nidx]] - lPos.x) * lInv.x;
+                    float t3l = (mi_y[cl[nidx]] - lPos.y) * lInv.y;
+                    float t4l = (mx_y[cl[nidx]] - lPos.y) * lInv.y;
+                    float t5l = (mi_z[cl[nidx]] - lPos.z) * lInv.z;
+                    float t6l = (mx_z[cl[nidx]] - lPos.z) * lInv.z;
 
-                    float rdist;
-                    if (lPos.x >= mi_x[cr[nidx]] && lPos.x <= mx_x[cr[nidx]] &&
+                    float tminl = fmaxf(fmaxf(fminf(t1l, t2l), fminf(t3l, t4l)), fminf(t5l, t6l));
+                    float tmaxl = fminf(fminf(fmaxf(t1l, t2l), fmaxf(t3l, t4l)), fmaxf(t5l, t6l));
+
+                    float ldist =
+                        (lPos.x >= mi_x[cl[nidx]] && lPos.x <= mx_x[cl[nidx]] &&
+                        lPos.y >= mi_y[cl[nidx]] && lPos.y <= mx_y[cl[nidx]] &&
+                        lPos.z >= mi_z[cl[nidx]] && lPos.z <= mx_z[cl[nidx]]) ? 0 :
+                        (tmaxl < tminl || tminl < 0) ? -1 : tminl;
+
+                    
+                    float t1r = (mi_x[cr[nidx]] - lPos.x) * lInv.x;
+                    float t2r = (mx_x[cr[nidx]] - lPos.x) * lInv.x;
+                    float t3r = (mi_y[cr[nidx]] - lPos.y) * lInv.y;
+                    float t4r = (mx_y[cr[nidx]] - lPos.y) * lInv.y;
+                    float t5r = (mi_z[cr[nidx]] - lPos.z) * lInv.z;
+                    float t6r = (mx_z[cr[nidx]] - lPos.z) * lInv.z;
+
+                    float tminr = fmaxf(fmaxf(fminf(t1r, t2r), fminf(t3r, t4r)), fminf(t5r, t6r));
+                    float tmaxr = fminf(fminf(fmaxf(t1r, t2r), fmaxf(t3r, t4r)), fmaxf(t5r, t6r));
+
+                    float rdist =
+                        (lPos.x >= mi_x[cr[nidx]] && lPos.x <= mx_x[cr[nidx]] &&
                         lPos.y >= mi_y[cr[nidx]] && lPos.y <= mx_y[cr[nidx]] &&
-                        lPos.z >= mi_z[cr[nidx]] && lPos.z <= mx_z[cr[nidx]]) rdist = 0;
-                    else {
-                        float t1 = (mi_x[cr[nidx]] - lPos.x) * lInv.x;
-                        float t2 = (mx_x[cr[nidx]] - lPos.x) * lInv.x;
-                        float t3 = (mi_y[cr[nidx]] - lPos.y) * lInv.y;
-                        float t4 = (mx_y[cr[nidx]] - lPos.y) * lInv.y;
-                        float t5 = (mi_z[cr[nidx]] - lPos.z) * lInv.z;
-                        float t6 = (mx_z[cr[nidx]] - lPos.z) * lInv.z;
-    
-                        float tmin = fmaxf(fmaxf(fminf(t1, t2), fminf(t3, t4)), fminf(t5, t6));
-                        float tmax = fminf(fminf(fmaxf(t1, t2), fmaxf(t3, t4)), fmaxf(t5, t6));
-    
-                        if (tmax < tmin) rdist = -1;
-                        else if (tmin < 0) rdist = -1;
-                        else rdist = tmin;
-                    }
-    
-                    if (ldist >= 0) nstack[ns_top++] = cl[nidx];
-                    if (rdist >= 0) nstack[ns_top++] = cr[nidx];
+                        lPos.z >= mi_z[cr[nidx]] && lPos.z <= mx_z[cr[nidx]]) ? 0 :
+                        (tmaxr < tminr || tminr < 0) ? -1 : tminr;
+
+                    nstack[ns_top] = cl[nidx];
+                    ns_top += (ldist >= 0);
+
+                    nstack[ns_top] = cr[nidx];
+                    ns_top += (rdist >= 0);
     
                     continue;
                 }
