@@ -132,7 +132,6 @@ __global__ void raytraceKernel(
             if (hDist < 0 || hDist > rhit.t) continue;
 
             if (cl[nidx] > -1) {
-
                 float t1l = (mi_x[cl[nidx]] - ray.o.x) * ray.invd.x;
                 float t2l = (mx_x[cl[nidx]] - ray.o.x) * ray.invd.x;
                 float t3l = (mi_y[cl[nidx]] - ray.o.y) * ray.invd.y;
@@ -166,13 +165,13 @@ __global__ void raytraceKernel(
                     ray.o.z >= mi_z[cr[nidx]] && ray.o.z <= mx_z[cr[nidx]]) ? 0 :
                     (tmaxr < tminr || tminr < 0) ? -1 : tminr;
 
-                    bool lcloser = ldist < rdist;
+                bool lcloser = ldist < rdist;
 
-                    nstack[ns_top] = lcloser ? cr[nidx] : cl[nidx];
-                    ns_top += lcloser ? (rdist >= 0) : (ldist >= 0);
+                nstack[ns_top] = lcloser ? cr[nidx] : cl[nidx];
+                ns_top += lcloser ? (rdist >= 0) : (ldist >= 0);
 
-                    nstack[ns_top] = lcloser ? cl[nidx] : cr[nidx];
-                    ns_top += lcloser ? (ldist >= 0) : (rdist >= 0);
+                nstack[ns_top] = lcloser ? cl[nidx] : cr[nidx];
+                ns_top += lcloser ? (ldist >= 0) : (rdist >= 0);
 
                 continue;
             }
@@ -215,17 +214,16 @@ __global__ void raytraceKernel(
 
                 float v = f * (ray.d.x * qx + ray.d.y * qy + ray.d.z * qz);
 
-                // if (v < 0.0f || u + v > 1.0f) continue;
                 hit &= v >= 0.0f && u + v <= 1.0f;
 
                 float t = f * (e2x * qx + e2y * qy + e2z * qz);
 
                 hit &= t > 0.0f && t < rhit.t;
 
-                rhit.t = hit ? t : rhit.t;
-                rhit.u = hit ? u : rhit.u;
-                rhit.v = hit ? v : rhit.v;
-                rhit.idx = hit ? gi : rhit.idx;
+                rhit.t = t * hit + rhit.t * !hit;
+                rhit.u = u * hit + rhit.u * !hit;
+                rhit.v = v * hit + rhit.v * !hit;
+                rhit.idx = gi * hit + rhit.idx * !hit;
             }
         }
 
