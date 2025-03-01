@@ -105,7 +105,7 @@ __global__ void raytraceKernel(
     while (rs_top > 0) {
         // Copy before pop since there's high chance of overwriting
         Ray ray = rstack[--rs_top];
-        RayHit hit;
+        RayHit rhit;
 
         ns_top = 0;
         nstack[ns_top++] = 0;
@@ -113,26 +113,6 @@ __global__ void raytraceKernel(
         while (ns_top > 0) {
             int nidx = nstack[--ns_top];
 
-            // float hDist;
-            // if (ray.o.x >= mi_x[nidx] && ray.o.x <= mx_x[nidx] &&
-            //     ray.o.y >= mi_y[nidx] && ray.o.y <= mx_y[nidx] &&
-            //     ray.o.z >= mi_z[nidx] && ray.o.z <= mx_z[nidx]) hDist = 0;
-            // else {
-            //     float t1 = (mi_x[nidx] - ray.o.x) * ray.invd.x;
-            //     float t2 = (mx_x[nidx] - ray.o.x) * ray.invd.x;
-            //     float t3 = (mi_y[nidx] - ray.o.y) * ray.invd.y;
-            //     float t4 = (mx_y[nidx] - ray.o.y) * ray.invd.y;
-            //     float t5 = (mi_z[nidx] - ray.o.z) * ray.invd.z;
-            //     float t6 = (mx_z[nidx] - ray.o.z) * ray.invd.z;
-
-            //     float tmin = fmaxf(fmaxf(fminf(t1, t2), fminf(t3, t4)), fminf(t5, t6));
-            //     float tmax = fminf(fminf(fmaxf(t1, t2), fmaxf(t3, t4)), fmaxf(t5, t6));
-
-            //     if (tmax < tmin) hDist = -1;
-            //     else if (tmin < 0) hDist = -1;
-            //     else hDist = tmin;
-            // }
-            
             float t1 = (mi_x[nidx] - ray.o.x) * ray.invd.x;
             float t2 = (mx_x[nidx] - ray.o.x) * ray.invd.x;
             float t3 = (mi_y[nidx] - ray.o.y) * ray.invd.y;
@@ -149,7 +129,7 @@ __global__ void raytraceKernel(
                 ray.o.z >= mi_z[nidx] && ray.o.z <= mx_z[nidx]) ? 0 :
                 (tmax < tmin || tmin < 0) ? -1 : tmin;
 
-            if (hDist < 0 || hDist > hit.t) continue;
+            if (hDist < 0 || hDist > rhit.t) continue;
 
             if (cl[nidx] > -1) {
 
@@ -199,7 +179,8 @@ __global__ void raytraceKernel(
 
             for (int i = ll[nidx]; i < lr[nidx]; ++i) {
                 int gi = gIdx[i];
-                if (gi == ray.ignore) continue;
+
+                bool hit = gi != rhit.idx;
 
                 float e1x = vx[fv1[gi]] - vx[fv0[gi]];
                 float e1y = vy[fv1[gi]] - vy[fv0[gi]];
@@ -215,7 +196,8 @@ __global__ void raytraceKernel(
 
                 float a = e1x * hx + e1y * hy + e1z * hz;
 
-                if (a == 0) continue;
+                hit &= a != 0.0f;
+                a = a == 0.0f ? 1.0f : a;
 
                 float f = 1.0f / a;
 
@@ -225,7 +207,7 @@ __global__ void raytraceKernel(
 
                 float u = f * (sx * hx + sy * hy + sz * hz);
 
-                if (u < 0.0f || u > 1.0f) continue;
+                hit &= u >= 0.0f && u <= 1.0f;
 
                 float qx = sy * e1z - sz * e1y;
                 float qy = sz * e1x - sx * e1z;
@@ -233,40 +215,41 @@ __global__ void raytraceKernel(
 
                 float v = f * (ray.d.x * qx + ray.d.y * qy + ray.d.z * qz);
 
-                if (v < 0.0f || u + v > 1.0f) continue;
+                // if (v < 0.0f || u + v > 1.0f) continue;
+                hit &= v >= 0.0f && u + v <= 1.0f;
 
                 float t = f * (e2x * qx + e2y * qy + e2z * qz);
 
-                if (t > 0 && t < hit.t) {
-                    hit.t = t;
-                    hit.u = u;
-                    hit.v = v;
-                    hit.idx = gi;
-                }
+                hit &= t > 0.0f && t < rhit.t;
+
+                rhit.t = hit ? t : rhit.t;
+                rhit.u = hit ? u : rhit.u;
+                rhit.v = hit ? v : rhit.v;
+                rhit.idx = hit ? gi : rhit.idx;
             }
         }
 
-        int hIdx = hit.idx;
+        int hIdx = rhit.idx;
         if (hIdx == -1) continue;
 
         // Get the face data
         const AzMtl &hm = mats[fm[hIdx]];
 
-        float hitw = 1 - hit.u - hit.v;
+        float rhitw = 1 - rhit.u - rhit.v;
 
-        Flt3 vrtx = ray.o + ray.d * hit.t;
+        Flt3 vrtx = ray.o + ray.d * rhit.t;
 
         Flt3 nrml = {
-            nx[fn0[hIdx]] * hitw + nx[fn1[hIdx]] * hit.u + nx[fn2[hIdx]] * hit.v,
-            ny[fn0[hIdx]] * hitw + ny[fn1[hIdx]] * hit.u + ny[fn2[hIdx]] * hit.v,
-            nz[fn0[hIdx]] * hitw + nz[fn1[hIdx]] * hit.u + nz[fn2[hIdx]] * hit.v
+            nx[fn0[hIdx]] * rhitw + nx[fn1[hIdx]] * rhit.u + nx[fn2[hIdx]] * rhit.v,
+            ny[fn0[hIdx]] * rhitw + ny[fn1[hIdx]] * rhit.u + ny[fn2[hIdx]] * rhit.v,
+            nz[fn0[hIdx]] * rhitw + nz[fn1[hIdx]] * rhit.u + nz[fn2[hIdx]] * rhit.v
         };
 
         Flt3 alb;
         if (hm.AlbMap > -1) {
             Int3 tt = Int3(ft0[hIdx], ft1[hIdx], ft2[hIdx]);
-            float tu = tx[tt.x] * hitw + tx[tt.y] * hit.u + tx[tt.z] * hit.v;
-            float tv = ty[tt.x] * hitw + ty[tt.y] * hit.u + ty[tt.z] * hit.v;
+            float tu = tx[tt.x] * rhitw + tx[tt.y] * rhit.u + tx[tt.z] * rhit.v;
+            float tv = ty[tt.x] * rhitw + ty[tt.y] * rhit.u + ty[tt.z] * rhit.v;
 
             Flt4 txColr = getTextureColor(tu, tv, tr, tg, tb, ta, tw, th, toff, hm.AlbMap);
             alb = txColr.f3();
@@ -375,9 +358,8 @@ __global__ void raytraceKernel(
     
                 for (int i = ll[nidx]; i < lr[nidx]; ++i) {
                     int gi = gIdx[i];
-                    if (gi == hIdx || gi == lIdx) continue;
 
-                    bool hit = true;
+                    bool hit = gi != hIdx && gi != lIdx;
 
                     float e1x = vx[fv1[gi]] - vx[fv0[gi]];
                     float e1y = vy[fv1[gi]] - vy[fv0[gi]];
@@ -412,21 +394,15 @@ __global__ void raytraceKernel(
 
                     float v = f * (lDir.x * qx + lDir.y * qy + lDir.z * qz);
 
-                    // if (v < 0.0f || u + v > 1.0f) continue;
-
                     hit &= v >= 0 && u + v <= 1;
 
                     float t = f * (e2x * qx + e2y * qy + e2z * qz);
 
                     hit &= t > 0 && t < lDist;
 
-                    if (hit) {
-                        shadow = true;
-                        break;
-                    }
+                    shadow |= hit;
+                    ns_top = shadow ? 0 : ns_top;
                 }
-
-                if (shadow) break;
             }
 
             float NdotL = nrml * -lDir;
