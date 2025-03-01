@@ -205,16 +205,46 @@ __global__ void raytraceKernel(
                 int gi = gIdx[i];
                 if (gi == ray.ignore) continue;
 
-                // x: t, y: u, z: v
-                Flt3 h = RayHitTriangle(ray.o, ray.d,
-                    { vx[fv0[gi]], vy[fv0[gi]], vz[fv0[gi]] },
-                    { vx[fv1[gi]], vy[fv1[gi]], vz[fv1[gi]] },
-                    { vx[fv2[gi]], vy[fv2[gi]], vz[fv2[gi]] }
-                );
-                if (h.x > 0 && h.x < hit.t) {
-                    hit.t = h.x;
-                    hit.u = h.y;
-                    hit.v = h.z;
+                float e1x = vx[fv1[gi]] - vx[fv0[gi]];
+                float e1y = vy[fv1[gi]] - vy[fv0[gi]];
+                float e1z = vz[fv1[gi]] - vz[fv0[gi]];
+
+                float e2x = vx[fv2[gi]] - vx[fv0[gi]];
+                float e2y = vy[fv2[gi]] - vy[fv0[gi]];
+                float e2z = vz[fv2[gi]] - vz[fv0[gi]];
+
+                float hx = ray.d.y * e2z - ray.d.z * e2y;
+                float hy = ray.d.z * e2x - ray.d.x * e2z;
+                float hz = ray.d.x * e2y - ray.d.y * e2x;
+
+                float a = e1x * hx + e1y * hy + e1z * hz;
+
+                if (a == 0) continue;
+
+                float f = 1.0f / a;
+
+                float sx = ray.o.x - vx[fv0[gi]];
+                float sy = ray.o.y - vy[fv0[gi]];
+                float sz = ray.o.z - vz[fv0[gi]];
+
+                float u = f * (sx * hx + sy * hy + sz * hz);
+
+                if (u < 0.0f || u > 1.0f) continue;
+
+                float qx = sy * e1z - sz * e1y;
+                float qy = sz * e1x - sx * e1z;
+                float qz = sx * e1y - sy * e1x;
+
+                float v = f * (ray.d.x * qx + ray.d.y * qy + ray.d.z * qz);
+
+                if (v < 0.0f || u + v > 1.0f) continue;
+
+                float t = f * (e2x * qx + e2y * qy + e2z * qz);
+
+                if (t > 0 && t < hit.t) {
+                    hit.t = t;
+                    hit.u = u;
+                    hit.v = v;
                     hit.idx = gi;
                 }
             }
@@ -247,9 +277,6 @@ __global__ void raytraceKernel(
             alb = hm.Alb;
         }
 
-        // resultColr += alb * ray.w;
-        // continue;
-
         // Lighting and shading
         float NdotL = falseAmbient ? nrml * ray.d : 0.0f;
         Flt3 finalColr = alb * 0.02f * NdotL * NdotL;
@@ -267,14 +294,11 @@ __global__ void raytraceKernel(
 
             // Get position based on the geometry type
             Flt3 lPos = {
-                vx[fv0[lIdx]] * hitw + vx[fv1[lIdx]] * hit.u + vx[fv2[lIdx]] * hit.v,
-                vy[fv0[lIdx]] * hitw + vy[fv1[lIdx]] * hit.u + vy[fv2[lIdx]] * hit.v,
-                vz[fv0[lIdx]] * hitw + vz[fv1[lIdx]] * hit.u + vz[fv2[lIdx]] * hit.v
+                vx[fv0[lIdx]] + vx[fv1[lIdx]] + vx[fv2[lIdx]],
+                vy[fv0[lIdx]] + vy[fv1[lIdx]] + vy[fv2[lIdx]],
+                vz[fv0[lIdx]] + vz[fv1[lIdx]] + vz[fv2[lIdx]]
             };
-            // Int3 tv = Int3(fv0[lIdx], fv1[lIdx], fv2[lIdx]);
-            // lPos.x = (vx[tv.x] + vx[tv.y] + vx[tv.z]) / 3;
-            // lPos.y = (vy[tv.x] + vy[tv.y] + vy[tv.z]) / 3;
-            // lPos.z = (vz[tv.x] + vz[tv.y] + vz[tv.z]) / 3;
+            lPos /= 3.0f;
 
             Flt3 lDir = vrtx - lPos;
             float lDist = lDir.mag();
@@ -314,12 +338,43 @@ __global__ void raytraceKernel(
                     int gi = gIdx[i];
                     if (gi == hIdx || gi == lIdx) continue;
 
-                    Flt3 h = RayHitTriangle(lPos, lDir,
-                        { vx[fv0[gi]], vy[fv0[gi]], vz[fv0[gi]] },
-                        { vx[fv1[gi]], vy[fv1[gi]], vz[fv1[gi]] },
-                        { vx[fv2[gi]], vy[fv2[gi]], vz[fv2[gi]] }
-                    );
-                    if (h.x > 0 && h.x < lDist) {
+                    float e1x = vx[fv1[gi]] - vx[fv0[gi]];
+                    float e1y = vy[fv1[gi]] - vy[fv0[gi]];
+                    float e1z = vz[fv1[gi]] - vz[fv0[gi]];
+
+                    float e2x = vx[fv2[gi]] - vx[fv0[gi]];
+                    float e2y = vy[fv2[gi]] - vy[fv0[gi]];
+                    float e2z = vz[fv2[gi]] - vz[fv0[gi]];
+
+                    float hx = lDir.y * e2z - lDir.z * e2y;
+                    float hy = lDir.z * e2x - lDir.x * e2z;
+                    float hz = lDir.x * e2y - lDir.y * e2x;
+
+                    float a = e1x * hx + e1y * hy + e1z * hz;
+
+                    if (a == 0) continue;
+
+                    float f = 1.0f / a;
+
+                    float sx = lPos.x - vx[fv0[gi]];
+                    float sy = lPos.y - vy[fv0[gi]];
+                    float sz = lPos.z - vz[fv0[gi]];
+
+                    float u = f * (sx * hx + sy * hy + sz * hz);
+                    
+                    if (u < 0.0f || u > 1.0f) continue;
+
+                    float qx = sy * e1z - sz * e1y;
+                    float qy = sz * e1x - sx * e1z;
+                    float qz = sx * e1y - sy * e1x;
+
+                    float v = f * (lDir.x * qx + lDir.y * qy + lDir.z * qz);
+
+                    if (v < 0.0f || u + v > 1.0f) continue;
+
+                    float t = f * (e2x * qx + e2y * qy + e2z * qz);
+
+                    if (t > 0 && t < lDist) {
                         shadow = true;
                         break;
                     }
