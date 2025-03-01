@@ -15,9 +15,9 @@ public:
 
     // Ray generation
     __host__ __device__
-    Flt2 getScrnNDC(float x, float y, float width, float height);
+    Flt2 getScrnNDC(float x, float y, float width, float height) const;
     __host__ __device__
-    Ray castRay(float x, float y, float width, float height);
+    Ray castRay(float x, float y, float width, float height) const;
 
     void update();
 
