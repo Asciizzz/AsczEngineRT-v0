@@ -5,6 +5,6 @@
 build/
 .build/
 
-/AsczEngine.exp
-/AsczEngine.lib
-/AsczEngine.pdb
+AsczEngine.exp
+AsczEngine.lib
+AsczEngine.pdb
