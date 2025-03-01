@@ -25,8 +25,6 @@ struct DevNode { // Flattened structure friendly for shader code
     int ll = -1;
     int lr = -1;
 
-    __device__ float hitDist(const Flt3 &rO, const Flt3 &rInvD) const;
-
     __host__ static float findCost(AABB &ab, int nG) {
         return ab.getSA() * nG;
     }
@@ -39,8 +37,16 @@ public:
     VecI h_gIdx; // Geom's index
     int *d_gIdx = nullptr;
 
-    VecNode h_nodes;
-    DevNode *d_nodes;
+    VecF h_mi_x, h_mi_y, h_mi_z; // AABB Min
+    VecF h_mx_x, h_mx_y, h_mx_z; // AABB Max
+    VecI h_cl, h_cr; // Children
+    VecI h_ll, h_lr; // Geom's index
+
+    float *d_mi_x, *d_mi_y, *d_mi_z; // AABB Min
+    float *d_mx_x, *d_mx_y, *d_mx_z; // AABB Max
+    int *d_cl, *d_cr; // Children
+    int *d_ll, *d_lr; // Geom's index
+
     int nNum;
 
     int MAX_DEPTH = 32;
@@ -52,7 +58,10 @@ public:
 
     // Sub-object split faces
     static int buildBvh(
-        VecNode &allNode, VecI &allGIdx, DevNode &node, const VecAB &ABs,
+        VecF &mi_x, VecF &mi_y, VecF &mi_z, VecF &mx_x, VecF &mx_y, VecF &mx_z,
+        VecI &cl, VecI &cr, VecI &ll, VecI &lr,
+
+        VecI &allGIdx, DevNode &node, const VecAB &ABs,
         int depth, const int MAX_DEPTH, const int NODE_FACES, const int BIN_COUNT
     );
     void designBVH(AsczMesh &meshMgr);

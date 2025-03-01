@@ -204,7 +204,7 @@ int main() {
                 MeshMgr.d_fv0, MeshMgr.d_fv1, MeshMgr.d_fv2, MeshMgr.d_ft0, MeshMgr.d_ft1, MeshMgr.d_ft2, MeshMgr.d_fn0, MeshMgr.d_fn1, MeshMgr.d_fn2, MeshMgr.d_fm,
                 MeshMgr.d_lSrc, MeshMgr.lNum,
 
-                BvhMgr.d_gIdx, BvhMgr.d_nodes, BvhMgr.nNum,
+                BvhMgr.d_mi_x, BvhMgr.d_mi_y, BvhMgr.d_mi_z, BvhMgr.d_mx_x, BvhMgr.d_mx_y, BvhMgr.d_mx_z, BvhMgr.d_cl, BvhMgr.d_cr, BvhMgr.d_ll, BvhMgr.d_lr, BvhMgr.d_gIdx,
 
                 falseAmbient
             );

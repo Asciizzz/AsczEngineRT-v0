@@ -2,54 +2,62 @@
 
 #include <algorithm>
 
-__device__ float DevNode::hitDist(const Flt3 &rO, const Flt3 &rInvD) const {
-    const Flt3 &min = ab.min;
-    const Flt3 &max = ab.max;
-
-    if (rO.x >= min.x && rO.x <= max.x &&
-        rO.y >= min.y && rO.y <= max.y &&
-        rO.z >= min.z && rO.z <= max.z) return 0.0f;
-
-    float t1 = (min.x - rO.x) * rInvD.x;
-    float t2 = (max.x - rO.x) * rInvD.x;
-    float t3 = (min.y - rO.y) * rInvD.y;
-    float t4 = (max.y - rO.y) * rInvD.y;
-    float t5 = (min.z - rO.z) * rInvD.z;
-    float t6 = (max.z - rO.z) * rInvD.z;
-
-    float tmin = fmaxf(fmaxf(fminf(t1, t2), fminf(t3, t4)), fminf(t5, t6));
-    float tmax = fminf(fminf(fmaxf(t1, t2), fmaxf(t3, t4)), fmaxf(t5, t6));
-
-    if (tmax < tmin) return -1.0f; // No intersection
-    if (tmin < 0.0f) return -1.0f; // Intersection behind the ray
-    return tmin;
-}
-
-
 
 void AsczBvh::freeDevice() {
     if (nNum == 0) return;
-    cudaFree(d_nodes);
-    cudaFree(d_gIdx);
+    // cudaFree(d_nodes);
+    // cudaFree(d_gIdx);
 }
 void AsczBvh::toDevice() {
     freeDevice();
 
-    nNum = h_nodes.size();
-
-    cudaMalloc(&d_nodes, h_nodes.size() * sizeof(DevNode));
-    cudaMemcpy(d_nodes, h_nodes.data(), h_nodes.size() * sizeof(DevNode), cudaMemcpyHostToDevice);
+    nNum = h_mi_x.size();
 
     cudaMalloc(&d_gIdx, h_gIdx.size() * sizeof(int));
     cudaMemcpy(d_gIdx, h_gIdx.data(), h_gIdx.size() * sizeof(int), cudaMemcpyHostToDevice);
+
+    cudaMalloc(&d_mi_x, h_mi_x.size() * sizeof(float));
+    cudaMalloc(&d_mi_y, h_mi_y.size() * sizeof(float));
+    cudaMalloc(&d_mi_z, h_mi_z.size() * sizeof(float));
+    cudaMalloc(&d_mx_x, h_mx_x.size() * sizeof(float));
+    cudaMalloc(&d_mx_y, h_mx_y.size() * sizeof(float));
+    cudaMalloc(&d_mx_z, h_mx_z.size() * sizeof(float));
+    cudaMalloc(&d_cl, h_cl.size() * sizeof(int));
+    cudaMalloc(&d_cr, h_cr.size() * sizeof(int));
+    cudaMalloc(&d_ll, h_ll.size() * sizeof(int));
+    cudaMalloc(&d_lr, h_lr.size() * sizeof(int));
+
+    cudaMemcpy(d_mi_x, h_mi_x.data(), h_mi_x.size() * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_mi_y, h_mi_y.data(), h_mi_y.size() * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_mi_z, h_mi_z.data(), h_mi_z.size() * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_mx_x, h_mx_x.data(), h_mx_x.size() * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_mx_y, h_mx_y.data(), h_mx_y.size() * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_mx_z, h_mx_z.data(), h_mx_z.size() * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_cl, h_cl.data(), h_cl.size() * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_cr, h_cr.data(), h_cr.size() * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_ll, h_ll.data(), h_ll.size() * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_lr, h_lr.data(), h_lr.size() * sizeof(int), cudaMemcpyHostToDevice);
 }
 
 
 int AsczBvh::buildBvh(
-    VecNode &allNode, VecI &allGIdx, DevNode &node, const VecAB &ABs,
+    VecF &mi_x, VecF &mi_y, VecF &mi_z, VecF &mx_x, VecF &mx_y, VecF &mx_z,
+    VecI &cl, VecI &cr, VecI &ll, VecI &lr,
+
+    VecI &allGIdx, DevNode &node, const VecAB &ABs,
     int depth, const int MAX_DEPTH, const int NODE_FACES, const int BIN_COUNT
 ) {
-    allNode.push_back(node);
+    // allNode.push_back(node);
+    mi_x.push_back(node.ab.min.x);
+    mi_y.push_back(node.ab.min.y);
+    mi_z.push_back(node.ab.min.z);
+    mx_x.push_back(node.ab.max.x);
+    mx_y.push_back(node.ab.max.y);
+    mx_z.push_back(node.ab.max.z);
+    cl.push_back(node.cl);
+    cr.push_back(node.cr);
+    ll.push_back(node.ll);
+    lr.push_back(node.lr);
 
     int idx = 0;
 
@@ -126,18 +134,21 @@ int AsczBvh::buildBvh(
     DevNode l = { bestLab, -1, -1, node.ll, bestSplit };
     DevNode r = { bestRab, -1, -1, bestSplit, node.lr };
 
-    int curIdx = allNode.size() - 1;
+    int curIdx = mi_x.size() - 1;
 
-    allNode[curIdx].cl = allNode.size();
+    // allNode[curIdx].cl = allNode.size();
+    cl[curIdx] = mi_x.size();
     idx += buildBvh(
-        allNode, allGIdx, l, ABs, depth + 1,
+        mi_x, mi_y, mi_z, mx_x, mx_y, mx_z, cl, cr, ll, lr,
+        allGIdx, l, ABs, depth + 1,
         MAX_DEPTH, NODE_FACES, BIN_COUNT
     );
 
-    allNode[curIdx].cr = allNode.size();
+    cr[curIdx] = mi_x.size();
     idx += buildBvh(
-        allNode, allGIdx, r, ABs, depth + 1,
-        MAX_DEPTH, NODE_FACES, BIN_COUNT
+        mi_x, mi_y, mi_z, mx_x, mx_y, mx_z, cl, cr, ll, lr,
+        allGIdx, r, ABs, depth + 1,
+        MAX_DEPTH, NODE_FACES, BIN_COUNT    
     );
 
     return idx + 1;
@@ -158,7 +169,9 @@ void AsczBvh::designBVH(AsczMesh &meshMgr) {
     for (int i = 0; i < gNum; ++i) h_gIdx[i] = i;
 
     buildBvh(
-        h_nodes, h_gIdx, root, G_AB, 0,
+        h_mi_x, h_mi_y, h_mi_z, h_mx_x, h_mx_y, h_mx_z,
+        h_cl, h_cr, h_ll, h_lr,
+        h_gIdx, root, G_AB, 0,
         MAX_DEPTH, NODE_FACES, BIN_COUNT
     );
 }

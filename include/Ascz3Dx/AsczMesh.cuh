@@ -77,6 +77,26 @@ struct AABB {
     __host__ __device__ Flt3 cent() const {
         return (min + max) * 0.5f;
     }
+
+    __device__ float hitDist(const Flt3 &rO, const Flt3 &rInvD) const {
+        if (rO.x >= min.x && rO.x <= max.x &&
+            rO.y >= min.y && rO.y <= max.y &&
+            rO.z >= min.z && rO.z <= max.z) return 0.0f;
+    
+        float t1 = (min.x - rO.x) * rInvD.x;
+        float t2 = (max.x - rO.x) * rInvD.x;
+        float t3 = (min.y - rO.y) * rInvD.y;
+        float t4 = (max.y - rO.y) * rInvD.y;
+        float t5 = (min.z - rO.z) * rInvD.z;
+        float t6 = (max.z - rO.z) * rInvD.z;
+    
+        float tmin = fmaxf(fmaxf(fminf(t1, t2), fminf(t3, t4)), fminf(t5, t6));
+        float tmax = fminf(fminf(fmaxf(t1, t2), fmaxf(t3, t4)), fmaxf(t5, t6));
+    
+        if (tmax < tmin) return -1.0f; // No intersection
+        if (tmin < 0.0f) return -1.0f; // Intersection behind the ray
+        return tmin;
+    }
 };
 
 struct MeshStruct {

@@ -28,72 +28,6 @@ __device__ Flt4 getTextureColor(
     return Flt4(tr[t], tg[t], tb[t], ta[t]);
 }
 
-// Ray intersection
-
-__device__ Flt3 RayHitTriangle(const Flt3 &o, const Flt3 &d, const Flt3 &v0, const Flt3 &v1, const Flt3 &v2) {
-    Flt3 e1 = v1 - v0;
-    Flt3 e2 = v2 - v0;
-    Flt3 h = d ^ e2;
-    float a = e1 * h;
-
-    if (a == 0) return -1.0f;
-
-    float f = 1.0f / a;
-    Flt3 s = o - v0;
-    float u = f * (s * h);
-
-    if (u < 0.0f || u > 1.0f) return -1.0f;
-
-    Flt3 q = s ^ e1;
-    float v = f * (d * q);
-
-    if (v < 0.0f || u + v > 1.0f) return -1.0f;
-
-    float t = f * (e2 * q);
-
-    return Flt3(t, u, v);
-}
-
-__device__ Flt3 RayHitTriangle(const Flt3 &o, const Flt3 &d, const float vx[3], const float vy[3], const float vz[3]) {
-    float e1x = vx[1] - vx[0];
-    float e1y = vy[1] - vy[0];
-    float e1z = vz[1] - vz[0];
-
-    float e2x = vx[2] - vx[0];
-    float e2y = vy[2] - vy[0];
-    float e2z = vz[2] - vz[0];
-
-    float hx = d.y * e2z - d.z * e2y;
-    float hy = d.z * e2x - d.x * e2z;
-    float hz = d.x * e2y - d.y * e2x;
-
-    float a = e1x * hx + e1y * hy + e1z * hz;
-
-    if (a == 0) return -1.0f;
-
-    float f = 1.0f / a;
-
-    float sx = o.x - vx[0];
-    float sy = o.y - vy[0];
-    float sz = o.z - vz[0];
-
-    float u = f * (sx * hx + sy * hy + sz * hz);
-
-    if (u < 0.0f || u > 1.0f) return -1.0f;
-
-    float qx = sy * e1z - sz * e1y;
-    float qy = sz * e1x - sx * e1z;
-    float qz = sx * e1y - sy * e1x;
-
-    float v = f * (d.x * qx + d.y * qy + d.z * qz);
-
-    if (v < 0.0f || u + v > 1.0f) return -1.0f;
-
-    float t = f * (e2x * qx + e2y * qy + e2z * qz);
-
-    return Flt3(t, u, v);
-}
-
 __device__ Flt3 ASESFilm(const Flt3 &P) {
     const float a = 2.51f;
     const float b = 0.03f;
@@ -148,7 +82,7 @@ __global__ void raytraceKernel(
     // Light data
     int *lSrc, int lNum, 
     // BVH data
-    int *gIdx, DevNode *nodes, int nNum, 
+    float *mi_x, float *mi_y, float *mi_z, float *mx_x, float *mx_y, float *mx_z, int *cl, int *cr, int *ll, int *lr, int *gIdx,
     // Additional Debug Data
     bool falseAmbient
 ) {
@@ -178,30 +112,85 @@ __global__ void raytraceKernel(
 
         while (ns_top > 0) {
             int nidx = nstack[--ns_top];
-            DevNode &node = nodes[nidx];
 
-            float hitDist = node.hitDist(ray.o, ray.invd);
-            if (hitDist < 0 || hitDist > hit.t) continue;
+            float hDist;
+            if (ray.o.x >= mi_x[nidx] && ray.o.x <= mx_x[nidx] &&
+                ray.o.y >= mi_y[nidx] && ray.o.y <= mx_y[nidx] &&
+                ray.o.z >= mi_z[nidx] && ray.o.z <= mx_z[nidx]) hDist = 0;
+            else {
+                float t1 = (mi_x[nidx] - ray.o.x) * ray.invd.x;
+                float t2 = (mx_x[nidx] - ray.o.x) * ray.invd.x;
+                float t3 = (mi_y[nidx] - ray.o.y) * ray.invd.y;
+                float t4 = (mx_y[nidx] - ray.o.y) * ray.invd.y;
+                float t5 = (mi_z[nidx] - ray.o.z) * ray.invd.z;
+                float t6 = (mx_z[nidx] - ray.o.z) * ray.invd.z;
 
-            if (node.cl > -1) { // If node not a leaf
-                float ldist = nodes[node.cl].hitDist(ray.o, ray.invd);
-                float rdist = nodes[node.cr].hitDist(ray.o, ray.invd);
+                float tmin = fmaxf(fmaxf(fminf(t1, t2), fminf(t3, t4)), fminf(t5, t6));
+                float tmax = fminf(fminf(fmaxf(t1, t2), fmaxf(t3, t4)), fmaxf(t5, t6));
+
+                if (tmax < tmin) hDist = -1;
+                else if (tmin < 0) hDist = -1;
+                else hDist = tmin;
+            }
+
+            if (hDist < 0 || hDist > hit.t) continue;
+
+            if (cl[nidx] > -1) {
+                float ldist;
+                if (ray.o.x >= mi_x[cl[nidx]] && ray.o.x <= mx_x[cl[nidx]] &&
+                    ray.o.y >= mi_y[cl[nidx]] && ray.o.y <= mx_y[cl[nidx]] &&
+                    ray.o.z >= mi_z[cl[nidx]] && ray.o.z <= mx_z[cl[nidx]]) ldist = 0;
+                else {
+                    float t1 = (mi_x[cl[nidx]] - ray.o.x) * ray.invd.x;
+                    float t2 = (mx_x[cl[nidx]] - ray.o.x) * ray.invd.x;
+                    float t3 = (mi_y[cl[nidx]] - ray.o.y) * ray.invd.y;
+                    float t4 = (mx_y[cl[nidx]] - ray.o.y) * ray.invd.y;
+                    float t5 = (mi_z[cl[nidx]] - ray.o.z) * ray.invd.z;
+                    float t6 = (mx_z[cl[nidx]] - ray.o.z) * ray.invd.z;
+
+                    float tmin = fmaxf(fmaxf(fminf(t1, t2), fminf(t3, t4)), fminf(t5, t6));
+                    float tmax = fminf(fminf(fmaxf(t1, t2), fmaxf(t3, t4)), fmaxf(t5, t6));
+
+                    if (tmax < tmin) ldist = -1;
+                    else if (tmin < 0) ldist = -1;
+                    else ldist = tmin;
+                }
+
+                float rdist;
+                if (ray.o.x >= mi_x[cr[nidx]] && ray.o.x <= mx_x[cr[nidx]] &&
+                    ray.o.y >= mi_y[cr[nidx]] && ray.o.y <= mx_y[cr[nidx]] &&
+                    ray.o.z >= mi_z[cr[nidx]] && ray.o.z <= mx_z[cr[nidx]]) rdist = 0;
+                else {
+                    float t1 = (mi_x[cr[nidx]] - ray.o.x) * ray.invd.x;
+                    float t2 = (mx_x[cr[nidx]] - ray.o.x) * ray.invd.x;
+                    float t3 = (mi_y[cr[nidx]] - ray.o.y) * ray.invd.y;
+                    float t4 = (mx_y[cr[nidx]] - ray.o.y) * ray.invd.y;
+                    float t5 = (mi_z[cr[nidx]] - ray.o.z) * ray.invd.z;
+                    float t6 = (mx_z[cr[nidx]] - ray.o.z) * ray.invd.z;
+
+                    float tmin = fmaxf(fmaxf(fminf(t1, t2), fminf(t3, t4)), fminf(t5, t6));
+                    float tmax = fminf(fminf(fmaxf(t1, t2), fmaxf(t3, t4)), fmaxf(t5, t6));
+
+                    if (tmax < tmin) rdist = -1;
+                    else if (tmin < 0) rdist = -1;
+                    else rdist = tmin;
+                }
 
                 // Early exit
                 if (ldist < 0 && rdist < 0) continue;
                 // Push the valid node
-                else if (ldist < 0) nstack[ns_top++] = node.cr;
-                else if (rdist < 0) nstack[ns_top++] = node.cl;
+                else if (ldist < 0) nstack[ns_top++] = cr[nidx];
+                else if (rdist < 0) nstack[ns_top++] = cl[nidx];
                 // Push the closest node first
                 else {
-                    nstack[ns_top++] = ldist < rdist ? node.cr : node.cl;
-                    nstack[ns_top++] = ldist < rdist ? node.cl : node.cr;
+                    nstack[ns_top++] = ldist < rdist ? cr[nidx] : cl[nidx];
+                    nstack[ns_top++] = ldist < rdist ? cl[nidx] : cr[nidx];
                 }
 
                 continue;
             }
 
-            for (int i = node.ll; i < node.lr; ++i) {
+            for (int i = ll[nidx]; i < lr[nidx]; ++i) {
                 int gi = gIdx[i];
                 if (gi == ray.ignore) continue;
 
@@ -260,18 +249,19 @@ __global__ void raytraceKernel(
 
         Flt3 vrtx = ray.o + ray.d * hit.t;
 
-        Flt3 nrml;
-        nrml.x = nx[fn0[hIdx]] * hitw + nx[fn1[hIdx]] * hit.u + nx[fn2[hIdx]] * hit.v;
-        nrml.y = ny[fn0[hIdx]] * hitw + ny[fn1[hIdx]] * hit.u + ny[fn2[hIdx]] * hit.v;
-        nrml.z = nz[fn0[hIdx]] * hitw + nz[fn1[hIdx]] * hit.u + nz[fn2[hIdx]] * hit.v;
+        Flt3 nrml = {
+            nx[fn0[hIdx]] * hitw + nx[fn1[hIdx]] * hit.u + nx[fn2[hIdx]] * hit.v,
+            ny[fn0[hIdx]] * hitw + ny[fn1[hIdx]] * hit.u + ny[fn2[hIdx]] * hit.v,
+            nz[fn0[hIdx]] * hitw + nz[fn1[hIdx]] * hit.u + nz[fn2[hIdx]] * hit.v
+        };
 
         Flt3 alb;
         if (hm.AlbMap > -1) {
             Int3 tt = Int3(ft0[hIdx], ft1[hIdx], ft2[hIdx]);
-            float u = tx[tt.x] * hitw + tx[tt.y] * hit.u + tx[tt.z] * hit.v;
-            float v = ty[tt.x] * hitw + ty[tt.y] * hit.u + ty[tt.z] * hit.v;
+            float tu = tx[tt.x] * hitw + tx[tt.y] * hit.u + tx[tt.z] * hit.v;
+            float tv = ty[tt.x] * hitw + ty[tt.y] * hit.u + ty[tt.z] * hit.v;
 
-            Flt4 txColr = getTextureColor(u, v, tr, tg, tb, ta, tw, th, toff, hm.AlbMap);
+            Flt4 txColr = getTextureColor(tu, tv, tr, tg, tb, ta, tw, th, toff, hm.AlbMap);
             alb = txColr.f3();
         } else {
             alb = hm.Alb;
@@ -313,23 +303,78 @@ __global__ void raytraceKernel(
 
             bool shadow = false;
             while (ns_top > 0) {
-                int idx = nstack[--ns_top];
-                DevNode &node = nodes[idx];
+                int nidx = nstack[--ns_top];
 
-                float hitDist = node.hitDist(lPos, lInv);
-                if (hitDist < 0 || hitDist > lDist) continue;
-
-                if (node.cl > -1) { // If node not a leaf
-                    float ldist = nodes[node.cl].hitDist(lPos, lInv);
-                    float rdist = nodes[node.cr].hitDist(lPos, lInv);
-
-                    if (ldist >= 0) nstack[ns_top++] = node.cl;
-                    if (rdist >= 0) nstack[ns_top++] = node.cr;
-
-                    continue;
+                float hDist;
+                if (lPos.x >= mi_x[nidx] && lPos.x <= mx_x[nidx] &&
+                    lPos.y >= mi_y[nidx] && lPos.y <= mx_y[nidx] &&
+                    lPos.z >= mi_z[nidx] && lPos.z <= mx_z[nidx]) hDist = 0;
+                else {
+                    float t1 = (mi_x[nidx] - lPos.x) * lInv.x;
+                    float t2 = (mx_x[nidx] - lPos.x) * lInv.x;
+                    float t3 = (mi_y[nidx] - lPos.y) * lInv.y;
+                    float t4 = (mx_y[nidx] - lPos.y) * lInv.y;
+                    float t5 = (mi_z[nidx] - lPos.z) * lInv.z;
+                    float t6 = (mx_z[nidx] - lPos.z) * lInv.z;
+    
+                    float tmin = fmaxf(fmaxf(fminf(t1, t2), fminf(t3, t4)), fminf(t5, t6));
+                    float tmax = fminf(fminf(fmaxf(t1, t2), fmaxf(t3, t4)), fmaxf(t5, t6));
+    
+                    if (tmax < tmin) hDist = -1;
+                    else if (tmin < 0) hDist = -1;
+                    else hDist = tmin;
                 }
 
-                for (int i = node.ll; i < node.lr; ++i) {
+                if (hDist < 0 || hDist > lDist) continue;
+    
+                if (cl[nidx] > -1) {
+                    float ldist;
+                    if (lPos.x >= mi_x[cl[nidx]] && lPos.x <= mx_x[cl[nidx]] &&
+                        lPos.y >= mi_y[cl[nidx]] && lPos.y <= mx_y[cl[nidx]] &&
+                        lPos.z >= mi_z[cl[nidx]] && lPos.z <= mx_z[cl[nidx]]) ldist = 0;
+                    else {
+                        float t1 = (mi_x[cl[nidx]] - lPos.x) * lInv.x;
+                        float t2 = (mx_x[cl[nidx]] - lPos.x) * lInv.x;
+                        float t3 = (mi_y[cl[nidx]] - lPos.y) * lInv.y;
+                        float t4 = (mx_y[cl[nidx]] - lPos.y) * lInv.y;
+                        float t5 = (mi_z[cl[nidx]] - lPos.z) * lInv.z;
+                        float t6 = (mx_z[cl[nidx]] - lPos.z) * lInv.z;
+    
+                        float tmin = fmaxf(fmaxf(fminf(t1, t2), fminf(t3, t4)), fminf(t5, t6));
+                        float tmax = fminf(fminf(fmaxf(t1, t2), fmaxf(t3, t4)), fmaxf(t5, t6));
+    
+                        if (tmax < tmin) ldist = -1;
+                        else if (tmin < 0) ldist = -1;
+                        else ldist = tmin;
+                    }
+
+                    float rdist;
+                    if (lPos.x >= mi_x[cr[nidx]] && lPos.x <= mx_x[cr[nidx]] &&
+                        lPos.y >= mi_y[cr[nidx]] && lPos.y <= mx_y[cr[nidx]] &&
+                        lPos.z >= mi_z[cr[nidx]] && lPos.z <= mx_z[cr[nidx]]) rdist = 0;
+                    else {
+                        float t1 = (mi_x[cr[nidx]] - lPos.x) * lInv.x;
+                        float t2 = (mx_x[cr[nidx]] - lPos.x) * lInv.x;
+                        float t3 = (mi_y[cr[nidx]] - lPos.y) * lInv.y;
+                        float t4 = (mx_y[cr[nidx]] - lPos.y) * lInv.y;
+                        float t5 = (mi_z[cr[nidx]] - lPos.z) * lInv.z;
+                        float t6 = (mx_z[cr[nidx]] - lPos.z) * lInv.z;
+    
+                        float tmin = fmaxf(fmaxf(fminf(t1, t2), fminf(t3, t4)), fminf(t5, t6));
+                        float tmax = fminf(fminf(fmaxf(t1, t2), fmaxf(t3, t4)), fmaxf(t5, t6));
+    
+                        if (tmax < tmin) rdist = -1;
+                        else if (tmin < 0) rdist = -1;
+                        else rdist = tmin;
+                    }
+    
+                    if (ldist >= 0) nstack[ns_top++] = cl[nidx];
+                    if (rdist >= 0) nstack[ns_top++] = cr[nidx];
+    
+                    continue;
+                }
+    
+                for (int i = ll[nidx]; i < lr[nidx]; ++i) {
                     int gi = gIdx[i];
                     if (gi == hIdx || gi == lIdx) continue;
 
