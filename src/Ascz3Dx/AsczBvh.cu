@@ -74,6 +74,7 @@ int AsczBvh::buildBvh(
             return ABs[i1].cent()[a] < ABs[i2].cent()[a];
         });
 
+        #pragma omp parallel
         for (int b = 0; b < BIN_COUNT; ++b) {
             DevNode l, r;
 
@@ -81,7 +82,6 @@ int AsczBvh::buildBvh(
 
             int splitIdx = node.ll;
 
-            #pragma omp parallel
             for (int g = node.ll; g < node.lr; ++g) {
                 int i = allGIdx[g];
 

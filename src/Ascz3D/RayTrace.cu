@@ -323,13 +323,8 @@ __global__ void raytraceKernel(
                     float ldist = nodes[node.cl].hitDist(lPos, lInv);
                     float rdist = nodes[node.cr].hitDist(lPos, lInv);
 
-                    if (ldist < 0 && rdist < 0) continue;
-                    else if (ldist < 0) nstack[ns_top++] = node.cr;
-                    else if (rdist < 0) nstack[ns_top++] = node.cl;
-                    else {
-                        nstack[ns_top++] = ldist < rdist ? node.cr : node.cl;
-                        nstack[ns_top++] = ldist < rdist ? node.cl : node.cr;
-                    }
+                    if (ldist >= 0) nstack[ns_top++] = node.cl;
+                    if (rdist >= 0) nstack[ns_top++] = node.cr;
 
                     continue;
                 }
