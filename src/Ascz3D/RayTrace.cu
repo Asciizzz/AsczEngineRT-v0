@@ -347,7 +347,7 @@ __global__ void raytraceKernel(
                         lPos.z >= mi_z[cl[nidx]] && lPos.z <= mx_z[cl[nidx]]) ? 0 :
                         (tmaxl < tminl || tminl < 0) ? -1 : tminl;
 
-                    
+
                     float t1r = (mi_x[cr[nidx]] - lPos.x) * lInv.x;
                     float t2r = (mx_x[cr[nidx]] - lPos.x) * lInv.x;
                     float t3r = (mi_y[cr[nidx]] - lPos.y) * lInv.y;
@@ -377,6 +377,8 @@ __global__ void raytraceKernel(
                     int gi = gIdx[i];
                     if (gi == hIdx || gi == lIdx) continue;
 
+                    bool hit = true;
+
                     float e1x = vx[fv1[gi]] - vx[fv0[gi]];
                     float e1y = vy[fv1[gi]] - vy[fv0[gi]];
                     float e1z = vz[fv1[gi]] - vz[fv0[gi]];
@@ -391,7 +393,8 @@ __global__ void raytraceKernel(
 
                     float a = e1x * hx + e1y * hy + e1z * hz;
 
-                    if (a == 0) continue;
+                    hit &= a != 0;
+                    a = a == 0 ? 1 : a;
 
                     float f = 1.0f / a;
 
@@ -400,8 +403,8 @@ __global__ void raytraceKernel(
                     float sz = lPos.z - vz[fv0[gi]];
 
                     float u = f * (sx * hx + sy * hy + sz * hz);
-                    
-                    if (u < 0.0f || u > 1.0f) continue;
+
+                    hit &= u >= 0 && u <= 1;
 
                     float qx = sy * e1z - sz * e1y;
                     float qy = sz * e1x - sx * e1z;
@@ -409,11 +412,15 @@ __global__ void raytraceKernel(
 
                     float v = f * (lDir.x * qx + lDir.y * qy + lDir.z * qz);
 
-                    if (v < 0.0f || u + v > 1.0f) continue;
+                    // if (v < 0.0f || u + v > 1.0f) continue;
+
+                    hit &= v >= 0 && u + v <= 1;
 
                     float t = f * (e2x * qx + e2y * qy + e2z * qz);
 
-                    if (t > 0 && t < lDist) {
+                    hit &= t > 0 && t < lDist;
+
+                    if (hit) {
                         shadow = true;
                         break;
                     }
@@ -422,13 +429,11 @@ __global__ void raytraceKernel(
                 if (shadow) break;
             }
 
-            if (shadow) continue;
-
             float NdotL = nrml * -lDir;
             NdotL = NdotL < 0 ? 0 : NdotL;
             Flt3 diff = alb * NdotL;
 
-            finalColr += lMat.Ems & diff;
+            finalColr += shadow ? 0 : lMat.Ems & diff;
         }
 
         // ======== Additional rays ========
