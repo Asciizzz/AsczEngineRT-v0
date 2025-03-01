@@ -113,23 +113,26 @@ __global__ void raytraceKernel(
         while (ns_top > 0) {
             int nidx = nstack[--ns_top];
 
-            float t1 = (mi_x[nidx] - ray.o.x) * ray.invd.x;
-            float t2 = (mx_x[nidx] - ray.o.x) * ray.invd.x;
-            float t3 = (mi_y[nidx] - ray.o.y) * ray.invd.y;
-            float t4 = (mx_y[nidx] - ray.o.y) * ray.invd.y;
-            float t5 = (mi_z[nidx] - ray.o.z) * ray.invd.z;
-            float t6 = (mx_z[nidx] - ray.o.z) * ray.invd.z;
+            float t1n = (mi_x[nidx] - ray.o.x) * ray.invd.x;
+            float t2n = (mx_x[nidx] - ray.o.x) * ray.invd.x;
+            float t3n = (mi_y[nidx] - ray.o.y) * ray.invd.y;
+            float t4n = (mx_y[nidx] - ray.o.y) * ray.invd.y;
+            float t5n = (mi_z[nidx] - ray.o.z) * ray.invd.z;
+            float t6n = (mx_z[nidx] - ray.o.z) * ray.invd.z;
 
-            float tmin = fmaxf(fmaxf(fminf(t1, t2), fminf(t3, t4)), fminf(t5, t6));
-            float tmax = fminf(fminf(fmaxf(t1, t2), fmaxf(t3, t4)), fmaxf(t5, t6));
+            float tminn = fmaxf(fmaxf(fminf(t1n, t2n), fminf(t3n, t4n)), fminf(t5n, t6n));
+            float tmaxn = fminf(fminf(fmaxf(t1n, t2n), fmaxf(t3n, t4n)), fmaxf(t5n, t6n));
 
-            float hDist =
+            bool hOut = ray.o.x < mi_x[nidx] && ray.o.x > mx_x[nidx] &&
+                        ray.o.y < mi_y[nidx] && ray.o.y > mx_y[nidx] &&
+                        ray.o.z < mi_z[nidx] && ray.o.z > mx_z[nidx];
+            float nDist =
                 (ray.o.x >= mi_x[nidx] && ray.o.x <= mx_x[nidx] &&
                 ray.o.y >= mi_y[nidx] && ray.o.y <= mx_y[nidx] &&
                 ray.o.z >= mi_z[nidx] && ray.o.z <= mx_z[nidx]) ? 0 :
-                (tmax < tmin || tmin < 0) ? -1 : tmin;
+                (tmaxn < tminn || tminn < 0) ? -1 : tminn;
 
-            if (hDist < 0 || hDist > rhit.t) continue;
+            if (nDist < 0 || nDist > rhit.t) continue;
 
             if (cl[nidx] > -1) {
                 float t1l = (mi_x[cl[nidx]] - ray.o.x) * ray.invd.x;
@@ -142,13 +145,11 @@ __global__ void raytraceKernel(
                 float tminl = fmaxf(fmaxf(fminf(t1l, t2l), fminf(t3l, t4l)), fminf(t5l, t6l));
                 float tmaxl = fminf(fminf(fmaxf(t1l, t2l), fmaxf(t3l, t4l)), fmaxf(t5l, t6l));
 
-                float ldist =
-                    (ray.o.x >= mi_x[cl[nidx]] && ray.o.x <= mx_x[cl[nidx]] &&
-                    ray.o.y >= mi_y[cl[nidx]] && ray.o.y <= mx_y[cl[nidx]] &&
-                    ray.o.z >= mi_z[cl[nidx]] && ray.o.z <= mx_z[cl[nidx]]) ? 0 :
-                    (tmaxl < tminl || tminl < 0) ? -1 : tminl;
+                bool lOut = ray.o.x < mi_x[cl[nidx]] && ray.o.x > mx_x[cl[nidx]] &&
+                            ray.o.y < mi_y[cl[nidx]] && ray.o.y > mx_y[cl[nidx]] &&
+                            ray.o.z < mi_z[cl[nidx]] && ray.o.z > mx_z[cl[nidx]];
+                float ldist = ((tmaxl < tminl || tminl < 0) ? -1 : tminl) * lOut;
 
-                
                 float t1r = (mi_x[cr[nidx]] - ray.o.x) * ray.invd.x;
                 float t2r = (mx_x[cr[nidx]] - ray.o.x) * ray.invd.x;
                 float t3r = (mi_y[cr[nidx]] - ray.o.y) * ray.invd.y;
@@ -159,19 +160,18 @@ __global__ void raytraceKernel(
                 float tminr = fmaxf(fmaxf(fminf(t1r, t2r), fminf(t3r, t4r)), fminf(t5r, t6r));
                 float tmaxr = fminf(fminf(fmaxf(t1r, t2r), fmaxf(t3r, t4r)), fmaxf(t5r, t6r));
 
-                float rdist =
-                    (ray.o.x >= mi_x[cr[nidx]] && ray.o.x <= mx_x[cr[nidx]] &&
-                    ray.o.y >= mi_y[cr[nidx]] && ray.o.y <= mx_y[cr[nidx]] &&
-                    ray.o.z >= mi_z[cr[nidx]] && ray.o.z <= mx_z[cr[nidx]]) ? 0 :
-                    (tmaxr < tminr || tminr < 0) ? -1 : tminr;
+                bool rOut = ray.o.x < mi_x[cr[nidx]] && ray.o.x > mx_x[cr[nidx]] &&
+                            ray.o.y < mi_y[cr[nidx]] && ray.o.y > mx_y[cr[nidx]] &&
+                            ray.o.z < mi_z[cr[nidx]] && ray.o.z > mx_z[cr[nidx]];
+                float rdist = ((tmaxr < tminr || tminr < 0) ? -1 : tminr) * rOut;
 
                 bool lcloser = ldist < rdist;
 
-                nstack[ns_top] = lcloser ? cr[nidx] : cl[nidx];
-                ns_top += lcloser ? (rdist >= 0) : (ldist >= 0);
+                nstack[ns_top] = cr[nidx] * lcloser + cl[nidx] * !lcloser;
+                ns_top += (rdist >= 0) * lcloser + (ldist >= 0) * !lcloser;
 
-                nstack[ns_top] = lcloser ? cl[nidx] : cr[nidx];
-                ns_top += lcloser ? (ldist >= 0) : (rdist >= 0);
+                nstack[ns_top] = cl[nidx] * lcloser + cr[nidx] * !lcloser;
+                ns_top += (ldist >= 0) * lcloser + (rdist >= 0) * !lcloser;
 
                 continue;
             }
@@ -399,7 +399,7 @@ __global__ void raytraceKernel(
                     hit &= t > 0 && t < lDist;
 
                     shadow |= hit;
-                    ns_top = shadow ? 0 : ns_top;
+                    ns_top *= !shadow;
                 }
             }
 
