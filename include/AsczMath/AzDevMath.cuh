@@ -1,7 +1,7 @@
-#ifndef AZMATH_CUH
-#define AZMATH_CUH
+#ifndef AZDEVMATH_CUH
+#define AZDEVMATH_CUH
 
-// A class that contain all optimized math functions for device
+// A class that contain optimized math functions for device
 class AzDevMath {
 public:
     // Fast inverse square root (Quake 3 method)

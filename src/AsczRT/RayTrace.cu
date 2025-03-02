@@ -1,5 +1,5 @@
 #include <RayTrace.cuh>
-#include <AsczCam.cuh>
+#include <AzDevMath.cuh>
 
 __device__ Flt3 ASESFilm(const Flt3 &P) {
     const float a = 2.51f;
@@ -246,8 +246,7 @@ __global__ void raytraceKernel(
             float ldy = vrtx.y - lpy;
             float ldz = vrtx.z - lpz;
 
-            float ldst_sqr = ldx * ldx + ldy * ldy + ldz * ldz;
-            float ldst = ldst_sqr * AzMath::rsqrt(ldst_sqr);
+            float ldst = sqrtf(ldx * ldx + ldy * ldy + ldz * ldz);
 
             ldx /= ldst;
             ldy /= ldst;

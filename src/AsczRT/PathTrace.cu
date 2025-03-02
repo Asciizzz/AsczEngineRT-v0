@@ -44,7 +44,7 @@ __device__ Flt3 randomHemisphereSample(curandState *rnd, const Flt3 &n) {
 
 
 
-__global__ void raytraceKernel(
+__global__ void pathtraceKernel(
     AsczCam camera, unsigned int *frmbuffer, int frmW, int frmH, // In-out
     // Primitive data
     float *vx, float *vy, float *vz, float *tx, float *ty, float *nx, float *ny, float *nz,
@@ -272,8 +272,7 @@ __global__ void raytraceKernel(
             float ldy = vrtx.y - lpy;
             float ldz = vrtx.z - lpz;
 
-            float ldst_sqr = ldx * ldx + ldy * ldy + ldz * ldz;
-            float ldst = ldst_sqr * AzMath::rsqrt(ldst_sqr);
+            float ldst = sqrtf(ldx * ldx + ldy * ldy + ldz * ldz);
 
             ldx /= ldst;
             ldy /= ldst;
