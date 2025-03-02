@@ -16,7 +16,7 @@ set(CMAKE_VERBOSE_MAKEFILE OFF)  # Suppress long compiler command output
 include_directories(
     ${CMAKE_SOURCE_DIR}/include/AsczMath
     ${CMAKE_SOURCE_DIR}/include/Ascz3D
-    ${CMAKE_SOURCE_DIR}/include/Ascz3Dx
+    ${CMAKE_SOURCE_DIR}/include/AsczRT
     ${CMAKE_SOURCE_DIR}/include/AsczSys
 )
 
@@ -40,15 +40,14 @@ add_executable(AsczEngine
     src/AsczMath/Vector.cu
     src/AsczMath/Matrix.cu
 
-    src/Ascz3D/Ray.cu
-    src/Ascz3D/RayTrace.cu
+    src/AsczRT/RayTrace.cu
 
-    src/Ascz3Dx/AsczMat.cu
-    src/Ascz3Dx/AsczTxtr.cu
-    src/Ascz3Dx/AsczMesh.cu
-    src/Ascz3Dx/AsczBvh.cu
-    src/Ascz3Dx/AsczWin.cu
-    src/Ascz3Dx/AsczCam.cu
+    src/Ascz3D/AsczMat.cu
+    src/Ascz3D/AsczTxtr.cu
+    src/Ascz3D/AsczMesh.cu
+    src/Ascz3D/AsczBvh.cu
+    src/Ascz3D/AsczWin.cu
+    src/Ascz3D/AsczCam.cu
 
     src/AsczSys/FpsHandler.cu
     src/AsczSys/Utility.cu

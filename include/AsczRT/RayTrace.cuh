@@ -7,22 +7,6 @@
 #include <AsczBvh.cuh>
 #include <AsczCam.cuh>
 
-/* Difference:
-
-Real Time Ray Tracing:
-
-- Only contain direct lighting (no Global Illumination)
-- Few ray bounces
-- Can run in real time
-
-Static Path Tracing:
-
-- Contain direct and indirect lighting (Global Illumination)
-- Many ray bounces
-- Only render a static frame
-
-*/
-
 __global__ void raytraceKernel(
     AsczCam camera, unsigned int *frmbuffer, int frmW, int frmH, // In-out
     // Primitive data
@@ -39,7 +23,7 @@ __global__ void raytraceKernel(
     float *mi_x, float *mi_y, float *mi_z, float *mx_x, float *mx_y, float *mx_z, int *cl, int *cr, int *ll, int *lr, int *gIdx,
 
     // Additional Debug Data
-    bool falseAmbient
+    bool falseAmbient=false
 );
 
 #endif
