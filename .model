@@ -19,7 +19,7 @@
 # assets/Models/Structure/LivingRoom2/LivingRoom.obj 2 1
 # assets/Models/Structure/Fnaf.obj 1 1
 
-# assets/Models/Structure/Buildings/Building001.obj 2 1
+assets/Models/Structure/Buildings/Building001.obj 2 1
 
 # assets/Models/Shapes/Floor/Floor.obj 0 2
 # assets/Models/Shapes/Ceiling/Ceiling.obj 0 1
@@ -31,7 +31,7 @@
 # .heavy/Room/Room.obj 2 1
 # .heavy/Town/Town.obj 2 1
 # .heavy/Pool/Pool.obj 2 1
-.heavy/AbandonedHouse/AbandonedHouse.obj 2 1
+# .heavy/AbandonedHouse/AbandonedHouse.obj 2 1
 
 # assets/Models/Cornell/Cornell.obj 2 1
 

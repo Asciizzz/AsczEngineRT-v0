@@ -2,13 +2,6 @@
 
 #include <curand_kernel.h>
 
-struct RayHit {
-    int idx = -1;
-    float t = 1e9;
-    float u = 0;
-    float v = 0;
-};
-
 __device__ float fastInvSqrt(float x) { // Find 1/sqrt(x) fast
     float xhalf = 0.5f * x;
     int i = *(int*)&x;
@@ -96,7 +89,10 @@ __global__ void raytraceKernel(
     while (rs_top > 0) {
         // Copy before pop since there's high chance of overwriting
         Ray ray = rstack[--rs_top];
-        RayHit rhit;
+        int hidx = -1;
+        float ht = 1e9f;
+        float hu = 0.0f;
+        float hv = 0.0f;
 
         ns_top = 0;
         nstack[ns_top++] = 0;
@@ -121,7 +117,7 @@ __global__ void raytraceKernel(
                         ray.o.z < mi_z[nidx] | ray.o.z > mx_z[nidx];
             float nDist = ((tmaxn < tminn | tminn < 0) ? -1 : tminn) * nOut;
 
-            if (nDist < 0 | nDist > rhit.t) continue;
+            if (nDist < 0 | nDist > ht) continue;
 
             // If node is not a leaf:
             if (!lf[nidx]) {
@@ -177,7 +173,7 @@ __global__ void raytraceKernel(
             for (int i = pl[nidx]; i < pr[nidx]; ++i) {
                 int gi = gIdx[i];
 
-                bool hit = gi != rhit.idx;
+                bool hit = gi != ray.ignore;
 
                 float e1x = vx[fv1[gi]] - vx[fv0[gi]];
                 float e1y = vy[fv1[gi]] - vy[fv0[gi]];
@@ -216,31 +212,30 @@ __global__ void raytraceKernel(
 
                 float t = f * (e2x * qx + e2y * qy + e2z * qz);
 
-                hit &= t > 0.0f & t < rhit.t;
+                hit &= t > 0.0f & t < ht;
 
-                rhit.t = t * hit + rhit.t * !hit;
-                rhit.u = u * hit + rhit.u * !hit;
-                rhit.v = v * hit + rhit.v * !hit;
-                rhit.idx = gi * hit + rhit.idx * !hit;
+                ht = t * hit + ht * !hit;
+                hu = u * hit + hu * !hit;
+                hv = v * hit + hv * !hit;
+                hidx = gi * hit + hidx * !hit;
             }
         }
 
-        int hIdx = rhit.idx;
-        if (hIdx == -1) continue;
+        if (hidx == -1) continue;
 
         // Get the face data
-        const AzMtl &hm = mats[fm[hIdx]];
+        const AzMtl &hm = mats[fm[hidx]];
 
-        float rhitw = 1 - rhit.u - rhit.v;
+        float hw = 1.0f - hu - hv;
 
         // Vertex interpolation
-        Flt3 vrtx = ray.o + ray.d * rhit.t;
+        Flt3 vrtx = ray.o + ray.d * ht;
 
         // Texture interpolation (if available)
         bool hasTxtr = hm.AlbMap > -1;
-        int t0 = ft0[hIdx], t1 = ft1[hIdx], t2 = ft2[hIdx];
-        float t_u = hasTxtr ? tx[t0] * rhitw + tx[t1] * rhit.u + tx[t2] * rhit.v : 0.0f;
-        float t_v = hasTxtr ? ty[t0] * rhitw + ty[t1] * rhit.u + ty[t2] * rhit.v : 0.0f;
+        int t0 = ft0[hidx], t1 = ft1[hidx], t2 = ft2[hidx];
+        float t_u = hasTxtr ? tx[t0] * hw + tx[t1] * hu + tx[t2] * hv : 0.0f;
+        float t_v = hasTxtr ? ty[t0] * hw + ty[t1] * hu + ty[t2] * hv : 0.0f;
         t_u -= floor(t_u); t_v -= floor(t_v);
 
         int t_w = hasTxtr ? tw[hm.AlbMap] : 0;
@@ -254,11 +249,11 @@ __global__ void raytraceKernel(
         Flt3 alb = hasTxtr ? Flt3(tr[t_idx], tg[t_idx], tb[t_idx]) : hm.Alb;
 
         // Normal interpolation
-        Flt3 nrml; bool hasNrml = fn0[hIdx] > -1;
-        int n0 = fn0[hIdx], n1 = fn1[hIdx], n2 = fn2[hIdx];
-        nrml.x = hasNrml ? nx[n0] * rhitw + nx[n1] * rhit.u + nx[n2] * rhit.v : 0.0f;
-        nrml.y = hasNrml ? ny[n0] * rhitw + ny[n1] * rhit.u + ny[n1] * rhit.v : 0.0f;
-        nrml.z = hasNrml ? nz[n0] * rhitw + nz[n1] * rhit.u + nz[n2] * rhit.v : 0.0f;
+        Flt3 nrml; bool hasNrml = fn0[hidx] > -1;
+        int n0 = fn0[hidx], n1 = fn1[hidx], n2 = fn2[hidx];
+        nrml.x = hasNrml ? nx[n0] * hw + nx[n1] * hu + nx[n2] * hv : 0.0f;
+        nrml.y = hasNrml ? ny[n0] * hw + ny[n1] * hu + ny[n1] * hv : 0.0f;
+        nrml.z = hasNrml ? nz[n0] * hw + nz[n1] * hu + nz[n2] * hv : 0.0f;
 
         // Fake ambient
         float NdotL = nrml * ray.d;
@@ -371,7 +366,7 @@ __global__ void raytraceKernel(
                 for (int i = pl[nidx]; i < pr[nidx]; ++i) {
                     int gi = gIdx[i];
 
-                    bool hit = gi != hIdx & gi != lIdx;
+                    bool hit = gi != hidx & gi != lIdx;
 
                     int f0 = fv0[gi], f1 = fv1[gi], f2 = fv2[gi];
 
@@ -435,7 +430,7 @@ __global__ void raytraceKernel(
         ray.w *= (1 - hm.Tr);
 
         Flt3 trO = vrtx + ray.d * EPSILON_1;
-        rstack[rs_top] = Ray(trO, ray.d, trLeft, hm.Ior, hIdx);
+        rstack[rs_top] = Ray(trO, ray.d, trLeft, hm.Ior, hidx);
         rs_top += rs_top + 1 < MAX_RAYS & hm.Tr > 0.0f;
 
         // Reflection ray
@@ -444,7 +439,7 @@ __global__ void raytraceKernel(
 
         Flt3 rfD = ray.d - nrml * 2.0f * (nrml * ray.d);
         Flt3 rfO = vrtx + nrml * EPSILON_1;
-        rstack[rs_top] = Ray(rfO, rfD, rfLeft, hm.Ior, hIdx);
+        rstack[rs_top] = Ray(rfO, rfD, rfLeft, hm.Ior, hidx);
         rs_top += rs_top + 1 < MAX_RAYS & hm.Rf > 0.0f;
 
 
