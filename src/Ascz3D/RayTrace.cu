@@ -162,6 +162,7 @@ __global__ void raytraceKernel(
                             ray.o.z < mi_z[cr[nidx]] | ray.o.z > mx_z[cr[nidx]];
                 float rdist = ((tmaxr < tminr | tminr < 0) ? -1 : tminr) * rOut;
 
+
                 bool lcloser = ldist < rdist;
 
                 nstack[ns_top] = cr[nidx] * lcloser + cl[nidx] * !lcloser;
