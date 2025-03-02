@@ -32,7 +32,6 @@ public:
 
     // Constructor
     AsczWin(int w, int h, std::wstring t);
-    void InitConsole();
     void InitWindow();
     void InitGDI();
 

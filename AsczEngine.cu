@@ -232,7 +232,6 @@ int main() {
     MatMgr.freeDevice();
     MeshMgr.freeDevice();
     BvhMgr.freeDevice();
-
     WinMgr.Terminate();
 
     return 0;

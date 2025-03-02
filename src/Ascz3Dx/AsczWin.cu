@@ -7,7 +7,6 @@
 
 // Constructor
 AsczWin::AsczWin(int w, int h, std::wstring t) : width(w), height(h), title(t) {
-    InitConsole();
     InitWindow();
     InitGDI();
 
@@ -15,13 +14,6 @@ AsczWin::AsczWin(int w, int h, std::wstring t) : width(w), height(h), title(t) {
 
     h_framebuffer = new unsigned int[width * height];
     cudaMalloc(&d_framebuffer, width * height * sizeof(unsigned int));
-}
-
-void AsczWin::InitConsole() {
-    AllocConsole();
-    freopen("CONOUT$", "w", stdout);
-    freopen("CONOUT$", "w", stderr);
-    freopen("CONIN$", "r", stdin);
 }
 
 void AsczWin::InitWindow() {
@@ -97,7 +89,6 @@ void AsczWin::Terminate() {
     ReleaseDC(hwnd, hdc);
     DestroyWindow(hwnd);
     UnregisterClass(L"Win32App", GetModuleHandle(nullptr));
-    FreeConsole();
 }
 
 
