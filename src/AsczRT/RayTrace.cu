@@ -1,15 +1,5 @@
 #include <RayTrace.cuh>
-
-#include <curand_kernel.h>
-
-__device__ float fastInvSqrt(float x) { // Find 1/sqrt(x) fast
-    float xhalf = 0.5f * x;
-    int i = *(int*)&x;
-    i = 0x5f3759df - (i >> 1);
-    x = *(float*)&i;
-    x = x * (1.5f - xhalf * x * x);
-    return x;
-}
+#include <AzMath.cuh>
 
 __device__ Flt3 ASESFilm(const Flt3 &P) {
     const float a = 2.51f;
@@ -26,30 +16,6 @@ __device__ Flt3 ASESFilm(const Flt3 &P) {
 
     return y;
 }
-
-__device__ Flt3 randomHemisphereSample(curandState *rnd, const Flt3 &n) {
-    float r1 = curand_uniform(rnd);  // Random number [0,1]
-    float r2 = curand_uniform(rnd);
-
-    float theta = acos(sqrt(1.0f - r1));  // Importance sampling (cosine-weighted)
-    float phi = 2.0f * M_PI * r2;         // Uniform azimuthal angle
-
-    // Convert to Cartesian coordinates
-    float x = sin(theta) * cos(phi);
-    float y = sin(theta) * sin(phi);
-    float z = cos(theta);
-
-    // Construct a coordinate system
-    Flt3 tangent, bitangent;
-
-    tangent = n.x > 0.9f || n.x < -0.9f ? Flt3(0, 1, 0) : Flt3(1, 0, 0);
-    tangent = (tangent ^ n).norm();
-    bitangent = n ^ tangent;
-
-    // Transform to world space
-    return tangent * x + bitangent * y + n * z;
-}
-
 
 
 __global__ void raytraceKernel(
@@ -280,8 +246,8 @@ __global__ void raytraceKernel(
             float ldy = vrtx.y - lpy;
             float ldz = vrtx.z - lpz;
 
-            float ldst_sqr = ldx*ldx + ldy*ldy + ldz*ldz;
-            float ldst = ldst_sqr * fastInvSqrt(ldst_sqr);
+            float ldst_sqr = ldx * ldx + ldy * ldy + ldz * ldz;
+            float ldst = ldst_sqr * AzMath::rsqrt(ldst_sqr);
 
             ldx /= ldst;
             ldy /= ldst;
