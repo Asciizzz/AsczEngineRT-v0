@@ -1,7 +1,9 @@
 #include <AsczBvh.cuh>
+
 #include <ToDevice.cuh>
 #include <algorithm>
 #include <execution>
+#include <omp.h>
 
 __global__ void toSoAKernel(
     float *mi_x, float *mi_y, float *mi_z,
@@ -80,14 +82,14 @@ int AsczBvh::buildBvh(
 
     int nG = node.lr - node.ll;
     if (nG <= NODE_FACES || depth >= MAX_DEPTH) {
-        allNodes.back().cl = -1;
-        allNodes.back().cr = -1;
+        node.cl = -1;
+        node.cr = -1;
         return 1;
     }
 
     AABB nAB = node.ab;
     Flt3 nAB_ = nAB.max - nAB.min;
-    float curCost = DevNode::findCost(node.ab, nG);
+    float curCost = nAB.getSA() * nG;
 
     int bestAxis = -1;
     int bestSplit = -1;
@@ -95,7 +97,8 @@ int AsczBvh::buildBvh(
     float bestCost = curCost;
 
     for (int a = 0; a < 3; ++a) {
-        std::sort(std::execution::par_unseq, allGIdx.begin() + node.ll, allGIdx.begin() + node.lr,
+        std::sort(std::execution::par_unseq,
+        allGIdx.begin() + node.ll, allGIdx.begin() + node.lr,
         [&](int i1, int i2) {
             return ABs[i1].cent()[a] < ABs[i2].cent()[a];
         });
@@ -124,8 +127,8 @@ int AsczBvh::buildBvh(
                 }
             }
 
-            float lCost = DevNode::findCost(l.ab, splitIdx - node.ll);
-            float rCost = DevNode::findCost(r.ab, node.lr - splitIdx);
+            float lCost = l.ab.getSA() * (splitIdx - node.ll);
+            float rCost = r.ab.getSA() * (node.lr - splitIdx);
             float cost = lCost + rCost;
 
             if (cost < bestCost) {
@@ -140,13 +143,14 @@ int AsczBvh::buildBvh(
     }
 
     if (bestSplit == -1 || bestAxis == -1) {
-        allNodes.back().cl = -1;
-        allNodes.back().cr = -1;
+        node.cl = -1;
+        node.cr = -1;
         return 1;
     }
 
     std::sort(std::execution::par_unseq,
-    allGIdx.begin() + node.ll, allGIdx.begin() + node.lr, [&](int i1, int i2) {
+    allGIdx.begin() + node.ll, allGIdx.begin() + node.lr,
+    [&](int i1, int i2) {
         return ABs[i1].cent()[bestAxis] < ABs[i2].cent()[bestAxis];
     });
 

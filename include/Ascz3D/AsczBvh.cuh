@@ -3,9 +3,6 @@
 
 #include <AsczMesh.cuh>
 
-#include <string>
-#include <omp.h>
-
 /* 3 Level of BVH construction
 
 Lvl 1: Scenewise BVH, split objects
@@ -22,12 +19,7 @@ struct DevNode { // Flattened structure friendly for shader code
     AABB ab; // AABB
 
     int cl, cr; // Children
-    int ll = -1;
-    int lr = -1;
-
-    __host__ static float findCost(AABB &ab, int nG) {
-        return ab.getSA() * nG;
-    }
+    int ll, lr; // Primitive range (not necessarily faces)
 };
 
 
