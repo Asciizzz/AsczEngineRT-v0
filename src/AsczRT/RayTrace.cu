@@ -9,6 +9,15 @@ struct RayHit {
     float v = 0;
 };
 
+__device__ float fastInvSqrt(float x) {
+    float xhalf = 0.5f * x;
+    int i = *(int*)&x;
+    i = 0x5f3759df - (i >> 1);
+    x = *(float*)&i;
+    x = x * (1.5f - xhalf * x * x);
+    return x;
+}
+
 __device__ Flt4 getTextureColor(
     float tu, float tv,
     float *tr, float *tg, float *tb, float *ta,
@@ -133,44 +142,45 @@ __global__ void raytraceKernel(
             if (nDist < 0 | nDist > rhit.t) continue;
 
             if (cl[nidx] > -1) {
-                float t1l = (mi_x[cl[nidx]] - ray.o.x) * ray.invd.x;
-                float t2l = (mx_x[cl[nidx]] - ray.o.x) * ray.invd.x;
-                float t3l = (mi_y[cl[nidx]] - ray.o.y) * ray.invd.y;
-                float t4l = (mx_y[cl[nidx]] - ray.o.y) * ray.invd.y;
-                float t5l = (mi_z[cl[nidx]] - ray.o.z) * ray.invd.z;
-                float t6l = (mx_z[cl[nidx]] - ray.o.z) * ray.invd.z;
+                int tcl = cl[nidx];
+                float t1l = (mi_x[tcl] - ray.o.x) * ray.invd.x;
+                float t2l = (mx_x[tcl] - ray.o.x) * ray.invd.x;
+                float t3l = (mi_y[tcl] - ray.o.y) * ray.invd.y;
+                float t4l = (mx_y[tcl] - ray.o.y) * ray.invd.y;
+                float t5l = (mi_z[tcl] - ray.o.z) * ray.invd.z;
+                float t6l = (mx_z[tcl] - ray.o.z) * ray.invd.z;
 
                 float tminl = fmaxf(fmaxf(fminf(t1l, t2l), fminf(t3l, t4l)), fminf(t5l, t6l));
                 float tmaxl = fminf(fminf(fmaxf(t1l, t2l), fmaxf(t3l, t4l)), fmaxf(t5l, t6l));
 
-                bool lOut = ray.o.x < mi_x[cl[nidx]] | ray.o.x > mx_x[cl[nidx]] |
-                            ray.o.y < mi_y[cl[nidx]] | ray.o.y > mx_y[cl[nidx]] |
-                            ray.o.z < mi_z[cl[nidx]] | ray.o.z > mx_z[cl[nidx]];
+                bool lOut = ray.o.x < mi_x[tcl] | ray.o.x > mx_x[tcl] |
+                            ray.o.y < mi_y[tcl] | ray.o.y > mx_y[tcl] |
+                            ray.o.z < mi_z[tcl] | ray.o.z > mx_z[tcl];
                 float ldist = ((tmaxl < tminl | tminl < 0) ? -1 : tminl) * lOut;
 
-
-                float t1r = (mi_x[cr[nidx]] - ray.o.x) * ray.invd.x;
-                float t2r = (mx_x[cr[nidx]] - ray.o.x) * ray.invd.x;
-                float t3r = (mi_y[cr[nidx]] - ray.o.y) * ray.invd.y;
-                float t4r = (mx_y[cr[nidx]] - ray.o.y) * ray.invd.y;
-                float t5r = (mi_z[cr[nidx]] - ray.o.z) * ray.invd.z;
-                float t6r = (mx_z[cr[nidx]] - ray.o.z) * ray.invd.z;
+                int tcr = cr[nidx];
+                float t1r = (mi_x[tcr] - ray.o.x) * ray.invd.x;
+                float t2r = (mx_x[tcr] - ray.o.x) * ray.invd.x;
+                float t3r = (mi_y[tcr] - ray.o.y) * ray.invd.y;
+                float t4r = (mx_y[tcr] - ray.o.y) * ray.invd.y;
+                float t5r = (mi_z[tcr] - ray.o.z) * ray.invd.z;
+                float t6r = (mx_z[tcr] - ray.o.z) * ray.invd.z;
 
                 float tminr = fmaxf(fmaxf(fminf(t1r, t2r), fminf(t3r, t4r)), fminf(t5r, t6r));
                 float tmaxr = fminf(fminf(fmaxf(t1r, t2r), fmaxf(t3r, t4r)), fmaxf(t5r, t6r));
 
-                bool rOut = ray.o.x < mi_x[cr[nidx]] | ray.o.x > mx_x[cr[nidx]] |
-                            ray.o.y < mi_y[cr[nidx]] | ray.o.y > mx_y[cr[nidx]] |
-                            ray.o.z < mi_z[cr[nidx]] | ray.o.z > mx_z[cr[nidx]];
+                bool rOut = ray.o.x < mi_x[tcr] | ray.o.x > mx_x[tcr] |
+                            ray.o.y < mi_y[tcr] | ray.o.y > mx_y[tcr] |
+                            ray.o.z < mi_z[tcr] | ray.o.z > mx_z[tcr];
                 float rdist = ((tmaxr < tminr | tminr < 0) ? -1 : tminr) * rOut;
 
 
                 bool lcloser = ldist < rdist;
 
-                nstack[ns_top] = cr[nidx] * lcloser + cl[nidx] * !lcloser;
+                nstack[ns_top] = tcr * lcloser + tcl * !lcloser;
                 ns_top += (rdist >= 0) * lcloser + (ldist >= 0) * !lcloser;
 
-                nstack[ns_top] = cl[nidx] * lcloser + cr[nidx] * !lcloser;
+                nstack[ns_top] = tcl * lcloser + tcr * !lcloser;
                 ns_top += (ldist >= 0) * lcloser + (rdist >= 0) * !lcloser;
 
                 continue;
@@ -242,10 +252,20 @@ __global__ void raytraceKernel(
         nrml.y = hasNrml ? ny[fn0[hIdx]] * rhitw + ny[fn1[hIdx]] * rhit.u + ny[fn2[hIdx]] * rhit.v : 0.0f;
         nrml.z = hasNrml ? nz[fn0[hIdx]] * rhitw + nz[fn1[hIdx]] * rhit.u + nz[fn2[hIdx]] * rhit.v : 0.0f;
 
-        float tu = hm.AlbMap > -1 ? tx[ft0[hIdx]] * rhitw + tx[ft1[hIdx]] * rhit.u + tx[ft2[hIdx]] * rhit.v : 0.0f;
-        float tv = hm.AlbMap > -1 ? ty[ft0[hIdx]] * rhitw + ty[ft1[hIdx]] * rhit.u + ty[ft2[hIdx]] * rhit.v : 0.0f;
-        Flt4 txColr = getTextureColor(tu, tv, tr, tg, tb, ta, tw, th, toff, hm.AlbMap);
-        Flt3 alb = txColr.x < 0 ? hm.Alb : txColr.f3();
+        bool hasTxtr = hm.AlbMap > -1;
+        float t_u = hasTxtr ? tx[ft0[hIdx]] * rhitw + tx[ft1[hIdx]] * rhit.u + tx[ft2[hIdx]] * rhit.v : 0.0f;
+        float t_v = hasTxtr ? ty[ft0[hIdx]] * rhitw + ty[ft1[hIdx]] * rhit.u + ty[ft2[hIdx]] * rhit.v : 0.0f;
+        t_u -= floor(t_u); t_v -= floor(t_v);
+
+        int t_w = hasTxtr ? tw[hm.AlbMap] : 0;
+        int t_h = hasTxtr ? th[hm.AlbMap] : 0;
+        int t_off = hasTxtr ? toff[hm.AlbMap] : 0;
+
+        int t_x = (int)(t_u * t_w);
+        int t_y = (int)(t_v * t_h);
+        int t_idx = t_off + t_y * t_w + t_x;
+
+        Flt3 alb = hasTxtr ? Flt3(tr[t_idx], tg[t_idx], tb[t_idx]) : hm.Alb;
 
         // Lighting and shading
         float NdotL = nrml * ray.d;
@@ -267,7 +287,6 @@ __global__ void raytraceKernel(
             float lpy = (vy[fv0[lIdx]] + vy[fv1[lIdx]] + vy[fv2[lIdx]]) / 3.0f;
             float lpz = (vz[fv0[lIdx]] + vz[fv1[lIdx]] + vz[fv2[lIdx]]) / 3.0f;
 
-            // Flt3 lDir = vrtx - Flt3(lpx, lpy, lpz);
             float ldx = vrtx.x - lpx;
             float ldy = vrtx.y - lpy;
             float ldz = vrtx.z - lpz;
@@ -308,42 +327,44 @@ __global__ void raytraceKernel(
                 if (nDist < 0 | nDist > ldst) continue;
 
                 if (cl[nidx] > -1) {
-                    float t1l = (mi_x[cl[nidx]] - lpx) * linvx;
-                    float t2l = (mx_x[cl[nidx]] - lpx) * linvx;
-                    float t3l = (mi_y[cl[nidx]] - lpy) * linvy;
-                    float t4l = (mx_y[cl[nidx]] - lpy) * linvy;
-                    float t5l = (mi_z[cl[nidx]] - lpz) * linvz;
-                    float t6l = (mx_z[cl[nidx]] - lpz) * linvz;
+                    int tcl = cl[nidx];
+                    float t1l = (mi_x[tcl] - lpx) * linvx;
+                    float t2l = (mx_x[tcl] - lpx) * linvx;
+                    float t3l = (mi_y[tcl] - lpy) * linvy;
+                    float t4l = (mx_y[tcl] - lpy) * linvy;
+                    float t5l = (mi_z[tcl] - lpz) * linvz;
+                    float t6l = (mx_z[tcl] - lpz) * linvz;
 
                     float tminl = fmaxf(fmaxf(fminf(t1l, t2l), fminf(t3l, t4l)), fminf(t5l, t6l));
                     float tmaxl = fminf(fminf(fmaxf(t1l, t2l), fmaxf(t3l, t4l)), fmaxf(t5l, t6l));
 
-                    bool lOut = lpx < mi_x[cl[nidx]] | lpx > mx_x[cl[nidx]] |
-                                lpy < mi_y[cl[nidx]] | lpy > mx_y[cl[nidx]] |
-                                lpz < mi_z[cl[nidx]] | lpz > mx_z[cl[nidx]];
+                    bool lOut = lpx < mi_x[tcl] | lpx > mx_x[tcl] |
+                                lpy < mi_y[tcl] | lpy > mx_y[tcl] |
+                                lpz < mi_z[tcl] | lpz > mx_z[tcl];
                     float ldist = ((tmaxl < tminl | tminl < 0) ? -1 : tminl) * lOut;
 
 
-                    float t1r = (mi_x[cr[nidx]] - lpx) * linvx;
-                    float t2r = (mx_x[cr[nidx]] - lpx) * linvx;
-                    float t3r = (mi_y[cr[nidx]] - lpy) * linvy;
-                    float t4r = (mx_y[cr[nidx]] - lpy) * linvy;
-                    float t5r = (mi_z[cr[nidx]] - lpz) * linvz;
-                    float t6r = (mx_z[cr[nidx]] - lpz) * linvz;
+                    int tcr = cr[nidx];
+                    float t1r = (mi_x[tcr] - lpx) * linvx;
+                    float t2r = (mx_x[tcr] - lpx) * linvx;
+                    float t3r = (mi_y[tcr] - lpy) * linvy;
+                    float t4r = (mx_y[tcr] - lpy) * linvy;
+                    float t5r = (mi_z[tcr] - lpz) * linvz;
+                    float t6r = (mx_z[tcr] - lpz) * linvz;
 
                     float tminr = fmaxf(fmaxf(fminf(t1r, t2r), fminf(t3r, t4r)), fminf(t5r, t6r));
                     float tmaxr = fminf(fminf(fmaxf(t1r, t2r), fmaxf(t3r, t4r)), fmaxf(t5r, t6r));
 
-                    bool rOut = lpx < mi_x[cr[nidx]] | lpx > mx_x[cr[nidx]] |
-                                lpy < mi_y[cr[nidx]] | lpy > mx_y[cr[nidx]] |
-                                lpz < mi_z[cr[nidx]] | lpz > mx_z[cr[nidx]];
+                    bool rOut = lpx < mi_x[tcr] | lpx > mx_x[tcr] |
+                                lpy < mi_y[tcr] | lpy > mx_y[tcr] |
+                                lpz < mi_z[tcr] | lpz > mx_z[tcr];
                     float rdist = ((tmaxr < tminr | tminr < 0) ? -1 : tminr) * rOut;
 
 
-                    nstack[ns_top] = cl[nidx];
+                    nstack[ns_top] = tcl;
                     ns_top += (ldist >= 0);
 
-                    nstack[ns_top] = cr[nidx];
+                    nstack[ns_top] = tcr;
                     ns_top += (rdist >= 0);
     
                     continue;
