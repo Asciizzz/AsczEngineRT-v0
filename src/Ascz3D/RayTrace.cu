@@ -237,11 +237,10 @@ __global__ void raytraceKernel(
 
         Flt3 vrtx = ray.o + ray.d * rhit.t;
 
-        Flt3 nrml = {
-            nx[fn0[hIdx]] * rhitw + nx[fn1[hIdx]] * rhit.u + nx[fn2[hIdx]] * rhit.v,
-            ny[fn0[hIdx]] * rhitw + ny[fn1[hIdx]] * rhit.u + ny[fn2[hIdx]] * rhit.v,
-            nz[fn0[hIdx]] * rhitw + nz[fn1[hIdx]] * rhit.u + nz[fn2[hIdx]] * rhit.v
-        };
+        Flt3 nrml; bool hasNrml = fn0[hIdx] > -1;
+        nrml.x = hasNrml ? nx[fn0[hIdx]] * rhitw + nx[fn1[hIdx]] * rhit.u + nx[fn2[hIdx]] * rhit.v : 0.0f;
+        nrml.y = hasNrml ? ny[fn0[hIdx]] * rhitw + ny[fn1[hIdx]] * rhit.u + ny[fn2[hIdx]] * rhit.v : 0.0f;
+        nrml.z = hasNrml ? nz[fn0[hIdx]] * rhitw + nz[fn1[hIdx]] * rhit.u + nz[fn2[hIdx]] * rhit.v : 0.0f;
 
         float tu = hm.AlbMap > -1 ? tx[ft0[hIdx]] * rhitw + tx[ft1[hIdx]] * rhit.u + tx[ft2[hIdx]] * rhit.v : 0.0f;
         float tv = hm.AlbMap > -1 ? ty[ft0[hIdx]] * rhitw + ty[ft1[hIdx]] * rhit.u + ty[ft2[hIdx]] * rhit.v : 0.0f;
@@ -300,7 +299,7 @@ __global__ void raytraceKernel(
 
                 float tminn = fmaxf(fmaxf(fminf(t1n, t2n), fminf(t3n, t4n)), fminf(t5n, t6n));
                 float tmaxn = fminf(fminf(fmaxf(t1n, t2n), fmaxf(t3n, t4n)), fmaxf(t5n, t6n));
-                
+
                 bool nOut = lpx < mi_x[nidx] | lpx > mx_x[nidx] |
                             lpy < mi_y[nidx] | lpy > mx_y[nidx] |
                             lpz < mi_z[nidx] | lpz > mx_z[nidx];
@@ -399,9 +398,9 @@ __global__ void raytraceKernel(
                 }
             }
 
-            float NdotL = nrml.x * ldx + nrml.y * ldy + nrml.z * ldz;
-            NdotL *= (NdotL < 0) * -1;
-            Flt3 diff = alb * NdotL;
+            float NdotL = -(nrml.x * ldx + nrml.y * ldy + nrml.z * ldz);
+            NdotL *= NdotL > 0;
+            Flt3 diff = alb * (nrml.isZero() ? 1.0f : NdotL);
 
             finalColr += shadow ? 0 : lMat.Ems & diff;
         }
