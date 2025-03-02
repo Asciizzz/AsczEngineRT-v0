@@ -9,34 +9,13 @@ struct RayHit {
     float v = 0;
 };
 
-__device__ float fastInvSqrt(float x) {
+__device__ float fastInvSqrt(float x) { // Find 1/sqrt(x) fast
     float xhalf = 0.5f * x;
     int i = *(int*)&x;
     i = 0x5f3759df - (i >> 1);
     x = *(float*)&i;
     x = x * (1.5f - xhalf * x * x);
     return x;
-}
-
-__device__ Flt4 getTextureColor(
-    float tu, float tv,
-    float *tr, float *tg, float *tb, float *ta,
-    int *tw, int *th, int *toff, int AlbMap
-) {
-    if (AlbMap < 0) return -1.0f;
-
-    tu -= floor(tu);
-    tv -= floor(tv);
-
-    int w = tw[AlbMap];
-    int h = th[AlbMap];
-    int off = toff[AlbMap];
-
-    int tx = (int)(tu * w);
-    int ty = (int)(tv * h);
-
-    int t = off + ty * w + tx;
-    return Flt4(tr[t], tg[t], tb[t], ta[t]);
 }
 
 __device__ Flt3 ASESFilm(const Flt3 &P) {
@@ -132,8 +111,9 @@ __global__ void raytraceKernel(
             float t5n = (mi_z[nidx] - ray.o.z) * ray.invd.z;
             float t6n = (mx_z[nidx] - ray.o.z) * ray.invd.z;
 
-            float tminn = fmaxf(fmaxf(fminf(t1n, t2n), fminf(t3n, t4n)), fminf(t5n, t6n));
-            float tmaxn = fminf(fminf(fmaxf(t1n, t2n), fmaxf(t3n, t4n)), fmaxf(t5n, t6n));
+            float tminn = fminf(t1n, t2n), tmaxn = fmaxf(t1n, t2n);
+            tminn = fmaxf(tminn, fminf(t3n, t4n)); tmaxn = fminf(tmaxn, fmaxf(t3n, t4n));
+            tminn = fmaxf(tminn, fminf(t5n, t6n)); tmaxn = fminf(tmaxn, fmaxf(t5n, t6n));
 
             bool nOut = ray.o.x < mi_x[nidx] | ray.o.x > mx_x[nidx] |
                         ray.o.y < mi_y[nidx] | ray.o.y > mx_y[nidx] |
@@ -151,8 +131,9 @@ __global__ void raytraceKernel(
                 float t5l = (mi_z[tcl] - ray.o.z) * ray.invd.z;
                 float t6l = (mx_z[tcl] - ray.o.z) * ray.invd.z;
 
-                float tminl = fmaxf(fmaxf(fminf(t1l, t2l), fminf(t3l, t4l)), fminf(t5l, t6l));
-                float tmaxl = fminf(fminf(fmaxf(t1l, t2l), fmaxf(t3l, t4l)), fmaxf(t5l, t6l));
+                float tminl = fminf(t1l, t2l), tmaxl = fmaxf(t1l, t2l);
+                tminl = fmaxf(tminl, fminf(t3l, t4l)); tmaxl = fminf(tmaxl, fmaxf(t3l, t4l));
+                tminl = fmaxf(tminl, fminf(t5l, t6l)); tmaxl = fminf(tmaxl, fmaxf(t5l, t6l));
 
                 bool lOut = ray.o.x < mi_x[tcl] | ray.o.x > mx_x[tcl] |
                             ray.o.y < mi_y[tcl] | ray.o.y > mx_y[tcl] |
@@ -167,8 +148,9 @@ __global__ void raytraceKernel(
                 float t5r = (mi_z[tcr] - ray.o.z) * ray.invd.z;
                 float t6r = (mx_z[tcr] - ray.o.z) * ray.invd.z;
 
-                float tminr = fmaxf(fmaxf(fminf(t1r, t2r), fminf(t3r, t4r)), fminf(t5r, t6r));
-                float tmaxr = fminf(fminf(fmaxf(t1r, t2r), fmaxf(t3r, t4r)), fmaxf(t5r, t6r));
+                float tminr = fminf(t1r, t2r), tmaxr = fmaxf(t1r, t2r);
+                tminr = fmaxf(tminr, fminf(t3r, t4r)); tmaxr = fminf(tmaxr, fmaxf(t3r, t4r));
+                tminr = fmaxf(tminr, fminf(t5r, t6r)); tmaxr = fminf(tmaxr, fmaxf(t5r, t6r));
 
                 bool rOut = ray.o.x < mi_x[tcr] | ray.o.x > mx_x[tcr] |
                             ray.o.y < mi_y[tcr] | ray.o.y > mx_y[tcr] |
@@ -286,16 +268,18 @@ __global__ void raytraceKernel(
             int lIdx = lSrc[l];
             const AzMtl &lMat = mats[fm[lIdx]];
 
-            // Get position based on the geometry type
-            float lpx = (vx[fv0[lIdx]] + vx[fv1[lIdx]] + vx[fv2[lIdx]]) / 3.0f;
-            float lpy = (vy[fv0[lIdx]] + vy[fv1[lIdx]] + vy[fv2[lIdx]]) / 3.0f;
-            float lpz = (vz[fv0[lIdx]] + vz[fv1[lIdx]] + vz[fv2[lIdx]]) / 3.0f;
+            int f0 = fv0[lIdx], f1 = fv1[lIdx], f2 = fv2[lIdx];
+
+            float lpx = (vx[f0] + vx[f1] + vx[f2]) / 3.0f;
+            float lpy = (vy[f0] + vy[f1] + vy[f2]) / 3.0f;
+            float lpz = (vz[f0] + vz[f1] + vz[f2]) / 3.0f;
 
             float ldx = vrtx.x - lpx;
             float ldy = vrtx.y - lpy;
             float ldz = vrtx.z - lpz;
 
-            float ldst = sqrt(ldx * ldx + ldy * ldy + ldz * ldz);
+            float ldst_sqr = ldx*ldx + ldy*ldy + ldz*ldz;
+            float ldst = ldst_sqr * fastInvSqrt(ldst_sqr);
 
             ldx /= ldst;
             ldy /= ldst;
@@ -320,8 +304,9 @@ __global__ void raytraceKernel(
                 float t5n = (mi_z[nidx] - lpz) * linvz;
                 float t6n = (mx_z[nidx] - lpz) * linvz;
 
-                float tminn = fmaxf(fmaxf(fminf(t1n, t2n), fminf(t3n, t4n)), fminf(t5n, t6n));
-                float tmaxn = fminf(fminf(fmaxf(t1n, t2n), fmaxf(t3n, t4n)), fmaxf(t5n, t6n));
+                float tminn = fminf(t1n, t2n), tmaxn = fmaxf(t1n, t2n);
+                tminn = fmaxf(tminn, fminf(t3n, t4n)); tmaxn = fminf(tmaxn, fmaxf(t3n, t4n));
+                tminn = fmaxf(tminn, fminf(t5n, t6n)); tmaxn = fminf(tmaxn, fmaxf(t5n, t6n));
 
                 bool nOut = lpx < mi_x[nidx] | lpx > mx_x[nidx] |
                             lpy < mi_y[nidx] | lpy > mx_y[nidx] |
@@ -339,8 +324,9 @@ __global__ void raytraceKernel(
                     float t5l = (mi_z[tcl] - lpz) * linvz;
                     float t6l = (mx_z[tcl] - lpz) * linvz;
 
-                    float tminl = fmaxf(fmaxf(fminf(t1l, t2l), fminf(t3l, t4l)), fminf(t5l, t6l));
-                    float tmaxl = fminf(fminf(fmaxf(t1l, t2l), fmaxf(t3l, t4l)), fmaxf(t5l, t6l));
+                    float tminl = fminf(t1l, t2l), tmaxl = fmaxf(t1l, t2l);
+                    tminl = fmaxf(tminl, fminf(t3l, t4l)); tmaxl = fminf(tmaxl, fmaxf(t3l, t4l));
+                    tminl = fmaxf(tminl, fminf(t5l, t6l)); tmaxl = fminf(tmaxl, fmaxf(t5l, t6l));
 
                     bool lOut = lpx < mi_x[tcl] | lpx > mx_x[tcl] |
                                 lpy < mi_y[tcl] | lpy > mx_y[tcl] |
@@ -356,8 +342,9 @@ __global__ void raytraceKernel(
                     float t5r = (mi_z[tcr] - lpz) * linvz;
                     float t6r = (mx_z[tcr] - lpz) * linvz;
 
-                    float tminr = fmaxf(fmaxf(fminf(t1r, t2r), fminf(t3r, t4r)), fminf(t5r, t6r));
-                    float tmaxr = fminf(fminf(fmaxf(t1r, t2r), fmaxf(t3r, t4r)), fmaxf(t5r, t6r));
+                    float tminr = fminf(t1r, t2r), tmaxr = fmaxf(t1r, t2r);
+                    tminr = fmaxf(tminr, fminf(t3r, t4r)); tmaxr = fminf(tmaxr, fmaxf(t3r, t4r));
+                    tminr = fmaxf(tminr, fminf(t5r, t6r)); tmaxr = fminf(tmaxr, fmaxf(t5r, t6r));
 
                     bool rOut = lpx < mi_x[tcr] | lpx > mx_x[tcr] |
                                 lpy < mi_y[tcr] | lpy > mx_y[tcr] |
