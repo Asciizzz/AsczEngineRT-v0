@@ -190,6 +190,15 @@ void Utils::appendObj(
                     Flt3 Ke; mtlSS >> Ke.x >> Ke.y >> Ke.z;
                     MatMgr.h_mtls[matIdx].Ems = Ke;
                 }
+
+                // DEBUG VALUES
+                else if (mtlType == "Rf") {
+                    float Rf; mtlSS >> Rf;
+                    MatMgr.h_mtls[matIdx].Rf = Rf;
+                }
+                else if (mtlType == "NoShade") {
+                    MatMgr.h_mtls[matIdx].NoShade = true;
+                }
             }
         }
     }

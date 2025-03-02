@@ -11,14 +11,13 @@ __global__ void raytraceKernel(
     AsczCam camera, unsigned int *frmbuffer, int frmW, int frmH, // In-out
     // Primitive data
     float *vx, float *vy, float *vz, float *tx, float *ty, float *nx, float *ny, float *nz,
-    // Materials
-    AzMtl *mats,
-    // Textures
-    float *tr, float *tg, float *tb, float *ta, int *tw, int *th, int *toff,
     // Geometry data
     int *fv0, int *fv1, int *fv2, int *ft0, int *ft1, int *ft2, int *fn0, int *fn1, int *fn2, int *fm,
-    // Light data
-    int *lSrc, int lNum, 
+    // Materials
+    AzMtl *mats, int *lSrc, int lNum, 
+    // Textures
+    float *tr, float *tg, float *tb, float *ta, int *tw, int *th, int *toff,
+
     // BVH data
     float *mi_x, float *mi_y, float *mi_z, float *mx_x, float *mx_y, float *mx_z, int *cl, int *cr, int *ll, int *lr, int *gIdx,
 

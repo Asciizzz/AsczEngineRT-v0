@@ -191,11 +191,9 @@ int main() {
                 CamMgr, WinMgr.d_framebuffer, WinMgr.width, WinMgr.height,
 
                 MeshMgr.d_vx, MeshMgr.d_vy, MeshMgr.d_vz, MeshMgr.d_tx, MeshMgr.d_ty, MeshMgr.d_nx, MeshMgr.d_ny, MeshMgr.d_nz,
-                MatMgr.d_mtls,
-                TxtrMgr.d_tr, TxtrMgr.d_tg, TxtrMgr.d_tb, TxtrMgr.d_ta, TxtrMgr.d_tw, TxtrMgr.d_th, TxtrMgr.d_toff,
-
                 MeshMgr.d_fv0, MeshMgr.d_fv1, MeshMgr.d_fv2, MeshMgr.d_ft0, MeshMgr.d_ft1, MeshMgr.d_ft2, MeshMgr.d_fn0, MeshMgr.d_fn1, MeshMgr.d_fn2, MeshMgr.d_fm,
-                MeshMgr.d_lSrc, MeshMgr.lNum,
+                MatMgr.d_mtls, MeshMgr.d_lSrc, MeshMgr.lNum,
+                TxtrMgr.d_tr, TxtrMgr.d_tg, TxtrMgr.d_tb, TxtrMgr.d_ta, TxtrMgr.d_tw, TxtrMgr.d_th, TxtrMgr.d_toff,
 
                 BvhMgr.d_mi_x, BvhMgr.d_mi_y, BvhMgr.d_mi_z, BvhMgr.d_mx_x, BvhMgr.d_mx_y, BvhMgr.d_mx_z, BvhMgr.d_cl, BvhMgr.d_cr, BvhMgr.d_ll, BvhMgr.d_lr, BvhMgr.d_gIdx,
 

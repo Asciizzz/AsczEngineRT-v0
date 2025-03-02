@@ -84,16 +84,16 @@ __global__ void raytraceKernel(
     AsczCam camera, unsigned int *frmbuffer, int frmW, int frmH, // In-out
     // Primitive data
     float *vx, float *vy, float *vz, float *tx, float *ty, float *nx, float *ny, float *nz,
-    // Materials
-    AzMtl *mats,
-    // Textures
-    float *tr, float *tg, float *tb, float *ta, int *tw, int *th, int *toff,
     // Geometry data
     int *fv0, int *fv1, int *fv2, int *ft0, int *ft1, int *ft2, int *fn0, int *fn1, int *fn2, int *fm,
-    // Light data
-    int *lSrc, int lNum,
+    // Materials
+    AzMtl *mats, int *lSrc, int lNum, 
+    // Textures
+    float *tr, float *tg, float *tb, float *ta, int *tw, int *th, int *toff,
+
     // BVH data
     float *mi_x, float *mi_y, float *mi_z, float *mx_x, float *mx_y, float *mx_z, int *cl, int *cr, int *ll, int *lr, int *gIdx,
+
     // Additional Debug Data
     float falseAmbient
 ) {
@@ -426,13 +426,14 @@ __global__ void raytraceKernel(
 
             float NdotL = (nrml.x * ldx + nrml.y * ldy + nrml.z * ldz);
             NdotL *= NdotL;
-            Flt3 diff = alb * (hasNrml ? NdotL : 1.0f);
+            Flt3 diff = alb * (hasNrml && !hm.NoShade ? NdotL : 1.0f);
 
             finalColr += (lMat.Ems & diff) * inLight;
         }
 
         // ======== Additional rays ========
 
+        // Transmission ray
         float trLeft = ray.w * hm.Tr;
         ray.w *= (1 - hm.Tr);
 
@@ -440,7 +441,17 @@ __global__ void raytraceKernel(
         rstack[rs_top] = Ray(trO, ray.d, trLeft, hm.Ior, hIdx);
         rs_top += rs_top + 1 < MAX_RAYS & hm.Tr > 0.0f;
 
+        // Reflection ray
+        float rfLeft = ray.w * hm.Rf;
+        ray.w *= (1 - hm.Rf);
 
+        Flt3 rfD = ray.d - nrml * 2.0f * (nrml * ray.d);
+        Flt3 rfO = vrtx + nrml * EPSILON_1;
+        rstack[rs_top] = Ray(rfO, rfD, rfLeft, hm.Ior, hIdx);
+        rs_top += rs_top + 1 < MAX_RAYS & hm.Rf > 0.0f;
+
+
+        // Accumulate the result
         resultColr += finalColr * ray.w;
     }
 

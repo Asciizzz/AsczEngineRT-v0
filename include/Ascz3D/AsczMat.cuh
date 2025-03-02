@@ -14,6 +14,10 @@ struct AzMtl {
     float Ior = 1.0f;
 
     Flt3 Ems = 0.0f;
+
+    // Debug values
+    float Rf = 0.0f;
+    bool NoShade = false;
 };
 
 /* Ior lookup table
