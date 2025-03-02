@@ -159,8 +159,8 @@ int main() {
             bool k_a = WinMgr.keys['A'];
             bool k_s = WinMgr.keys['S'];
             bool k_d = WinMgr.keys['D'];
-            bool k_ctrl = WinMgr.keys[VK_LCONTROL];
-            bool k_shift = WinMgr.keys[VK_LSHIFT];
+            bool k_ctrl = WinMgr.keys[VK_CONTROL];
+            bool k_shift = WinMgr.keys[VK_SHIFT];
 
             // Hold ctrl to go slow, hold shift to go fast
             if (k_ctrl && !k_shift)      vel *= CamMgr.slowFactor;
