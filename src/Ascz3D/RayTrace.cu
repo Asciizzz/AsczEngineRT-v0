@@ -10,19 +10,21 @@ struct RayHit {
 };
 
 __device__ Flt4 getTextureColor(
-    float u, float v,
+    float tu, float tv,
     float *tr, float *tg, float *tb, float *ta,
     int *tw, int *th, int *toff, int AlbMap
 ) {
-    u -= floor(u);
-    v -= floor(v);
+    if (AlbMap < 0) return -1.0f;
+
+    tu -= floor(tu);
+    tv -= floor(tv);
 
     int w = tw[AlbMap];
     int h = th[AlbMap];
     int off = toff[AlbMap];
 
-    int tx = (int)(u * w);
-    int ty = (int)(v * h);
+    int tx = (int)(tu * w);
+    int ty = (int)(tv * h);
 
     int t = off + ty * w + tx;
     return Flt4(tr[t], tg[t], tb[t], ta[t]);
@@ -241,20 +243,13 @@ __global__ void raytraceKernel(
             nz[fn0[hIdx]] * rhitw + nz[fn1[hIdx]] * rhit.u + nz[fn2[hIdx]] * rhit.v
         };
 
-        Flt3 alb;
-        if (hm.AlbMap > -1) {
-            Int3 tt = Int3(ft0[hIdx], ft1[hIdx], ft2[hIdx]);
-            float tu = tx[tt.x] * rhitw + tx[tt.y] * rhit.u + tx[tt.z] * rhit.v;
-            float tv = ty[tt.x] * rhitw + ty[tt.y] * rhit.u + ty[tt.z] * rhit.v;
-
-            Flt4 txColr = getTextureColor(tu, tv, tr, tg, tb, ta, tw, th, toff, hm.AlbMap);
-            alb = txColr.f3();
-        } else {
-            alb = hm.Alb;
-        }
+        float tu = hm.AlbMap > -1 ? tx[ft0[hIdx]] * rhitw + tx[ft1[hIdx]] * rhit.u + tx[ft2[hIdx]] * rhit.v : 0.0f;
+        float tv = hm.AlbMap > -1 ? ty[ft0[hIdx]] * rhitw + ty[ft1[hIdx]] * rhit.u + ty[ft2[hIdx]] * rhit.v : 0.0f;
+        Flt4 txColr = getTextureColor(tu, tv, tr, tg, tb, ta, tw, th, toff, hm.AlbMap);
+        Flt3 alb = txColr.x < 0 ? hm.Alb : txColr.f3();
 
         // Lighting and shading
-        float NdotL = falseAmbient ? nrml * ray.d : 0.0f;
+        float NdotL = nrml * ray.d * falseAmbient;
         Flt3 finalColr = alb * 0.02f * NdotL * NdotL;
 
         if (!hm.Ems.isZero()) {
@@ -279,7 +274,6 @@ __global__ void raytraceKernel(
             float ldz = vrtx.z - lpz;
 
             float ldst = sqrt(ldx * ldx + ldy * ldy + ldz * ldz);
-            if (ldst < 0.01f) continue;
 
             ldx /= ldst;
             ldy /= ldst;
@@ -414,14 +408,13 @@ __global__ void raytraceKernel(
 
         // ======== Additional rays ========
 
-        // Transparent
-        if (hm.Tr > 0.0f & rs_top + 2 < MAX_RAYS) {
-            float wLeft = ray.w * hm.Tr;
-            ray.w *= (1 - hm.Tr);
+        float trLeft = ray.w * hm.Tr;
+        ray.w *= (1 - hm.Tr);
 
-            Flt3 rO = vrtx + ray.d * EPSILON_1;
-            rstack[rs_top++] = Ray(rO, ray.d, wLeft, hm.Ior, hIdx);
-        }
+        Flt3 trO = vrtx + ray.d * EPSILON_1;
+        rstack[rs_top] = Ray(trO, ray.d, trLeft, hm.Ior, hIdx);
+        rs_top += rs_top + 1 < MAX_RAYS & hm.Tr > 0.0f;
+
 
         resultColr += finalColr * ray.w;
     }

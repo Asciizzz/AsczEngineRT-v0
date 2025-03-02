@@ -131,6 +131,7 @@ struct Flt4 {
     float x, y, z, w;
     __host__ __device__ Flt4();
     __host__ __device__ Flt4(float x, float y, float z, float w);
+    __host__ __device__ Flt4(float a);
     __host__ __device__ Flt3 f3(bool norm = false);
     
     // Bracket operator

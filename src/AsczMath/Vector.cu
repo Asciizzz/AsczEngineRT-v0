@@ -282,9 +282,11 @@ void Flt3::scale(const Flt3& o, const float scl) {
     *this = scale(*this, o, scl);
 }
 
-// VEC4
+// Flt4
 Flt4::Flt4() : x(0), y(0), z(0), w(0) {}
 Flt4::Flt4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
+Flt4::Flt4(float a) : x(a), y(a), z(a), w(a) {}
+
 Flt3 Flt4::f3(bool norm) {
     return norm ? (Flt3(x, y, z) / w) : Flt3(x, y, z);
 }
