@@ -268,19 +268,25 @@ __global__ void raytraceKernel(
             const AzMtl &lMat = mats[fm[lIdx]];
 
             // Get position based on the geometry type
-            Flt3 lPos = {
-                vx[fv0[lIdx]] + vx[fv1[lIdx]] + vx[fv2[lIdx]],
-                vy[fv0[lIdx]] + vy[fv1[lIdx]] + vy[fv2[lIdx]],
-                vz[fv0[lIdx]] + vz[fv1[lIdx]] + vz[fv2[lIdx]]
-            };
-            lPos /= 3.0f;
+            float lpx = (vx[fv0[lIdx]] + vx[fv1[lIdx]] + vx[fv2[lIdx]]) / 3.0f;
+            float lpy = (vy[fv0[lIdx]] + vy[fv1[lIdx]] + vy[fv2[lIdx]]) / 3.0f;
+            float lpz = (vz[fv0[lIdx]] + vz[fv1[lIdx]] + vz[fv2[lIdx]]) / 3.0f;
 
-            Flt3 lDir = vrtx - lPos;
-            float lDist = lDir.mag();
-            if (lDist < 0.01f) continue;
+            // Flt3 lDir = vrtx - Flt3(lpx, lpy, lpz);
+            float ldx = vrtx.x - lpx;
+            float ldy = vrtx.y - lpy;
+            float ldz = vrtx.z - lpz;
 
-            lDir /= lDist;
-            Flt3 lInv = 1.0f / lDir;
+            float ldst = sqrt(ldx * ldx + ldy * ldy + ldz * ldz);
+            if (ldst < 0.01f) continue;
+
+            ldx /= ldst;
+            ldy /= ldst;
+            ldz /= ldst;
+
+            float linvx = 1.0f / ldx;
+            float linvy = 1.0f / ldy;
+            float linvz = 1.0f / ldz;
 
             // Reset the stack
             ns_top = 0;
@@ -290,53 +296,53 @@ __global__ void raytraceKernel(
             while (ns_top > 0) {
                 int nidx = nstack[--ns_top];
 
-                float t1n = (mi_x[nidx] - lPos.x) * lInv.x;
-                float t2n = (mx_x[nidx] - lPos.x) * lInv.x;
-                float t3n = (mi_y[nidx] - lPos.y) * lInv.y;
-                float t4n = (mx_y[nidx] - lPos.y) * lInv.y;
-                float t5n = (mi_z[nidx] - lPos.z) * lInv.z;
-                float t6n = (mx_z[nidx] - lPos.z) * lInv.z;
+                float t1n = (mi_x[nidx] - lpx) * linvx;
+                float t2n = (mx_x[nidx] - lpx) * linvx;
+                float t3n = (mi_y[nidx] - lpy) * linvy;
+                float t4n = (mx_y[nidx] - lpy) * linvy;
+                float t5n = (mi_z[nidx] - lpz) * linvz;
+                float t6n = (mx_z[nidx] - lpz) * linvz;
 
                 float tminn = fmaxf(fmaxf(fminf(t1n, t2n), fminf(t3n, t4n)), fminf(t5n, t6n));
                 float tmaxn = fminf(fminf(fmaxf(t1n, t2n), fmaxf(t3n, t4n)), fmaxf(t5n, t6n));
                 
-                bool nOut = lPos.x < mi_x[nidx] | lPos.x > mx_x[nidx] |
-                            lPos.y < mi_y[nidx] | lPos.y > mx_y[nidx] |
-                            lPos.z < mi_z[nidx] | lPos.z > mx_z[nidx];
+                bool nOut = lpx < mi_x[nidx] | lpx > mx_x[nidx] |
+                            lpy < mi_y[nidx] | lpy > mx_y[nidx] |
+                            lpz < mi_z[nidx] | lpz > mx_z[nidx];
                 float nDist = ((tmaxn < tminn | tminn < 0) ? -1 : tminn) * nOut;
 
-                if (nDist < 0 | nDist > lDist) continue;
+                if (nDist < 0 | nDist > ldst) continue;
 
                 if (cl[nidx] > -1) {
-                    float t1l = (mi_x[cl[nidx]] - lPos.x) * lInv.x;
-                    float t2l = (mx_x[cl[nidx]] - lPos.x) * lInv.x;
-                    float t3l = (mi_y[cl[nidx]] - lPos.y) * lInv.y;
-                    float t4l = (mx_y[cl[nidx]] - lPos.y) * lInv.y;
-                    float t5l = (mi_z[cl[nidx]] - lPos.z) * lInv.z;
-                    float t6l = (mx_z[cl[nidx]] - lPos.z) * lInv.z;
+                    float t1l = (mi_x[cl[nidx]] - lpx) * linvx;
+                    float t2l = (mx_x[cl[nidx]] - lpx) * linvx;
+                    float t3l = (mi_y[cl[nidx]] - lpy) * linvy;
+                    float t4l = (mx_y[cl[nidx]] - lpy) * linvy;
+                    float t5l = (mi_z[cl[nidx]] - lpz) * linvz;
+                    float t6l = (mx_z[cl[nidx]] - lpz) * linvz;
 
                     float tminl = fmaxf(fmaxf(fminf(t1l, t2l), fminf(t3l, t4l)), fminf(t5l, t6l));
                     float tmaxl = fminf(fminf(fmaxf(t1l, t2l), fmaxf(t3l, t4l)), fmaxf(t5l, t6l));
 
-                    bool lOut = lPos.x < mi_x[cl[nidx]] | lPos.x > mx_x[cl[nidx]] |
-                                lPos.y < mi_y[cl[nidx]] | lPos.y > mx_y[cl[nidx]] |
-                                lPos.z < mi_z[cl[nidx]] | lPos.z > mx_z[cl[nidx]];
+                    bool lOut = lpx < mi_x[cl[nidx]] | lpx > mx_x[cl[nidx]] |
+                                lpy < mi_y[cl[nidx]] | lpy > mx_y[cl[nidx]] |
+                                lpz < mi_z[cl[nidx]] | lpz > mx_z[cl[nidx]];
                     float ldist = ((tmaxl < tminl | tminl < 0) ? -1 : tminl) * lOut;
 
 
-                    float t1r = (mi_x[cr[nidx]] - lPos.x) * lInv.x;
-                    float t2r = (mx_x[cr[nidx]] - lPos.x) * lInv.x;
-                    float t3r = (mi_y[cr[nidx]] - lPos.y) * lInv.y;
-                    float t4r = (mx_y[cr[nidx]] - lPos.y) * lInv.y;
-                    float t5r = (mi_z[cr[nidx]] - lPos.z) * lInv.z;
-                    float t6r = (mx_z[cr[nidx]] - lPos.z) * lInv.z;
+                    float t1r = (mi_x[cr[nidx]] - lpx) * linvx;
+                    float t2r = (mx_x[cr[nidx]] - lpx) * linvx;
+                    float t3r = (mi_y[cr[nidx]] - lpy) * linvy;
+                    float t4r = (mx_y[cr[nidx]] - lpy) * linvy;
+                    float t5r = (mi_z[cr[nidx]] - lpz) * linvz;
+                    float t6r = (mx_z[cr[nidx]] - lpz) * linvz;
 
                     float tminr = fmaxf(fmaxf(fminf(t1r, t2r), fminf(t3r, t4r)), fminf(t5r, t6r));
                     float tmaxr = fminf(fminf(fmaxf(t1r, t2r), fmaxf(t3r, t4r)), fmaxf(t5r, t6r));
 
-                    bool rOut = lPos.x < mi_x[cr[nidx]] | lPos.x > mx_x[cr[nidx]] |
-                                lPos.y < mi_y[cr[nidx]] | lPos.y > mx_y[cr[nidx]] |
-                                lPos.z < mi_z[cr[nidx]] | lPos.z > mx_z[cr[nidx]];
+                    bool rOut = lpx < mi_x[cr[nidx]] | lpx > mx_x[cr[nidx]] |
+                                lpy < mi_y[cr[nidx]] | lpy > mx_y[cr[nidx]] |
+                                lpz < mi_z[cr[nidx]] | lpz > mx_z[cr[nidx]];
                     float rdist = ((tmaxr < tminr | tminr < 0) ? -1 : tminr) * rOut;
 
 
@@ -362,9 +368,9 @@ __global__ void raytraceKernel(
                     float e2y = vy[fv2[gi]] - vy[fv0[gi]];
                     float e2z = vz[fv2[gi]] - vz[fv0[gi]];
 
-                    float hx = lDir.y * e2z - lDir.z * e2y;
-                    float hy = lDir.z * e2x - lDir.x * e2z;
-                    float hz = lDir.x * e2y - lDir.y * e2x;
+                    float hx = ldy * e2z - ldz * e2y;
+                    float hy = ldz * e2x - ldx * e2z;
+                    float hz = ldx * e2y - ldy * e2x;
 
                     float a = e1x * hx + e1y * hy + e1z * hz;
 
@@ -373,9 +379,9 @@ __global__ void raytraceKernel(
 
                     float f = 1.0f / a;
 
-                    float sx = lPos.x - vx[fv0[gi]];
-                    float sy = lPos.y - vy[fv0[gi]];
-                    float sz = lPos.z - vz[fv0[gi]];
+                    float sx = lpx - vx[fv0[gi]];
+                    float sy = lpy - vy[fv0[gi]];
+                    float sz = lpz - vz[fv0[gi]];
 
                     float u = f * (sx * hx + sy * hy + sz * hz);
 
@@ -385,21 +391,21 @@ __global__ void raytraceKernel(
                     float qy = sz * e1x - sx * e1z;
                     float qz = sx * e1y - sy * e1x;
 
-                    float v = f * (lDir.x * qx + lDir.y * qy + lDir.z * qz);
+                    float v = f * (ldx * qx + ldy * qy + ldz * qz);
 
                     hit &= v >= 0 & u + v <= 1;
 
                     float t = f * (e2x * qx + e2y * qy + e2z * qz);
 
-                    hit &= t > 0 & t < lDist;
+                    hit &= t > 0 & t < ldst;
 
                     shadow |= hit;
                     ns_top *= !shadow;
                 }
             }
 
-            float NdotL = nrml * -lDir;
-            NdotL = NdotL < 0 ? 0 : NdotL;
+            float NdotL = nrml.x * ldx + nrml.y * ldy + nrml.z * ldz;
+            NdotL *= (NdotL < 0) * -1;
             Flt3 diff = alb * NdotL;
 
             finalColr += shadow ? 0 : lMat.Ems & diff;
