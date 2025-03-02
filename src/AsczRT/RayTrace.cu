@@ -1,22 +1,6 @@
 #include <RayTrace.cuh>
 #include <AzDevMath.cuh>
 
-__device__ Flt3 ASESFilm(const Flt3 &P) {
-    const float a = 2.51f;
-    const float b = 0.03f;
-    const float c = 2.43f;
-    const float d = 0.59f;
-    const float e = 0.14f;
-
-    Flt3 y = Flt3(
-        (P.x * (a * P.x + b)) / (P.x * (c * P.x + d) + e),
-        (P.y * (a * P.y + b)) / (P.y * (c * P.y + d) + e),
-        (P.z * (a * P.z + b)) / (P.z * (c * P.z + d) + e)
-    ).clamp(0.0f, 1.0f);
-
-    return y;
-}
-
 
 __global__ void raytraceKernel(
     AsczCam camera, unsigned int *frmbuffer, int frmW, int frmH, // In-out
@@ -234,7 +218,6 @@ __global__ void raytraceKernel(
         for (int l = 0; l < lNum; ++l) {
             // Get material and geometry data of light
             int lIdx = lSrc[l];
-            const AzMtl &lMat = mats[fm[lIdx]];
 
             int fl0 = fv0[lIdx], fl1 = fv1[lIdx], fl2 = fv2[lIdx];
 
@@ -385,6 +368,7 @@ __global__ void raytraceKernel(
             bool angular = hasNrml && !hm.NoShade;
             Flt3 diff = alb * (NdotL * angular + !angular);
 
+            const AzMtl &lMat = mats[fm[lIdx]];
             finalColr += (lMat.Ems & diff) * inLight;
         }
 
@@ -412,15 +396,19 @@ __global__ void raytraceKernel(
         resultColr += finalColr * ray.w;
     }
 
-    // Tone mapping
-    resultColr = ASESFilm(resultColr);
+    // // Tone mapping
+    // resultColr = ASESFilm(resultColr);
 
-    float _gamma = 1.0f / 2.2f;
-    resultColr = resultColr.pow(_gamma);
+    // float _gamma = 1.0f / 2.2f;
+    // resultColr = resultColr.pow(_gamma);
 
     int r = (int)(resultColr.x * 255);
     int g = (int)(resultColr.y * 255);
     int b = (int)(resultColr.z * 255);
+
+    r = r > 255 ? 255 : r;
+    g = g > 255 ? 255 : g;
+    b = b > 255 ? 255 : b;
 
     frmbuffer[tIdx] = (r << 16) | (g << 8) | b;
 }

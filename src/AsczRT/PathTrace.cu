@@ -3,22 +3,6 @@
 
 #include <curand_kernel.h>
 
-__device__ Flt3 ASESFilm(const Flt3 &P) {
-    const float a = 2.51f;
-    const float b = 0.03f;
-    const float c = 2.43f;
-    const float d = 0.59f;
-    const float e = 0.14f;
-
-    Flt3 y = Flt3(
-        (P.x * (a * P.x + b)) / (P.x * (c * P.x + d) + e),
-        (P.y * (a * P.y + b)) / (P.y * (c * P.y + d) + e),
-        (P.z * (a * P.z + b)) / (P.z * (c * P.z + d) + e)
-    ).clamp(0.0f, 1.0f);
-
-    return y;
-}
-
 __device__ Flt3 randomHemisphereSample(curandState *rnd, const Flt3 &n) {
     float r1 = curand_uniform(rnd);  // Random number [0,1]
     float r2 = curand_uniform(rnd);
@@ -438,15 +422,13 @@ __global__ void pathtraceKernel(
         resultColr += finalColr * ray.w;
     }
 
-    // Tone mapping
-    resultColr = ASESFilm(resultColr);
-
-    float _gamma = 1.0f / 2.2f;
-    resultColr = resultColr.pow(_gamma);
-
     int r = (int)(resultColr.x * 255);
     int g = (int)(resultColr.y * 255);
     int b = (int)(resultColr.z * 255);
+
+    r = r > 255 ? 255 : r;
+    g = g > 255 ? 255 : g;
+    b = b > 255 ? 255 : b;
 
     frmbuffer[tIdx] = (r << 16) | (g << 8) | b;
 }

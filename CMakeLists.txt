@@ -48,6 +48,7 @@ add_executable(AsczEngine
     src/Ascz3D/AsczCam.cu
 
     src/AsczRT/RayTrace.cu
+    src/AsczRT/PathTrace.cu
 
     src/AsczSys/FpsHandler.cu
     src/AsczSys/Utility.cu
