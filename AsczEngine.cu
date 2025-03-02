@@ -34,23 +34,15 @@ int main() {
         std::stringstream ss(cfgLine);
         std::string type; ss >> type;
 
-        if (type == "CameraPos")
-            ss >> CamMgr.pos.x >> CamMgr.pos.y >> CamMgr.pos.z;
-        else if (type == "CameraRot")
-            ss >> CamMgr.rot.x >> CamMgr.rot.y >> CamMgr.rot.z;
-        else if (type == "CameraFov")
-            ss >> CamMgr.fov;
-        else if (type == "VelSpec")
-            ss >> CamMgr.velSpec;
-        else if (type == "SlowFactor")
-            ss >> CamMgr.slowFactor;
-        else if (type == "FastFactor")
-            ss >> CamMgr.fastFactor;
+        if      (type == "CameraPos")  ss >> CamMgr.pos.x >> CamMgr.pos.y >> CamMgr.pos.z;
+        else if (type == "CameraRot")  ss >> CamMgr.rot.x >> CamMgr.rot.y >> CamMgr.rot.z;
+        else if (type == "CameraFov")  ss >> CamMgr.fov;
+        else if (type == "VelSpec")    ss >> CamMgr.velSpec;
+        else if (type == "SlowFactor") ss >> CamMgr.slowFactor;
+        else if (type == "FastFactor") ss >> CamMgr.fastFactor;
 
-        if (type == "MaxDepth")
-            ss >> BvhMgr.MAX_DEPTH;
-        else if (type == "BinCount")
-            ss >> BvhMgr.BIN_COUNT;
+        else if (type == "MaxDepth")   ss >> BvhMgr.MAX_DEPTH;
+        else if (type == "BinCount")   ss >> BvhMgr.BIN_COUNT;
     };
 
     // ========================================================================
