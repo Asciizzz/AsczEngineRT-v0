@@ -104,6 +104,7 @@ __global__ void raytraceKernel(
         while (ns_top > 0) {
             int nidx = nstack[--ns_top];
 
+            // Check if the ray is outside the bounding box
             float t1n = (mi_x[nidx] - ray.o.x) * ray.invd.x;
             float t2n = (mx_x[nidx] - ray.o.x) * ray.invd.x;
             float t3n = (mi_y[nidx] - ray.o.y) * ray.invd.y;
@@ -122,7 +123,9 @@ __global__ void raytraceKernel(
 
             if (nDist < 0 | nDist > rhit.t) continue;
 
+            // If node is not a leaf:
             if (!lf[nidx]) {
+                // Find the distance to the left child
                 int tcl = pl[nidx];
                 float t1l = (mi_x[tcl] - ray.o.x) * ray.invd.x;
                 float t2l = (mx_x[tcl] - ray.o.x) * ray.invd.x;
@@ -140,6 +143,7 @@ __global__ void raytraceKernel(
                             ray.o.z < mi_z[tcl] | ray.o.z > mx_z[tcl];
                 float ldist = ((tmaxl < tminl | tminl < 0) ? -1 : tminl) * lOut;
 
+                // Find the distance to the right child
                 int tcr = pr[nidx];
                 float t1r = (mi_x[tcr] - ray.o.x) * ray.invd.x;
                 float t2r = (mx_x[tcr] - ray.o.x) * ray.invd.x;
@@ -158,6 +162,7 @@ __global__ void raytraceKernel(
                 float rdist = ((tmaxr < tminr | tminr < 0) ? -1 : tminr) * rOut;
 
 
+                // Child ordering for closer intersection and early exit
                 bool lcloser = ldist < rdist;
 
                 nstack[ns_top] = tcr * lcloser + tcl * !lcloser;
@@ -268,11 +273,11 @@ __global__ void raytraceKernel(
             int lIdx = lSrc[l];
             const AzMtl &lMat = mats[fm[lIdx]];
 
-            int f0 = fv0[lIdx], f1 = fv1[lIdx], f2 = fv2[lIdx];
+            int fl0 = fv0[lIdx], fl1 = fv1[lIdx], fl2 = fv2[lIdx];
 
-            float lpx = (vx[f0] + vx[f1] + vx[f2]) / 3.0f;
-            float lpy = (vy[f0] + vy[f1] + vy[f2]) / 3.0f;
-            float lpz = (vz[f0] + vz[f1] + vz[f2]) / 3.0f;
+            float lpx = (vx[fl0] + vx[fl1] + vx[fl2]) / 3.0f;
+            float lpy = (vy[fl0] + vy[fl1] + vy[fl2]) / 3.0f;
+            float lpz = (vz[fl0] + vz[fl1] + vz[fl2]) / 3.0f;
 
             float ldx = vrtx.x - lpx;
             float ldy = vrtx.y - lpy;
@@ -366,13 +371,15 @@ __global__ void raytraceKernel(
 
                     bool hit = gi != hIdx & gi != lIdx;
 
-                    float e1x = vx[fv1[gi]] - vx[fv0[gi]];
-                    float e1y = vy[fv1[gi]] - vy[fv0[gi]];
-                    float e1z = vz[fv1[gi]] - vz[fv0[gi]];
+                    int f0 = fv0[gi], f1 = fv1[gi], f2 = fv2[gi];
 
-                    float e2x = vx[fv2[gi]] - vx[fv0[gi]];
-                    float e2y = vy[fv2[gi]] - vy[fv0[gi]];
-                    float e2z = vz[fv2[gi]] - vz[fv0[gi]];
+                    float e1x = vx[f1] - vx[f0];
+                    float e1y = vy[f1] - vy[f0];
+                    float e1z = vz[f1] - vz[f0];
+
+                    float e2x = vx[f2] - vx[f0];
+                    float e2y = vy[f2] - vy[f0];
+                    float e2z = vz[f2] - vz[f0];
 
                     float hx = ldy * e2z - ldz * e2y;
                     float hy = ldz * e2x - ldx * e2z;
@@ -412,7 +419,9 @@ __global__ void raytraceKernel(
 
             float NdotL = (nrml.x * ldx + nrml.y * ldy + nrml.z * ldz);
             NdotL *= NdotL;
-            Flt3 diff = alb * (hasNrml && !hm.NoShade ? NdotL : 1.0f);
+
+            bool angular = hasNrml && !hm.NoShade;
+            Flt3 diff = alb * (NdotL * angular + !angular);
 
             finalColr += (lMat.Ems & diff) * inLight;
         }
