@@ -106,8 +106,10 @@ __global__ void raytraceKernel(
     const int MAX_RAYS = 8;
     const int MAX_NODES = 64;
 
-    Ray rstack[MAX_RAYS] = { primaryRay };
-    int rs_top = 1;
+    Ray rstack[MAX_RAYS];
+    int rs_top = 0;
+
+    rstack[rs_top++] = primaryRay;
 
     int nstack[MAX_NODES];
     int ns_top = 0;
@@ -245,13 +247,10 @@ __global__ void raytraceKernel(
 
         float rhitw = 1 - rhit.u - rhit.v;
 
+        // Vertex interpolation
         Flt3 vrtx = ray.o + ray.d * rhit.t;
 
-        Flt3 nrml; bool hasNrml = fn0[hIdx] > -1;
-        nrml.x = hasNrml ? nx[fn0[hIdx]] * rhitw + nx[fn1[hIdx]] * rhit.u + nx[fn2[hIdx]] * rhit.v : 0.0f;
-        nrml.y = hasNrml ? ny[fn0[hIdx]] * rhitw + ny[fn1[hIdx]] * rhit.u + ny[fn2[hIdx]] * rhit.v : 0.0f;
-        nrml.z = hasNrml ? nz[fn0[hIdx]] * rhitw + nz[fn1[hIdx]] * rhit.u + nz[fn2[hIdx]] * rhit.v : 0.0f;
-
+        // Texture interpolation
         bool hasTxtr = hm.AlbMap > -1;
         float t_u = hasTxtr ? tx[ft0[hIdx]] * rhitw + tx[ft1[hIdx]] * rhit.u + tx[ft2[hIdx]] * rhit.v : 0.0f;
         float t_v = hasTxtr ? ty[ft0[hIdx]] * rhitw + ty[ft1[hIdx]] * rhit.u + ty[ft2[hIdx]] * rhit.v : 0.0f;
@@ -267,12 +266,18 @@ __global__ void raytraceKernel(
 
         Flt3 alb = hasTxtr ? Flt3(tr[t_idx], tg[t_idx], tb[t_idx]) : hm.Alb;
 
-        // Lighting and shading
+        // Normal interpolation
+        Flt3 nrml; bool hasNrml = fn0[hIdx] > -1;
+        nrml.x = hasNrml ? nx[fn0[hIdx]] * rhitw + nx[fn1[hIdx]] * rhit.u + nx[fn2[hIdx]] * rhit.v : 0.0f;
+        nrml.y = hasNrml ? ny[fn0[hIdx]] * rhitw + ny[fn1[hIdx]] * rhit.u + ny[fn2[hIdx]] * rhit.v : 0.0f;
+        nrml.z = hasNrml ? nz[fn0[hIdx]] * rhitw + nz[fn1[hIdx]] * rhit.u + nz[fn2[hIdx]] * rhit.v : 0.0f;
+
+        // Fake ambient
         float NdotL = nrml * ray.d;
         Flt3 finalColr = alb * falseAmbient * NdotL * NdotL;
 
         if (!hm.Ems.isZero()) {
-            resultColr += hm.Ems * ray.w;
+            resultColr += (hm.Ems & alb) * ray.w;
             continue;
         }
 
