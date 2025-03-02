@@ -1,42 +1,37 @@
 #include <AsczBvh.cuh>
-
+#include <ToDevice.cuh>
 #include <algorithm>
-
 
 void AsczBvh::freeDevice() {
     if (nNum == 0) return;
-    // cudaFree(d_nodes);
-    // cudaFree(d_gIdx);
+
+    cudaFree(d_mi_x);
+    cudaFree(d_mi_y);
+    cudaFree(d_mi_z);
+    cudaFree(d_mx_x);
+    cudaFree(d_mx_y);
+    cudaFree(d_mx_z);
+    cudaFree(d_cl);
+    cudaFree(d_cr);
+    cudaFree(d_ll);
+    cudaFree(d_lr);
+    cudaFree(d_gIdx);
 }
 void AsczBvh::toDevice() {
     freeDevice();
 
     nNum = h_mi_x.size();
-
-    cudaMalloc(&d_gIdx, h_gIdx.size() * sizeof(int));
-    cudaMemcpy(d_gIdx, h_gIdx.data(), h_gIdx.size() * sizeof(int), cudaMemcpyHostToDevice);
-
-    cudaMalloc(&d_mi_x, h_mi_x.size() * sizeof(float));
-    cudaMalloc(&d_mi_y, h_mi_y.size() * sizeof(float));
-    cudaMalloc(&d_mi_z, h_mi_z.size() * sizeof(float));
-    cudaMalloc(&d_mx_x, h_mx_x.size() * sizeof(float));
-    cudaMalloc(&d_mx_y, h_mx_y.size() * sizeof(float));
-    cudaMalloc(&d_mx_z, h_mx_z.size() * sizeof(float));
-    cudaMalloc(&d_cl, h_cl.size() * sizeof(int));
-    cudaMalloc(&d_cr, h_cr.size() * sizeof(int));
-    cudaMalloc(&d_ll, h_ll.size() * sizeof(int));
-    cudaMalloc(&d_lr, h_lr.size() * sizeof(int));
-
-    cudaMemcpy(d_mi_x, h_mi_x.data(), h_mi_x.size() * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_mi_y, h_mi_y.data(), h_mi_y.size() * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_mi_z, h_mi_z.data(), h_mi_z.size() * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_mx_x, h_mx_x.data(), h_mx_x.size() * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_mx_y, h_mx_y.data(), h_mx_y.size() * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_mx_z, h_mx_z.data(), h_mx_z.size() * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_cl, h_cl.data(), h_cl.size() * sizeof(int), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_cr, h_cr.data(), h_cr.size() * sizeof(int), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_ll, h_ll.data(), h_ll.size() * sizeof(int), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_lr, h_lr.data(), h_lr.size() * sizeof(int), cudaMemcpyHostToDevice);
+    ToDevice::F(h_mi_x, d_mi_x, nNum);
+    ToDevice::F(h_mi_y, d_mi_y, nNum);
+    ToDevice::F(h_mi_z, d_mi_z, nNum);
+    ToDevice::F(h_mx_x, d_mx_x, nNum);
+    ToDevice::F(h_mx_y, d_mx_y, nNum);
+    ToDevice::F(h_mx_z, d_mx_z, nNum);
+    ToDevice::I(h_cl, d_cl, nNum);
+    ToDevice::I(h_cr, d_cr, nNum);
+    ToDevice::I(h_ll, d_ll, nNum);
+    ToDevice::I(h_lr, d_lr, nNum);
+    ToDevice::I(h_gIdx, d_gIdx);
 }
 
 

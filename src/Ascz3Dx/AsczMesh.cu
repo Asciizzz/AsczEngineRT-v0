@@ -1,22 +1,6 @@
 #include <AsczMesh.cuh>
-#include <cuda_runtime.h>
+#include <ToDevice.cuh>
 #include <omp.h>
-
-// Helper function to copy mesh data to device
-void fToDevice(VecF &h, float *&d, int size=-1) {
-    if (size == -1) size = h.size();
-    cudaMalloc(&d, size * sizeof(float));
-    cudaMemcpy(d, h.data(), size * sizeof(float), cudaMemcpyHostToDevice);
-}
-
-void iToDevice(VecI &h, int *&d, int size=-1) {
-    if (size == -1) size = h.size();
-    cudaMalloc(&d, size * sizeof(int));
-    cudaMemcpy(d, h.data(), size * sizeof(int), cudaMemcpyHostToDevice);
-}
-
-
-
 
 void AsczMesh::appendMesh(MeshStruct mesh) {
     #pragma omp parallel for
@@ -114,14 +98,14 @@ void AsczMesh::freeDevice() {
 void AsczMesh::toDevice() {
     freeDevice();
 
-    fToDevice(h_vx, d_vx); fToDevice(h_vy, d_vy); fToDevice(h_vz, d_vz);
-    fToDevice(h_tx, d_tx); fToDevice(h_ty, d_ty);
-    fToDevice(h_nx, d_nx); fToDevice(h_ny, d_ny); fToDevice(h_nz, d_nz);
+    ToDevice::F(h_vx, d_vx); ToDevice::F(h_vy, d_vy); ToDevice::F(h_vz, d_vz);
+    ToDevice::F(h_tx, d_tx); ToDevice::F(h_ty, d_ty);
+    ToDevice::F(h_nx, d_nx); ToDevice::F(h_ny, d_ny); ToDevice::F(h_nz, d_nz);
 
-    iToDevice(h_fv0, d_fv0); iToDevice(h_fv1, d_fv1); iToDevice(h_fv2, d_fv2);
-    iToDevice(h_ft0, d_ft0); iToDevice(h_ft1, d_ft1); iToDevice(h_ft2, d_ft2);
-    iToDevice(h_fn0, d_fn0); iToDevice(h_fn1, d_fn1); iToDevice(h_fn2, d_fn2);
-    iToDevice(h_fm,  d_fm);
+    ToDevice::I(h_fv0, d_fv0); ToDevice::I(h_fv1, d_fv1); ToDevice::I(h_fv2, d_fv2);
+    ToDevice::I(h_ft0, d_ft0); ToDevice::I(h_ft1, d_ft1); ToDevice::I(h_ft2, d_ft2);
+    ToDevice::I(h_fn0, d_fn0); ToDevice::I(h_fn1, d_fn1); ToDevice::I(h_fn2, d_fn2);
+    ToDevice::I(h_fm,  d_fm);
 
-    iToDevice(h_lSrc, d_lSrc);
+    ToDevice::I(h_lSrc, d_lSrc);
 }
