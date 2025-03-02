@@ -9,11 +9,11 @@ struct AzMtl {
 
     float Rough = 0.5f;
     float Metal = 0.0f;
-    Flt3 Ems = 0.0f;
 
-    // Transmission
     float Tr = 0.0f;
     float Ior = 1.0f;
+
+    Flt3 Ems = 0.0f;
 };
 
 /* Ior lookup table
