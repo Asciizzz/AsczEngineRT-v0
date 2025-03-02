@@ -98,7 +98,7 @@ Alb 0.800000 0.800000 0.800000
 Ior 1.450000
 Tr 0.000000
 AlbMap Seia.png
-Ems 0.3 0.3 0.3
+Ems 0.2 0.2 0.1
 
 newmtl None
 #Ns 500
