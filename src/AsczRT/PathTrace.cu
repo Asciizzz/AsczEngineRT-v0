@@ -39,10 +39,7 @@ __global__ void pathtraceKernel(
     // Textures
     float *tr, float *tg, float *tb, float *ta, int *tw, int *th, int *toff,
     // BVH data
-    float *mi_x, float *mi_y, float *mi_z, float *mx_x, float *mx_y, float *mx_z, int *pl, int *pr, bool *lf, int *gIdx,
-
-    // Additional Debug Data
-    float falseAmbient
+    float *mi_x, float *mi_y, float *mi_z, float *mx_x, float *mx_y, float *mx_z, int *pl, int *pr, bool *lf, int *gIdx
 ) {
     int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
     if (tIdx >= frmW * frmH) return;
@@ -231,9 +228,8 @@ __global__ void pathtraceKernel(
         nrml.y = hasNrml ? ny[n0] * hw + ny[n1] * hu + ny[n2] * hv : 0.0f;
         nrml.z = hasNrml ? nz[n0] * hw + nz[n1] * hu + nz[n2] * hv : 0.0f;
 
-        // Fake ambient
-        float NdotL = nrml * ray.d;
-        Flt3 finalColr = alb * falseAmbient * NdotL * NdotL;
+
+        Flt3 finalColr;
 
         if (!hm.Ems.isZero()) {
             resultColr += (hm.Ems & alb) * ray.w;

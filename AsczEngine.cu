@@ -14,16 +14,16 @@
 int main() {
     // =================== Initialize FPS and Window ==============
     FpsHandler &FPS = FpsHandler::instance();
-    AsczWin WinMgr(1600, 900, L"AsczEngineRT_v0");
+    AsczWin Win(1600, 900, L"AsczEngineRT_v0");
 
     // =============== Initialize Important Managers ================
 
     // All managers
-    AsczTxtr TxtrMgr;
-    AsczMat MatMgr;
-    AsczMesh MeshMgr;
-    AsczBvh BvhMgr;
-    AsczCam CamMgr;
+    AsczTxtr Txtr;
+    AsczMat Mat;
+    AsczMesh Mesh;
+    AsczBvh Bvh;
+    AsczCam Cam;
 
     // ====================== Some very scuffed init ==========================
     
@@ -35,15 +35,15 @@ int main() {
         std::stringstream ss(cfgLine);
         std::string type; ss >> type;
 
-        if      (type == "CameraPos")  ss >> CamMgr.pos.x >> CamMgr.pos.y >> CamMgr.pos.z;
-        else if (type == "CameraRot")  ss >> CamMgr.rot.x >> CamMgr.rot.y >> CamMgr.rot.z;
-        else if (type == "CameraFov")  ss >> CamMgr.fov;
-        else if (type == "VelSpec")    ss >> CamMgr.velSpec;
-        else if (type == "SlowFactor") ss >> CamMgr.slowFactor;
-        else if (type == "FastFactor") ss >> CamMgr.fastFactor;
+        if      (type == "CameraPos")  ss >> Cam.pos.x >> Cam.pos.y >> Cam.pos.z;
+        else if (type == "CameraRot")  ss >> Cam.rot.x >> Cam.rot.y >> Cam.rot.z;
+        else if (type == "CameraFov")  ss >> Cam.fov;
+        else if (type == "VelSpec")    ss >> Cam.velSpec;
+        else if (type == "SlowFactor") ss >> Cam.slowFactor;
+        else if (type == "FastFactor") ss >> Cam.fastFactor;
 
-        else if (type == "MaxDepth")   ss >> BvhMgr.MAX_DEPTH;
-        else if (type == "BinCount")   ss >> BvhMgr.BIN_COUNT;
+        else if (type == "MaxDepth")   ss >> Bvh.MAX_DEPTH;
+        else if (type == "BinCount")   ss >> Bvh.BIN_COUNT;
     };
 
     // ========================================================================
@@ -68,7 +68,7 @@ int main() {
         ss >> objPath >> objPlacement >> objScale;
 
         Utils::appendObj(
-            MeshMgr, MatMgr, TxtrMgr,
+            Mesh, Mat, Txtr,
             objPath.c_str(), objPlacement, objScale
         );
     }
@@ -76,12 +76,12 @@ int main() {
     // ======================= Copy to device memory ==========================
 
     // Copy to device memory
-    TxtrMgr.toDevice();
-    MatMgr.toDevice();
-    MeshMgr.toDevice();
+    Txtr.toDevice();
+    Mat.toDevice();
+    Mesh.toDevice();
 
-    BvhMgr.designBVH(MeshMgr);
-    BvhMgr.toDevice();
+    Bvh.designBVH(Mesh);
+    Bvh.toDevice();
 
     // ========================================================================
     // ========================================================================
@@ -90,7 +90,7 @@ int main() {
     ShowCursor(FALSE);
 
     bool pathTracing = false;
-    float falseAmbient = 0.01f; // Good for pitch black areas
+    float falseAmbient = 0.1f; // Good for pitch black areas
     float currentFalseAmbient = falseAmbient;
 
     MSG msg = { 0 };
@@ -102,121 +102,118 @@ int main() {
             DispatchMessage(&msg);
         }
 
-        
         // Press ESC to exit
-        if (WinMgr.keys[VK_ESCAPE]) break;
+        if (Win.keys[VK_ESCAPE]) break;
 
         // Press F1 to toggle focus
-        if (WinMgr.keys[VK_F1]) {
-            WinMgr.keys[VK_F1] = false;
+        if (Win.keys[VK_F1]) {
+            Win.keys[VK_F1] = false;
 
-            CamMgr.focus = !CamMgr.focus;
-            ShowCursor(CamMgr.focus);
+            Cam.focus = !Cam.focus;
+            ShowCursor(Cam.focus);
         }
 
         // Press E to toggle false ambient
-        if (WinMgr.keys['E']) {
-            WinMgr.keys['E'] = false;
+        if (Win.keys['E']) {
+            Win.keys['E'] = false;
             currentFalseAmbient = currentFalseAmbient == 0.0f ? falseAmbient : 0.0f;
         }
 
         // Press Q to toggle path tracing
-        if (WinMgr.keys['Q']) {
-            WinMgr.keys['Q'] = false;
+        if (Win.keys['Q']) {
+            Win.keys['Q'] = false;
             pathTracing = !pathTracing;
-            CamMgr.focus = !pathTracing;
+            Cam.focus = !pathTracing;
 
             // Render a single frame
             if (pathTracing)
-                pathtraceKernel<<<WinMgr.blockCount, WinMgr.threadCount>>>(
-                    CamMgr, WinMgr.d_framebuffer, WinMgr.width, WinMgr.height,
+                pathtraceKernel<<<Win.blockCount, Win.threadCount>>>(
+                    Cam, Win.d_framebuffer, Win.width, Win.height,
 
-                    MeshMgr.d_vx, MeshMgr.d_vy, MeshMgr.d_vz, MeshMgr.d_tx, MeshMgr.d_ty, MeshMgr.d_nx, MeshMgr.d_ny, MeshMgr.d_nz,
-                    MeshMgr.d_fv0, MeshMgr.d_fv1, MeshMgr.d_fv2, MeshMgr.d_ft0, MeshMgr.d_ft1, MeshMgr.d_ft2, MeshMgr.d_fn0, MeshMgr.d_fn1, MeshMgr.d_fn2, MeshMgr.d_fm,
-                    MatMgr.d_mtls, MeshMgr.d_lSrc, MeshMgr.lNum,
-                    TxtrMgr.d_tr, TxtrMgr.d_tg, TxtrMgr.d_tb, TxtrMgr.d_ta, TxtrMgr.d_tw, TxtrMgr.d_th, TxtrMgr.d_toff,
+                    Mesh.d_vx, Mesh.d_vy, Mesh.d_vz, Mesh.d_tx, Mesh.d_ty, Mesh.d_nx, Mesh.d_ny, Mesh.d_nz,
+                    Mesh.d_fv0, Mesh.d_fv1, Mesh.d_fv2, Mesh.d_ft0, Mesh.d_ft1, Mesh.d_ft2, Mesh.d_fn0, Mesh.d_fn1, Mesh.d_fn2, Mesh.d_fm,
+                    Mat.d_mtls, Mesh.d_lSrc, Mesh.lNum,
+                    Txtr.d_tr, Txtr.d_tg, Txtr.d_tb, Txtr.d_ta, Txtr.d_tw, Txtr.d_th, Txtr.d_toff,
 
-                    BvhMgr.d_mi_x, BvhMgr.d_mi_y, BvhMgr.d_mi_z, BvhMgr.d_mx_x, BvhMgr.d_mx_y, BvhMgr.d_mx_z, BvhMgr.d_pl, BvhMgr.d_pr, BvhMgr.d_lf, BvhMgr.d_gIdx,
-
-                    currentFalseAmbient
+                    Bvh.d_mi_x, Bvh.d_mi_y, Bvh.d_mi_z, Bvh.d_mx_x, Bvh.d_mx_y, Bvh.d_mx_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_gIdx
                 );
         }
 
-        if (CamMgr.focus && !pathTracing) {
+        if (Cam.focus && !pathTracing) {
 
             // Get previous cursor position
             POINT prev;
             GetCursorPos(&prev);
 
             // Set cursor position to the center of the window
-            POINT center = { WinMgr.width / 2, WinMgr.height / 2 };
-            ClientToScreen(WinMgr.hwnd, &center);
+            POINT center = { Win.width / 2, Win.height / 2 };
+            ClientToScreen(Win.hwnd, &center);
             SetCursorPos(center.x, center.y);
 
             float dx = prev.x - center.x;
             float dy = center.y - prev.y;
 
             // Update camera rotation
-            CamMgr.rot.y += dx * CamMgr.mSens * FPS.dTimeSec;
-            CamMgr.rot.x += dy * CamMgr.mSens * FPS.dTimeSec;
+            Cam.rot.y += dx * Cam.mSens * FPS.dTimeSec;
+            Cam.rot.x += dy * Cam.mSens * FPS.dTimeSec;
 
             // CSGO perspective movement
-            float vel = CamMgr.velSpec;
-            bool k_w = WinMgr.keys['W'];
-            bool k_a = WinMgr.keys['A'];
-            bool k_s = WinMgr.keys['S'];
-            bool k_d = WinMgr.keys['D'];
-            bool k_ctrl = WinMgr.keys[VK_CONTROL];
-            bool k_shift = WinMgr.keys[VK_SHIFT];
+            float vel = Cam.velSpec;
+            bool k_w = Win.keys['W'];
+            bool k_a = Win.keys['A'];
+            bool k_s = Win.keys['S'];
+            bool k_d = Win.keys['D'];
+            bool k_ctrl = Win.keys[VK_CONTROL];
+            bool k_shift = Win.keys[VK_SHIFT];
 
             // Hold ctrl to go slow, hold shift to go fast
-            if (k_ctrl && !k_shift)      vel *= CamMgr.slowFactor;
-            else if (k_shift && !k_ctrl) vel *= CamMgr.fastFactor;
+            if (k_ctrl && !k_shift)      vel *= Cam.slowFactor;
+            else if (k_shift && !k_ctrl) vel *= Cam.fastFactor;
 
             // Press W/S to move forward/backward
-            if (k_w && !k_s) CamMgr.pos += CamMgr.forward * vel * FPS.dTimeSec;
-            if (k_s && !k_w) CamMgr.pos -= CamMgr.forward * vel * FPS.dTimeSec;
+            if (k_w && !k_s) Cam.pos += Cam.forward * vel * FPS.dTimeSec;
+            if (k_s && !k_w) Cam.pos -= Cam.forward * vel * FPS.dTimeSec;
 
             // Press A/D to move left/right
-            if (k_a && !k_d) CamMgr.pos -= CamMgr.right * vel * FPS.dTimeSec;
-            if (k_d && !k_a) CamMgr.pos += CamMgr.right * vel * FPS.dTimeSec;
+            if (k_a && !k_d) Cam.pos -= Cam.right * vel * FPS.dTimeSec;
+            if (k_d && !k_a) Cam.pos += Cam.right * vel * FPS.dTimeSec;
 
             // Update camera
-            CamMgr.update();
+            Cam.update();
         }
 
-        if (CamMgr.focus) {
-            POINT center = { WinMgr.width / 2, WinMgr.height / 2 };
-            ClientToScreen(WinMgr.hwnd, &center);
+        if (Cam.focus) {
+            POINT center = { Win.width / 2, Win.height / 2 };
+            ClientToScreen(Win.hwnd, &center);
             SetCursorPos(center.x, center.y);
         }
 
         // Render
         if (!pathTracing)
-            raytraceKernel<<<WinMgr.blockCount, WinMgr.threadCount>>>(
-                CamMgr, WinMgr.d_framebuffer, WinMgr.width, WinMgr.height,
+            raytraceKernel<<<Win.blockCount, Win.threadCount>>>(
+                Cam, Win.d_framebuffer, Win.width, Win.height,
 
-                MeshMgr.d_vx, MeshMgr.d_vy, MeshMgr.d_vz, MeshMgr.d_tx, MeshMgr.d_ty, MeshMgr.d_nx, MeshMgr.d_ny, MeshMgr.d_nz,
-                MeshMgr.d_fv0, MeshMgr.d_fv1, MeshMgr.d_fv2, MeshMgr.d_ft0, MeshMgr.d_ft1, MeshMgr.d_ft2, MeshMgr.d_fn0, MeshMgr.d_fn1, MeshMgr.d_fn2, MeshMgr.d_fm,
-                MatMgr.d_mtls, MeshMgr.d_lSrc, MeshMgr.lNum,
-                TxtrMgr.d_tr, TxtrMgr.d_tg, TxtrMgr.d_tb, TxtrMgr.d_ta, TxtrMgr.d_tw, TxtrMgr.d_th, TxtrMgr.d_toff,
+                Mesh.d_vx, Mesh.d_vy, Mesh.d_vz, Mesh.d_tx, Mesh.d_ty, Mesh.d_nx, Mesh.d_ny, Mesh.d_nz,
+                Mesh.d_fv0, Mesh.d_fv1, Mesh.d_fv2, Mesh.d_ft0, Mesh.d_ft1, Mesh.d_ft2, Mesh.d_fn0, Mesh.d_fn1, Mesh.d_fn2, Mesh.d_fm,
+                Mat.d_mtls, Mesh.d_lSrc, Mesh.lNum,
+                Txtr.d_tr, Txtr.d_tg, Txtr.d_tb, Txtr.d_ta, Txtr.d_tw, Txtr.d_th, Txtr.d_toff,
 
-                BvhMgr.d_mi_x, BvhMgr.d_mi_y, BvhMgr.d_mi_z, BvhMgr.d_mx_x, BvhMgr.d_mx_y, BvhMgr.d_mx_z, BvhMgr.d_pl, BvhMgr.d_pr, BvhMgr.d_lf, BvhMgr.d_gIdx,
+                Bvh.d_mi_x, Bvh.d_mi_y, Bvh.d_mi_z, Bvh.d_mx_x, Bvh.d_mx_y, Bvh.d_mx_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_gIdx,
 
                 currentFalseAmbient
             );
 
-        WinMgr.appendDebug(L"AsczEngineRT_v0", Int3(155, 255, 155));
-        WinMgr.appendDebug(L"FPS: " + std::to_wstring(FPS.fps), Int3(0, 255, 0));
-        WinMgr.appendDebug(L"CAMERA", Int3(255, 0, 0));
-        WinMgr.appendDebug(L"Pos: " + std::to_wstring(CamMgr.pos.x) + L", " + std::to_wstring(CamMgr.pos.y) + L", " + std::to_wstring(CamMgr.pos.z), Int3(255));    
-        WinMgr.appendDebug(L"Rot: " + std::to_wstring(CamMgr.rot.x) + L", " + std::to_wstring(CamMgr.rot.y) + L", " + std::to_wstring(CamMgr.rot.z), Int3(255));
-        WinMgr.appendDebug(L"Fd: " + std::to_wstring(CamMgr.forward.x) + L", " + std::to_wstring(CamMgr.forward.y) + L", " + std::to_wstring(CamMgr.forward.z), Int3(255));
-        WinMgr.appendDebug(L"Rg: " + std::to_wstring(CamMgr.right.x) + L", " + std::to_wstring(CamMgr.right.y) + L", " + std::to_wstring(CamMgr.right.z), Int3(255));
-        WinMgr.appendDebug(L"Up: " + std::to_wstring(CamMgr.up.x) + L", " + std::to_wstring(CamMgr.up.y) + L", " + std::to_wstring(CamMgr.up.z), Int3(255));
-        WinMgr.appendDebug(L"Fov: " + std::to_wstring(CamMgr.fov * 180 / M_PI), Int3(255));
+        Win.appendDebug(L"AsczEngineRT_v0", Int3(155, 255, 155));
+        Win.appendDebug(L"FPS: " + std::to_wstring(FPS.fps), Int3(0, 255, 0));
+        Win.appendDebug(L"CAMERA", Int3(255, 0, 0));
+        Win.appendDebug(L"Pos: " + std::to_wstring(Cam.pos.x) + L", " + std::to_wstring(Cam.pos.y) + L", " + std::to_wstring(Cam.pos.z), Int3(255));    
+        Win.appendDebug(L"Rot: " + std::to_wstring(Cam.rot.x) + L", " + std::to_wstring(Cam.rot.y) + L", " + std::to_wstring(Cam.rot.z), Int3(255));
+        Win.appendDebug(L"Fd: " + std::to_wstring(Cam.forward.x) + L", " + std::to_wstring(Cam.forward.y) + L", " + std::to_wstring(Cam.forward.z), Int3(255));
+        Win.appendDebug(L"Rg: " + std::to_wstring(Cam.right.x) + L", " + std::to_wstring(Cam.right.y) + L", " + std::to_wstring(Cam.right.z), Int3(255));
+        Win.appendDebug(L"Up: " + std::to_wstring(Cam.up.x) + L", " + std::to_wstring(Cam.up.y) + L", " + std::to_wstring(Cam.up.z), Int3(255));
+        Win.appendDebug(L"Fov: " + std::to_wstring(Cam.fov * 180 / M_PI), Int3(255));
 
-        WinMgr.Draw();
+        Win.Draw();
 
         FPS.endFrame();
     }
@@ -225,11 +222,11 @@ int main() {
     // ========================================================================
 
     // Free everything
-    TxtrMgr.freeDevice();
-    MatMgr.freeDevice();
-    MeshMgr.freeDevice();
-    BvhMgr.freeDevice();
-    WinMgr.Terminate();
+    Txtr.freeDevice();
+    Mat.freeDevice();
+    Mesh.freeDevice();
+    Bvh.freeDevice();
+    Win.Terminate();
 
     return 0;
 }

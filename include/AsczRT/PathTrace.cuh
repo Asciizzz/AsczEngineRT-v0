@@ -18,10 +18,7 @@ __global__ void pathtraceKernel(
     // Textures
     float *tr, float *tg, float *tb, float *ta, int *tw, int *th, int *toff,
     // BVH data
-    float *mi_x, float *mi_y, float *mi_z, float *mx_x, float *mx_y, float *mx_z, int *pl, int *pr, bool *lf, int *gIdx,
-
-    // Additional Debug Data
-    float falseAmbient
+    float *mi_x, float *mi_y, float *mi_z, float *mx_x, float *mx_y, float *mx_z, int *pl, int *pr, bool *lf, int *gIdx
 );
 
 #endif
