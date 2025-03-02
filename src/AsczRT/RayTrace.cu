@@ -398,9 +398,9 @@ __global__ void raytraceKernel(
                 }
             }
 
-            float NdotL = -(nrml.x * ldx + nrml.y * ldy + nrml.z * ldz);
-            NdotL *= NdotL > 0;
-            Flt3 diff = alb * (hasNrml ? 1.0f : NdotL);
+            float NdotL = (nrml.x * ldx + nrml.y * ldy + nrml.z * ldz);
+            NdotL *= NdotL;
+            Flt3 diff = alb * (hasNrml ? NdotL : 1.0f);
 
             finalColr += (lMat.Ems & diff) * inLight;
         }
