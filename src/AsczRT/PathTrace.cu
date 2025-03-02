@@ -418,6 +418,14 @@ __global__ void pathtraceKernel(
         resultColr += finalColr * ray.w;
     }
 
+    // Tone mapping
+    resultColr.x = AzDevMath::ACESFilm(resultColr.x);
+    resultColr.y = AzDevMath::ACESFilm(resultColr.y);
+    resultColr.z = AzDevMath::ACESFilm(resultColr.z);
+
+    float _gamma = 1.0f / 2.2f;
+    resultColr = resultColr.pow(_gamma);
+
     int r = (int)(resultColr.x * 255);
     int g = (int)(resultColr.y * 255);
     int b = (int)(resultColr.z * 255);

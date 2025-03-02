@@ -90,7 +90,7 @@ int main() {
     ShowCursor(FALSE);
 
     bool pathTracing = false;
-    float falseAmbient = 0.1f; // Good for pitch black areas
+    float falseAmbient = 0.01f; // Good for pitch black areas
     float currentFalseAmbient = falseAmbient;
 
     MSG msg = { 0 };
