@@ -37,15 +37,13 @@ public:
     VecI h_gIdx; // Geom's index
     int *d_gIdx = nullptr;
 
-    VecF h_mi_x, h_mi_y, h_mi_z; // AABB Min
-    VecF h_mx_x, h_mx_y, h_mx_z; // AABB Max
-    VecI h_cl, h_cr; // Children
-    VecI h_ll, h_lr; // Geom's index
+    VecNode h_nodes;
+    DevNode *d_nodes = nullptr;
 
     float *d_mi_x, *d_mi_y, *d_mi_z; // AABB Min
     float *d_mx_x, *d_mx_y, *d_mx_z; // AABB Max
-    int *d_cl, *d_cr; // Children
-    int *d_ll, *d_lr; // Geom's index
+    int *d_pl, *d_pr; // Dual Purpose pointer
+    bool *d_lf; // Leaf flag
 
     int nNum;
 
@@ -58,10 +56,9 @@ public:
 
     // Sub-object split faces
     static int buildBvh(
-        VecF &mi_x, VecF &mi_y, VecF &mi_z, VecF &mx_x, VecF &mx_y, VecF &mx_z,
-        VecI &cl, VecI &cr, VecI &ll, VecI &lr,
-
-        VecI &allGIdx, DevNode &node, const VecAB &ABs,
+        // VecF &mi_x, VecF &mi_y, VecF &mi_z, VecF &mx_x, VecF &mx_y, VecF &mx_z,
+        // VecI &cl, VecI &cr, VecI &ll, VecI &lr,
+        VecNode &allNodes, VecI &allGIdx, DevNode &node, const VecAB &ABs,
         int depth, const int MAX_DEPTH, const int NODE_FACES, const int BIN_COUNT
     );
     void designBVH(AsczMesh &meshMgr);

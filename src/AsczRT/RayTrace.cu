@@ -90,9 +90,8 @@ __global__ void raytraceKernel(
     AzMtl *mats, int *lSrc, int lNum, 
     // Textures
     float *tr, float *tg, float *tb, float *ta, int *tw, int *th, int *toff,
-
     // BVH data
-    float *mi_x, float *mi_y, float *mi_z, float *mx_x, float *mx_y, float *mx_z, int *cl, int *cr, int *ll, int *lr, int *gIdx,
+    float *mi_x, float *mi_y, float *mi_z, float *mx_x, float *mx_y, float *mx_z, int *pl, int *pr, bool *lf, int *gIdx,
 
     // Additional Debug Data
     float falseAmbient
@@ -143,8 +142,8 @@ __global__ void raytraceKernel(
 
             if (nDist < 0 | nDist > rhit.t) continue;
 
-            if (cl[nidx] > -1) {
-                int tcl = cl[nidx];
+            if (!lf[nidx]) {
+                int tcl = pl[nidx];
                 float t1l = (mi_x[tcl] - ray.o.x) * ray.invd.x;
                 float t2l = (mx_x[tcl] - ray.o.x) * ray.invd.x;
                 float t3l = (mi_y[tcl] - ray.o.y) * ray.invd.y;
@@ -160,7 +159,7 @@ __global__ void raytraceKernel(
                             ray.o.z < mi_z[tcl] | ray.o.z > mx_z[tcl];
                 float ldist = ((tmaxl < tminl | tminl < 0) ? -1 : tminl) * lOut;
 
-                int tcr = cr[nidx];
+                int tcr = pr[nidx];
                 float t1r = (mi_x[tcr] - ray.o.x) * ray.invd.x;
                 float t2r = (mx_x[tcr] - ray.o.x) * ray.invd.x;
                 float t3r = (mi_y[tcr] - ray.o.y) * ray.invd.y;
@@ -188,7 +187,7 @@ __global__ void raytraceKernel(
                 continue;
             }
 
-            for (int i = ll[nidx]; i < lr[nidx]; ++i) {
+            for (int i = pl[nidx]; i < pr[nidx]; ++i) {
                 int gi = gIdx[i];
 
                 bool hit = gi != rhit.idx;
@@ -331,8 +330,8 @@ __global__ void raytraceKernel(
 
                 if (nDist < 0 | nDist > ldst) continue;
 
-                if (cl[nidx] > -1) {
-                    int tcl = cl[nidx];
+                if (!lf[nidx]) {
+                    int tcl = pl[nidx];
                     float t1l = (mi_x[tcl] - lpx) * linvx;
                     float t2l = (mx_x[tcl] - lpx) * linvx;
                     float t3l = (mi_y[tcl] - lpy) * linvy;
@@ -349,7 +348,7 @@ __global__ void raytraceKernel(
                     float ldist = ((tmaxl < tminl | tminl < 0) ? -1 : tminl) * lOut;
 
 
-                    int tcr = cr[nidx];
+                    int tcr = pr[nidx];
                     float t1r = (mi_x[tcr] - lpx) * linvx;
                     float t2r = (mx_x[tcr] - lpx) * linvx;
                     float t3r = (mi_y[tcr] - lpy) * linvy;
@@ -375,7 +374,7 @@ __global__ void raytraceKernel(
                     continue;
                 }
     
-                for (int i = ll[nidx]; i < lr[nidx]; ++i) {
+                for (int i = pl[nidx]; i < pr[nidx]; ++i) {
                     int gi = gIdx[i];
 
                     bool hit = gi != hIdx & gi != lIdx;

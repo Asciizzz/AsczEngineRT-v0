@@ -195,7 +195,7 @@ int main() {
                 MatMgr.d_mtls, MeshMgr.d_lSrc, MeshMgr.lNum,
                 TxtrMgr.d_tr, TxtrMgr.d_tg, TxtrMgr.d_tb, TxtrMgr.d_ta, TxtrMgr.d_tw, TxtrMgr.d_th, TxtrMgr.d_toff,
 
-                BvhMgr.d_mi_x, BvhMgr.d_mi_y, BvhMgr.d_mi_z, BvhMgr.d_mx_x, BvhMgr.d_mx_y, BvhMgr.d_mx_z, BvhMgr.d_cl, BvhMgr.d_cr, BvhMgr.d_ll, BvhMgr.d_lr, BvhMgr.d_gIdx,
+                BvhMgr.d_mi_x, BvhMgr.d_mi_y, BvhMgr.d_mi_z, BvhMgr.d_mx_x, BvhMgr.d_mx_y, BvhMgr.d_mx_z, BvhMgr.d_pl, BvhMgr.d_pr, BvhMgr.d_lf, BvhMgr.d_gIdx,
 
                 currentFalseAmbient
             );
