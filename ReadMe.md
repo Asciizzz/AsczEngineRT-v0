@@ -179,7 +179,7 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 ### Contribute
 
 - Whether you have ideas, suggestions, techniques, or just want to discuss rendering techniques, contributions are welcome.
-- Oncec again, this engine is **far** from perfect, so any help is appreciated.
+- Once again, this engine is **far** from perfect, so any help is appreciated.
 
 ---
 
