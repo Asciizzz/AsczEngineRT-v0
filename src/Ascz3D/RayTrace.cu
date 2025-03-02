@@ -286,7 +286,7 @@ __global__ void raytraceKernel(
             ns_top = 0;
             nstack[ns_top++] = 0;
 
-            bool shadow = false;
+            bool inLight = true;
             while (ns_top > 0) {
                 int nidx = nstack[--ns_top];
 
@@ -393,16 +393,16 @@ __global__ void raytraceKernel(
 
                     hit &= t > 0 & t < ldst;
 
-                    shadow |= hit;
-                    ns_top *= !shadow;
+                    inLight &= !hit;
+                    ns_top *= inLight;
                 }
             }
 
             float NdotL = -(nrml.x * ldx + nrml.y * ldy + nrml.z * ldz);
             NdotL *= NdotL > 0;
-            Flt3 diff = alb * (nrml.isZero() ? 1.0f : NdotL);
+            Flt3 diff = alb * (hasNrml ? 1.0f : NdotL);
 
-            finalColr += shadow ? 0 : lMat.Ems & diff;
+            finalColr += (lMat.Ems & diff) * inLight;
         }
 
         // ======== Additional rays ========
