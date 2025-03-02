@@ -1,5 +1,5 @@
 #include <RayTrace.cuh>
-#include <AzMath.cuh>
+#include <AsczCam.cuh>
 
 __device__ Flt3 ASESFilm(const Flt3 &P) {
     const float a = 2.51f;
@@ -218,7 +218,7 @@ __global__ void raytraceKernel(
         Flt3 nrml; bool hasNrml = fn0[hidx] > -1;
         int n0 = fn0[hidx], n1 = fn1[hidx], n2 = fn2[hidx];
         nrml.x = hasNrml ? nx[n0] * hw + nx[n1] * hu + nx[n2] * hv : 0.0f;
-        nrml.y = hasNrml ? ny[n0] * hw + ny[n1] * hu + ny[n1] * hv : 0.0f;
+        nrml.y = hasNrml ? ny[n0] * hw + ny[n1] * hu + ny[n2] * hv : 0.0f;
         nrml.z = hasNrml ? nz[n0] * hw + nz[n1] * hu + nz[n2] * hv : 0.0f;
 
         // Fake ambient

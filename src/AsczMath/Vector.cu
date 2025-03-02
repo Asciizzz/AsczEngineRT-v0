@@ -128,11 +128,11 @@ Flt3 Flt3::operator^(const Flt3& v) const {
 
 // Some other common operations
 float Flt3::mag() {
-    return sqrt(x * x + y * y + z * z);
+    return sqrtf(x * x + y * y + z * z);
 }
 Flt3 Flt3::norm() {
     float m = mag();
-    if (m == 0) return Flt3(0);
+    if (m == 0) return 0.0f;
     return *this /= m;
 }
 void Flt3::abs() {

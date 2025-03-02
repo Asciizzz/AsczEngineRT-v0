@@ -1,10 +1,12 @@
 #ifndef VECTOR_CUH
 #define VECTOR_CUH
 
+
 #include <iostream>
 #include <vector>
 #include <cstdio>
 #include <cmath>
+
 
 /*
 Take a screenshot of these abomination below
@@ -92,9 +94,9 @@ struct Flt3 {
     // Cross product 
     __host__ __device__ Flt3 operator^(const Flt3 &v) const;
 
-    // Magnitude
+    // Magnitude (not recommended for device code)
     __host__ __device__ float mag();
-    // Normalize
+    // Normalize (not recommended for device code)
     __host__ __device__ Flt3 norm();
     // Absolute value
     __host__ __device__ void abs();
