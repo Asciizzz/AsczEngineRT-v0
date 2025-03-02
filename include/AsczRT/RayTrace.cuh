@@ -23,7 +23,7 @@ __global__ void raytraceKernel(
     float *mi_x, float *mi_y, float *mi_z, float *mx_x, float *mx_y, float *mx_z, int *cl, int *cr, int *ll, int *lr, int *gIdx,
 
     // Additional Debug Data
-    bool falseAmbient=false
+    float falseAmbient=0.0f
 );
 
 #endif

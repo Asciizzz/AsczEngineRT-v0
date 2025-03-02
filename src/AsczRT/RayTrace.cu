@@ -86,7 +86,7 @@ __global__ void raytraceKernel(
     // BVH data
     float *mi_x, float *mi_y, float *mi_z, float *mx_x, float *mx_y, float *mx_z, int *cl, int *cr, int *ll, int *lr, int *gIdx,
     // Additional Debug Data
-    bool falseAmbient
+    float falseAmbient
 ) {
     int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
     if (tIdx >= frmW * frmH) return;
@@ -248,8 +248,8 @@ __global__ void raytraceKernel(
         Flt3 alb = txColr.x < 0 ? hm.Alb : txColr.f3();
 
         // Lighting and shading
-        float NdotL = nrml * ray.d * falseAmbient;
-        Flt3 finalColr = alb * 0.02f * NdotL * NdotL;
+        float NdotL = nrml * ray.d;
+        Flt3 finalColr = alb * falseAmbient * NdotL * NdotL;
 
         if (!hm.Ems.isZero()) {
             resultColr += hm.Ems * ray.w;

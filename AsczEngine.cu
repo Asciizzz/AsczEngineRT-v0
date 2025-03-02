@@ -89,7 +89,8 @@ int main() {
     ShowCursor(FALSE);
 
     bool pathTracing = false;
-    bool falseAmbient = true; // Good for pitch black areas
+    float falseAmbient = 0.01f; // Good for pitch black areas
+    float currentFalseAmbient = falseAmbient;
 
     MSG msg = { 0 };
     while (msg.message != WM_QUIT) {
@@ -115,7 +116,7 @@ int main() {
         // Press E to toggle false ambient
         if (WinMgr.keys['E']) {
             WinMgr.keys['E'] = false;
-            falseAmbient = !falseAmbient;
+            currentFalseAmbient = currentFalseAmbient == 0.0f ? falseAmbient : 0.0f;
         }
 
         // Press Q to toggle path tracing
@@ -198,7 +199,7 @@ int main() {
 
                 BvhMgr.d_mi_x, BvhMgr.d_mi_y, BvhMgr.d_mi_z, BvhMgr.d_mx_x, BvhMgr.d_mx_y, BvhMgr.d_mx_z, BvhMgr.d_cl, BvhMgr.d_cr, BvhMgr.d_ll, BvhMgr.d_lr, BvhMgr.d_gIdx,
 
-                falseAmbient
+                currentFalseAmbient
             );
 
         WinMgr.appendDebug(L"AsczEngineRT_v0", Int3(155, 255, 155));
