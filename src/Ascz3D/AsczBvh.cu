@@ -97,7 +97,7 @@ int AsczBvh::buildBvh(
     float bestCost = curCost;
 
     for (int a = 0; a < 3; ++a) {
-        std::sort(std::execution::par_unseq,
+        std::sort(std::execution::par,
         allGIdx.begin() + node.ll, allGIdx.begin() + node.lr,
         [&](int i1, int i2) {
             return ABs[i1].cent()[a] < ABs[i2].cent()[a];
@@ -148,7 +148,7 @@ int AsczBvh::buildBvh(
         return 1;
     }
 
-    std::sort(std::execution::par_unseq,
+    std::sort(std::execution::par,
     allGIdx.begin() + node.ll, allGIdx.begin() + node.lr,
     [&](int i1, int i2) {
         return ABs[i1].cent()[bestAxis] < ABs[i2].cent()[bestAxis];

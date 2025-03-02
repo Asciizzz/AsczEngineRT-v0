@@ -236,10 +236,11 @@ __global__ void raytraceKernel(
         // Vertex interpolation
         Flt3 vrtx = ray.o + ray.d * rhit.t;
 
-        // Texture interpolation
+        // Texture interpolation (if available)
         bool hasTxtr = hm.AlbMap > -1;
-        float t_u = hasTxtr ? tx[ft0[hIdx]] * rhitw + tx[ft1[hIdx]] * rhit.u + tx[ft2[hIdx]] * rhit.v : 0.0f;
-        float t_v = hasTxtr ? ty[ft0[hIdx]] * rhitw + ty[ft1[hIdx]] * rhit.u + ty[ft2[hIdx]] * rhit.v : 0.0f;
+        int t0 = ft0[hIdx], t1 = ft1[hIdx], t2 = ft2[hIdx];
+        float t_u = hasTxtr ? tx[t0] * rhitw + tx[t1] * rhit.u + tx[t2] * rhit.v : 0.0f;
+        float t_v = hasTxtr ? ty[t0] * rhitw + ty[t1] * rhit.u + ty[t2] * rhit.v : 0.0f;
         t_u -= floor(t_u); t_v -= floor(t_v);
 
         int t_w = hasTxtr ? tw[hm.AlbMap] : 0;
@@ -254,9 +255,10 @@ __global__ void raytraceKernel(
 
         // Normal interpolation
         Flt3 nrml; bool hasNrml = fn0[hIdx] > -1;
-        nrml.x = hasNrml ? nx[fn0[hIdx]] * rhitw + nx[fn1[hIdx]] * rhit.u + nx[fn2[hIdx]] * rhit.v : 0.0f;
-        nrml.y = hasNrml ? ny[fn0[hIdx]] * rhitw + ny[fn1[hIdx]] * rhit.u + ny[fn2[hIdx]] * rhit.v : 0.0f;
-        nrml.z = hasNrml ? nz[fn0[hIdx]] * rhitw + nz[fn1[hIdx]] * rhit.u + nz[fn2[hIdx]] * rhit.v : 0.0f;
+        int n0 = fn0[hIdx], n1 = fn1[hIdx], n2 = fn2[hIdx];
+        nrml.x = hasNrml ? nx[n0] * rhitw + nx[n1] * rhit.u + nx[n2] * rhit.v : 0.0f;
+        nrml.y = hasNrml ? ny[n0] * rhitw + ny[n1] * rhit.u + ny[n1] * rhit.v : 0.0f;
+        nrml.z = hasNrml ? nz[n0] * rhitw + nz[n1] * rhit.u + nz[n2] * rhit.v : 0.0f;
 
         // Fake ambient
         float NdotL = nrml * ray.d;
