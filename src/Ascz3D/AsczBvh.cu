@@ -42,7 +42,6 @@ int AsczBvh::buildBvh(
     VecI &allGIdx, DevNode &node, const VecAB &ABs,
     int depth, const int MAX_DEPTH, const int NODE_FACES, const int BIN_COUNT
 ) {
-    // allNode.push_back(node);
     mi_x.push_back(node.ab.min.x);
     mi_y.push_back(node.ab.min.y);
     mi_z.push_back(node.ab.min.z);
