@@ -39,7 +39,7 @@ __global__ void temporalAA(Flt3 *f1, Flt3 *f2, int size, int count) {
 int main() {
     // =================== Initialize FPS and Window ==============
     FpsHandler &FPS = FpsHandler::instance();
-    AsczWin Win(1600, 900, L"AsczEngineRT_v0");
+    AsczWin Win(1000, 1000, L"AsczEngineRT_v0");
 
     // =============== Initialize Important Managers ================
 
