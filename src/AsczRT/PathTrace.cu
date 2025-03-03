@@ -3,12 +3,13 @@
 
 #include <curand_kernel.h>
 
-__device__ Flt3 randomHemisphereSample(curandState *rnd, const Flt3 &n) {
-    float r1 = curand_uniform(rnd);  // Random number [0,1]
+__device__ Flt3 randomHemisphereSample(curandState *rnd, const Flt3 &n, float exponent = 2.0f) {
+    float r1 = curand_uniform(rnd);  
     float r2 = curand_uniform(rnd);
 
-    float theta = acos(sqrt(1.0f - r1));  // Importance sampling (cosine-weighted)
-    float phi = 2.0f * M_PI * r2;         // Uniform azimuthal angle
+    // Control distribution sharpness with an exponent
+    float theta = acos(pow(1.0f - r1, 1.0f / (exponent + 1.0f)));  // Sharper bias to normal
+    float phi = 2.0f * M_PI * r2;  
 
     // Convert to Cartesian coordinates
     float x = sin(theta) * cos(phi);

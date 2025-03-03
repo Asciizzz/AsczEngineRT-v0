@@ -36,6 +36,43 @@ __global__ void temporalAA(Flt3 *f1, Flt3 *f2, int size, int count) {
     if (idx < size) f1[idx] = (f1[idx] * count + f2[idx]) / (count + 1);
 }
 
+__global__ void bilateralFilter(Flt3* framebuffer, Flt3* output, int width, int height, int radius = 3, float sigma_spatial = 1.5f, float sigma_color = 0.2f) {
+    int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
+    int x = tIdx % width;
+    int y = tIdx / width;
+    if (x >= width || y >= height) return;
+
+    int idx = y * width + x;
+    Flt3 centerColor = framebuffer[idx];
+
+    Flt3 sumColor = {0, 0, 0};
+    float sumWeight = 0.0f;
+
+    for (int dy = -radius; dy <= radius; dy++) {
+        for (int dx = -radius; dx <= radius; dx++) {
+            int nx = x + dx, ny = y + dy;
+            if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
+
+            int nIdx = ny * width + nx;
+            Flt3 neighborColor = framebuffer[nIdx];
+
+            // Spatial weight (Gaussian based on distance)
+            float spatialWeight = expf(-(dx * dx + dy * dy) / (2.0f * sigma_spatial * sigma_spatial));
+
+            // Color weight (Preserve edges by reducing weight for different colors)
+            float colorDiff = (neighborColor - centerColor).mag();
+            float colorWeight = expf(-(colorDiff * colorDiff) / (2.0f * sigma_color * sigma_color));
+
+            float weight = spatialWeight * colorWeight;
+            sumColor = sumColor + neighborColor * weight;
+            sumWeight += weight;
+        }
+    }
+
+    output[idx] = sumColor / sumWeight;
+}
+
+
 int main() {
     // =================== Initialize FPS and Window ==============
     FpsHandler &FPS = FpsHandler::instance();
@@ -250,6 +287,9 @@ int main() {
             divFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer2, Win.width * Win.height, accumulate);
         }
 
+        // Bilateral filter
+        bilateralFilter<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer3, Win.width, Win.height);
+        Win.Draw(3, hasDebug);
 
         if (hasDebug) {
             Win.appendDebug(L"AsczEngineRT_v0", Int3(155, 255, 155));
@@ -263,7 +303,6 @@ int main() {
             Win.appendDebug(L"Fov: " + std::to_wstring(Cam.fov * 180 / M_PI), Int3(255));
         }
 
-        Win.Draw(1, hasDebug);
 
         prevPos = Cam.pos;
         prevRot = Cam.rot;

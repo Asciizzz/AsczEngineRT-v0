@@ -25,8 +25,10 @@ AsczWin::AsczWin(int w, int h, std::wstring t) : width(w), height(h), title(t) {
 
     h_drawbuffer = new unsigned int[width * height];
     cudaMalloc(&d_drawbuffer, width * height * sizeof(unsigned int));
+
     cudaMalloc(&d_frmbuffer1, width * height * sizeof(Flt3));
     cudaMalloc(&d_frmbuffer2, width * height * sizeof(Flt3));
+    cudaMalloc(&d_frmbuffer3, width * height * sizeof(Flt3));
 }
 
 void AsczWin::InitWindow() {
@@ -80,7 +82,11 @@ void AsczWin::appendDebug(std::string text, Int3 color) {
 
 // Framebuffer
 void AsczWin::DrawFramebuffer(int buffer) {
-    copyToDrawBuffer<<<blockCount, threadCount>>>(buffer == 1 ? d_frmbuffer1 : d_frmbuffer2, d_drawbuffer, width, height);
+    copyToDrawBuffer<<<blockCount, threadCount>>>(
+        buffer == 1 ? d_frmbuffer1 :
+        buffer == 2 ? d_frmbuffer2 : d_frmbuffer3,
+        d_drawbuffer, width, height
+    );
 
     cudaMemcpy(h_drawbuffer, d_drawbuffer, width * height * sizeof(unsigned int), cudaMemcpyDeviceToHost);
     StretchDIBits(hdc, 0, 0, width, height, 0, 0, width, height, h_drawbuffer, &bmi, DIB_RGB_COLORS, SRCCOPY);
@@ -103,8 +109,10 @@ void AsczWin::Draw(int buffer, bool debug) {
 void AsczWin::Terminate() {
     delete[] h_drawbuffer;
     cudaFree(d_drawbuffer);
+
     cudaFree(d_frmbuffer1);
     cudaFree(d_frmbuffer2);
+    cudaFree(d_frmbuffer3);
 
     ReleaseDC(hwnd, hdc);
     DestroyWindow(hwnd);
