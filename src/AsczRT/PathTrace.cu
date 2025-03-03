@@ -48,10 +48,11 @@ __global__ void pathtraceKernel(
     if (tIdx >= frmW * frmH) return;
 
     curandState rnd;
-    curand_init(randSeed + tIdx, 0, 0, &rnd);
+    curand_init(randSeed + tIdx, tIdx, 0, &rnd);
 
-    int x = tIdx % frmW, y = tIdx / frmW;
-    Ray ray = camera.castRay(x, y, frmW, frmH);
+    int tX = tIdx % frmW, tY = tIdx / frmW;
+    float dx = curand_uniform(&rnd) * 0.005, dy = curand_uniform(&rnd) * 0.005;
+    Ray ray = camera.castRay(tX, tY, frmW, frmH, dx, dy);
 
     const int MAX_NODES = 64;
     const int MAX_BOUNCES = 8;

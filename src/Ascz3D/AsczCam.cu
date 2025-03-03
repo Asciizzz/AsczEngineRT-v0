@@ -57,7 +57,7 @@ Flt2 AsczCam::getScrnNDC(float x, float y, float width, float height) const {
     return Flt2((2 * x - width) / width, (height - 2 * y) / height);
 }
 
-Ray AsczCam::castRay(float x, float y, float width, float height) const {
+Ray AsczCam::castRay(float x, float y, float width, float height, float dx, float dy) const {
     // Step 1: Convert screen space coordinates to NDC
     Flt2 ndc = getScrnNDC(x, y, width, height);
 
@@ -66,6 +66,7 @@ Ray AsczCam::castRay(float x, float y, float width, float height) const {
     // Aspect ratio adjusts the direction for non-square screens (i.e., when width != height).
     float tanFov = tan(fov / 2);
     Flt3 rayDir = forward + right * ndc.x * tanFov * width / height + up * ndc.y * tanFov;
+    rayDir += right * dx + up * dy;
 
     // Step 3: Normalize the direction vector
     rayDir.norm();

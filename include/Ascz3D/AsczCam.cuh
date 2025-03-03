@@ -37,7 +37,7 @@ public:
     __host__ __device__
     Flt2 getScrnNDC(float x, float y, float width, float height) const;
     __host__ __device__
-    Ray castRay(float x, float y, float width, float height) const;
+    Ray castRay(float x, float y, float width, float height, float dx=0, float dy=0) const;
 
     void update();
 
