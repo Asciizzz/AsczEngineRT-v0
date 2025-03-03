@@ -151,7 +151,7 @@ int main() {
     // Hide cursor
     ShowCursor(FALSE);
 
-    bool pathTracing = false;
+    short renderMode = 0;
     float falseAmbient = 0.01f; // Good for pitch black areas
     float currentFalseAmbient = falseAmbient;
     bool hasDebug = true;
@@ -160,7 +160,6 @@ int main() {
 
     Flt3 prevPos = Cam.pos;
     Flt3 prevRot = Cam.rot;
-    bool prevMode = pathTracing;
 
     MSG msg = { 0 };
     while (msg.message != WM_QUIT) {
@@ -197,7 +196,7 @@ int main() {
         // Press Q to toggle path tracing
         if (Win.keys['Q']) {
             Win.keys['Q'] = false;
-            pathTracing = !pathTracing;
+            renderMode = (renderMode + 1) % 2;
         }
 
         if (Cam.focus) {
@@ -250,7 +249,8 @@ int main() {
         }
 
         // Render
-        if (!pathTracing) {
+        switch (renderMode) {
+        case 0:
             raytraceKernel<<<Win.blockCount, Win.threadCount>>>(
                 Cam, Win.d_frmbuffer1, Win.width, Win.height,
 
@@ -265,7 +265,9 @@ int main() {
             );
 
             Win.Draw(1, hasDebug);
-        } else {
+            break;
+
+        case 1:
             pathtraceKernel<<<Win.blockCount, Win.threadCount>>>(
                 Cam, Win.d_frmbuffer1, Win.width, Win.height,
 
@@ -279,12 +281,12 @@ int main() {
                 accumulate
             );
 
-            if (prevPos != Cam.pos || prevRot != Cam.rot || prevMode != pathTracing) {
+            if (prevPos != Cam.pos || prevRot != Cam.rot) {
                 accumulate = 1;
 
                 copyFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer2, Win.width * Win.height);
-            } else {
-                accumulate++;
+            } else if (accumulate < 128) {
+                accumulate ++;
                 addFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer2, Win.d_frmbuffer1, Win.width * Win.height);
                 divFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer2, Win.width * Win.height, accumulate);
             }
@@ -292,6 +294,10 @@ int main() {
             // Bilateral filter
             bilateralFilter<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer3, Win.width, Win.height);
             Win.Draw(3, hasDebug);
+
+            prevPos = Cam.pos;
+            prevRot = Cam.rot;
+            break;
         }
 
         if (hasDebug) {
@@ -305,10 +311,6 @@ int main() {
             Win.appendDebug(L"Up: " + std::to_wstring(Cam.up.x) + L", " + std::to_wstring(Cam.up.y) + L", " + std::to_wstring(Cam.up.z), Int3(255));
             Win.appendDebug(L"Fov: " + std::to_wstring(Cam.fov * 180 / M_PI), Int3(255));
         }
-
-        prevPos = Cam.pos;
-        prevRot = Cam.rot;
-        prevMode = pathTracing;
 
         FPS.endFrame();
     }
