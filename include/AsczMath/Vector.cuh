@@ -74,7 +74,9 @@ struct Flt3 {
     __host__ __device__ Flt3 operator+=(const float t);
     __host__ __device__ Flt3 operator-=(const Flt3 &v);
     __host__ __device__ Flt3 operator-=(const float t);
+    __host__ __device__ Flt3 operator*=(const Flt3 &v);
     __host__ __device__ Flt3 operator*=(const float scl);
+    __host__ __device__ Flt3 operator/=(const Flt3 &v);
     __host__ __device__ Flt3 operator/=(const float scl);
 
     __host__ __device__ friend Flt3 operator+(const float t, const Flt3 &v);

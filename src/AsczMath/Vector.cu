@@ -79,8 +79,16 @@ Flt3 Flt3::operator-=(const float t) {
     x -= t; y -= t; z -= t;
     return *this;
 }
+Flt3 Flt3::operator*=(const Flt3& v) {
+    x *= v.x; y *= v.y; z *= v.z;
+    return *this;
+}
 Flt3 Flt3::operator*=(const float scl) {
     x *= scl; y *= scl; z *= scl;
+    return *this;
+}
+Flt3 Flt3::operator/=(const Flt3& v) {
+    x /= v.x; y /= v.y; z /= v.z;
     return *this;
 }
 Flt3 Flt3::operator/=(const float scl) {

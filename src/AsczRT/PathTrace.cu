@@ -39,32 +39,30 @@ __global__ void pathtraceKernel(
     // Textures
     float *tr, float *tg, float *tb, float *ta, int *tw, int *th, int *toff,
     // BVH data
-    float *mi_x, float *mi_y, float *mi_z, float *mx_x, float *mx_y, float *mx_z, int *pl, int *pr, bool *lf, int *gIdx
+    float *mi_x, float *mi_y, float *mi_z, float *mx_x, float *mx_y, float *mx_z, int *pl, int *pr, bool *lf, int *gIdx,
+
+    // Additional Debug Data
+    int randSeed
 ) {
     int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
     if (tIdx >= frmW * frmH) return;
 
+    curandState rnd;
+    curand_init(randSeed + tIdx, 0, 0, &rnd);
+
     int x = tIdx % frmW, y = tIdx / frmW;
-    Ray primaryRay = camera.castRay(x, y, frmW, frmH);
+    Ray ray = camera.castRay(x, y, frmW, frmH);
 
-    const int MAX_RAYS = 1024;
     const int MAX_NODES = 64;
-
-    Ray rstack[MAX_RAYS] = { primaryRay };
-    int rs_top = 1;
+    const int MAX_BOUNCES = 4;
 
     int nstack[MAX_NODES];
     int ns_top = 0;
 
-    curandState rnd;
-    int bounce = 0;
-    int maxBounce = 2;
-    int rayPerBounce = 256;
+    Flt3 throughput(1.0f);
+    Flt3 radiance(0.0f);
 
-    Flt3 resultColr;
-    while (rs_top > 0) {
-        // Copy before pop since there's high chance of overwriting
-        Ray ray = rstack[--rs_top];
+    for (int b = 0; b < MAX_BOUNCES; ++b) {
         int hidx = -1;
         float ht = 1e9f;
         float hu = 0.0f;
@@ -197,7 +195,7 @@ __global__ void pathtraceKernel(
             }
         }
 
-        if (hidx == -1) continue;
+        if (hidx == -1 || hidx == ray.ignore) break;
 
         // Get the face data
         const AzMtl &hm = mats[fm[hidx]];
@@ -231,25 +229,22 @@ __global__ void pathtraceKernel(
         nrml.y = hasNrml ? ny[n0] * hw + ny[n1] * hu + ny[n2] * hv : 0.0f;
         nrml.z = hasNrml ? nz[n0] * hw + nz[n1] * hu + nz[n2] * hv : 0.0f;
 
-
-        Flt3 finalColr;
-
-        if (!hm.Ems.isZero()) {
-            resultColr += (hm.Ems & alb) * ray.w;
-            continue;
-        }
+        radiance += throughput & (alb & hm.Ems);
 
         // Direct lighting
-        for (int l = 0; l < lNum; ++l) {
+        for (int l = 0; l < lNum && hm.Ems.isZero(); ++l) {
             // Get material and geometry data of light
             int lIdx = lSrc[l];
-            const AzMtl &lMat = mats[fm[lIdx]];
 
             int fl0 = fv0[lIdx], fl1 = fv1[lIdx], fl2 = fv2[lIdx];
 
-            float lpx = (vx[fl0] + vx[fl1] + vx[fl2]) / 3.0f;
-            float lpy = (vy[fl0] + vy[fl1] + vy[fl2]) / 3.0f;
-            float lpz = (vz[fl0] + vz[fl1] + vz[fl2]) / 3.0f;
+            float u = curand_uniform(&rnd);
+            float v = curand_uniform(&rnd);
+            float w = 1.0f - u - v;
+
+            float lpx = vx[fl0] * w + vx[fl1] * u + vx[fl2] * v;
+            float lpy = vy[fl0] * w + vy[fl1] * u + vy[fl2] * v;
+            float lpz = vz[fl0] * w + vz[fl1] * u + vz[fl2] * v;
 
             float ldx = vrtx.x - lpx;
             float ldy = vrtx.y - lpy;
@@ -388,61 +383,31 @@ __global__ void pathtraceKernel(
                 }
             }
 
-            float NdotL = (nrml.x * ldx + nrml.y * ldy + nrml.z * ldz);
-            NdotL *= NdotL;
-
             bool angular = hasNrml && !hm.NoShade;
-            Flt3 diff = alb * (NdotL * angular + !angular);
+            float NdotL = (nrml.x * ldx + nrml.y * ldy + nrml.z * ldz);
+            Flt3 diff = alb * (NdotL * NdotL * angular + !angular);
 
-            finalColr += (lMat.Ems & diff) * inLight;
+            const AzMtl &lMat = mats[fm[lIdx]];
+            radiance += (throughput & diff & lMat.Ems) * inLight;
         }
 
-        if (bounce < maxBounce) {
-            ++bounce;
-            int curRayPerBounce = rayPerBounce / bounce;
-            float weightPerRay = ray.w / curRayPerBounce;
-            for (int i = 0; i < curRayPerBounce; ++i) {
-                Flt3 rD = randomHemisphereSample(&rnd, nrml);
-                float NdotL = nrml * rD;
-                float rW = weightPerRay * NdotL;
+        // Indirect lighting
+        ray.o = vrtx + nrml * EPSILON_1;
+        ray.d = randomHemisphereSample(&rnd, nrml);
+        ray.invd = 1.0f / ray.d;
+        ray.ignore = hidx;
 
-                Ray rRay = Ray(vrtx, rD, rW, ray.Ior, hidx);
-
-                rstack[rs_top++] = rRay;
-            }
-        }
-
-        // ======== Additional rays ========
-
-        // Transmission ray
-        float trLeft = ray.w * hm.Tr;
-        ray.w *= (1 - hm.Tr);
-
-        Flt3 trO = vrtx + ray.d * EPSILON_1;
-        rstack[rs_top] = Ray(trO, ray.d, trLeft, hm.Ior, hidx);
-        rs_top += rs_top + 1 < MAX_RAYS & hm.Tr > 0.0f;
-
-        // Reflection ray
-        float rfLeft = ray.w * hm.Rf;
-        ray.w *= (1 - hm.Rf);
-
-        Flt3 rfD = ray.d - nrml * 2.0f * (nrml * ray.d);
-        Flt3 rfO = vrtx + nrml * EPSILON_1;
-        rstack[rs_top] = Ray(rfO, rfD, rfLeft, hm.Ior, hidx);
-        rs_top += rs_top + 1 < MAX_RAYS & hm.Rf > 0.0f;
-
-
-        // Accumulate the result
-        resultColr += finalColr * ray.w;
+        // Apply Lambertian BRDF
+        throughput *= alb / M_PI;
     }
 
     // Tone mapping
-    resultColr.x = AzDevMath::ACESFilm(resultColr.x);
-    resultColr.y = AzDevMath::ACESFilm(resultColr.y);
-    resultColr.z = AzDevMath::ACESFilm(resultColr.z);
+    radiance.x = AzDevMath::ACESFilm(radiance.x);
+    radiance.y = AzDevMath::ACESFilm(radiance.y);
+    radiance.z = AzDevMath::ACESFilm(radiance.z);
 
     float _gamma = 1.0f / 2.2f;
-    resultColr = resultColr.pow(_gamma);
+    radiance = radiance.pow(_gamma);
 
-    frmbuffer[tIdx] = resultColr;
+    frmbuffer[tIdx] = radiance;
 }
