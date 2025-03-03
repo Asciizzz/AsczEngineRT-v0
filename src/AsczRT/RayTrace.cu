@@ -1,6 +1,8 @@
 #include <RayTrace.cuh>
 #include <AzDevMath.cuh>
 
+#include <curand_kernel.h>
+
 
 __global__ void raytraceKernel(
     AsczCam camera, unsigned int *frmbuffer, int frmW, int frmH, // In-out
@@ -26,6 +28,9 @@ __global__ void raytraceKernel(
 
     const int MAX_RAYS = 8;
     const int MAX_NODES = 64;
+
+    curandState state;
+    curand_init(1337 + tIdx, 0, 0, &state);
 
     Ray rstack[MAX_RAYS];
     int rs_top = 0;
@@ -221,9 +226,18 @@ __global__ void raytraceKernel(
 
             int fl0 = fv0[lIdx], fl1 = fv1[lIdx], fl2 = fv2[lIdx];
 
-            float lpx = (vx[fl0] + vx[fl1] + vx[fl2]) / 3.0f;
-            float lpy = (vy[fl0] + vy[fl1] + vy[fl2]) / 3.0f;
-            float lpz = (vz[fl0] + vz[fl1] + vz[fl2]) / 3.0f;
+            // float lpx = (vx[fl0] + vx[fl1] + vx[fl2]) / 3.0f;
+            // float lpy = (vy[fl0] + vy[fl1] + vy[fl2]) / 3.0f;
+            // float lpz = (vz[fl0] + vz[fl1] + vz[fl2]) / 3.0f;
+
+            // Generate random u, v
+            float u = curand_uniform(&state);
+            float v = curand_uniform(&state);
+            float w = 1.0f - u - v;
+
+            float lpx = vx[fl0] * w + vx[fl1] * u + vx[fl2] * v;
+            float lpy = vy[fl0] * w + vy[fl1] * u + vy[fl2] * v;
+            float lpz = vz[fl0] * w + vz[fl1] * u + vz[fl2] * v;
 
             float ldx = vrtx.x - lpx;
             float ldy = vrtx.y - lpy;

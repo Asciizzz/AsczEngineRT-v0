@@ -33,7 +33,7 @@ assets/Models/Structure/LivingRoom/LivingRoom.obj 2 1
 # .heavy/Pool/Pool.obj 2 1
 # .heavy/AbandonedHouse/AbandonedHouse.obj 2 1
 
-# assets/Models/Cornell/Cornell.obj 2 1
+# assets/Models/Cornell/Cornell.obj 2 0.1
 
 
-assets/Models/Light/Light.cfg 0 1
+# assets/Models/Light/Light.cfg 0 1
