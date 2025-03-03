@@ -8,7 +8,7 @@
 #include <AsczCam.cuh>
 
 __global__ void raytraceKernel(
-    AsczCam camera, unsigned int *frmbuffer, int frmW, int frmH, // In-out
+    AsczCam camera, Flt3 *frmbuffer, int frmW, int frmH, // In-out
     // Primitive data
     float *vx, float *vy, float *vz, float *tx, float *ty, float *nx, float *ny, float *nz,
     // Geometry data

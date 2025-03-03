@@ -5,6 +5,17 @@
 #include <sstream>
 #include <iomanip>
 
+__global__ void copyToDrawBuffer(Flt3 *frmbuffer, unsigned int *drawbuffer, int width, int height) {
+    int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (tIdx < width * height) {
+        int x = tIdx % width;
+        int y = tIdx / width;
+        int i = y * width + x;
+        Flt3 color = frmbuffer[i];
+        drawbuffer[i] = (int(color.x * 255) << 16) | (int(color.y * 255) << 8) | int(color.z * 255);
+    }
+}
+
 // Constructor
 AsczWin::AsczWin(int w, int h, std::wstring t) : width(w), height(h), title(t) {
     InitWindow();
@@ -12,8 +23,10 @@ AsczWin::AsczWin(int w, int h, std::wstring t) : width(w), height(h), title(t) {
 
     blockCount = (width * height + threadCount - 1) / threadCount;
 
-    h_framebuffer = new unsigned int[width * height];
-    cudaMalloc(&d_framebuffer, width * height * sizeof(unsigned int));
+    h_drawbuffer = new unsigned int[width * height];
+    cudaMalloc(&d_drawbuffer, width * height * sizeof(unsigned int));
+    cudaMalloc(&d_frmbuffer1, width * height * sizeof(Flt3));
+    cudaMalloc(&d_frmbuffer2, width * height * sizeof(Flt3));
 }
 
 void AsczWin::InitWindow() {
@@ -66,14 +79,18 @@ void AsczWin::appendDebug(std::string text, Int3 color) {
 }
 
 // Framebuffer
-void AsczWin::DrawFramebuffer() {
-    cudaMemcpy(h_framebuffer, d_framebuffer, width * height * sizeof(unsigned int), cudaMemcpyDeviceToHost);
-    StretchDIBits(hdc, 0, 0, width, height, 0, 0, width, height, h_framebuffer, &bmi, DIB_RGB_COLORS, SRCCOPY);
+void AsczWin::DrawFramebuffer(int buffer) {
+    copyToDrawBuffer<<<blockCount, threadCount>>>(buffer == 1 ? d_frmbuffer1 : d_frmbuffer2, d_drawbuffer, width, height);
+
+    cudaMemcpy(h_drawbuffer, d_drawbuffer, width * height * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+    StretchDIBits(hdc, 0, 0, width, height, 0, 0, width, height, h_drawbuffer, &bmi, DIB_RGB_COLORS, SRCCOPY);
 }
 
 // Draw everything
-void AsczWin::Draw() {
-    DrawFramebuffer();
+void AsczWin::Draw(int buffer, bool debug) {
+    DrawFramebuffer(buffer);
+
+    if (!debug) return;
 
     for (int i = 0; i < debugs.size(); i++) {
         DrawText(hdc, 10, 10 + i * 20, debugs[i]);
@@ -84,8 +101,11 @@ void AsczWin::Draw() {
 
 // Clear everything
 void AsczWin::Terminate() {
-    delete[] h_framebuffer;
-    cudaFree(d_framebuffer);
+    delete[] h_drawbuffer;
+    cudaFree(d_drawbuffer);
+    cudaFree(d_frmbuffer1);
+    cudaFree(d_frmbuffer2);
+
     ReleaseDC(hwnd, hdc);
     DestroyWindow(hwnd);
     UnregisterClass(L"Win32App", GetModuleHandle(nullptr));

@@ -5,7 +5,7 @@
 
 
 __global__ void raytraceKernel(
-    AsczCam camera, unsigned int *frmbuffer, int frmW, int frmH, // In-out
+    AsczCam camera, Flt3 *frmbuffer, int frmW, int frmH, // In-out
     // Primitive data
     float *vx, float *vy, float *vz, float *tx, float *ty, float *nx, float *ny, float *nz,
     // Geometry data
@@ -418,13 +418,5 @@ __global__ void raytraceKernel(
     float _gamma = 1.0f / 2.2f;
     resultColr = resultColr.pow(_gamma);
 
-    int r = (int)(resultColr.x * 255);
-    int g = (int)(resultColr.y * 255);
-    int b = (int)(resultColr.z * 255);
-
-    r = r > 255 ? 255 : r;
-    g = g > 255 ? 255 : g;
-    b = b > 255 ? 255 : b;
-
-    frmbuffer[tIdx] = (r << 16) | (g << 8) | b;
+    frmbuffer[tIdx] = resultColr;
 }

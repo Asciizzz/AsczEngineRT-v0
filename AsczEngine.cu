@@ -11,6 +11,11 @@
 #include <RayTrace.cuh>
 #include <PathTrace.cuh>
 
+__global__ void copyFrmBuffer(Flt3 *from, Flt3 *to, int size) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx < size) to[idx] = from[idx];
+}
+
 int main() {
     // =================== Initialize FPS and Window ==============
     FpsHandler &FPS = FpsHandler::instance();
@@ -92,6 +97,7 @@ int main() {
     bool pathTracing = false;
     float falseAmbient = 0.01f; // Good for pitch black areas
     float currentFalseAmbient = falseAmbient;
+    bool hasDebug = true;
 
     MSG msg = { 0 };
     while (msg.message != WM_QUIT) {
@@ -113,6 +119,12 @@ int main() {
             ShowCursor(Cam.focus);
         }
 
+        // Press H to toggle debug
+        if (Win.keys['H']) {
+            Win.keys['H'] = false;
+            hasDebug = !hasDebug;
+        }
+
         // Press E to toggle false ambient
         if (Win.keys['E']) {
             Win.keys['E'] = false;
@@ -128,7 +140,7 @@ int main() {
             // Render a single frame
             if (pathTracing)
                 pathtraceKernel<<<Win.blockCount, Win.threadCount>>>(
-                    Cam, Win.d_framebuffer, Win.width, Win.height,
+                    Cam, Win.d_frmbuffer1, Win.width, Win.height,
 
                     Mesh.d_vx, Mesh.d_vy, Mesh.d_vz, Mesh.d_tx, Mesh.d_ty, Mesh.d_nx, Mesh.d_ny, Mesh.d_nz,
                     Mesh.d_fv0, Mesh.d_fv1, Mesh.d_fv2, Mesh.d_ft0, Mesh.d_ft1, Mesh.d_ft2, Mesh.d_fn0, Mesh.d_fn1, Mesh.d_fn2, Mesh.d_fm,
@@ -191,7 +203,7 @@ int main() {
         // Render
         if (!pathTracing)
             raytraceKernel<<<Win.blockCount, Win.threadCount>>>(
-                Cam, Win.d_framebuffer, Win.width, Win.height,
+                Cam, Win.d_frmbuffer1, Win.width, Win.height,
 
                 Mesh.d_vx, Mesh.d_vy, Mesh.d_vz, Mesh.d_tx, Mesh.d_ty, Mesh.d_nx, Mesh.d_ny, Mesh.d_nz,
                 Mesh.d_fv0, Mesh.d_fv1, Mesh.d_fv2, Mesh.d_ft0, Mesh.d_ft1, Mesh.d_ft2, Mesh.d_fn0, Mesh.d_fn1, Mesh.d_fn2, Mesh.d_fm,
@@ -203,17 +215,19 @@ int main() {
                 currentFalseAmbient
             );
 
-        Win.appendDebug(L"AsczEngineRT_v0", Int3(155, 255, 155));
-        Win.appendDebug(L"FPS: " + std::to_wstring(FPS.fps), Int3(0, 255, 0));
-        Win.appendDebug(L"CAMERA", Int3(255, 0, 0));
-        Win.appendDebug(L"Pos: " + std::to_wstring(Cam.pos.x) + L", " + std::to_wstring(Cam.pos.y) + L", " + std::to_wstring(Cam.pos.z), Int3(255));    
-        Win.appendDebug(L"Rot: " + std::to_wstring(Cam.rot.x) + L", " + std::to_wstring(Cam.rot.y) + L", " + std::to_wstring(Cam.rot.z), Int3(255));
-        Win.appendDebug(L"Fd: " + std::to_wstring(Cam.forward.x) + L", " + std::to_wstring(Cam.forward.y) + L", " + std::to_wstring(Cam.forward.z), Int3(255));
-        Win.appendDebug(L"Rg: " + std::to_wstring(Cam.right.x) + L", " + std::to_wstring(Cam.right.y) + L", " + std::to_wstring(Cam.right.z), Int3(255));
-        Win.appendDebug(L"Up: " + std::to_wstring(Cam.up.x) + L", " + std::to_wstring(Cam.up.y) + L", " + std::to_wstring(Cam.up.z), Int3(255));
-        Win.appendDebug(L"Fov: " + std::to_wstring(Cam.fov * 180 / M_PI), Int3(255));
+        if (hasDebug) {
+            Win.appendDebug(L"AsczEngineRT_v0", Int3(155, 255, 155));
+            Win.appendDebug(L"FPS: " + std::to_wstring(FPS.fps), Int3(0, 255, 0));
+            Win.appendDebug(L"CAMERA", Int3(255, 0, 0));
+            Win.appendDebug(L"Pos: " + std::to_wstring(Cam.pos.x) + L", " + std::to_wstring(Cam.pos.y) + L", " + std::to_wstring(Cam.pos.z), Int3(255));    
+            Win.appendDebug(L"Rot: " + std::to_wstring(Cam.rot.x) + L", " + std::to_wstring(Cam.rot.y) + L", " + std::to_wstring(Cam.rot.z), Int3(255));
+            Win.appendDebug(L"Fd: " + std::to_wstring(Cam.forward.x) + L", " + std::to_wstring(Cam.forward.y) + L", " + std::to_wstring(Cam.forward.z), Int3(255));
+            Win.appendDebug(L"Rg: " + std::to_wstring(Cam.right.x) + L", " + std::to_wstring(Cam.right.y) + L", " + std::to_wstring(Cam.right.z), Int3(255));
+            Win.appendDebug(L"Up: " + std::to_wstring(Cam.up.x) + L", " + std::to_wstring(Cam.up.y) + L", " + std::to_wstring(Cam.up.z), Int3(255));
+            Win.appendDebug(L"Fov: " + std::to_wstring(Cam.fov * 180 / M_PI), Int3(255));
+        }
 
-        Win.Draw();
+        Win.Draw(1, hasDebug);
 
         FPS.endFrame();
     }

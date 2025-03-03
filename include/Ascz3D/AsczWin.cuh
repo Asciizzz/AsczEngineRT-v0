@@ -45,13 +45,15 @@ public:
     // Framebuffers
     int threadCount = 256;
     int blockCount;
-    unsigned int* h_framebuffer;
-    unsigned int* d_framebuffer;
-    void DrawFramebuffer();
+    Flt3 *d_frmbuffer1;
+    Flt3 *d_frmbuffer2;
+    unsigned int* d_drawbuffer;
+    unsigned int* h_drawbuffer;
+    void DrawFramebuffer(int buffer=1);
 
 
     // Draw
-    void Draw();
+    void Draw(int buffer=1, bool debug=true);
 
     // Destroy Window
     void Terminate();
