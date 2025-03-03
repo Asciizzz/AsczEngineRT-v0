@@ -263,8 +263,6 @@ int main() {
 
                 currentFalseAmbient
             );
-
-            Win.Draw(1, hasDebug);
             break;
 
         case 1:
@@ -284,17 +282,15 @@ int main() {
             if (prevPos != Cam.pos || prevRot != Cam.rot) {
                 accumulate = 1;
 
-                copyFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer2, Win.width * Win.height);
+                copyFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer3, Win.width * Win.height);
             } else if (accumulate < 128) {
                 accumulate ++;
-                addFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer2, Win.d_frmbuffer1, Win.width * Win.height);
-                divFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer2, Win.width * Win.height, accumulate);
+                addFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer3, Win.d_frmbuffer1, Win.width * Win.height);
+                divFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer3, Win.width * Win.height, accumulate);
 
                 // Bilateral filter
-                bilateralFilter<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer3, Win.width, Win.height);
+                bilateralFilter<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer2, Win.width, Win.height);
             }
-
-            Win.Draw(3, hasDebug);
             prevPos = Cam.pos;
             prevRot = Cam.rot;
             break;
@@ -311,6 +307,8 @@ int main() {
             Win.appendDebug(L"Up: " + std::to_wstring(Cam.up.x) + L", " + std::to_wstring(Cam.up.y) + L", " + std::to_wstring(Cam.up.z), Int3(255));
             Win.appendDebug(L"Fov: " + std::to_wstring(Cam.fov * 180 / M_PI), Int3(255));
         }
+
+        Win.Draw(renderMode + 1, hasDebug);
 
         FPS.endFrame();
     }

@@ -403,7 +403,7 @@ __global__ void pathtraceKernel(
         ray.ignore = hidx;
 
         // Apply Lambertian BRDF
-        throughput *= alb / M_PI;
+        throughput *= alb * M_R_PI;
     }
 
     // Tone mapping
