@@ -394,8 +394,6 @@ __global__ void pathtraceKernel(
         }
 
         // Indirect lighting
-        if (hm.NoShade) break;
-
         ray.o = vrtx;
         ray.d = hm.Rf ? ray.d - nrml * 2.0f * (nrml * ray.d) :
                         randomHemisphereSample(&rnd, nrml);

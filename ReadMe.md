@@ -146,6 +146,8 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 - This is what most people meant when they say "ray tracing". Path tracing is ray tracing on steriods.
 - I cast path tracing signature move: **Global Illumination**, or more specifically, **Indirect Lighting**. Irl, light bounces off multiple surfaces while obeying the law of energy conservation, and path tracing tries to simulate that by casting multiple rays per pixel and averaging the result using calculations and stuff.
 
+#### First Iteration
+
 <p align="center">
   <img src="assets/Demos/PathTracing1.png" alt="Demo Image"/>
   <small><i>Cornell Box with Path tracing.</i></small>
@@ -157,6 +159,15 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 </p>
 
 ###### Keep in mind these examples use relatively low sample-per-pixel(spp) count, so there are pronounced noise and artifacts.
+
+#### Second Iteration
+
+- A good way to implement kinda-real-time-path-tracing is by using **Temporal Accumulation**, which averages the result of the previous frame with the current frame to reduce noise and artifacts as long as the camera doesn't move. This will *introduces alot of noises and artifacts* at first, but significantly *reduce render time*, allowing the frame to converge to a cleaner image over time, as well as providing a more interactive experience (since you can still move the camera around).
+
+<p align="center">
+  <img src="assets/Demos/PathTracing3.png" alt="Demo Image"/>
+  <small><i>Actually correct Global Illumination.</i></small>
+</p>
 
 ---
 
