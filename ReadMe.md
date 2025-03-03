@@ -163,12 +163,14 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 
 #### Second Iteration
 
-- A good way to implement kinda-real-time-path-tracing is by using **Temporal Accumulation**, with only *sample-per-pixel(spp)*, which averages the result of the previous frame with the current frame to reduce noise and artifacts as long as the camera doesn't move. This will *introduces alot of noises and artifacts* at first, but significantly *reduce render time*, allowing the frame to converge to a cleaner image over time, as well as providing a more interactive experience (since you can still kinda move the camera around).
+- A good way to implement kinda-real-time-path-tracing is by using **Temporal Accumulation**, with only *`sample-per-pixel(spp)`*, which averages the result of the previous frame with the current frame to reduce noise and artifacts as long as the camera doesn't move. This will *introduces alot of noises and artifacts* at first, but significantly *reduce render time*, allowing the frame to converge to a cleaner image over time, as well as providing a more interactive experience (since you can still kinda move the camera around).
 
 <p align="center">
   <img src="assets/Demos/PathTracing3.png" alt="Demo Image"/>
   <small><i>Actually correct Global Illumination.</i></small>
 </p>
+
+- *Temporal Accumulation* also allows you to reduce the *`spp`* count down to `1` on every path tracing effects (Soft Shadows, Reflectance, Anti-Aliasing, Depth of Field, etc.) to further reduce render time.
 
 ---
 
