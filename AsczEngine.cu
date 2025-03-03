@@ -250,7 +250,7 @@ int main() {
         }
 
         // Render
-        if (!pathTracing)
+        if (!pathTracing) {
             raytraceKernel<<<Win.blockCount, Win.threadCount>>>(
                 Cam, Win.d_frmbuffer1, Win.width, Win.height,
 
@@ -263,7 +263,9 @@ int main() {
 
                 currentFalseAmbient
             );
-        else
+
+            Win.Draw(1, hasDebug);
+        } else {
             pathtraceKernel<<<Win.blockCount, Win.threadCount>>>(
                 Cam, Win.d_frmbuffer1, Win.width, Win.height,
 
@@ -277,19 +279,20 @@ int main() {
                 accumulate
             );
 
-        if (prevPos != Cam.pos || prevRot != Cam.rot || prevMode != pathTracing) {
-            accumulate = 1;
+            if (prevPos != Cam.pos || prevRot != Cam.rot || prevMode != pathTracing) {
+                accumulate = 1;
 
-            copyFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer2, Win.width * Win.height);
-        } else {
-            accumulate++;
-            addFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer2, Win.d_frmbuffer1, Win.width * Win.height);
-            divFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer2, Win.width * Win.height, accumulate);
+                copyFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer2, Win.width * Win.height);
+            } else {
+                accumulate++;
+                addFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer2, Win.d_frmbuffer1, Win.width * Win.height);
+                divFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer2, Win.width * Win.height, accumulate);
+            }
+
+            // Bilateral filter
+            bilateralFilter<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer3, Win.width, Win.height);
+            Win.Draw(3, hasDebug);
         }
-
-        // Bilateral filter
-        bilateralFilter<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer3, Win.width, Win.height);
-        Win.Draw(3, hasDebug);
 
         if (hasDebug) {
             Win.appendDebug(L"AsczEngineRT_v0", Int3(155, 255, 155));
@@ -302,7 +305,6 @@ int main() {
             Win.appendDebug(L"Up: " + std::to_wstring(Cam.up.x) + L", " + std::to_wstring(Cam.up.y) + L", " + std::to_wstring(Cam.up.z), Int3(255));
             Win.appendDebug(L"Fov: " + std::to_wstring(Cam.fov * 180 / M_PI), Int3(255));
         }
-
 
         prevPos = Cam.pos;
         prevRot = Cam.rot;
