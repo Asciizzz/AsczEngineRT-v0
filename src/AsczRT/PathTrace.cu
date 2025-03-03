@@ -60,8 +60,8 @@ __global__ void pathtraceKernel(
     int nstack[MAX_NODES];
     int ns_top = 0;
 
-    Flt3 throughput(1.0f);
-    Flt3 radiance(0.0f);
+    Flt3 throughput = 1.0f;
+    Flt3 radiance = 0.0f;
 
     for (int b = 0; b < MAX_BOUNCES; ++b) {
         int hidx = -1;
