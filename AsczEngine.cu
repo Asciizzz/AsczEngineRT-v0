@@ -289,12 +289,12 @@ int main() {
                 accumulate ++;
                 addFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer2, Win.d_frmbuffer1, Win.width * Win.height);
                 divFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer2, Win.width * Win.height, accumulate);
+
+                // Bilateral filter
+                bilateralFilter<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer3, Win.width, Win.height);
             }
 
-            // Bilateral filter
-            bilateralFilter<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer3, Win.width, Win.height);
             Win.Draw(3, hasDebug);
-
             prevPos = Cam.pos;
             prevRot = Cam.rot;
             break;
