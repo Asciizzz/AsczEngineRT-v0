@@ -54,7 +54,7 @@ __global__ void pathtraceKernel(
     Ray ray = camera.castRay(x, y, frmW, frmH);
 
     const int MAX_NODES = 64;
-    const int MAX_BOUNCES = 4;
+    const int MAX_BOUNCES = 8;
 
     int nstack[MAX_NODES];
     int ns_top = 0;
@@ -393,7 +393,8 @@ __global__ void pathtraceKernel(
 
         // Indirect lighting
         ray.o = vrtx + nrml * EPSILON_1;
-        ray.d = randomHemisphereSample(&rnd, nrml);
+        // ray.d = randomHemisphereSample(&rnd, nrml);
+        ray.d = hm.Rf ? ray.d - nrml * 2.0f * (nrml * ray.d) : randomHemisphereSample(&rnd, nrml);
         ray.invd = 1.0f / ray.d;
         ray.ignore = hidx;
 
