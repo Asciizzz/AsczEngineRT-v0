@@ -34,8 +34,8 @@ void AsczCam::restrictRot() {
     if (rot.x <= -M_PI_2) rot.x = -M_PI_2 + 0.001;
     else if (rot.x >= M_PI_2) rot.x = M_PI_2 - 0.001;
 
-    if (rot.y > M_2_PI) rot.y -= M_2_PI;
-    else if (rot.y < 0) rot.y += M_2_PI;
+    if (rot.y > M_PIx2) rot.y -= M_PIx2;
+    else if (rot.y < 0) rot.y += M_PIx2;
 }
 
 void AsczCam::updateView() {

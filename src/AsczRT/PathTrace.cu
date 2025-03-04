@@ -52,7 +52,12 @@ __global__ void pathtraceKernel(
     curand_init(randSeed + tIdx, tIdx, 0, &rnd);
 
     int tX = tIdx % frmW, tY = tIdx / frmW;
-    float dx = curand_uniform(&rnd) * 0.005, dy = curand_uniform(&rnd) * 0.005;
+
+    float r1 = curand_uniform(&rnd);
+    float theta = M_PIx2 * r1;
+    float len = 0.002f;
+    float dx = cosf(theta) * len;
+    float dy = sinf(theta) * len;
     Ray ray = camera.castRay(tX, tY, frmW, frmH, dx, dy);
 
     const int MAX_NODES = 64;
@@ -401,7 +406,7 @@ __global__ void pathtraceKernel(
         ray.ignore = hidx;
 
         // Apply Lambertian BRDF
-        throughput *= alb * M_R_PI;
+        throughput *= alb * M_1_PI;
     }
 
     // Tone mapping
