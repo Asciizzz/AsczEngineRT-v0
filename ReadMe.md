@@ -111,7 +111,7 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 
 - Light sources are usually not a single point, but an area (or a volume). 
 - Shadows are not an on/off switch, but more of a grayscale gradient.
-- To simulate sof shadows, you need to sample multiple rays from the light source and average the result.
+- To simulate soft shadows, you need to sample multiple rays from the light source and average the result.
 
 <p align="center"><img src="assets/Demos/SoftShadow.png" alt="Soft Shadow"/></p>
 
