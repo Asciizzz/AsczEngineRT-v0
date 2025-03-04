@@ -173,6 +173,7 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 <p align="center">
   <img src="assets/Demos/PathTracing4.png" alt="Demo Image"/>
   <small><i>Direct Lighting only vs Global Illumination.</i></small>
+  <small><small><i>Notice the shadows and the light bounces.</i></small></small>
 </p>
 
 - *Temporal Accumulation* also allows you to reduce the *`spp`* count down to `1` on every path tracing effects (Soft Shadows, Reflectance, Anti-Aliasing, Depth of Field, etc.) to further reduce render time.
