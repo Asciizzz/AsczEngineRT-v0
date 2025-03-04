@@ -283,7 +283,7 @@ int main() {
                 accumulate = 1;
 
                 copyFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer3, Win.width * Win.height);
-            } else if (accumulate < 128) {
+            } else if (accumulate < 256) {
                 accumulate ++;
                 addFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer3, Win.d_frmbuffer1, Win.width * Win.height);
                 divFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer3, Win.width * Win.height, accumulate);
