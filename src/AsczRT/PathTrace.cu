@@ -239,6 +239,7 @@ __global__ void pathtraceKernel(
         radiance += throughput & (alb & hm.Ems);
 
         // Direct lighting
+        Flt3 resultColor;
         for (int l = 0; l < lNum && hm.Ems.isZero(); ++l) {
             // Get material and geometry data of light
             int lIdx = lSrc[l];
@@ -395,7 +396,7 @@ __global__ void pathtraceKernel(
             Flt3 diff = alb * (NdotL * NdotL * angular + !angular);
 
             const AzMtl &lMat = mats[fm[lIdx]];
-            radiance += (throughput & diff & lMat.Ems) * inLight;
+            resultColor += (throughput & diff & lMat.Ems) * inLight;
         }
 
         // Indirect lighting
@@ -407,6 +408,8 @@ __global__ void pathtraceKernel(
 
         // Apply Lambertian BRDF
         throughput *= alb * M_1_PI;
+
+        radiance += resultColor;
     }
 
     // Tone mapping
