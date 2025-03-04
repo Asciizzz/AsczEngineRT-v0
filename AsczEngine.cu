@@ -10,6 +10,7 @@
 
 #include <RayTrace.cuh>
 #include <PathTrace.cuh>
+#include <RayCast.cuh>
 
 __global__ void copyFrmBuffer(Flt3 *from, Flt3 *to, int size) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -160,6 +161,7 @@ int main() {
 
     Flt3 prevPos = Cam.pos;
     Flt3 prevRot = Cam.rot;
+    short prevMode = renderMode;
 
     MSG msg = { 0 };
     while (msg.message != WM_QUIT) {
@@ -193,11 +195,16 @@ int main() {
             currentFalseAmbient = currentFalseAmbient == 0.0f ? falseAmbient : 0.0f;
         }
 
-        // Press Q to toggle path tracing
-        if (Win.keys['Q']) {
-            Win.keys['Q'] = false;
-            renderMode = (renderMode + 1) % 2;
-        }
+        // // Press Q to toggle path tracing
+        // if (Win.keys['Q']) {
+        //     Win.keys['Q'] = false;
+        //     renderMode = (renderMode + 1) % 2;
+        // }
+
+        // Press 1-3 to toggle render mode
+        if      (Win.keys['1']) { Win.keys['1'] = false; renderMode = 0; }
+        else if (Win.keys['2']) { Win.keys['2'] = false; renderMode = 1; }
+        else if (Win.keys['3']) { Win.keys['3'] = false; renderMode = 2; }
 
         if (Cam.focus) {
 
@@ -251,8 +258,21 @@ int main() {
         // Render
         switch (renderMode) {
         case 0:
-            raytraceKernel<<<Win.blockCount, Win.threadCount>>>(
+            raycastKernel<<<Win.blockCount, Win.threadCount>>>(
                 Cam, Win.d_frmbuffer1, Win.width, Win.height,
+
+                Mesh.d_vx, Mesh.d_vy, Mesh.d_vz, Mesh.d_tx, Mesh.d_ty, Mesh.d_nx, Mesh.d_ny, Mesh.d_nz,
+                Mesh.d_fv0, Mesh.d_fv1, Mesh.d_fv2, Mesh.d_ft0, Mesh.d_ft1, Mesh.d_ft2, Mesh.d_fn0, Mesh.d_fn1, Mesh.d_fn2, Mesh.d_fm,
+                Mat.d_mtls,
+                Txtr.d_tr, Txtr.d_tg, Txtr.d_tb, Txtr.d_ta, Txtr.d_tw, Txtr.d_th, Txtr.d_toff,
+
+                Bvh.d_mi_x, Bvh.d_mi_y, Bvh.d_mi_z, Bvh.d_mx_x, Bvh.d_mx_y, Bvh.d_mx_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_gIdx
+            );
+            break;
+
+        case 1:
+            raytraceKernel<<<Win.blockCount, Win.threadCount>>>(
+                Cam, Win.d_frmbuffer2, Win.width, Win.height,
 
                 Mesh.d_vx, Mesh.d_vy, Mesh.d_vz, Mesh.d_tx, Mesh.d_ty, Mesh.d_nx, Mesh.d_ny, Mesh.d_nz,
                 Mesh.d_fv0, Mesh.d_fv1, Mesh.d_fv2, Mesh.d_ft0, Mesh.d_ft1, Mesh.d_ft2, Mesh.d_fn0, Mesh.d_fn1, Mesh.d_fn2, Mesh.d_fm,
@@ -265,7 +285,7 @@ int main() {
             );
             break;
 
-        case 1:
+        case 2:
             pathtraceKernel<<<Win.blockCount, Win.threadCount>>>(
                 Cam, Win.d_frmbuffer1, Win.width, Win.height,
 
@@ -279,22 +299,26 @@ int main() {
                 accumulate
             );
 
-            if (prevPos != Cam.pos || prevRot != Cam.rot) {
+            bool changeRender = prevPos != Cam.pos ||
+                                prevRot != Cam.rot ||
+                                prevMode != renderMode;
+            if (changeRender) {
                 accumulate = 1;
 
-                copyFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer3, Win.width * Win.height);
+                copyFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer2, Win.width * Win.height);
             } else if (accumulate < 256) {
                 accumulate ++;
-                addFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer3, Win.d_frmbuffer1, Win.width * Win.height);
-                divFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer3, Win.width * Win.height, accumulate);
+                addFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer2, Win.d_frmbuffer1, Win.width * Win.height);
+                divFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer2, Win.width * Win.height, accumulate);
 
                 // Bilateral filter
-                bilateralFilter<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer2, Win.width, Win.height);
+                bilateralFilter<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer3, Win.width, Win.height);
             }
             prevPos = Cam.pos;
             prevRot = Cam.rot;
             break;
         }
+        prevMode = renderMode;
 
         if (hasDebug) {
             Win.appendDebug(L"AsczEngineRT_v0", Int3(155, 255, 155));
@@ -306,6 +330,13 @@ int main() {
             Win.appendDebug(L"Rg: " + std::to_wstring(Cam.right.x) + L", " + std::to_wstring(Cam.right.y) + L", " + std::to_wstring(Cam.right.z), Int3(255));
             Win.appendDebug(L"Up: " + std::to_wstring(Cam.up.x) + L", " + std::to_wstring(Cam.up.y) + L", " + std::to_wstring(Cam.up.z), Int3(255));
             Win.appendDebug(L"Fov: " + std::to_wstring(Cam.fov * 180 / M_PI), Int3(255));
+
+            // Retrieve the middle pixel color
+            unsigned int color = Win.h_drawbuffer[Win.width * Win.height / 2 + Win.width / 2];
+            int r = (color & 0x00FF0000) >> 16;
+            int g = (color & 0x0000FF00) >> 8;
+            int b = (color & 0x000000FF);
+            Win.appendDebug(L"Color: " + std::to_wstring(r) + L", " + std::to_wstring(g) + L", " + std::to_wstring(b), Int3(255));
         }
 
         Win.Draw(renderMode + 1, hasDebug);

@@ -175,7 +175,6 @@ __global__ void raytraceKernel(
 
         // Get the face data
         const AzMtl &hm = mats[fm[hidx]];
-
         float hw = 1.0f - hu - hv;
 
         // Vertex interpolation

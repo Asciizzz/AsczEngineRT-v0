@@ -28,13 +28,16 @@
 # .heavy/Town/Town.obj 2 1
 # .heavy/Home/Home.obj 2 1
 # .heavy/Industry/Industry.obj 2 1
-.heavy/Kitchen/Kitchen.obj 2 1
+# .heavy/Kitchen/Kitchen.obj 2 1
 
 # assets/Models/Cornell/Cornell.obj 2 0.1
 
 
 # assets/Models/Structure/Bedroom/Bedroom.obj 2 1
 # assets/Models/Structure/Bedroom/Additional.obj 0 1
+
+assets/Models/Structure/Bedroom2/Bedroom.obj 2 1
+assets/Models/Structure/Bedroom2/Additional.obj 0 1
 
 
 assets/Models/Light/Light.cfg 0 1

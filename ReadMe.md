@@ -167,7 +167,7 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 
 <p align="center">
   <img src="assets/Demos/PathTracing3.png" alt="Demo Image"/>
-  <small><i>Actually correct Global Illumination.</i></small>
+  <small><i>Actually correct <b>Global Illumination</b>.</i></small>
 </p>
 
 <p align="center">
