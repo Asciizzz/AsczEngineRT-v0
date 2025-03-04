@@ -58,24 +58,18 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
     - $\Rightarrow$ **`Result Color`** `=` **`Red * 0.5`** *`(from primary ray)`* `+` **`Blue * 0.3`** *`(from new ray 1)`* `+` **`Green * 0.2`** *`(from new ray 2)`* `=` **`Something idk do the math yourself`**.
     - $\Rightarrow$ **`Result Weight`** `=` `0.5 + 0.3 + 0.2` `=` **`1.0`**.
 
-<p align="center">
-  <img src="assets/Demos/Explain1.png" alt="Visual Explanation"/>
-</p>
+<p align="center"><img src="assets/Demos/Explain1.png" alt="Visual Explanation"/></p>
 
 
 #### Ray tracing is beautiful (debatable)
 
 - Even without advanced techniques like path tracing, ray tracing can produce some graphically pleasing images already (debatable) thanks to its ability to simulate light behavior in a more realistic way.
 
-<p align="center">
-  <img src="assets/Demos/RayTracing1.png" alt="Demo Image"/>
-  <small><i>A living room with candles lighting up the scene.</i></small>
-</p>
+<p align="center"><img src="assets/Demos/RayTracing1.png" alt="Demo Image"/>
+  <small><i>A living room with candles lighting up the scene.</i></small></p>
 
-<p align="center">
-  <img src="assets/Demos/RayTracing2.png" alt="Demo Image"/>
-  <small><i>Apples with shadings.</i></small>
-</p>
+<p align="center"><img src="assets/Demos/RayTracing2.png" alt="Demo Image"/>
+  <small><i>Apples with shadings.</i></small></p>
 
 ### 2. Optimization 101
 
@@ -102,9 +96,7 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
     - If total cost < current cost, this is a better split point => Update
     - Do this many times until you find the best split point, or until you reach the max depth.
 
-<p align="center">
-  <img src="assets/Demos/SAHBVH.png" alt="SAH BVH"/>
-</p>
+<p align="center"><img src="assets/Demos/SAHBVH.png" alt="SAH BVH"/></p>
 
 - Now that we have our bounding boxes, what’s next? Well, there are some **"minor" tweaks** that can help **boost performance** by a sizable margin:
   - **Child ordering** and **Early Exit**: Essentially, *"If the left box is closer to the right box, check the left box first"*. If the ray hits something in the left box, there's no need to check the right box, since that hit intersection is closer than any potential intersection in the right box.
@@ -121,9 +113,7 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 - Shadows are not an on/off switch, but more of a grayscale gradient.
 - To simulate sof shadows, you need to sample multiple rays from the light source and average the result.
 
-<p align="center">
-  <img src="assets/Demos/SoftShadow.png" alt="Soft Shadow"/>
-</p>
+<p align="center"><img src="assets/Demos/SoftShadow.png" alt="Soft Shadow"/></p>
 
 #### Anti-Aliasing
 
@@ -145,9 +135,7 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 
 - To accurately simulate this, we use a little something called a **Bidirectional Reflectance Distribution Function (BRDF)**, I won't bore you with the details but it's basically a function that tells you how a surface reflects light.
 
-<p align="center">
-  <img src="assets/Demos/BRDF.png" alt="BRDF"/>
-</p>
+<p align="center"><img src="assets/Demos/BRDF.png" alt="BRDF"/></p>
 
 ### 4. Path Tracing 101
 
@@ -157,15 +145,11 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 
 - I cast path tracing signature move: **Global Illumination**, or more specifically, **Indirect Lighting**. Irl, light bounces off multiple surfaces while obeying the law of energy conservation, and path tracing tries to simulate that by casting multiple rays per pixel and averaging the result using calculations and stuff.
 
-<p align="center">
-  <img src="assets/Demos/PathTracing1.png" alt="Demo Image"/>
-  <small><i>Cornell Box with Path tracing.</i></small>
-</p>
+<p align="center"><img src="assets/Demos/PathTracing1.png" alt="Demo Image"/>
+  <small><i>Cornell Box with Path tracing.</i></small></p>
 
-<p align="center">
-  <img src="assets/Demos/PathTracing2.png" alt="Demo Image"/>
-  <small><i>Without vs With Path Tracing</i></small>
-</p>
+<p align="center"><img src="assets/Demos/PathTracing2.png" alt="Demo Image"/>
+  <small><i>Without vs With Path Tracing</i></small></p>
 
 ###### Keep in mind these examples use relatively low sample-per-pixel count, so there are noticable noises and artifacts.
 
@@ -173,15 +157,11 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 
 - A good way to implement kinda-real-time-path-tracing is by using **Temporal Accumulation**, with only *`1 sample-per-pixel(spp)`*, which averages the result of the previous frame with the current frame to reduce noise and artifacts as long as the camera doesn't move. This will *introduces alot of noises and artifacts* at first, but significantly *reduce render time*, allowing the frame to converge to a cleaner image over time, as well as providing a more interactive experience (since you can still kinda move the camera around).
 
-<p align="center">
-  <img src="assets/Demos/PathTracing3.png" alt="Demo Image"/>
-  <small><i>Actually correct <b>Global Illumination</b>.</i></small>
-</p>
+<p align="center"><img src="assets/Demos/PathTracing3.png" alt="Demo Image"/>
+  <small><i>Actually correct <b>Global Illumination</b>.</i></small></p>
 
-<p align="center">
-  <img src="assets/Demos/PathTracing4.png" alt="Demo Image"/>
-  <small><i><b>Direct Lighting only</b> vs <b>Global Illumination</b>.</i></small>
-</p>
+<p align="center"><img src="assets/Demos/PathTracing4.png" alt="Demo Image"/>
+  <small><i><b>Direct Lighting only</b> vs <b>Global Illumination</b>.</i></small></p>
 
 - *Temporal Accumulation* also allows you to reduce the *`spp`* count down to `1` on every path tracing effects (Soft Shadows, Reflectance, Anti-Aliasing, Depth of Field, etc.) to further reduce render time.
 
@@ -231,7 +211,5 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 - **"Fun" fact**:
   - I do not have enough sleep.
 
-<p align="center">
-  <img src="assets/Demos/Seia.png" alt="Demo Image" />
-  <small><i>"No longer muted"</i></small>
-</p>
+<p align="center"><img src="assets/Demos/Seia.png" alt="Demo Image" />
+  <small><i>"No longer muted"</i></small></p>
