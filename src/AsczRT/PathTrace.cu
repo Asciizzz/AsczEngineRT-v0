@@ -392,8 +392,9 @@ __global__ void pathtraceKernel(
             }
 
             bool angular = hasNrml && !hm.NoShade;
-            float NdotL = (nrml.x * ldx + nrml.y * ldy + nrml.z * ldz);
-            Flt3 diff = alb * (NdotL * NdotL * angular + !angular);
+            float NdotL = -(nrml.x * ldx + nrml.y * ldy + nrml.z * ldz);
+            NdotL *= NdotL > 0.0f;
+            Flt3 diff = alb * (NdotL * angular + !angular);
 
             const AzMtl &lMat = mats[fm[lIdx]];
             resultColor += (throughput & diff & lMat.Ems) * inLight;

@@ -54,7 +54,7 @@ void AsczCam::updateView() {
 
 Flt2 AsczCam::getScrnNDC(float x, float y, float width, float height) const {
     // Note: w/2 and h/2 are used to center the screen space coordinates
-    return Flt2((2 * x - width) / width, (height - 2 * y) / height);
+    return Flt2((width - 2 * x) / width, (height - 2 * y) / height);
 }
 
 Ray AsczCam::castRay(float x, float y, float width, float height, float dx, float dy) const {

@@ -221,7 +221,7 @@ int main() {
             float dy = center.y - prev.y;
 
             // Update camera rotation
-            Cam.rot.y += dx * Cam.mSens * FPS.dTimeSec;
+            Cam.rot.y -= dx * Cam.mSens * FPS.dTimeSec;
             Cam.rot.x += dy * Cam.mSens * FPS.dTimeSec;
 
             // CSGO perspective movement
@@ -242,8 +242,8 @@ int main() {
             if (k_s && !k_w) Cam.pos -= Cam.forward * vel * FPS.dTimeSec;
 
             // Press A/D to move left/right
-            if (k_a && !k_d) Cam.pos -= Cam.right * vel * FPS.dTimeSec;
-            if (k_d && !k_a) Cam.pos += Cam.right * vel * FPS.dTimeSec;
+            if (k_a && !k_d) Cam.pos += Cam.right * vel * FPS.dTimeSec;
+            if (k_d && !k_a) Cam.pos -= Cam.right * vel * FPS.dTimeSec;
 
             // Update camera
             Cam.update();
