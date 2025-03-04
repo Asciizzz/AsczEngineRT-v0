@@ -55,7 +55,7 @@ __global__ void pathtraceKernel(
 
     float r1 = curand_uniform(&rnd);
     float theta = M_PIx2 * r1;
-    float len = 0.001f;
+    float len = 0.0005f;
     float dx = cosf(theta) * len;
     float dy = sinf(theta) * len;
     Ray ray = camera.castRay(tX, tY, frmW, frmH, dx, dy);
@@ -401,7 +401,7 @@ __global__ void pathtraceKernel(
         // Indirect lighting
         ray.o = vrtx;
         ray.d = hm.Rf ? ray.d - nrml * 2.0f * (nrml * ray.d) :
-                        randomHemisphereSample(&rnd, nrml);
+                hm.Tr ? ray.d : randomHemisphereSample(&rnd, nrml);
         ray.invd = 1.0f / ray.d;
         ray.ignore = hidx;
 
@@ -413,6 +413,7 @@ __global__ void pathtraceKernel(
     radiance.x = AzDevMath::ACESFilm(radiance.x);
     radiance.y = AzDevMath::ACESFilm(radiance.y);
     radiance.z = AzDevMath::ACESFilm(radiance.z);
+    radiance.clamp(0.0f, 1.0f);
 
     float _gamma = 1.0f / 2.2f;
     radiance = radiance.pow(_gamma);
