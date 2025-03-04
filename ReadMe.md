@@ -115,12 +115,6 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 
 <p align="center"><img src="assets/Demos/SoftShadow.png" alt="Soft Shadow"/></p>
 
-#### Anti-Aliasing
-
-- See those jags, that’s aliasing, and it fcking sucks.
-- Instead of shooting a single ray from the camera, we shoot more rays then slightly jitter them and average the result for a smoother looking image.
-- Honestly, I kinda not recommend using this, stick to screen space AA methods like FXAA or TAA instead
-
 #### Reflectance
 
 - When light hits a surface, it can do a couple of things:
