@@ -55,7 +55,7 @@ __global__ void pathtraceKernel(
 
     float r1 = curand_uniform(&rnd);
     float theta = M_PIx2 * r1;
-    float len = 0.002f;
+    float len = 0.001f;
     float dx = cosf(theta) * len;
     float dy = sinf(theta) * len;
     Ray ray = camera.castRay(tX, tY, frmW, frmH, dx, dy);

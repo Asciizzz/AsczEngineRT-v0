@@ -13,7 +13,7 @@
 # assets/Models/Structure/PeachsCastle/PeachsCastle.obj 2 1
 # assets/Models/Structure/PeachsCastle1F/PeachsCastle1F.obj 2 1
 # assets/Models/Structure/Stronghold/Stronghold.obj 2 1
-assets/Models/Structure/LivingRoom/LivingRoom.obj 2 1
+# assets/Models/Structure/LivingRoom/LivingRoom.obj 2 1
 # assets/Models/Structure/LivingRoom2/LivingRoom.obj 2 1
 # assets/Models/Structure/Fnaf/Fnaf1.obj 1 1
 
@@ -34,4 +34,8 @@ assets/Models/Structure/LivingRoom/LivingRoom.obj 2 1
 # assets/Models/Cornell/Cornell.obj 2 0.1
 
 
-# assets/Models/Light/Light.cfg 0 1
+assets/Models/Structure/Bedroom/Bedroom.obj 2 1
+assets/Models/Structure/Bedroom/Additional.obj 0 1
+
+
+assets/Models/Light/Light.cfg 0 1
