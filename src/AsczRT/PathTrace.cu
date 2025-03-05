@@ -412,7 +412,7 @@ __global__ void pathtraceKernel(
         ray.ignore = hidx;
 
         // Apply Lambertian BRDF
-        throughput *= alb * M_1_PI;
+        throughput &= alb * M_1_PI;
 
         radiance += resultColor * (1 - hm.Tr);
     }
