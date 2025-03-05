@@ -2,7 +2,7 @@
 
 void Utils::appendObj(
     AsczMesh &MeshMgr, AsczMat &MatMgr, AsczTxtr &TxtrMgr,
-    const char *objPath, short placement, float scale, short fIdxBased 
+    const char *objPath, short placement, float scale
 ) {
     std::ifstream file(objPath);
     if (!file.is_open()) return;
@@ -59,6 +59,7 @@ void Utils::appendObj(
                 std::stringstream ss2(vtn);
 
                 int v, t, n;
+                bool hasT = true, hasN = true;
 
                 // Read vertex index
                 ss2 >> v;
@@ -67,9 +68,13 @@ void Utils::appendObj(
                 if (ss2.peek() == '/') {
                     ss2.ignore(1); // Ignore the first '/'
                     if (ss2.peek() != '/') ss2 >> t;
-                    else t = fIdxBased - 1;
+                    else {
+                        hasT = false;
+                        t = -1;
+                    }
                 } else {
-                    t = fIdxBased - 1; // No slashes, so no texture coordinate
+                    hasT = false;
+                    t =  0;
                 }
 
                 // Check for normal index
@@ -77,12 +82,17 @@ void Utils::appendObj(
                     ss2.ignore(1); // Ignore the second '/'
                     ss2 >> n; // Read normal index
                 } else {
-                    n = fIdxBased - 1 ; // No normal index provided
+                    hasN = false;
+                    n = 0;
                 }
 
-                vs.push_back(v - fIdxBased);
-                ts.push_back(t - fIdxBased);
-                ns.push_back(n - fIdxBased);
+                if (v < 0) v += mv.size() + 1;
+                if (t < 0 && hasT) t += mt.size() + 1;
+                if (n < 0 && hasN) n += mn.size() + 1;
+
+                vs.push_back(v - 1);
+                ts.push_back(t - 1);
+                ns.push_back(n - 1);
             }
 
             // Triangulate the face

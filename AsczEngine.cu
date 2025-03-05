@@ -205,7 +205,6 @@ int main() {
         }
         else if (Win.keys['3']) {
             Win.keys['3'] = false; renderMode = 2;
-            Cam.focus = false; ShowCursor(TRUE);
         }
 
         if (Cam.focus) {
