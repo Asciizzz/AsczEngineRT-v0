@@ -414,7 +414,7 @@ __global__ void pathtraceKernel(
         // Apply Lambertian BRDF
         throughput *= alb * M_1_PI;
 
-        radiance += resultColor;
+        radiance += resultColor * (1 - hm.Tr);
     }
 
     // Tone mapping
