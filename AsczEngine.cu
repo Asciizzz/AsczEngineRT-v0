@@ -153,7 +153,7 @@ int main() {
     ShowCursor(FALSE);
 
     short renderMode = 0;
-    float falseAmbient = 0.01f; // Good for pitch black areas
+    float falseAmbient = 0.1f; // Good for pitch black areas
     float currentFalseAmbient = falseAmbient;
     bool hasDebug = true;
 
