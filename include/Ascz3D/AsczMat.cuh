@@ -4,7 +4,7 @@
 #include <Vector.cuh>
 
 struct AzMtl {
-    Flt3 Alb = 0.8f;
+    Flt3 Alb = 1.0f;
     int AlbMap = -1;
 
     float Rough = 0.5f;

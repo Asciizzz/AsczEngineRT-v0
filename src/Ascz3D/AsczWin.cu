@@ -1,17 +1,25 @@
 #include <AsczWin.cuh>
+#include <AzDevMath.cuh>
 #include <cuda_runtime.h>
 
 #include <string>
-#include <sstream>
-#include <iomanip>
 
-__global__ void copyToDrawBuffer(Flt3 *frmbuffer, unsigned int *drawbuffer, int width, int height) {
+#define _GAMMA 1.0f/2.2f
+
+__global__ void copyToDrawBuffer(Flt3 *frmbuffer, unsigned int *drawbuffer, int width, int height, bool toneMap) {
     int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
     if (tIdx < width * height) {
         int x = tIdx % width;
         int y = tIdx / width;
         int i = y * width + x;
+
         Flt3 color = frmbuffer[i];
+        color.clamp(0.0f, 1.0f);
+
+        color.x = AzDevMath::ACESFilm(powf(color.x, _GAMMA)) * toneMap + color.x * !toneMap;
+        color.y = AzDevMath::ACESFilm(powf(color.y, _GAMMA)) * toneMap + color.y * !toneMap;
+        color.z = AzDevMath::ACESFilm(powf(color.z, _GAMMA)) * toneMap + color.z * !toneMap;
+
         drawbuffer[i] = (int(color.x * 255) << 16) | (int(color.y * 255) << 8) | int(color.z * 255);
     }
 }
@@ -85,7 +93,7 @@ void AsczWin::DrawFramebuffer(int buffer) {
     copyToDrawBuffer<<<blockCount, threadCount>>>(
         buffer == 1 ? d_frmbuffer1 :
         buffer == 2 ? d_frmbuffer2 : d_frmbuffer3,
-        d_drawbuffer, width, height
+        d_drawbuffer, width, height, buffer > 1
     );
 
     cudaMemcpy(h_drawbuffer, d_drawbuffer, width * height * sizeof(unsigned int), cudaMemcpyDeviceToHost);

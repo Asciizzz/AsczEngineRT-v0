@@ -1,6 +1,5 @@
 AzMtl LightA
-Ems 0.1 0.1 0.2
-Alb 0 0 0
+Ems 0.05 0.05 0.1
 
 AzMtl LightB
-Ems 0.5 0.5 0.5
+Ems 0.8 0.8 0.8

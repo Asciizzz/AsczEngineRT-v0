@@ -393,14 +393,5 @@ __global__ void raytraceKernel(
         resultColr += finalColr * ray.w;
     }
 
-    // Tone mapping
-    resultColr.x = AzDevMath::ACESFilm(resultColr.x);
-    resultColr.y = AzDevMath::ACESFilm(resultColr.y);
-    resultColr.z = AzDevMath::ACESFilm(resultColr.z);
-    resultColr.clamp(0.0f, 1.0f);
-
-    float _gamma = 1.0f / 2.2f;
-    resultColr = resultColr.pow(_gamma);
-
     frmbuffer[tIdx] = resultColr;
 }

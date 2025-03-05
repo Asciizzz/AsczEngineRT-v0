@@ -34,7 +34,10 @@ __global__ void divFrmBuffer(Flt3 *f1, Flt3 *f2, int size, int count) {
 
 __global__ void temporalAA(Flt3 *f1, Flt3 *f2, int size, int count) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx < size) f1[idx] = (f1[idx] * count + f2[idx]) / (count + 1);
+    if (idx >= size) return;
+
+    float weight = 1.0f / (count + 1);
+    f1[idx] = f1[idx] * (1.0f - weight) + f2[idx] * weight;
 }
 
 __global__ void bilateralFilter(Flt3* framebuffer, Flt3* output, int width, int height, int radius = 3, float sigma_spatial = 1.5f, float sigma_color = 0.2f) {
@@ -324,7 +327,7 @@ int main() {
                 accumulate = 1;
 
                 copyFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer2, Win.width * Win.height);
-            } else if (accumulate < 256) {
+            } else {
                 accumulate ++;
                 addFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer2, Win.d_frmbuffer1, Win.width * Win.height);
                 divFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer2, Win.width * Win.height, accumulate);
