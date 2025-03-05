@@ -34,16 +34,16 @@
 # .heavy/Street/Light.obj 0 1
 
 
-assets/Models/Structure/Bedroom/Bedroom.obj 2 1
-assets/Models/Structure/Bedroom/Additional.obj 0 1
-assets/Models/Structure/Bedroom/Light.obj 0 1
+# assets/Models/Structure/Bedroom/Bedroom.obj 2 1
+# assets/Models/Structure/Bedroom/Additional.obj 0 1
+# assets/Models/Structure/Bedroom/Light.obj 0 1
 
 # assets/Models/Structure/Bedroom2/Bedroom.obj 2 1
 # assets/Models/Structure/Bedroom2/Additional.obj 0 1
 # assets/Models/Structure/Bedroom2/Light.obj 0 1
 
-# assets/Models/de_dust2/de_dust2.obj 2 1
-# assets/Models/de_dust2/Light.obj 0 1
+assets/Models/de_dust2/de_dust2.obj 2 1
+assets/Models/de_dust2/Light.obj 0 1
 
 # assets/Models/Aband/Aband.obj 2 0.01
 # assets/Models/Aband/Light.obj 0 1
