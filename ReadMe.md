@@ -115,6 +115,14 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 
 <p align="center"><img src="assets/Demos/SoftShadow.png" alt="Soft Shadow"/></p>
 
+#### Depth of Field
+
+- In the real world, cameras (and our eyes) don’t focus everything perfectly—only objects at a certain focal distance appear sharp, while others blur.
+- To simulate this effect, we use a thin-lens model, where the camera lens is not a single point but a small aperture that gathers light from slightly different positions.
+- This means we need to randomly sample rays from the lens surface and direct them toward the focal point.
+
+<p align="center"><img src="assets/Demos/DepthOfField.png" alt="Depth of Field"/></p>
+
 #### Reflectance
 
 - When light hits a surface, it can do a couple of things:
