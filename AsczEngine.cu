@@ -189,22 +189,18 @@ int main() {
             hasDebug = !hasDebug;
         }
 
-        // Press E to toggle false ambient
-        if (Win.keys['E']) {
-            Win.keys['E'] = false;
-            currentFalseAmbient = currentFalseAmbient == 0.0f ? falseAmbient : 0.0f;
-        }
-
-        // // Press Q to toggle path tracing
-        // if (Win.keys['Q']) {
-        //     Win.keys['Q'] = false;
-        //     renderMode = (renderMode + 1) % 2;
-        // }
-
         // Press 1-3 to toggle render mode
-        if      (Win.keys['1']) { Win.keys['1'] = false; renderMode = 0; }
-        else if (Win.keys['2']) { Win.keys['2'] = false; renderMode = 1; }
-        else if (Win.keys['3']) { Win.keys['3'] = false; renderMode = 2; }
+        if (Win.keys['1']) {
+            Win.keys['1'] = false; renderMode = 0;
+        }
+        else if (Win.keys['2']) {
+            if (renderMode == 1) currentFalseAmbient = !currentFalseAmbient * falseAmbient;
+
+            Win.keys['2'] = false; renderMode = 1;
+        }
+        else if (Win.keys['3']) {
+            Win.keys['3'] = false; renderMode = 2;
+        }
 
         if (Cam.focus) {
 
