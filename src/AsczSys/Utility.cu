@@ -59,7 +59,6 @@ void Utils::appendObj(
                 std::stringstream ss2(vtn);
 
                 int v, t, n;
-                bool hasT = true, hasN = true;
 
                 // Read vertex index
                 ss2 >> v;
@@ -67,32 +66,17 @@ void Utils::appendObj(
                 // Check for texture index (skip if missing)
                 if (ss2.peek() == '/') {
                     ss2.ignore(1); // Ignore the first '/'
-                    if (ss2.peek() != '/') ss2 >> t;
-                    else {
-                        hasT = false;
-                        t = -1;
-                    }
-                } else {
-                    hasT = false;
-                    t =  0;
-                }
+                    if (ss2.peek() != '/') ss2 >> t; else t = 0;
+                } else t = 0;
 
-                // Check for normal index
+                // Check for normal index (skip if missing)
                 if (ss2.peek() == '/') {
-                    ss2.ignore(1); // Ignore the second '/'
-                    ss2 >> n; // Read normal index
-                } else {
-                    hasN = false;
-                    n = 0;
-                }
+                    ss2.ignore(1); ss2 >> n; // Read normal index
+                } else n = 0;
 
-                if (v < 0) v += mv.size() + 1;
-                if (t < 0 && hasT) t += mt.size() + 1;
-                if (n < 0 && hasN) n += mn.size() + 1;
-
-                vs.push_back(v - 1);
-                ts.push_back(t - 1);
-                ns.push_back(n - 1);
+                vs.push_back(v < 0 ? mv.size() + v : v - 1);
+                ts.push_back(t < 0 ? mt.size() + t : t - 1);
+                ns.push_back(n < 0 ? mn.size() + n : n - 1);
             }
 
             // Triangulate the face
