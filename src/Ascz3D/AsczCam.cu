@@ -57,17 +57,17 @@ Ray AsczCam::castRay(float x, float y, float w, float h, float rnd1, float rnd2)
     float ndcY = (h - 2 * y) / h;
 
     float tanFov = tanf(fov / 2);
+    float w_h = w / h;
 
-    Flt3 rD = frwd + rght * ndcX * tanFov * w / h + up * ndcY * tanFov;
+    Flt3 rD = frwd + (rght*ndcX*w_h + up*ndcY) * tanFov;
     rD /= rD.x * rD.x + rD.y * rD.y + rD.z * rD.z;
 
-    Flt3 focalPoint = pos + rD * focalDist;
     float r = aperture * sqrtf(rnd1);
     float theta = 2 * M_PI * rnd2;
 
-    Flt3 apertureOffset = rght * r * cosf(theta) + up * r * sinf(theta);
+    Flt3 rO = pos + (rght*cosf(theta) + up*sinf(theta)) * r;
 
-    Flt3 rO = pos + apertureOffset;
+    Flt3 focalPoint = pos + rD * focalDist;
     rD = (focalPoint - rO).norm();
 
     return Ray(rO, rD);
