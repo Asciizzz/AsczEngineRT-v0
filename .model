@@ -6,7 +6,7 @@
 # assets/Models/BlueArchive/Shiroko/Shiroko.obj 2 1
 # assets/Models/BlueArchive/Yuuka/Yuuka.obj 2 10
 
-# assets/Models/Character/Sukuna/Sukuna.obj 2 1
+assets/Models/Character/Sukuna/Sukuna.obj 2 1
 # assets/Models/Character/Goku.obj 2 1
 # assets/Models/Character/Foxy/Foxy.obj 2 0.02
 
@@ -18,7 +18,7 @@
 # assets/Models/Structure/Fnaf/Fnaf1.obj 1 1
 
 # assets/Models/Structure/Buildings/Building001.obj 2 1
-# assets/Models/Shapes/Floor/Floor.obj 0 2
+assets/Models/Shapes/Floor/Floor.obj 0 2
 
 # assets/Models/Weapon/AK47.obj 2 0.2
 # assets/Models/Weapon/AWP.obj 2 0.2
@@ -29,6 +29,8 @@
 # .heavy/Home/Home.obj 2 1
 # .heavy/Industry/Industry.obj 2 1
 # .heavy/Kitchen/Kitchen.obj 2 1
+# .heavy/Street/Street.obj 2 0.1
+# .heavy/Street/Light.obj 0 1
 
 # assets/Models/Cornell/Cornell.obj 2 0.1
 
@@ -36,9 +38,9 @@
 # assets/Models/Structure/Bedroom/Bedroom.obj 2 1
 # assets/Models/Structure/Bedroom/Additional.obj 0 1
 
-assets/Models/Structure/Bedroom2/Bedroom.obj 2 1
-assets/Models/Structure/Bedroom2/Light.obj 0 1
-assets/Models/Structure/Bedroom2/Additional.obj 0 1
+# assets/Models/Structure/Bedroom2/Bedroom.obj 2 1
+# assets/Models/Structure/Bedroom2/Light.obj 0 1
+# assets/Models/Structure/Bedroom2/Additional.obj 0 1
 
 # assets/Models/de_dust2/de_dust2.obj 2 1
 # assets/Models/de_dust2/Light.obj 0 1
