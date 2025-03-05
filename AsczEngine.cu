@@ -179,8 +179,14 @@ int main() {
         if (Win.keys[VK_F1]) {
             Win.keys[VK_F1] = false;
 
-            Cam.focus = !Cam.focus;
             ShowCursor(Cam.focus);
+            Cam.focus = !Cam.focus;
+
+            if (Cam.focus) {
+                POINT center = { Win.width / 2, Win.height / 2 };
+                ClientToScreen(Win.hwnd, &center);
+                SetCursorPos(center.x, center.y);
+            }
         }
 
         // Press H to toggle debug
@@ -199,6 +205,7 @@ int main() {
         }
         else if (Win.keys['3']) {
             Win.keys['3'] = false; renderMode = 2;
+            Cam.focus = false; ShowCursor(TRUE);
         }
 
         if (Cam.focus) {

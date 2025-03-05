@@ -148,6 +148,10 @@ LRESULT CALLBACK AsczWin::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM
             // Keyboard input
             case WM_KEYDOWN: self->keys[wParam] = true; return 0;
             case WM_KEYUP: self->keys[wParam] = false; return 0;
+
+            case WM_SETCURSOR:
+                SetCursor(LoadCursor(NULL, IDC_ARROW)); 
+                return TRUE;
         }
     }
 
