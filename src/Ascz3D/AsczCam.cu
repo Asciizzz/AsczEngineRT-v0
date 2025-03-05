@@ -39,36 +39,38 @@ void AsczCam::restrictRot() {
 }
 
 void AsczCam::updateView() {
-    forward.x = sin(rot.y) * cos(rot.x);
-    forward.y = sin(rot.x);
-    forward.z = cos(rot.y) * cos(rot.x);
-    forward.norm();
+    frwd.x = sin(rot.y) * cos(rot.x);
+    frwd.y = sin(rot.x);
+    frwd.z = cos(rot.y) * cos(rot.x);
+    frwd.norm();
 
-    right = Flt3(0, 1, 0) ^ forward;
-    right.norm();
+    rght = Flt3(0, 1, 0) ^ frwd;
+    rght.norm();
 
-    up = forward ^ right;
+    up = frwd ^ rght;
     up.norm();
 }
 
+__device__
+Ray AsczCam::castRay(float x, float y, float w, float h, float rnd1, float rnd2) const {
+    float ndcX = (w - 2 * x) / w;
+    float ndcY = (h - 2 * y) / h;
 
-Flt2 AsczCam::getScrnNDC(float x, float y, float width, float height) const {
-    // Note: w/2 and h/2 are used to center the screen space coordinates
-    return Flt2((width - 2 * x) / width, (height - 2 * y) / height);
-}
+    float tanFov = tanf(fov / 2);
 
-Ray AsczCam::castRay(float x, float y, float width, float height, float dx, float dy) const {
-    Flt2 ndc = getScrnNDC(x, y, width, height);
+    Flt3 rD = frwd + rght * ndcX * tanFov * w / h + up * ndcY * tanFov;
+    rD /= rD.x * rD.x + rD.y * rD.y + rD.z * rD.z;
 
-    float tanFov = tan(fov / 2);
-    
-    Flt3 rayDir = forward + right * ndc.x * tanFov * width / height + up * ndc.y * tanFov;
+    Flt3 focalPoint = pos + rD * focalDist;
+    float r = aperture * sqrtf(rnd1);
+    float theta = 2 * M_PI * rnd2;
 
-    rayDir += right * dx + up * dy;
+    Flt3 apertureOffset = rght * r * cosf(theta) + up * r * sinf(theta);
 
-    rayDir.norm();
+    Flt3 rO = pos + apertureOffset;
+    rD = (focalPoint - rO).norm();
 
-    return Ray(pos, rayDir);
+    return Ray(rO, rD);
 }
 
 

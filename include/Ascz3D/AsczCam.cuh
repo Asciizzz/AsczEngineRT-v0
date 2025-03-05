@@ -30,14 +30,14 @@ public:
     Flt3 pos, rot;
     void restrictRot();
 
-    Flt3 forward, right, up;
+    Flt3 frwd, rght, up;
     void updateView();
 
+    float aperture = 0.0f;
+    float focalDist = 1.0f;
+
     // Ray generation
-    __host__ __device__
-    Flt2 getScrnNDC(float x, float y, float width, float height) const;
-    __host__ __device__
-    Ray castRay(float x, float y, float width, float height, float dx=0, float dy=0) const;
+    __device__ Ray castRay(float x, float y, float w, float h, float rnd1=0.0f, float rnd2=0.0f) const;
 
     void update();
 

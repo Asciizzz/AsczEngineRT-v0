@@ -161,6 +161,8 @@ int main() {
 
     Flt3 prevPos = Cam.pos;
     Flt3 prevRot = Cam.rot;
+    float prevAptr = Cam.aperture;
+    float prevFdst = Cam.focalDist;
     short prevMode = renderMode;
 
     MSG msg = { 0 };
@@ -207,6 +209,19 @@ int main() {
             Win.keys['3'] = false; renderMode = 2;
         }
 
+        // Press F to change focal distance
+        if (Win.keys['F']) {
+            Win.keys['F'] = false;
+            Cam.focalDist+= (Win.keys[VK_CONTROL] ? -1.0f : 1.0f) *
+                            (Win.keys[VK_SHIFT] ? 1.0f : 0.1f);
+        }
+        // Press R to change aperture
+        if (Win.keys['R']) {
+            Win.keys['R'] = false;
+            Cam.aperture += (Win.keys[VK_CONTROL] ? -1.0f : 1.0f) *
+                            (Win.keys[VK_SHIFT] ? 0.5f : 0.05f);
+        }
+
         if (Cam.focus) {
 
             // Get previous cursor position
@@ -238,13 +253,13 @@ int main() {
             if (k_ctrl && !k_shift)      vel *= Cam.slowFactor;
             else if (k_shift && !k_ctrl) vel *= Cam.fastFactor;
 
-            // Press W/S to move forward/backward
-            if (k_w && !k_s) Cam.pos += Cam.forward * vel * FPS.dTimeSec;
-            if (k_s && !k_w) Cam.pos -= Cam.forward * vel * FPS.dTimeSec;
+            // Press W/S to move frwd/backward
+            if (k_w && !k_s) Cam.pos += Cam.frwd * vel * FPS.dTimeSec;
+            if (k_s && !k_w) Cam.pos -= Cam.frwd * vel * FPS.dTimeSec;
 
-            // Press A/D to move left/right
-            if (k_a && !k_d) Cam.pos += Cam.right * vel * FPS.dTimeSec;
-            if (k_d && !k_a) Cam.pos -= Cam.right * vel * FPS.dTimeSec;
+            // Press A/D to move left/rght
+            if (k_a && !k_d) Cam.pos += Cam.rght * vel * FPS.dTimeSec;
+            if (k_d && !k_a) Cam.pos -= Cam.rght * vel * FPS.dTimeSec;
 
             // Update camera
             Cam.update();
@@ -302,6 +317,8 @@ int main() {
 
             bool changeRender = prevPos != Cam.pos ||
                                 prevRot != Cam.rot ||
+                                prevAptr != Cam.aperture ||
+                                prevFdst != Cam.focalDist ||
                                 prevMode != renderMode;
             if (changeRender) {
                 accumulate = 1;
@@ -317,6 +334,8 @@ int main() {
             }
             prevPos = Cam.pos;
             prevRot = Cam.rot;
+            prevAptr = Cam.aperture;
+            prevFdst = Cam.focalDist;
             break;
         }
         prevMode = renderMode;
@@ -327,10 +346,12 @@ int main() {
             Win.appendDebug(L"CAMERA", Int3(255, 0, 0));
             Win.appendDebug(L"Pos: " + std::to_wstring(Cam.pos.x) + L", " + std::to_wstring(Cam.pos.y) + L", " + std::to_wstring(Cam.pos.z), Int3(255));    
             Win.appendDebug(L"Rot: " + std::to_wstring(Cam.rot.x) + L", " + std::to_wstring(Cam.rot.y) + L", " + std::to_wstring(Cam.rot.z), Int3(255));
-            Win.appendDebug(L"Fd: " + std::to_wstring(Cam.forward.x) + L", " + std::to_wstring(Cam.forward.y) + L", " + std::to_wstring(Cam.forward.z), Int3(255));
-            Win.appendDebug(L"Rg: " + std::to_wstring(Cam.right.x) + L", " + std::to_wstring(Cam.right.y) + L", " + std::to_wstring(Cam.right.z), Int3(255));
+            Win.appendDebug(L"Fd: " + std::to_wstring(Cam.frwd.x) + L", " + std::to_wstring(Cam.frwd.y) + L", " + std::to_wstring(Cam.frwd.z), Int3(255));
+            Win.appendDebug(L"Rg: " + std::to_wstring(Cam.rght.x) + L", " + std::to_wstring(Cam.rght.y) + L", " + std::to_wstring(Cam.rght.z), Int3(255));
             Win.appendDebug(L"Up: " + std::to_wstring(Cam.up.x) + L", " + std::to_wstring(Cam.up.y) + L", " + std::to_wstring(Cam.up.z), Int3(255));
             Win.appendDebug(L"Fov: " + std::to_wstring(Cam.fov * 180 / M_PI), Int3(255));
+            Win.appendDebug(L"Aperature: " + std::to_wstring(Cam.aperture), Int3(255));
+            Win.appendDebug(L"FocalDist: " + std::to_wstring(Cam.focalDist), Int3(255));
 
             // Retrieve the middle pixel color
             unsigned int color = Win.h_drawbuffer[Win.width * Win.height / 2 + Win.width / 2];

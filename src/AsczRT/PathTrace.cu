@@ -53,12 +53,7 @@ __global__ void pathtraceKernel(
 
     int tX = tIdx % frmW, tY = tIdx / frmW;
 
-    float r1 = curand_uniform(&rnd);
-    float theta = M_PIx2 * r1;
-    float len = 0.0005f;
-    float dx = cosf(theta) * len;
-    float dy = sinf(theta) * len;
-    Ray ray = camera.castRay(tX, tY, frmW, frmH, dx, dy);
+    Ray ray = camera.castRay(tX, tY, frmW, frmH, curand_uniform(&rnd), curand_uniform(&rnd));
 
     const int MAX_NODES = 64;
     const int MAX_BOUNCES = 4;
