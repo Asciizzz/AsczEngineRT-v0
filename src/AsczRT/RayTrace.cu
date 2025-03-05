@@ -363,7 +363,7 @@ __global__ void raytraceKernel(
 
             bool angular = hasNrml && !hm.NoShade;
             float NdotL = -(nrml.x * ldx + nrml.y * ldy + nrml.z * ldz);
-            Flt3 diff = alb * (NdotL * NdotL * angular + !angular) * (NdotL > 0.0f);
+            Flt3 diff = alb * (NdotL * (NdotL > 0.0f) * angular + !angular);
 
             const AzMtl &lMat = mats[fm[lIdx]];
             finalColr += (lMat.Ems & diff) * inLight;
