@@ -1,5 +1,5 @@
 newmtl ground
-Kd 1 1 1
+Kd 0.4 0.4 0.4
 
 newmtl glass
 Tr 1.0

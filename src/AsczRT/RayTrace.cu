@@ -205,7 +205,7 @@ __global__ void raytraceKernel(
         nrml.z = hasNrml ? nz[n0] * hw + nz[n1] * hu + nz[n2] * hv : 0.0f;
 
         // Fake ambient
-        float NdotL = nrml * ray.d;
+        float NdotL = (nrml * ray.d) * hasNrml + !hasNrml;
         Flt3 finalColr = alb * falseAmbient * NdotL * NdotL;
 
         if (!hm.Ems.isZero()) {

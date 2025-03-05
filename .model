@@ -18,6 +18,7 @@
 # assets/Models/Structure/Fnaf/Light.obj 0 1
 
 # assets/Models/Structure/Buildings/Building001.obj 2 1
+# assets/Models/Structure/Buildings/Light.obj 0 1
 # assets/Models/Shapes/Floor/Floor.obj 0 2
 
 # assets/Models/Weapon/AK47.obj 2 0.2
@@ -42,13 +43,11 @@
 # assets/Models/Structure/Bedroom2/Additional.obj 0 1
 # assets/Models/Structure/Bedroom2/Light.obj 0 1
 
-assets/Models/de_dust2/de_dust2.obj 2 1
-assets/Models/de_dust2/Light.obj 0 1
+# assets/Models/de_dust2/de_dust2.obj 2 1
+# assets/Models/de_dust2/Light.obj 0 1
 
 # assets/Models/Aband/Aband.obj 2 0.01
 # assets/Models/Aband/Light.obj 0 1
 
-# assets/Models/de_dust2_a/dust2_a.obj 2 1
-
-
-# assets/Models/Light/Light.cfg 0 1
+assets/Models/de_dust2_a/dust2_a.obj 2 1
+assets/Models/de_dust2_a/Light.obj 0 1

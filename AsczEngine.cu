@@ -154,7 +154,7 @@ int main() {
 
     short renderMode = 0;
     float falseAmbient = 0.1f; // Good for pitch black areas
-    float currentFalseAmbient = falseAmbient;
+    float curFalseAmb = falseAmbient;
     bool hasDebug = true;
 
     int accumulate = 0;
@@ -185,8 +185,7 @@ int main() {
 
         // Press H to toggle debug
         if (Win.keys['H']) {
-            Win.keys['H'] = false;
-            hasDebug = !hasDebug;
+            Win.keys['H'] = false; hasDebug = !hasDebug;
         }
 
         // Press 1-3 to toggle render mode
@@ -194,7 +193,7 @@ int main() {
             Win.keys['1'] = false; renderMode = 0;
         }
         else if (Win.keys['2']) {
-            if (renderMode == 1) currentFalseAmbient = !currentFalseAmbient * falseAmbient;
+            if (renderMode == 1) curFalseAmb = !curFalseAmb * falseAmbient;
 
             Win.keys['2'] = false; renderMode = 1;
         }
@@ -277,7 +276,7 @@ int main() {
 
                 Bvh.d_mi_x, Bvh.d_mi_y, Bvh.d_mi_z, Bvh.d_mx_x, Bvh.d_mx_y, Bvh.d_mx_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_gIdx,
 
-                currentFalseAmbient
+                curFalseAmb
             );
             break;
 
