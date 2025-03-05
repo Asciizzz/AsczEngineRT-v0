@@ -17,11 +17,6 @@ __global__ void copyFrmBuffer(Flt3 *from, Flt3 *to, int size) {
     if (idx < size) to[idx] = from[idx];
 }
 
-__global__ void resetFrmBuffer(Flt3 *frmbuffer, int size) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx < size) frmbuffer[idx] = Flt3(0.0f);
-}
-
 __global__ void addFrmBuffer(Flt3 *f1, Flt3 *f2, int size) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx < size) f1[idx] += f2[idx];
@@ -30,14 +25,6 @@ __global__ void addFrmBuffer(Flt3 *f1, Flt3 *f2, int size) {
 __global__ void divFrmBuffer(Flt3 *f1, Flt3 *f2, int size, int count) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx < size) f1[idx] = f2[idx] / count;
-}
-
-__global__ void temporalAA(Flt3 *f1, Flt3 *f2, int size, int count) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx >= size) return;
-
-    float weight = 1.0f / (count + 1);
-    f1[idx] = f1[idx] * (1.0f - weight) + f2[idx] * weight;
 }
 
 __global__ void bilateralFilter(Flt3* framebuffer, Flt3* output, int width, int height, int radius = 3, float sigma_spatial = 1.5f, float sigma_color = 0.2f) {
@@ -334,6 +321,7 @@ int main() {
 
                 // Bilateral filter
                 bilateralFilter<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer3, Win.width, Win.height);
+                // copyFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer3, Win.width * Win.height);
             }
             prevPos = Cam.pos;
             prevRot = Cam.rot;
