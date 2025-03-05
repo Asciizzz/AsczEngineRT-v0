@@ -27,13 +27,7 @@ __device__ Flt3 randomHemisphereSample(curandState *rnd, const Flt3 &n, float ex
     return tangent * x + bitangent * y + n * z;
 }
 
-/*
 
-Testing the path tracing pipeline
-
-from the youtuber Sebastian Lague
-
-*/
 
 __global__ void pathtraceKernel(
     AsczCam camera, Flt3 *frmbuffer, int frmW, int frmH, // In-out
@@ -67,8 +61,8 @@ __global__ void pathtraceKernel(
     int nstack[MAX_NODES];
     int ns_top = 0;
 
+    Flt3 throughput = 1.0f;
     Flt3 radiance = 0.0f;
-    Flt3 rayColor = 1.0f;
 
     for (int b = 0; b < MAX_BOUNCES; ++b) {
         int hidx = -1;
@@ -236,13 +230,185 @@ __global__ void pathtraceKernel(
         nrml.y = hasNrml ? ny[n0] * hw + ny[n1] * hu + ny[n2] * hv : 0.0f;
         nrml.z = hasNrml ? nz[n0] * hw + nz[n1] * hu + nz[n2] * hv : 0.0f;
 
-        // The main path tracing logic
+        radiance += throughput & (alb & hm.Ems);
+
+        // Direct lighting
+        Flt3 resultColor;
+        for (int l = 0; l < lNum && hm.Ems.isZero(); ++l) {
+            // Get material and geometry data of light
+            int lIdx = lSrc[l];
+
+            int fl0 = fv0[lIdx], fl1 = fv1[lIdx], fl2 = fv2[lIdx];
+
+            float u = curand_uniform(&rnd);
+            float v = curand_uniform(&rnd);
+            float w = 1.0f - u - v;
+
+            float lpx = vx[fl0] * w + vx[fl1] * u + vx[fl2] * v;
+            float lpy = vy[fl0] * w + vy[fl1] * u + vy[fl2] * v;
+            float lpz = vz[fl0] * w + vz[fl1] * u + vz[fl2] * v;
+
+            float ldx = vrtx.x - lpx;
+            float ldy = vrtx.y - lpy;
+            float ldz = vrtx.z - lpz;
+
+            float ldst = sqrtf(ldx * ldx + ldy * ldy + ldz * ldz);
+
+            ldx /= ldst;
+            ldy /= ldst;
+            ldz /= ldst;
+
+            float linvx = 1.0f / ldx;
+            float linvy = 1.0f / ldy;
+            float linvz = 1.0f / ldz;
+
+            // Reset the stack
+            ns_top = 0;
+            nstack[ns_top++] = 0;
+
+            bool inLight = true;
+            while (ns_top > 0) {
+                int nidx = nstack[--ns_top];
+
+                float t1n = (mi_x[nidx] - lpx) * linvx;
+                float t2n = (mx_x[nidx] - lpx) * linvx;
+                float t3n = (mi_y[nidx] - lpy) * linvy;
+                float t4n = (mx_y[nidx] - lpy) * linvy;
+                float t5n = (mi_z[nidx] - lpz) * linvz;
+                float t6n = (mx_z[nidx] - lpz) * linvz;
+
+                float tminn = fminf(t1n, t2n), tmaxn = fmaxf(t1n, t2n);
+                tminn = fmaxf(tminn, fminf(t3n, t4n)); tmaxn = fminf(tmaxn, fmaxf(t3n, t4n));
+                tminn = fmaxf(tminn, fminf(t5n, t6n)); tmaxn = fminf(tmaxn, fmaxf(t5n, t6n));
+
+                bool nOut = lpx < mi_x[nidx] | lpx > mx_x[nidx] |
+                            lpy < mi_y[nidx] | lpy > mx_y[nidx] |
+                            lpz < mi_z[nidx] | lpz > mx_z[nidx];
+                float nDist = ((tmaxn < tminn | tminn < 0) ? -1 : tminn) * nOut;
+
+                if (nDist < 0 | nDist > ldst) continue;
+
+                if (!lf[nidx]) {
+                    int tcl = pl[nidx];
+                    float t1l = (mi_x[tcl] - lpx) * linvx;
+                    float t2l = (mx_x[tcl] - lpx) * linvx;
+                    float t3l = (mi_y[tcl] - lpy) * linvy;
+                    float t4l = (mx_y[tcl] - lpy) * linvy;
+                    float t5l = (mi_z[tcl] - lpz) * linvz;
+                    float t6l = (mx_z[tcl] - lpz) * linvz;
+
+                    float tminl = fminf(t1l, t2l), tmaxl = fmaxf(t1l, t2l);
+                    tminl = fmaxf(tminl, fminf(t3l, t4l)); tmaxl = fminf(tmaxl, fmaxf(t3l, t4l));
+                    tminl = fmaxf(tminl, fminf(t5l, t6l)); tmaxl = fminf(tmaxl, fmaxf(t5l, t6l));
+
+                    bool lOut = lpx < mi_x[tcl] | lpx > mx_x[tcl] |
+                                lpy < mi_y[tcl] | lpy > mx_y[tcl] |
+                                lpz < mi_z[tcl] | lpz > mx_z[tcl];
+                    float ldist = ((tmaxl < tminl | tminl < 0) ? -1 : tminl) * lOut;
+
+
+                    int tcr = pr[nidx];
+                    float t1r = (mi_x[tcr] - lpx) * linvx;
+                    float t2r = (mx_x[tcr] - lpx) * linvx;
+                    float t3r = (mi_y[tcr] - lpy) * linvy;
+                    float t4r = (mx_y[tcr] - lpy) * linvy;
+                    float t5r = (mi_z[tcr] - lpz) * linvz;
+                    float t6r = (mx_z[tcr] - lpz) * linvz;
+
+                    float tminr = fminf(t1r, t2r), tmaxr = fmaxf(t1r, t2r);
+                    tminr = fmaxf(tminr, fminf(t3r, t4r)); tmaxr = fminf(tmaxr, fmaxf(t3r, t4r));
+                    tminr = fmaxf(tminr, fminf(t5r, t6r)); tmaxr = fminf(tmaxr, fmaxf(t5r, t6r));
+
+                    bool rOut = lpx < mi_x[tcr] | lpx > mx_x[tcr] |
+                                lpy < mi_y[tcr] | lpy > mx_y[tcr] |
+                                lpz < mi_z[tcr] | lpz > mx_z[tcr];
+                    float rdist = ((tmaxr < tminr | tminr < 0) ? -1 : tminr) * rOut;
+
+
+                    nstack[ns_top] = tcl;
+                    ns_top += (ldist >= 0);
+
+                    nstack[ns_top] = tcr;
+                    ns_top += (rdist >= 0);
+    
+                    continue;
+                }
+    
+                for (int i = pl[nidx]; i < pr[nidx]; ++i) {
+                    int gi = gIdx[i];
+
+                    bool hit = gi != hidx & gi != lIdx;
+
+                    int f0 = fv0[gi], f1 = fv1[gi], f2 = fv2[gi];
+
+                    float e1x = vx[f1] - vx[f0];
+                    float e1y = vy[f1] - vy[f0];
+                    float e1z = vz[f1] - vz[f0];
+
+                    float e2x = vx[f2] - vx[f0];
+                    float e2y = vy[f2] - vy[f0];
+                    float e2z = vz[f2] - vz[f0];
+
+                    float hx = ldy * e2z - ldz * e2y;
+                    float hy = ldz * e2x - ldx * e2z;
+                    float hz = ldx * e2y - ldy * e2x;
+
+                    float a = e1x * hx + e1y * hy + e1z * hz;
+
+                    hit &= a != 0;
+                    a = a == 0 ? 1 : a;
+
+                    float f = 1.0f / a;
+
+                    float sx = lpx - vx[fv0[gi]];
+                    float sy = lpy - vy[fv0[gi]];
+                    float sz = lpz - vz[fv0[gi]];
+
+                    float u = f * (sx * hx + sy * hy + sz * hz);
+
+                    hit &= u >= 0 & u <= 1;
+
+                    float qx = sy * e1z - sz * e1y;
+                    float qy = sz * e1x - sx * e1z;
+                    float qz = sx * e1y - sy * e1x;
+
+                    float v = f * (ldx * qx + ldy * qy + ldz * qz);
+
+                    hit &= v >= 0 & u + v <= 1;
+
+                    float t = f * (e2x * qx + e2y * qy + e2z * qz);
+
+                    hit &= t > 0 & t < ldst;
+
+                    inLight &= !hit;
+                    ns_top *= inLight;
+                }
+            }
+
+            bool angular = hasNrml && !hm.NoShade;
+            float NdotL = -(nrml.x * ldx + nrml.y * ldy + nrml.z * ldz);
+            Flt3 diff = alb * (NdotL * (NdotL > 0.0f & angular) + !angular);
+
+            const AzMtl &lMat = mats[fm[lIdx]];
+            resultColor += (throughput & diff & lMat.Ems) * inLight;
+        }
+
+        if (hm.NoShade) {
+            radiance += resultColor;
+            break;
+        }
+
+        // Indirect lighting
         ray.o = vrtx;
-        ray.d = randomHemisphereSample(&rnd, nrml);
+        ray.d = hm.Rf ? ray.d - nrml * 2.0f * (nrml * ray.d) :
+                hm.Tr ? ray.d : randomHemisphereSample(&rnd, nrml);
+        ray.invd = 1.0f / ray.d;
+        ray.ignore = hidx;
 
-        radiance += rayColor * hm.Ems;
+        // Apply Lambertian BRDF
+        throughput &= alb * M_1_PI;
 
-        rayColor &= alb;
+        radiance += resultColor * (1 - hm.Tr);
     }
 
     // Tone mapping
