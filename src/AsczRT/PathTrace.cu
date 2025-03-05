@@ -399,6 +399,11 @@ __global__ void pathtraceKernel(
             resultColor += (throughput & diff & lMat.Ems) * inLight;
         }
 
+        if (hm.NoShade) {
+            radiance += resultColor;
+            break;
+        }
+
         // Indirect lighting
         ray.o = vrtx;
         ray.d = hm.Rf ? ray.d - nrml * 2.0f * (nrml * ray.d) :
