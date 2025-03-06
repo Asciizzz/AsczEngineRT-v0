@@ -244,14 +244,15 @@ __global__ void pathtraceKernel(
         float rndB = curand_uniform(&rnd[tIdx]);
 
         ray.o = vrtx;
-        ray.d = hm.Rf ? // Reflective 
-                    ray.d - nrml * 2.0f * (nrml * ray.d) :
-                hm.Tr ? // Transmissive
-                    ray.d :
-                nrml.isZero() ? // Diffuse
-                    randomSphereSample(rndA, rndB) : 
-                    randomHemisphereSample(rndA, rndB, nrml);
-        ray.invd = 1.0f / ray.d;
+
+        Flt3 diff = randomHemisphereSample(rndA, rndB, nrml);
+        Flt3 spec = ray.d - nrml * 2.0f * (nrml * ray.d);
+        // Linear interpolation between diffuse and specular based on roughness
+        Flt3 rD = diff * hm.Rough + spec * (1.0f - hm.Rough);
+        rD /= rD.x * rD.x + rD.y * rD.y + rD.z * rD.z;
+
+        ray.d = rD;
+        ray.invd = 1.0f / rD;
         ray.ignore = hidx;
         ray.Ior = hm.Ior;
     }

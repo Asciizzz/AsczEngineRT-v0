@@ -4,4 +4,5 @@ Kd 0.4 0.4 0.4
 newmtl glass
 #Tr 1.0
 #Kd 20.0 20.0 20.0
-Ems 0.5 0.5 0.5
+#Ems 0.5 0.5 0.5
+Rough 0.05

@@ -16,9 +16,9 @@
 # .heavy/Fnaf/Light.obj 0 1
 
 ## Building
-# assets/Models/Structure/Buildings/Building001.obj 2 1
-# assets/Models/Structure/Buildings/Light.obj 0 1
-# assets/Models/Structure/Buildings/Floor/Floor.obj 0 2
+assets/Models/Structure/Buildings/Building001.obj 2 1
+assets/Models/Structure/Buildings/Light.obj 0 1
+assets/Models/Structure/Buildings/Floor/Floor.obj 0 2
 
 ## Street
 # .heavy/Street/Street.obj 2 0.1

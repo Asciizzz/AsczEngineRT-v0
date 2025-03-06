@@ -7,7 +7,7 @@ struct AzMtl {
     Flt3 Alb = 1.0f;
     int AlbMap = -1;
 
-    float Rough = 0.5f;
+    float Rough = 1.0f;
     float Metal = 0.0f;
 
     float Tr = 0.0f;

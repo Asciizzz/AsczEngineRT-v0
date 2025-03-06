@@ -150,9 +150,13 @@ void Utils::appendObj(
                     );
                 }
                 // Roughness
-                else if (mtlType == "Ns" || mtlType == "Rough") {
+                else if (mtlType == "Rough") {
+                    float Rough; mtlSS >> Rough;
+                    MatMgr.h_mtls[matIdx].Rough = Rough;
+                }
+                else if (mtlType == "Ns") { // Outdated
                     float Ns; mtlSS >> Ns;
-                    MatMgr.h_mtls[matIdx].Rough = 1 - Ns / 1000;
+                    MatMgr.h_mtls[matIdx].Rough = 1.0f - Ns / 1000.0f;
                 }
                 // Metallic
                 else if (mtlType == "Ks" || mtlType == "Metal") {
