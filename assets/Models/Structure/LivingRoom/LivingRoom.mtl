@@ -41,6 +41,7 @@ Tr 0.000000
 newmtl Emmision
 #Ns 323.999994
 Alb 0.800000 0.800000 0.800000
+Ems 6.000000 6.000000 8.000000
 Ior 1.000000
 Tr 0.000000
 
@@ -97,8 +98,8 @@ newmtl Netflix
 Alb 0.000000 0.000000 0.000000
 Ior 1.450000
 Tr 0.000000
-AlbMap Wtf.png
-Ems 0.8 0.5 0.5
+#AlbMap Wtf.png
+#Ems 0.8 0.5 0.5
 
 newmtl None
 #Ns 500

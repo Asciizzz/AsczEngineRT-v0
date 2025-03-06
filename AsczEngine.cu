@@ -35,7 +35,6 @@ __global__ void bilateralFilter(Flt3* framebuffer, Flt3* output, int width, int 
 
     int idx = y * width + x;
     Flt3 centerColor = framebuffer[idx];
-    centerColor.clamp(0.0f, 1.0f);
 
     Flt3 sumColor = {0, 0, 0};
     float sumWeight = 0.0f;
@@ -47,7 +46,6 @@ __global__ void bilateralFilter(Flt3* framebuffer, Flt3* output, int width, int 
 
             int nIdx = ny * width + nx;
             Flt3 neighborColor = framebuffer[nIdx];
-            neighborColor.clamp(0.0f, 1.0f);
 
             // Spatial weight (Gaussian based on distance)
             float spatialWeight = expf(-(dx * dx + dy * dy) / (2.0f * sigma_spatial * sigma_spatial));
@@ -64,7 +62,6 @@ __global__ void bilateralFilter(Flt3* framebuffer, Flt3* output, int width, int 
 
     output[idx] = sumColor / sumWeight;
 }
-
 
 int main() {
     // =================== Initialize FPS and Window ==============
@@ -191,17 +188,21 @@ int main() {
 
         // Press 1-3 to toggle render mode
         if (Win.keys['1']) {
-            if (renderMode == 0) fakeShading = !fakeShading;
+            if (renderMode == 0)
+                fakeShading = !fakeShading;
 
-            Win.keys['1'] = false; renderMode = 0;
+            Win.keys['1'] = false;
+            renderMode = 0;
         }
-        else if (Win.keys['2']) {
-            if (renderMode == 1) curFalseAmb = !curFalseAmb * falseAmbient;
+        // else if (Win.keys['2']) {
+        //     if (renderMode == 1) curFalseAmb = !curFalseAmb * falseAmbient;
 
-            Win.keys['2'] = false; renderMode = 1;
-        }
-        else if (Win.keys['3']) {
-            Win.keys['3'] = false; renderMode = 2;
+        //     Win.keys['2'] = false; renderMode = 1;
+        // }
+        else if (Win.keys['2'] || Win.keys['3']) {
+            Win.keys['2'] = false;
+            Win.keys['3'] = false;
+            renderMode = 2;
         }
 
         // Press F to change focal distance
