@@ -9,16 +9,16 @@
 # assets/Models/Character/Paimon/Paimon.obj 0 1
 
 ## LivingRoom
-# assets/Models/Structure/LivingRoom/LivingRoom.obj 2 1
+assets/Models/Structure/LivingRoom/LivingRoom.obj 2 1
 
 ## Fnaf
 # .heavy/Fnaf/Fnaf1.obj 1 1
 # .heavy/Fnaf/Light.obj 0 1
 
 ## Building
-assets/Models/Structure/Buildings/Building001.obj 2 1
-assets/Models/Structure/Buildings/Light.obj 0 1
-assets/Models/Structure/Buildings/Floor/Floor.obj 0 2
+# assets/Models/Structure/Buildings/Building001.obj 2 1
+# assets/Models/Structure/Buildings/Light.obj 0 1
+# assets/Models/Structure/Buildings/Floor/Floor.obj 0 2
 
 ## Street
 # .heavy/Street/Street.obj 2 0.1

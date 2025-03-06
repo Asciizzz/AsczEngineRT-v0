@@ -247,11 +247,11 @@ __global__ void pathtraceKernel(
 
         Flt3 diff = randomHemisphereSample(rndA, rndB, nrml);
         Flt3 spec = ray.d - nrml * 2.0f * (nrml * ray.d);
-        // Linear interpolation between diffuse and specular based on roughness
+        // Lerp diffuse and specular from roughness
         Flt3 rD = diff * hm.Rough + spec * (1.0f - hm.Rough);
         rD /= rD.x * rD.x + rD.y * rD.y + rD.z * rD.z;
 
-        ray.d = rD;
+        ray.d = nrml.isZero() ? randomSphereSample(rndA, rndB) : rD;
         ray.invd = 1.0f / rD;
         ray.ignore = hidx;
         ray.Ior = hm.Ior;
