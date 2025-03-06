@@ -230,7 +230,6 @@ int main() {
         }
 
         if (Cam.focus) {
-
             // Get previous cursor position
             POINT prev;
             GetCursorPos(&prev);
@@ -270,10 +269,8 @@ int main() {
 
             // Update camera
             Cam.update();
-        }
 
-        if (Cam.focus) {
-            POINT center = { Win.width / 2, Win.height / 2 };
+            center = { Win.width / 2, Win.height / 2 };
             ClientToScreen(Win.hwnd, &center);
             SetCursorPos(center.x, center.y);
         }
@@ -311,7 +308,6 @@ int main() {
             break;
 
         case 2:
-
             pathtraceKernel<<<Win.blockCount, Win.threadCount>>>(
                 Cam, Win.d_frmbuffer1, Win.width, Win.height,
 
@@ -332,7 +328,6 @@ int main() {
                                 prevMode != renderMode;
             if (changeRender) {
                 accumulate = 1;
-
                 copyFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer2, Win.width * Win.height);
             } else {
                 accumulate ++;
@@ -340,8 +335,8 @@ int main() {
                 divFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer2, Win.width * Win.height, accumulate);
 
                 // Bilateral filter
-                bilateralFilter<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer3, Win.width, Win.height);
-                // copyFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer3, Win.width * Win.height);
+                // bilateralFilter<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer3, Win.width, Win.height);
+                copyFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer3, Win.width * Win.height);
             }
             prevPos = Cam.pos;
             prevRot = Cam.rot;

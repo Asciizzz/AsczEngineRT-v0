@@ -1,40 +1,30 @@
 #include <PathTrace.cuh>
 #include <AzDevMath.cuh>
 
-__device__ Flt3 randomHemisphereSample(curandState *rnd, const Flt3 &n, float exponent = 2.0f) {
-    if (n.isZero()) {
-        float r1 = curand_uniform(rnd);
-        float r2 = curand_uniform(rnd);
-
-        float theta = 2.0f * M_PI * r1;
-        float phi = acos(2.0f * r2 - 1.0f);
-
-        return Flt3(sin(phi) * cos(theta), sin(phi) * sin(theta), cos(phi));
-    }
-
-    float r1 = curand_uniform(rnd);  
-    float r2 = curand_uniform(rnd);
-
-    // Control distribution sharpness with an exponent
-    float theta = acos(pow(1.0f - r1, 1.0f / (exponent + 1.0f)));  // Sharper bias to normal
+__device__ Flt3 randomHemisphereSample(float r1, float r2, const Flt3 &n) {
+    float theta = acos(sqrtf(1.0f - r1));
     float phi = 2.0f * M_PI * r2;
 
-    // Convert to Cartesian coordinates
     float x = sin(theta) * cos(phi);
     float y = sin(theta) * sin(phi);
     float z = cos(theta);
 
     // Construct a coordinate system
-    Flt3 tangent, bitangent;
+    Flt3 tang = (fabsf(n.x) > 0.9 ? Flt3(0, 1, 0) : Flt3(1, 0, 0)) ^ n;
+    tang /= tang.x * tang.x + tang.y * tang.y + tang.z * tang.z;
 
-    tangent = n.x > 0.9f || n.x < -0.9f ? Flt3(0, 1, 0) : Flt3(1, 0, 0);
-    tangent = (tangent ^ n).norm();
-    bitangent = n ^ tangent;
+    Flt3 bitang = n ^ tang;
 
     // Transform to world space
-    return tangent * x + bitangent * y + n * z;
+    return tang * x + bitang * y + n * z;
 }
 
+__device__ Flt3 randomSphereSample(float r1, float r2) {
+    float theta = 2.0f * M_PI * r1;
+    float phi = acos(2.0f * r2 - 1.0f);
+
+    return Flt3(sin(phi) * cos(theta), sin(phi) * sin(theta), cos(phi));
+}
 
 
 __global__ void pathtraceKernel(
@@ -60,6 +50,7 @@ __global__ void pathtraceKernel(
 
     float rnd1 = curand_uniform(&rnd[tIdx]);
     float rnd2 = curand_uniform(&rnd[tIdx]);
+
     Ray ray = camera.castRay(tX, tY, frmW, frmH, rnd1, rnd2);
 
     const int MAX_NODES = 64;
@@ -246,9 +237,17 @@ __global__ void pathtraceKernel(
         throughput &= alb * (1 - hm.Tr) + hm.Tr;
 
         // Indirect lighting
+        float rndA = curand_uniform(&rnd[tIdx]);
+        float rndB = curand_uniform(&rnd[tIdx]);
+
         ray.o = vrtx;
-        ray.d = hm.Rf ? ray.d - nrml * 2.0f * (nrml * ray.d) :
-                hm.Tr ? ray.d : randomHemisphereSample(&rnd[tIdx], nrml);
+        ray.d = hm.Rf ? // Reflective 
+                    ray.d - nrml * 2.0f * (nrml * ray.d) :
+                hm.Tr ? // Transmissive
+                    ray.d :
+                nrml.isZero() ? // Diffuse
+                    randomSphereSample(rndA, rndB) : 
+                    randomHemisphereSample(rndA, rndB, nrml);
         ray.invd = 1.0f / ray.d;
         ray.ignore = hidx;
         ray.Ior = hm.Ior;
