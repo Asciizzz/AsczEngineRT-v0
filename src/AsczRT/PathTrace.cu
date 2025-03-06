@@ -4,6 +4,16 @@
 #include <curand_kernel.h>
 
 __device__ Flt3 randomHemisphereSample(curandState *rnd, const Flt3 &n, float exponent = 2.0f) {
+    if (n.isZero()) {
+        float r1 = curand_uniform(rnd);
+        float r2 = curand_uniform(rnd);
+
+        float theta = 2.0f * M_PI * r1;
+        float phi = acos(2.0f * r2 - 1.0f);
+
+        return Flt3(sin(phi) * cos(theta), sin(phi) * sin(theta), cos(phi));
+    }
+
     float r1 = curand_uniform(rnd);  
     float r2 = curand_uniform(rnd);
 
@@ -230,7 +240,7 @@ __global__ void pathtraceKernel(
         nrml.y = hasNrml ? ny[n0] * hw + ny[n1] * hu + ny[n2] * hv : 0.0f;
         nrml.z = hasNrml ? nz[n0] * hw + nz[n1] * hu + nz[n2] * hv : 0.0f;
 
-        float NdotL = ray.d * nrml; NdotL *= NdotL;
+        float NdotL = ray.d * nrml * hasNrml + !hasNrml;
         radiance.x += throughput.x * hm.Ems.x * hm.Ems.w * NdotL;
         radiance.y += throughput.y * hm.Ems.y * hm.Ems.w * NdotL;
         radiance.z += throughput.z * hm.Ems.z * hm.Ems.w * NdotL;
@@ -239,10 +249,14 @@ __global__ void pathtraceKernel(
 
         // Indirect lighting
         ray.o = vrtx;
-        ray.d = hm.Rf ? ray.d - nrml * 2.0f * (nrml * ray.d) :
+        
+        Flt3 rD=hm.Rf ? ray.d - nrml * 2.0f * (nrml * ray.d) :
                 hm.Tr ? ray.d : randomHemisphereSample(&rnd, nrml);
-        ray.invd = 1.0f / ray.d;
+        ray.d = rD * ray.d < 0.0f ? rD : -rD;
+        ray.invd = 1.0f / rD;
+        
         ray.ignore = hidx;
+        ray.Ior = hm.Ior;
     }
 
     frmbuffer[tIdx] = radiance;
