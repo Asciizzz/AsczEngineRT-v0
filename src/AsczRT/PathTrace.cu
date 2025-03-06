@@ -241,20 +241,18 @@ __global__ void pathtraceKernel(
         nrml.z = hasNrml ? nz[n0] * hw + nz[n1] * hu + nz[n2] * hv : 0.0f;
 
         float NdotL = ray.d * nrml * hasNrml + !hasNrml;
-        radiance.x += throughput.x * hm.Ems.x * hm.Ems.w * NdotL;
-        radiance.y += throughput.y * hm.Ems.y * hm.Ems.w * NdotL;
-        radiance.z += throughput.z * hm.Ems.z * hm.Ems.w * NdotL;
+        float lIntensity = NdotL * NdotL * hm.Ems.w;
+        radiance.x += throughput.x * hm.Ems.x * lIntensity;
+        radiance.y += throughput.y * hm.Ems.y * lIntensity;
+        radiance.z += throughput.z * hm.Ems.z * lIntensity;
 
         throughput &= alb * (1 - hm.Tr) + hm.Tr;
 
         // Indirect lighting
         ray.o = vrtx;
-        
-        Flt3 rD=hm.Rf ? ray.d - nrml * 2.0f * (nrml * ray.d) :
+        ray.d = hm.Rf ? ray.d - nrml * 2.0f * (nrml * ray.d) :
                 hm.Tr ? ray.d : randomHemisphereSample(&rnd, nrml);
-        ray.d = rD * ray.d < 0.0f ? rD : -rD;
-        ray.invd = 1.0f / rD;
-        
+        ray.invd = 1.0f / ray.d;
         ray.ignore = hidx;
         ray.Ior = hm.Ior;
     }
