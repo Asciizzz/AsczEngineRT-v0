@@ -1,8 +1,6 @@
 #include <PathTrace.cuh>
 #include <AzDevMath.cuh>
 
-#include <curand_kernel.h>
-
 __device__ Flt3 randomHemisphereSample(curandState *rnd, const Flt3 &n, float exponent = 2.0f) {
     if (n.isZero()) {
         float r1 = curand_uniform(rnd);
@@ -53,17 +51,16 @@ __global__ void pathtraceKernel(
     float *mi_x, float *mi_y, float *mi_z, float *mx_x, float *mx_y, float *mx_z, int *pl, int *pr, bool *lf, int *gIdx,
 
     // Additional Debug Data
-    int randSeed
+    curandState *rnd
 ) {
     int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
     if (tIdx >= frmW * frmH) return;
 
-    curandState rnd;
-    curand_init(randSeed + tIdx, tIdx, 0, &rnd);
-
     int tX = tIdx % frmW, tY = tIdx / frmW;
 
-    Ray ray = camera.castRay(tX, tY, frmW, frmH, curand_uniform(&rnd), curand_uniform(&rnd));
+    float rnd1 = curand_uniform(&rnd[tIdx]);
+    float rnd2 = curand_uniform(&rnd[tIdx]);
+    Ray ray = camera.castRay(tX, tY, frmW, frmH, rnd1, rnd2);
 
     const int MAX_NODES = 64;
     const int MAX_BOUNCES = 4;
@@ -251,7 +248,7 @@ __global__ void pathtraceKernel(
         // Indirect lighting
         ray.o = vrtx;
         ray.d = hm.Rf ? ray.d - nrml * 2.0f * (nrml * ray.d) :
-                hm.Tr ? ray.d : randomHemisphereSample(&rnd, nrml);
+                hm.Tr ? ray.d : randomHemisphereSample(&rnd[tIdx], nrml);
         ray.invd = 1.0f / ray.d;
         ray.ignore = hidx;
         ray.Ior = hm.Ior;

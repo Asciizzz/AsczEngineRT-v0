@@ -63,6 +63,13 @@ __global__ void bilateralFilter(Flt3* framebuffer, Flt3* output, int width, int 
     output[idx] = sumColor / sumWeight;
 }
 
+__global__ void initRandState(curandState *state, int width, int height, int seed) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx < width * height) {
+        curand_init(seed, idx, 0, &state[idx]);
+    }
+}
+
 int main() {
     // =================== Initialize FPS and Window ==============
     FpsHandler &FPS = FpsHandler::instance();
@@ -155,6 +162,10 @@ int main() {
     float prevFdst = Cam.focalDist;
     short prevMode = renderMode;
 
+    curandState *d_randStates;
+    cudaMalloc(&d_randStates, Win.width * Win.height * sizeof(curandState));
+    initRandState<<<Win.blockCount, Win.threadCount>>>(d_randStates, Win.width, Win.height, accumulate);
+
     MSG msg = { 0 };
     while (msg.message != WM_QUIT) {
         FPS.startFrame();
@@ -215,7 +226,7 @@ int main() {
         if (Win.keys['R']) {
             Win.keys['R'] = false;
             Cam.aperture += (Win.keys[VK_CONTROL] ? -1.0f : 1.0f) *
-                            (Win.keys[VK_SHIFT] ? 0.5f : 0.05f);
+                            (Win.keys[VK_SHIFT] ? 0.1f : 0.005f);
         }
 
         if (Cam.focus) {
@@ -300,6 +311,7 @@ int main() {
             break;
 
         case 2:
+
             pathtraceKernel<<<Win.blockCount, Win.threadCount>>>(
                 Cam, Win.d_frmbuffer1, Win.width, Win.height,
 
@@ -310,7 +322,7 @@ int main() {
 
                 Bvh.d_mi_x, Bvh.d_mi_y, Bvh.d_mi_z, Bvh.d_mx_x, Bvh.d_mx_y, Bvh.d_mx_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_gIdx,
 
-                accumulate
+                d_randStates
             );
 
             bool changeRender = prevPos != Cam.pos ||

@@ -28,7 +28,7 @@ public:
     Flt3 frwd, rght, up;
     void updateView();
 
-    float aperture = 0.0f;
+    float aperture = 0.005f;
     float focalDist = 1.0f;
 
     // Ray generation

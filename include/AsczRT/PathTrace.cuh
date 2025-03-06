@@ -7,6 +7,8 @@
 #include <AsczBvh.cuh>
 #include <AsczCam.cuh>
 
+#include <curand_kernel.h>
+
 __global__ void pathtraceKernel(
     AsczCam camera, Flt3 *frmbuffer, int frmW, int frmH, // In-out
     // Primitive data
@@ -21,7 +23,7 @@ __global__ void pathtraceKernel(
     float *mi_x, float *mi_y, float *mi_z, float *mx_x, float *mx_y, float *mx_z, int *pl, int *pr, bool *lf, int *gIdx,
 
     // Additional Debug Data
-    int randSeed
+    curandState *rnd
 );
 
 #endif
