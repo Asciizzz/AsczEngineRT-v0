@@ -9,7 +9,7 @@ __device__ Flt3 randomHemisphereSample(curandState *rnd, const Flt3 &n, float ex
 
     // Control distribution sharpness with an exponent
     float theta = acos(pow(1.0f - r1, 1.0f / (exponent + 1.0f)));  // Sharper bias to normal
-    float phi = 2.0f * M_PI * r2;  
+    float phi = 2.0f * M_PI * r2;
 
     // Convert to Cartesian coordinates
     float x = sin(theta) * cos(phi);
@@ -230,8 +230,12 @@ __global__ void pathtraceKernel(
         nrml.y = hasNrml ? ny[n0] * hw + ny[n1] * hu + ny[n2] * hv : 0.0f;
         nrml.z = hasNrml ? nz[n0] * hw + nz[n1] * hu + nz[n2] * hv : 0.0f;
 
-        radiance += throughput & hm.Ems;
-        throughput &= alb * (hm.Tr == 0) + hm.Tr * (hm.Tr > 0);
+        float NdotL = ray.d * nrml; NdotL *= NdotL;
+        radiance.x += throughput.x * hm.Ems.x * hm.Ems.w * NdotL;
+        radiance.y += throughput.y * hm.Ems.y * hm.Ems.w * NdotL;
+        radiance.z += throughput.z * hm.Ems.z * hm.Ems.w * NdotL;
+
+        throughput &= alb * (1 - hm.Tr) + hm.Tr;
 
         // Indirect lighting
         ray.o = vrtx;

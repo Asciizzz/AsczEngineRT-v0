@@ -13,7 +13,7 @@ struct AzMtl {
     float Tr = 0.0f;
     float Ior = 1.0f;
 
-    Flt3 Ems = 0.0f;
+    Flt4 Ems = 0.0f; // r, g, b, intensity
 
     // Debug values
     float Rf = 0.0f;

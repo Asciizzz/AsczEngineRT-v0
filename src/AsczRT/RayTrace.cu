@@ -208,11 +208,6 @@ __global__ void raytraceKernel(
         float NdotL = (nrml * ray.d) * hasNrml + !hasNrml;
         Flt3 finalColr = alb * falseAmbient * NdotL * NdotL;
 
-        if (!hm.Ems.isZero()) {
-            resultColr += (hm.Ems & alb) * ray.w;
-            continue;
-        }
-
         // Direct lighting
         for (int l = 0; l < lNum; ++l) {
             // Get material and geometry data of light
@@ -364,9 +359,6 @@ __global__ void raytraceKernel(
             bool angular = hasNrml && !hm.NoShade;
             float NdotL = -(nrml.x * ldx + nrml.y * ldy + nrml.z * ldz);
             Flt3 diff = alb * (NdotL * (NdotL > 0.0f) * angular + !angular);
-
-            const AzMtl &lMat = mats[fm[lIdx]];
-            finalColr += (lMat.Ems & diff) * inLight;
         }
 
         // ======== Additional rays ========

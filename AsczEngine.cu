@@ -35,6 +35,7 @@ __global__ void bilateralFilter(Flt3* framebuffer, Flt3* output, int width, int 
 
     int idx = y * width + x;
     Flt3 centerColor = framebuffer[idx];
+    centerColor.clamp(0.0f, 1.0f);
 
     Flt3 sumColor = {0, 0, 0};
     float sumWeight = 0.0f;
@@ -46,6 +47,7 @@ __global__ void bilateralFilter(Flt3* framebuffer, Flt3* output, int width, int 
 
             int nIdx = ny * width + nx;
             Flt3 neighborColor = framebuffer[nIdx];
+            neighborColor.clamp(0.0f, 1.0f);
 
             // Spatial weight (Gaussian based on distance)
             float spatialWeight = expf(-(dx * dx + dy * dy) / (2.0f * sigma_spatial * sigma_spatial));

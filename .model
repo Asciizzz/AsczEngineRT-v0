@@ -35,12 +35,12 @@
 # assets/Models/Structure/Bedroom2/Light.obj 0 1
 
 ## Dust2 + Short Dust (wingman)
-assets/Models/Structure/de_dust2/de_dust2.obj 2 1
-assets/Models/Structure/de_dust2/Light.obj 0 1
+# assets/Models/Structure/de_dust2/de_dust2.obj 2 1
+# assets/Models/Structure/de_dust2/Light.obj 0 1
 
 ## Dust2 A site
-# assets/Models/Structure/de_dust2_a/dust2_a.obj 2 1
-# assets/Models/Structure/de_dust2_a/Light.obj 0 1
+assets/Models/Structure/de_dust2_a/dust2_a.obj 2 1
+assets/Models/Structure/de_dust2_a/Light.obj 0 1
 
 ## Abandoned Factory (or warehouse i don't really know)
 # assets/Models/Structure/Aband/Aband.obj 2 0.01

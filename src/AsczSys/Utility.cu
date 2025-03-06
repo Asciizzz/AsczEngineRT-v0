@@ -116,9 +116,6 @@ void Utils::appendObj(
             ss >> matName;
 
             matIdx = matMap[matName];
-
-            // Check if the material is emissive
-            matEms = !MatMgr.h_mtls[matIdx].Ems.isZero();
         }
 
         else if (type == "mtllib" || type == "AzmLib") {
@@ -176,13 +173,14 @@ void Utils::appendObj(
                 }
                 // Index of refraction
                 else if (mtlType == "Ni" || mtlType == "Ior") {
-                    float Ni; mtlSS >> Ni;
-                    MatMgr.h_mtls[matIdx].Ior = Ni;
+                    float Ior; mtlSS >> Ior;
+                    MatMgr.h_mtls[matIdx].Ior = Ior;
                 }
                 // Emission
                 else if (mtlType == "Ke" || mtlType == "Ems") {
-                    Flt3 Ke; mtlSS >> Ke.x >> Ke.y >> Ke.z;
-                    MatMgr.h_mtls[matIdx].Ems = Ke;
+                    Flt4 Ems; mtlSS >> Ems.x >> Ems.y >> Ems.z >> Ems.w;
+                    Ems.w = Ems.w ? Ems.w : 1.0f;
+                    MatMgr.h_mtls[matIdx].Ems = Ems;
                 }
 
                 // DEBUG VALUES
