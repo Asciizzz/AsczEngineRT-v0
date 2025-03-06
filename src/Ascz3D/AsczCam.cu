@@ -33,7 +33,7 @@ void AsczCam::updateView() {
 }
 
 __device__
-Ray AsczCam::castRay(float x, float y, float w, float h, float rnd1, float rnd2) const {
+Ray AsczCam::castRay(float x, float y, float w, float h, float r1, float r2, float r3, float r4) const {
     float ndcX = (w - 2 * x) / w;
     float ndcY = (h - 2 * y) / h;
 
@@ -43,13 +43,19 @@ Ray AsczCam::castRay(float x, float y, float w, float h, float rnd1, float rnd2)
     Flt3 rD = frwd + (rght*ndcX*w_h + up*ndcY) * tanFov;
     rD /= rD.x * rD.x + rD.y * rD.y + rD.z * rD.z;
 
-    float r = aperture * sqrtf(rnd1);
-    float theta = 2 * M_PI * rnd2;
+    // r1, r2 for random aperture
+    float r = aperture * sqrtf(r1);
+    float theta = 2 * M_PI * r2;
 
     Flt3 rO = pos + (rght*cosf(theta) + up*sinf(theta)) * r;
 
     Flt3 focalPoint = pos + rD * focalDist;
+    // r3, r4 for antialiasing
+    focalPoint += (rght * (r3 - 0.5f) + up * (r4 - 0.5f)) * 0.005f;
+
     rD = (focalPoint - rO).norm();
+
+    // r3, r4 for antialiasing
 
     return Ray(rO, rD);
 }

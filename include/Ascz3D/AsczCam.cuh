@@ -28,11 +28,11 @@ public:
     Flt3 frwd, rght, up;
     void updateView();
 
-    float aperture = 0.005f;
+    float aperture = 0.0f;
     float focalDist = 1.0f;
 
     // Ray generation
-    __device__ Ray castRay(float x, float y, float w, float h, float rnd1=0.0f, float rnd2=0.0f) const;
+    __device__ Ray castRay(float x, float y, float w, float h, float r1=0.0f, float r2=0.0f, float r3=0.0f, float r4=0.0f) const;
 
     void update();
 

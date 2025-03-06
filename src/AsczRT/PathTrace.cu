@@ -50,8 +50,11 @@ __global__ void pathtraceKernel(
 
     float rnd1 = curand_uniform(&rnd[tIdx]);
     float rnd2 = curand_uniform(&rnd[tIdx]);
+    float rnd3 = curand_uniform(&rnd[tIdx]);
+    float rnd4 = curand_uniform(&rnd[tIdx]);
 
-    Ray ray = camera.castRay(tX, tY, frmW, frmH, rnd1, rnd2);
+    Ray ray = camera.castRay(tX, tY, frmW, frmH,
+                            rnd1, rnd2, rnd3, rnd4);
 
     const int MAX_NODES = 64;
     const int MAX_BOUNCES = 4;
