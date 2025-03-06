@@ -231,8 +231,7 @@ __global__ void pathtraceKernel(
         nrml.z = hasNrml ? nz[n0] * hw + nz[n1] * hu + nz[n2] * hv : 0.0f;
 
         radiance += throughput & hm.Ems;
-
-        throughput &= alb;
+        throughput &= alb * (hm.Tr == 0) + hm.Tr * (hm.Tr > 0);
 
         // Indirect lighting
         ray.o = vrtx;

@@ -146,6 +146,7 @@ int main() {
     float falseAmbient = 0.1f; // Good for pitch black areas
     float curFalseAmb = falseAmbient;
     bool hasDebug = true;
+    bool fakeShading = false;
 
     int accumulate = 0;
 
@@ -188,6 +189,8 @@ int main() {
 
         // Press 1-3 to toggle render mode
         if (Win.keys['1']) {
+            if (renderMode == 0) fakeShading = !fakeShading;
+
             Win.keys['1'] = false; renderMode = 0;
         }
         else if (Win.keys['2']) {
@@ -272,7 +275,9 @@ int main() {
                 Mat.d_mtls,
                 Txtr.d_tr, Txtr.d_tg, Txtr.d_tb, Txtr.d_ta, Txtr.d_tw, Txtr.d_th, Txtr.d_toff,
 
-                Bvh.d_mi_x, Bvh.d_mi_y, Bvh.d_mi_z, Bvh.d_mx_x, Bvh.d_mx_y, Bvh.d_mx_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_gIdx
+                Bvh.d_mi_x, Bvh.d_mi_y, Bvh.d_mi_z, Bvh.d_mx_x, Bvh.d_mx_y, Bvh.d_mx_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_gIdx,
+
+                fakeShading
             );
             break;
 

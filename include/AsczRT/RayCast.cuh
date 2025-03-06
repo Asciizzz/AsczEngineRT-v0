@@ -18,14 +18,16 @@ __global__ void raycastKernel(
     // Textures
     float *tr, float *tg, float *tb, float *ta, int *tw, int *th, int *toff,
     // BVH data
-    float *mi_x, float *mi_y, float *mi_z, float *mx_x, float *mx_y, float *mx_z, int *pl, int *pr, bool *lf, int *gIdx
+    float *mi_x, float *mi_y, float *mi_z, float *mx_x, float *mx_y, float *mx_z, int *pl, int *pr, bool *lf, int *gIdx,
+    // Fake shading (for better feel since you can get lost in the scene)
+    bool fakeShading
 ) {
     int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
     if (tIdx >= frmW * frmH) return;
 
     int x = tIdx % frmW, y = tIdx / frmW;
     Ray ray = camera.castRay(x, y, frmW, frmH);
-    
+
     // Hit info
     int hidx = -1;
     float ht = 1e9f;
@@ -184,6 +186,19 @@ __global__ void raycastKernel(
     int t_idx = t_off + t_y * t_w + t_x;
 
     Flt3 alb = hasTxtr ? Flt3(tr[t_idx], tg[t_idx], tb[t_idx]) : hm.Alb;
+
+    // Normal interpolation
+    Flt3 nrml; bool hasNrml = fn0[hidx] > -1;
+    int n0 = fn0[hidx], n1 = fn1[hidx], n2 = fn2[hidx];
+    nrml.x = hasNrml ? nx[n0] * hw + nx[n1] * hu + nx[n2] * hv : 0.0f;
+    nrml.y = hasNrml ? ny[n0] * hw + ny[n1] * hu + ny[n2] * hv : 0.0f;
+    nrml.z = hasNrml ? nz[n0] * hw + nz[n1] * hu + nz[n2] * hv : 0.0f;
+
+    // If fake shading is enabled, we'll shade based on the normal
+    if (fakeShading) {
+        float NdotL = nrml * ray.d;
+        alb *= NdotL * NdotL;
+    }
 
     frmbuffer[tIdx] = alb;
 };
