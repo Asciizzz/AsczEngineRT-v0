@@ -235,7 +235,6 @@ void Utils::appendObj(
     mesh.SOrF = mSOrF;
     mesh.O_AB = mO_AB;
     mesh.SO_AB = mSO_AB;
-    mesh.lSrc = mlSrc;
 
     MeshMgr.appendMesh(mesh);
 }
