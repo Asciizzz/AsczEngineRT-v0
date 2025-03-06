@@ -23,7 +23,6 @@ void Utils::appendObj(
     VecAB mSO_AB; // Sub-objects AABB
 
     int matIdx = 0;
-    bool matEms = false;
     std::unordered_map<std::string, int> matMap;
 
     std::string path(objPath);
@@ -81,8 +80,6 @@ void Utils::appendObj(
 
             // Triangulate the face
             for (int i = 1; i < vs.size() - 1; ++i) {
-                if (matEms) mlSrc.push_back(mfv.size());
-
                 mfv.push_back(Int3(vs[0], vs[i], vs[i + 1]));
                 mft.push_back(Int3(ts[0], ts[i], ts[i + 1]));
                 mfn.push_back(Int3(ns[0], ns[i], ns[i + 1]));
