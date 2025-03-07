@@ -62,8 +62,8 @@ __global__ void pathtraceKernel(
     int nstack[MAX_NODES];
     int ns_top = 0;
 
-    Flt3 throughput = 1.0f; // Energy multiplier
-    Flt3 radiance = 0.0f; // Accumulated radiance
+    float thru_x = 1.0f, thru_y = 1.0f, thru_z = 1.0f; // Throughput
+    float radi_x = 0.0f, radi_y = 0.0f, radi_z = 0.0f; // Radiance
 
     for (int b = 0; b < MAX_BOUNCES; ++b) {
         int hidx = -1;
@@ -236,11 +236,13 @@ __global__ void pathtraceKernel(
         // Calculate the radiance
         float NdotL = ray.d * nrml * hasNrml + !hasNrml;
         float lIntensity = NdotL * NdotL * hm.Ems.w;
-        radiance.x += throughput.x * hm.Ems.x * lIntensity;
-        radiance.y += throughput.y * hm.Ems.y * lIntensity;
-        radiance.z += throughput.z * hm.Ems.z * lIntensity;
+        radi_x += thru_x * hm.Ems.x * alb.x * lIntensity;
+        radi_y += thru_y * hm.Ems.y * alb.y * lIntensity;
+        radi_z += thru_z * hm.Ems.z * alb.z * lIntensity;
 
-        throughput *= alb * (1 - hm.Tr) + hm.Tr;
+        thru_x *= alb.x * (1.0f - hm.Tr) + hm.Tr;
+        thru_y *= alb.y * (1.0f - hm.Tr) + hm.Tr;
+        thru_z *= alb.z * (1.0f - hm.Tr) + hm.Tr;
 
         // Indirect lighting
         float rndA = curand_uniform(&rnd[tIdx]);
@@ -254,11 +256,11 @@ __global__ void pathtraceKernel(
         Flt3 rD = diff * hm.Rough + spec * (1.0f - hm.Rough);
         rD /= rD.x * rD.x + rD.y * rD.y + rD.z * rD.z;
 
-        ray.d = hasNrml ? rD : randomSphereSample(rndA, rndB);
+        ray.d = hasNrml && !hm.NoShade ? rD : randomSphereSample(rndA, rndB);
         ray.invd = 1.0f / ray.d;
         ray.ignore = hidx;
         ray.Ior = hm.Ior;
     }
 
-    frmbuffer[tIdx] = radiance;
+    frmbuffer[tIdx] = Flt3(radi_x, radi_y, radi_z);
 }
