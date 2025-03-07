@@ -11,7 +11,8 @@ Is this a school project? Yesn't.
 Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 ¯\\_(ツ)_/¯
 
-<p align="center"><img src="assets/Demos/NoobVsProVsHacker.png" alt="Demo Image"/></p>
+<p align="center"><img src="assets/Demos/Shiroko.png" alt="Demo Image" />
+  <small><i>"Nn"</i></small></p>
 
 
 ###### Run *`cmake .. -G "Visual Studio 17 2022" -T host=x64`* inside of the `build/` folder to generate the project files.
@@ -215,5 +216,5 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 - **"Fun" fact**:
   - I do not have enough sleep.
 
-<p align="center"><img src="assets/Demos/Shiroko.png" alt="Demo Image" />
-  <small><i>"Nn"</i></small></p>
+<p align="center"><img src="assets/Demos/NoobVsProVsHacker.png" alt="Demo Image"/>
+  <i>"What's up youtube, welcome back to my lets play"</i></p>
