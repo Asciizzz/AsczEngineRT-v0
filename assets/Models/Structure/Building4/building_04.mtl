@@ -72,6 +72,7 @@ newmtl window_glass
 	Kd 0.124080 0.377120 0.640000
 	Ks 0.000000 0.000000 0.000000
 	Ke 0.000000 0.000000 0.000000
+	Rough 0.04
 
 newmtl plaster_white
 	Ns 0.000000

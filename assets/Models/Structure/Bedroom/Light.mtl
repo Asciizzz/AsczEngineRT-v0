@@ -1,5 +1,6 @@
-AzMtl LightA
-Ems 3.0 3.0 3.0
+AzMtl Door
+Alb 1.0 1.0 1.0
+Rough 0.1
 
-AzMtl LightB
-Ems 3.0 3.0 3.0
+AzMtl Ceiling
+Ems 1.0 1.0 1.0 3.0
