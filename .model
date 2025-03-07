@@ -1,19 +1,18 @@
-
 # .heavy/Fnaf/Fnaf1.obj 2 1
 # .heavy/Room/Room.obj 2 1
 # .heavy/Town/Town.obj 2 1
 # .heavy/Home/Home.obj 2 1
 # .heavy/Industry/Industry.obj 2 1
 # .heavy/Kitchen/Kitchen.obj 2 1
-
-# assets/Models/Character/Paimon/Paimon.obj 0 1
-
-## LivingRoom
-# assets/Models/Structure/LivingRoom/LivingRoom.obj 2 1
+# .heavy/Stronghold/Stronghold.obj 2 0.05
 
 ## Fnaf
 # .heavy/Fnaf/Fnaf1.obj 1 1
 # .heavy/Fnaf/Light.obj 0 1
+
+## LivingRoom
+# assets/Models/Structure/LivingRoom/LivingRoom.obj 2 1
+
 
 ## Building
 # assets/Models/Structure/Buildings/Building001.obj 2 1
@@ -25,9 +24,9 @@
 # .heavy/Street/Light.obj 0 1
 
 ## Bedroom
-assets/Models/Structure/Bedroom/Bedroom.obj 2 1
-assets/Models/Structure/Bedroom/Additional.obj 0 1
-assets/Models/Structure/Bedroom/Light.obj 0 1
+# assets/Models/Structure/Bedroom/Bedroom.obj 2 1
+# assets/Models/Structure/Bedroom/Additional.obj 0 1
+# assets/Models/Structure/Bedroom/Light.obj 0 1
 
 ## Bedroom2
 # assets/Models/Structure/Bedroom2/Bedroom.obj 2 1
@@ -39,12 +38,11 @@ assets/Models/Structure/Bedroom/Light.obj 0 1
 # assets/Models/Structure/de_dust2/Light.obj 0 1
 
 ## Dust2 A site
-# assets/Models/Structure/de_dust2_a/dust2_a.obj 2 1
-# assets/Models/Structure/de_dust2_a/Light.obj 0 1
+assets/Models/Structure/de_dust2_a/dust2_a.obj 2 1
+assets/Models/Structure/de_dust2_a/Light.obj 0 1
 
 ## Abandoned Factory (or warehouse i don't really know)
 # assets/Models/Structure/Aband/Aband.obj 2 0.01
-
 
 ## City
 # assets/Models/Structure/City/City.obj 2 0.01

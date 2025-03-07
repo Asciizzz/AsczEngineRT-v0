@@ -16,7 +16,7 @@ __global__ void pathtraceKernel(
     // Geometry data
     int *fv0, int *fv1, int *fv2, int *ft0, int *ft1, int *ft2, int *fn0, int *fn1, int *fn2, int *fm,
     // Materials
-    AzMtl *mats, int *lSrc, int lNum, 
+    AzMtl *mats,
     // Textures
     float *tr, float *tg, float *tb, float *ta, int *tw, int *th, int *toff,
     // BVH data

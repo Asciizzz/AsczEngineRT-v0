@@ -33,10 +33,6 @@ void AsczMesh::appendMesh(MeshStruct mesh) {
         h_nz.push_back(mesh.n[i].z);
     }
 
-    for (int i = 0; i < mesh.lSrc.size(); ++i) {
-        h_lSrc.push_back(mesh.lSrc[i] + h_fv0.size());
-    }
-
     #pragma omp parallel for
     for (int i = 0; i < mesh.fv.size(); ++i) {
         // Offset the indices and append
@@ -68,7 +64,6 @@ void AsczMesh::appendMesh(MeshStruct mesh) {
     nNum = h_nx.size();
 
     gNum = h_fv0.size();
-    lNum = h_lSrc.size();
 }
 
 void AsczMesh::freeDevice() {
@@ -91,8 +86,6 @@ void AsczMesh::freeDevice() {
     if (d_fn1) { cudaFree(d_fn1); d_fn1 = nullptr; }
     if (d_fn2) { cudaFree(d_fn2); d_fn2 = nullptr; }
     if (d_fm)  { cudaFree(d_fm);  d_fm  = nullptr; }
-
-    if (d_lSrc) { cudaFree(d_lSrc); d_lSrc = nullptr; }
 }
 
 void AsczMesh::toDevice() {
@@ -106,6 +99,4 @@ void AsczMesh::toDevice() {
     ToDevice::I(h_ft0, d_ft0); ToDevice::I(h_ft1, d_ft1); ToDevice::I(h_ft2, d_ft2);
     ToDevice::I(h_fn0, d_fn0); ToDevice::I(h_fn1, d_fn1); ToDevice::I(h_fn2, d_fn2);
     ToDevice::I(h_fm,  d_fm);
-
-    ToDevice::I(h_lSrc, d_lSrc);
 }

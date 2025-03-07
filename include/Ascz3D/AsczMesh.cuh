@@ -125,9 +125,6 @@ public:
     VecAB SO_AB; // Sub-objects AABB
     VecAB G_AB; // Geoms AABB
 
-    // Light sources (geometry act as light sources)
-    VecI h_lSrc;
-
     void appendMesh(MeshStruct mesh);
 
     // Device memory
@@ -140,8 +137,6 @@ public:
     int *d_fn0 = nullptr, *d_fn1 = nullptr, *d_fn2 = nullptr;
     int *d_fm  = nullptr;
     int gNum   = 0;
-
-    int *d_lSrc = nullptr; int lNum = 0;
 
     void freeDevice();
     void toDevice();

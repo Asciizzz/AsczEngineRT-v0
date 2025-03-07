@@ -34,7 +34,7 @@ __global__ void pathtraceKernel(
     // Geometry data
     int *fv0, int *fv1, int *fv2, int *ft0, int *ft1, int *ft2, int *fn0, int *fn1, int *fn2, int *fm,
     // Materials
-    AzMtl *mats, int *lSrc, int lNum, 
+    AzMtl *mats,
     // Textures
     float *tr, float *tg, float *tb, float *ta, int *tw, int *th, int *toff,
     // BVH data
@@ -252,7 +252,7 @@ __global__ void pathtraceKernel(
         rD /= rD.x * rD.x + rD.y * rD.y + rD.z * rD.z;
 
         ray.d = hasNrml ? rD : randomSphereSample(rndA, rndB);
-        ray.invd = 1.0f / rD;
+        ray.invd = 1.0f / ray.d;
         ray.ignore = hidx;
         ray.Ior = hm.Ior;
     }

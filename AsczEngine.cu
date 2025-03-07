@@ -8,7 +8,6 @@
 #include <AsczBvh.cuh>
 #include <AsczCam.cuh>
 
-#include <RayTrace.cuh>
 #include <PathTrace.cuh>
 #include <RayCast.cuh>
 
@@ -149,8 +148,6 @@ int main() {
     ShowCursor(FALSE);
 
     short renderMode = 0;
-    float falseAmbient = 0.1f; // Good for pitch black areas
-    float curFalseAmb = falseAmbient;
     bool hasDebug = true;
     bool fakeShading = false;
 
@@ -205,11 +202,6 @@ int main() {
             Win.keys['1'] = false;
             renderMode = 0;
         }
-        // else if (Win.keys['2']) {
-        //     if (renderMode == 1) curFalseAmb = !curFalseAmb * falseAmbient;
-
-        //     Win.keys['2'] = false; renderMode = 1;
-        // }
         else if (Win.keys['2'] || Win.keys['3']) {
             Win.keys['2'] = false;
             Win.keys['3'] = false;
@@ -293,27 +285,13 @@ int main() {
             break;
 
         case 1:
-            raytraceKernel<<<Win.blockCount, Win.threadCount>>>(
-                Cam, Win.d_frmbuffer2, Win.width, Win.height,
-
-                Mesh.d_vx, Mesh.d_vy, Mesh.d_vz, Mesh.d_tx, Mesh.d_ty, Mesh.d_nx, Mesh.d_ny, Mesh.d_nz,
-                Mesh.d_fv0, Mesh.d_fv1, Mesh.d_fv2, Mesh.d_ft0, Mesh.d_ft1, Mesh.d_ft2, Mesh.d_fn0, Mesh.d_fn1, Mesh.d_fn2, Mesh.d_fm,
-                Mat.d_mtls, Mesh.d_lSrc, Mesh.lNum,
-                Txtr.d_tr, Txtr.d_tg, Txtr.d_tb, Txtr.d_ta, Txtr.d_tw, Txtr.d_th, Txtr.d_toff,
-
-                Bvh.d_mi_x, Bvh.d_mi_y, Bvh.d_mi_z, Bvh.d_mx_x, Bvh.d_mx_y, Bvh.d_mx_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_gIdx,
-
-                curFalseAmb
-            );
-            break;
-
         case 2:
             pathtraceKernel<<<Win.blockCount, Win.threadCount>>>(
                 Cam, Win.d_frmbuffer1, Win.width, Win.height,
 
                 Mesh.d_vx, Mesh.d_vy, Mesh.d_vz, Mesh.d_tx, Mesh.d_ty, Mesh.d_nx, Mesh.d_ny, Mesh.d_nz,
                 Mesh.d_fv0, Mesh.d_fv1, Mesh.d_fv2, Mesh.d_ft0, Mesh.d_ft1, Mesh.d_ft2, Mesh.d_fn0, Mesh.d_fn1, Mesh.d_fn2, Mesh.d_fm,
-                Mat.d_mtls, Mesh.d_lSrc, Mesh.lNum,
+                Mat.d_mtls,
                 Txtr.d_tr, Txtr.d_tg, Txtr.d_tb, Txtr.d_ta, Txtr.d_tw, Txtr.d_th, Txtr.d_toff,
 
                 Bvh.d_mi_x, Bvh.d_mi_y, Bvh.d_mi_z, Bvh.d_mx_x, Bvh.d_mx_y, Bvh.d_mx_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_gIdx,
