@@ -12,7 +12,7 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 ¯\\_(ツ)_/¯
 
 <p align="center"><img src="assets/Demos/AsczEngineRT_v0.png" alt="Demo Image" />
-  <small>Enjoy your stay.</small></p>
+  <small>"Enjoy your stay."</small></p>
 
 
 ###### Run *`cmake .. -G "Visual Studio 17 2022" -T host=x64`* inside of the `build/` folder to generate the project files.
