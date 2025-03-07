@@ -12,7 +12,6 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 ¯\\_(ツ)_/¯
 
 <p align="center"><img src="assets/Demos/NoobVsProVsHacker.png" alt="Demo Image"/></p>
-<p align="center"><img src="assets/Demos/Intro1.png" alt="Demo Image"/></p>
 
 
 ###### Run *`cmake .. -G "Visual Studio 17 2022" -T host=x64`* inside of the `build/` folder to generate the project files.
