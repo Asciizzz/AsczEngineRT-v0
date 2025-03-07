@@ -70,6 +70,7 @@ __global__ void pathtraceKernel(
         float ht = 1e9f;
         float hu = 0.0f;
         float hv = 0.0f;
+        float hw = 0.0f;
 
         ns_top = 0;
         nstack[ns_top++] = 0;
@@ -167,7 +168,7 @@ __global__ void pathtraceKernel(
                 float a = e1x * hx + e1y * hy + e1z * hz;
 
                 hit &= a != 0.0f;
-                a = a == 0.0f ? 1.0f : a;
+                a = (a == 0.0f) + a * (a != 0.0f);
 
                 float f = 1.0f / a;
 
@@ -184,8 +185,9 @@ __global__ void pathtraceKernel(
                 float qz = sx * e1y - sy * e1x;
 
                 float v = f * (ray.d.x * qx + ray.d.y * qy + ray.d.z * qz);
+                float w = 1.0f - u - v;
 
-                hit &= v >= 0.0f & u + v <= 1.0f;
+                hit &= v >= 0.0f & w >= 0.0f;
 
                 float t = f * (e2x * qx + e2y * qy + e2z * qz);
 
@@ -194,6 +196,7 @@ __global__ void pathtraceKernel(
                 ht = t * hit + ht * !hit;
                 hu = u * hit + hu * !hit;
                 hv = v * hit + hv * !hit;
+                hw = w * hit + hw * !hit;
                 hidx = gi * hit + hidx * !hit;
             }
         }
@@ -202,9 +205,8 @@ __global__ void pathtraceKernel(
 
         // Get the face data
         const AzMtl &hm = mats[fm[hidx]];
-        float hw = 1.0f - hu - hv;
 
-        // Vertex interpolation
+        // Vertex linear interpolation
         Flt3 vrtx = ray.o + ray.d * ht;
 
         // Texture interpolation (if available)
