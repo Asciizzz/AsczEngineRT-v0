@@ -78,26 +78,11 @@ void Utils::appendObj(
                 ns.push_back(n < 0 ? mn.size() + n : n - 1);
             }
 
-            if (ns[0] == -1) {
-                // Create new normal
-                // Flt3 n = (mv[vs[1]] - mv[vs[0]]).cross(mv[vs[2]] - mv[vs[0]]).norm();
-                Flt3 e1 = mv[vs[1]] - mv[vs[0]];
-                Flt3 e2 = mv[vs[2]] - mv[vs[0]];
-                Flt3 n = e1 & e2;
-                mn.push_back(n.norm());
-            }
-
             // Triangulate the face
             for (int i = 1; i < vs.size() - 1; ++i) {
                 mfv.push_back(Int3(vs[0], vs[i], vs[i + 1]));
                 mft.push_back(Int3(ts[0], ts[i], ts[i + 1]));
-
-                int nIdx = mn.size() - 1;
-
-                if (ns[0] == -1)
-                    mfn.push_back(Int3(nIdx, nIdx, nIdx));
-                else
-                    mfn.push_back(Int3(ns[0], ns[i], ns[i + 1]));
+                mfn.push_back(Int3(ns[0], ns[i], ns[i + 1]));
 
                 mfm.push_back(matIdx);
             }

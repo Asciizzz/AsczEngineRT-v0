@@ -29,13 +29,13 @@
 # assets/Models/Structure/Bedroom/Light.obj 0 1
 
 ## Bedroom2
-assets/Models/Structure/Bedroom2/Bedroom.obj 2 1
-assets/Models/Structure/Bedroom2/Additional.obj 0 1
-assets/Models/Structure/Bedroom2/Light.obj 0 1
+# assets/Models/Structure/Bedroom2/Bedroom.obj 2 1
+# assets/Models/Structure/Bedroom2/Additional.obj 0 1
+# assets/Models/Structure/Bedroom2/Light.obj 0 1
 
 ## Dust2 + Short Dust (wingman)
-# assets/Models/Structure/de_dust2/de_dust2.obj 2 1
-# assets/Models/Structure/de_dust2/Light.obj 0 1
+assets/Models/Structure/de_dust2/de_dust2.obj 2 1
+assets/Models/Structure/de_dust2/Light.obj 0 1
 
 ## Dust2 A site
 # assets/Models/Structure/de_dust2_a/dust2_a.obj 2 1
@@ -53,3 +53,4 @@ assets/Models/Structure/Bedroom2/Light.obj 0 1
 # assets/Models/Structure/Buildings/Floor/Floor.obj 0 2
 
 # assets/Models/Cornell/Cornell.obj 2 1
+# assets/Models/Structure/Buildings/Floor/Floor.obj 0 2

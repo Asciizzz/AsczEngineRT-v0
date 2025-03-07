@@ -233,9 +233,7 @@ __global__ void pathtraceKernel(
         nrml.y = hasNrml ? ny[n0] * hw + ny[n1] * hu + ny[n2] * hv : 0.0f;
         nrml.z = hasNrml ? nz[n0] * hw + nz[n1] * hu + nz[n2] * hv : 0.0f;
 
-        // Make sure the normal is facing the camera
-        nrml = nrml * ray.d < 0.0f ? nrml : -nrml;
-
+        // Calculate the radiance
         float NdotL = ray.d * nrml * hasNrml + !hasNrml;
         float lIntensity = NdotL * NdotL * hm.Ems.w;
         radiance.x += throughput.x * hm.Ems.x * lIntensity;
