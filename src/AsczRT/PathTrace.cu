@@ -237,7 +237,7 @@ __global__ void pathtraceKernel(
         radiance.y += throughput.y * hm.Ems.y * lIntensity;
         radiance.z += throughput.z * hm.Ems.z * lIntensity;
 
-        throughput &= alb * (1 - hm.Tr) + hm.Tr;
+        throughput *= alb * (1 - hm.Tr) + hm.Tr;
 
         // Indirect lighting
         float rndA = curand_uniform(&rnd[tIdx]);

@@ -89,7 +89,7 @@ struct Flt3 {
 
     // Element-wise multiplication
     __host__ __device__ Flt3 operator&(const Flt3 &v) const;
-    __host__ __device__ Flt3 operator&=(const Flt3 &v);
+    __host__ __device__ Flt3 operator*=(const Flt3 &v);
     // Dot product
     __host__ __device__ float operator*(const Flt3 &v) const;
     // Cross product 

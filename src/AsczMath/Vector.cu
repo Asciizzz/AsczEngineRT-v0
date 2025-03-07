@@ -113,7 +113,7 @@ bool Flt3::operator!=(const Flt3& v) const {
 Flt3 Flt3::operator&(const Flt3& v) const {
     return Flt3(x * v.x, y * v.y, z * v.z);
 }
-Flt3 Flt3::operator&=(const Flt3& v) {
+Flt3 Flt3::operator*=(const Flt3& v) {
     x *= v.x; y *= v.y; z *= v.z;
     return *this;
 }
