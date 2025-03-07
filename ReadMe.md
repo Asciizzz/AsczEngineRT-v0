@@ -216,5 +216,5 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 - **"Fun" fact**:
   - I do not have enough sleep.
 
-<p align="center"><img src="assets/Demos/Seia.png" alt="Demo Image" />
-  <small><i>"No longer muted"</i></small></p>
+<p align="center"><img src="assets/Demos/Shiroko.png" alt="Demo Image" />
+  <small><i>"Nn"</i></small></p>
