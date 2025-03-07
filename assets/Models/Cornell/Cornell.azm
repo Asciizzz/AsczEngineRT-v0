@@ -20,16 +20,16 @@ Alb 0.725 0.71 0.68
 
 AzMtl backWall
 Alb 0.725 0.71 0.68
-Rough 0.3
+Rough 0.1
 
 AzMtl shortBox
 Alb 0.725 0.71 0.68
-Ems 1.0 0.2 0.2 1.0
+#Ems 1.0 0.2 0.2 1.0
 
 
 AzMtl tallBox
 Alb 0.725 0.71 0.68
-Ems 0.2 1.0 0.2 1.0
+#Ems 0.2 1.0 0.2 1.0
 
 AzMtl light
 Alb 1 1 1
