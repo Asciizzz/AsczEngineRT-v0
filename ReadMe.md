@@ -123,6 +123,8 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 - This means we need to randomly sample rays from the lens surface and direct them toward the focal point.
 
 <p align="center"><img src="assets/Demos/DepthOfField.png" alt="Depth of Field"/></p>
+<p align="center"><img src="assets/Demos/DoFDemo.png" alt="Demo Image"/>
+  <small><i>de_dust2.</i></small></p>
 
 #### Reflectance
 
