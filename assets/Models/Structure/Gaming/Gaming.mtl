@@ -1,0 +1,89 @@
+# Blender 3.4.1 MTL File: 'gaming room .blend'
+# www.blender.org
+
+AzMtl Material.006
+#Ns 894.813782
+Alb 0.0 0.0 0.0
+
+AzMtl Material.007
+#Ns 360.0
+Alb 0.8 0.8 0.8
+
+AzMtl Material.008
+#Ns 250.0
+Alb 0.8 0.8 0.8
+
+AzMtl Material.010
+#Ns 250.0
+
+AzMtl Material.021
+#Ns 250.0
+Alb 0.336296 0.336296 0.336296
+
+AzMtl Material.022
+#Ns 250.0
+Alb 0.400839 0.400839 0.400839
+
+AzMtl Material.023
+#Ns 250.0
+Alb 0.8 0.8 0.8
+
+AzMtl Material.024
+Rough 0.2
+
+AzMtl Material.025
+#Ns 250.0
+Alb 0.355298 0.8 0.767104
+
+AzMtl Material.027
+#Ns 250.0
+Alb 0.383168 0.383168 0.383168
+
+AzMtl Material.028
+#Ns 250.0
+Alb 0.0 0.0 0.0
+
+AzMtl Material.031
+Alb 0.3 0.3 0.3
+Rough 0.2
+
+AzMtl Material.032
+#Ns 1000.0
+Alb 0.8 0.8 0.8
+
+AzMtl Material.033
+#Ns 250.0
+#map_Alb C:/Users/rata/Desktop/Blender project/Textures/depositphotos_70147859-stock-photo-texture-of-old-book-pages.jpg
+
+AzMtl Material.034
+#Ns 360.0
+Alb 0.8 0.8 0.8
+Ems 1.0 0.2 0.2 1.0
+
+
+AzMtl TV
+#Ns 250.0
+Alb 0.041291 0.041291 0.041291
+Ems 0.2 0.2 1.0 5.0
+
+AzMtl gtaV_intro
+#Ns 227.590240
+Alb 1.0 1.0 1.0
+Ems 0.8 0.5 0.7 1.0
+AlbMap AsczEngineRT_v0.png
+
+AzMtl photo-1586182987320-4f376d39d787
+#Ns 570.787231
+
+AzMtl rgb
+#Ns 360.0
+Alb 1.0 1.0 1.0
+
+AzMtl shelf
+#Ns 572.680847
+Alb 0.248892 0.248892 0.248892
+
+AzMtl white_light
+#Ns 360.0
+Alb 1.0 1.0 1.0
+Ems 1.0 1.0 1.0 1.0

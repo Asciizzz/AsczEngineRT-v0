@@ -1,0 +1,45 @@
+# Blender 4.1.1 MTL File: 'Sketchfab_2022_04_30_13_07_42.blend'
+# www.blender.org
+
+newmtl BR_2
+AlbMap textures/Walls.png
+
+newmtl Backrooms_WallPaper
+Alb 0.800000 0.800000 0.800000
+Ni 1.450000
+
+newmtl CeilingTile
+AlbMap textures/Ceiling2.png
+
+newmtl Ceiling_Grid
+AlbMap textures/Ceiling2.png
+Ni 1.450000
+
+newmtl Ceiling_Lights
+Alb 1.000000 1.000000 1.000000
+Ems 1.0 1.0 1.0 5.0
+
+newmtl Dot_Wallpaper
+AlbMap textures/Walls.png
+
+newmtl GreenSkirting
+AlbMap textures/Walls.png
+
+newmtl NewCarpet
+AlbMap textures/Carpet.png
+
+newmtl Piece1
+AlbMap textures/Piece_1.png
+
+newmtl PlugSocket
+AlbMap textures/Walls.png
+
+newmtl StripeWallpaper
+AlbMap textures/Walls.png
+
+newmtl Vents
+AlbMap textures/Vents.png
+
+newmtl dark
+Alb 0.013410 0.013410 0.013410
+Ni 1.450000
