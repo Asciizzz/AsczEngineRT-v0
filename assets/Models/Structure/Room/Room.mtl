@@ -1,0 +1,57 @@
+# Blender MTL File: 'Low poly living room.blend'
+# Material Count: 14
+
+AzMtl Black
+Alb 0.026239 0.026239 0.026239
+
+AzMtl Book_blue
+Alb 0.092224 0.147570 0.503964
+
+AzMtl Book_purple
+Alb 0.341048 0.143534 0.800000
+
+AzMtl Book_red
+Alb 0.537209 0.046042 0.036443
+
+AzMtl Book_yellow
+Alb 0.916936 0.802384 0.058027
+
+AzMtl Bookshelf
+Alb 0.078368 0.041052 0.023697
+
+AzMtl Grey
+Alb 0.129885 0.129885 0.129885
+
+AzMtl Leaves
+Alb 0.284226 0.752933 0.093523
+
+AzMtl Newspaper
+Alb 0.562961 0.562961 0.562961
+
+AzMtl Picture_1
+Alb 0.129885 0.129885 0.129885
+AlbMap Picture1.png
+Rough 0.1
+
+AzMtl Plant
+Alb 0.712353 0.344305 0.181489
+
+AzMtl Table
+Alb 0.178772 0.090104 0.049837
+
+AzMtl Wall_tile
+Alb 0.800000 0.800000 0.800000
+AlbMap BlackHerringbone_BaseColor.png
+Rough 0.5
+
+AzMtl White
+Alb 1.000000 1.000000 1.000000
+
+AzMtl WallShelf
+Alb 1.000000 1.000000 1.000000
+Ems 1.0 1.0 1.0 1.0
+
+AzMtl TV
+Alb 1.000000 1.000000 1.000000
+Ems 1.0 1.0 1.0 1.0
+AlbMap Wtf.png

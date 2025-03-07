@@ -193,6 +193,10 @@ int main() {
             Win.keys['H'] = false; hasDebug = !hasDebug;
         }
 
+        // Press + and - to change FOV
+        if      (Win.keys[VK_OEM_PLUS])  Cam.fov += 0.1f;
+        else if (Win.keys[VK_OEM_MINUS]) Cam.fov -= 0.1f;
+
         // Press 1-3 to toggle render mode
         if (Win.keys['1']) {
             if (renderMode == 0)
