@@ -17,7 +17,7 @@ Ni 1.450000
 
 newmtl Ceiling_Lights
 Alb 1.000000 1.000000 1.000000
-Ems 1.0 0.3 0.3 5.0
+Ems 1.0 1.0 1.0 5.0
 
 newmtl Dot_Wallpaper
 AlbMap textures/Walls.png
