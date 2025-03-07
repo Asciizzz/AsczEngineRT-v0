@@ -9,6 +9,8 @@ struct AzMtl {
 
     float Rough = 1.0f;
     float Metal = 0.0f;
+    // 0 < metal < 1 is physically impossible but AsczEngine allow it
+    // for "dusty metal" or painted metal surfaces
 
     float Tr = 0.0f;
     float Ior = 1.0f;
