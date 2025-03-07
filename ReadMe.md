@@ -11,7 +11,7 @@ Is this a school project? Yesn't.
 Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 ¯\\_(ツ)_/¯
 
-<p align="center"><img src="assets/Demos/Shiroko.png" alt="Demo Image" />
+<p align="center"><img src="assets/Models/Shiroko.png" alt="Demo Image" />
   <small><i>"N"</i></small></p>
 
 
