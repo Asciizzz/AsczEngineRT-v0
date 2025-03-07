@@ -1,21 +1,7 @@
-newmtl mat0
-Ns 500
-Ka 1.0 1.0 1.0
-Kd 1 1 1
-Ks 0.5 0.5 0.5
-Ke 0.0 0.0 0.0
-Ni 1.0
-d 1
-illum 2
-map_Kd Atlas_00001.png
+AzMtl mat0
+Alb 1 1 1
+AlbMap Atlas_00001.png
 
-newmtl mat1
-Ns 250
-Ka 1.0 1.0 1.0
-Kd 0.85 0.85 0.85
-Ks 0 0 0
-Ke 0.0 0.0 0.0
-Ni 1.0
-d 1
-illum 1
+AzMtl mat1
+Alb 0.85 0.85 0.85
 

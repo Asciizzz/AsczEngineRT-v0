@@ -198,7 +198,7 @@ __global__ void pathtraceKernel(
             }
         }
 
-        if (hidx == -1 || hidx == ray.ignore) break;
+        if (hidx == -1) break;
 
         // Get the face data
         const AzMtl &hm = mats[fm[hidx]];
@@ -251,7 +251,7 @@ __global__ void pathtraceKernel(
         Flt3 rD = diff * hm.Rough + spec * (1.0f - hm.Rough);
         rD /= rD.x * rD.x + rD.y * rD.y + rD.z * rD.z;
 
-        ray.d = nrml.isZero() ? randomSphereSample(rndA, rndB) : rD;
+        ray.d = hasNrml ? rD : randomSphereSample(rndA, rndB);
         ray.invd = 1.0f / rD;
         ray.ignore = hidx;
         ray.Ior = hm.Ior;
