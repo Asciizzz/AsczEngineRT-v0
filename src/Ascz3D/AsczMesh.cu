@@ -40,13 +40,17 @@ void AsczMesh::appendMesh(MeshStruct mesh) {
         h_fv1.push_back(mesh.fv[i].y + vPrev);
         h_fv2.push_back(mesh.fv[i].z + vPrev);
 
-        h_ft0.push_back(mesh.ft[i].x + tPrev);
-        h_ft1.push_back(mesh.ft[i].y + tPrev);
-        h_ft2.push_back(mesh.ft[i].z + tPrev);
+        bool hasN = mesh.fn[i].x != -1;
+        int offsetN = nPrev * hasN + !hasN;
+        h_fn0.push_back(mesh.fn[i].x + offsetN);
+        h_fn1.push_back(mesh.fn[i].y + offsetN);
+        h_fn2.push_back(mesh.fn[i].z + offsetN);
 
-        h_fn0.push_back(mesh.fn[i].x + nPrev);
-        h_fn1.push_back(mesh.fn[i].y + nPrev);
-        h_fn2.push_back(mesh.fn[i].z + nPrev);
+        bool hasT = mesh.ft[i].x != -1;
+        int offsetT = tPrev * hasT + !hasT;
+        h_ft0.push_back(mesh.ft[i].x + offsetT);
+        h_ft1.push_back(mesh.ft[i].y + offsetT);
+        h_ft2.push_back(mesh.ft[i].z + offsetT);
 
         h_fm .push_back(mesh.fm[i]);
 
@@ -70,21 +74,21 @@ void AsczMesh::freeDevice() {
     if (d_vx) { cudaFree(d_vx); d_vx = nullptr; }
     if (d_vy) { cudaFree(d_vy); d_vy = nullptr; }
     if (d_vz) { cudaFree(d_vz); d_vz = nullptr; }
-    if (d_tx) { cudaFree(d_tx); d_tx = nullptr; }
-    if (d_ty) { cudaFree(d_ty); d_ty = nullptr; }
     if (d_nx) { cudaFree(d_nx); d_nx = nullptr; }
     if (d_ny) { cudaFree(d_ny); d_ny = nullptr; }
     if (d_nz) { cudaFree(d_nz); d_nz = nullptr; }
+    if (d_tx) { cudaFree(d_tx); d_tx = nullptr; }
+    if (d_ty) { cudaFree(d_ty); d_ty = nullptr; }
 
     if (d_fv0) { cudaFree(d_fv0); d_fv0 = nullptr; }
     if (d_fv1) { cudaFree(d_fv1); d_fv1 = nullptr; }
     if (d_fv2) { cudaFree(d_fv2); d_fv2 = nullptr; }
-    if (d_ft0) { cudaFree(d_ft0); d_ft0 = nullptr; }
-    if (d_ft1) { cudaFree(d_ft1); d_ft1 = nullptr; }
-    if (d_ft2) { cudaFree(d_ft2); d_ft2 = nullptr; }
     if (d_fn0) { cudaFree(d_fn0); d_fn0 = nullptr; }
     if (d_fn1) { cudaFree(d_fn1); d_fn1 = nullptr; }
     if (d_fn2) { cudaFree(d_fn2); d_fn2 = nullptr; }
+    if (d_ft0) { cudaFree(d_ft0); d_ft0 = nullptr; }
+    if (d_ft1) { cudaFree(d_ft1); d_ft1 = nullptr; }
+    if (d_ft2) { cudaFree(d_ft2); d_ft2 = nullptr; }
     if (d_fm)  { cudaFree(d_fm);  d_fm  = nullptr; }
 }
 
@@ -92,11 +96,11 @@ void AsczMesh::toDevice() {
     freeDevice();
 
     ToDevice::F(h_vx, d_vx); ToDevice::F(h_vy, d_vy); ToDevice::F(h_vz, d_vz);
-    ToDevice::F(h_tx, d_tx); ToDevice::F(h_ty, d_ty);
     ToDevice::F(h_nx, d_nx); ToDevice::F(h_ny, d_ny); ToDevice::F(h_nz, d_nz);
+    ToDevice::F(h_tx, d_tx); ToDevice::F(h_ty, d_ty);
 
     ToDevice::I(h_fv0, d_fv0); ToDevice::I(h_fv1, d_fv1); ToDevice::I(h_fv2, d_fv2);
-    ToDevice::I(h_ft0, d_ft0); ToDevice::I(h_ft1, d_ft1); ToDevice::I(h_ft2, d_ft2);
     ToDevice::I(h_fn0, d_fn0); ToDevice::I(h_fn1, d_fn1); ToDevice::I(h_fn2, d_fn2);
+    ToDevice::I(h_ft0, d_ft0); ToDevice::I(h_ft1, d_ft1); ToDevice::I(h_ft2, d_ft2);
     ToDevice::I(h_fm,  d_fm);
 }

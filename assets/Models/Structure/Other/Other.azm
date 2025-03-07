@@ -6,4 +6,4 @@ AlbMap Floor2.png
 
 AzMtl light
 Alb 1.0 1.0 1.0
-Ems 1.0 1.0 1.0 3.0
+#Ems 1.0 1.0 1.0 3.0

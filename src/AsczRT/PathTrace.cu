@@ -161,13 +161,15 @@ __global__ void pathtraceKernel(
                 float a = e1x * hx + e1y * hy + e1z * hz;
 
                 hit &= a != 0.0f;
-                a = (a == 0.0f) + a * (a != 0.0f);
-
-                float f = 1.0f / a;
+                a = !hit + a * hit;
 
                 float sx = RO_x - vx[fv0[gi]];
                 float sy = RO_y - vy[fv0[gi]];
                 float sz = RO_z - vz[fv0[gi]];
+
+                // Since 1/a is used twice and division is expensive
+                // Store it in f = 1/a
+                float f = 1.0f / a;
 
                 float u = f * (sx * hx + sy * hy + sz * hz);
 
@@ -205,30 +207,31 @@ __global__ void pathtraceKernel(
         float vrtx_z = RO_z + RD_z * ht;
 
         // Texture interpolation (if available)
-        bool hasTxtr = hm.AlbMap > -1;
         int t0 = ft0[hidx], t1 = ft1[hidx], t2 = ft2[hidx];
-        float t_u = hasTxtr ? tx[t0] * hw + tx[t1] * hu + tx[t2] * hv : 0.0f;
-        float t_v = hasTxtr ? ty[t0] * hw + ty[t1] * hu + ty[t2] * hv : 0.0f;
+        float t_u = tx[t0] * hw + tx[t1] * hu + tx[t2] * hv;
+        float t_v = ty[t0] * hw + ty[t1] * hu + ty[t2] * hv;
         t_u -= floor(t_u); t_v -= floor(t_v);
 
-        int t_w   = hasTxtr ? tw[hm.AlbMap] : 0;
-        int t_h   = hasTxtr ? th[hm.AlbMap] : 0;
-        int t_off = hasTxtr ? toff[hm.AlbMap] : 0;
+        int alb_map = hm.AlbMap;
+        int t_w = tw[alb_map];
+        int t_h = th[alb_map];
+        int t_off = toff[alb_map];
 
         int t_x = (int)(t_u * t_w);
         int t_y = (int)(t_v * t_h);
         int t_idx = t_off + t_y * t_w + t_x;
 
+        bool hasTxtr = hm.AlbMap > 0;
         float alb_x = tr[t_idx] * hasTxtr + hm.Alb.x * !hasTxtr;
         float alb_y = tg[t_idx] * hasTxtr + hm.Alb.y * !hasTxtr;
         float alb_z = tb[t_idx] * hasTxtr + hm.Alb.z * !hasTxtr;
 
         // Normal interpolation
-
-        int n0 = fn0[hidx], n1 = fn1[hidx], n2 = fn2[hidx]; bool hasNrml = n0 > -1;
-        float nrml_x = hasNrml ? nx[n0] * hw + nx[n1] * hu + nx[n2] * hv : 0.0f;
-        float nrml_y = hasNrml ? ny[n0] * hw + ny[n1] * hu + ny[n2] * hv : 0.0f;
-        float nrml_z = hasNrml ? nz[n0] * hw + nz[n1] * hu + nz[n2] * hv : 0.0f;
+        int n0 = fn0[hidx], n1 = fn1[hidx], n2 = fn2[hidx];
+        float nrml_x = nx[n0] * hw + nx[n1] * hu + nx[n2] * hv;
+        float nrml_y = ny[n0] * hw + ny[n1] * hu + ny[n2] * hv;
+        float nrml_z = nz[n0] * hw + nz[n1] * hu + nz[n2] * hv;
+        bool hasNrml = n0 > 0;
 
         // Calculate the radiance
         float NdotL = RD_x * nrml_x + RD_y * nrml_y + RD_z * nrml_z;
@@ -257,18 +260,18 @@ __global__ void pathtraceKernel(
         float rndB = curand_uniform(&rnd[tIdx]);
 
         float theta1 = acosf(sqrtf(1.0f - rndA));
-        float phi1 = 2.0f * M_PI * rndB;
+        float phi = 2.0f * M_PI * rndB;
 
         // Cosine weighted hemisphere
-        float rnd_x = sinf(theta1) * cosf(phi1);
-        float rnd_y = sinf(theta1) * sinf(phi1);
+        float rnd_x = sinf(theta1) * cosf(phi);
+        float rnd_y = sinf(theta1) * sinf(phi);
         float rnd_z = cosf(theta1);
 
         // For truly random direction
-        float phi2 = acosf(1.0f - 2.0f * rndA);
-        float truly_rnd_x = sinf(phi2) * cosf(phi1);
-        float truly_rnd_y = sinf(phi2) * sinf(phi1);
-        float truly_rnd_z = cosf(phi2);
+        float theta2 = acosf(1.0f - 2.0f * rndA);
+        float truly_rnd_x = sinf(theta2) * cosf(phi);
+        float truly_rnd_y = sinf(theta2) * sinf(phi);
+        float truly_rnd_z = cosf(theta2);
 
         // Construct a coordinate system
         bool xGreater = fabsf(nrml_x) > 0.9;

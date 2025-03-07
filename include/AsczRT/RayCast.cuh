@@ -33,6 +33,7 @@ __global__ void raycastKernel(
     float ht = 1e9f;
     float hu = 0.0f;
     float hv = 0.0f;
+    float hw = 0.0f;
 
     const int MAX_NODES = 64;
     int nstack[MAX_NODES] = { 0 };
@@ -148,8 +149,10 @@ __global__ void raycastKernel(
             float qz = sx * e1y - sy * e1x;
 
             float v = f * (ray.d.x * qx + ray.d.y * qy + ray.d.z * qz);
+            
+            float w = 1.0f - u - v;
 
-            hit &= v >= 0.0f & u + v <= 1.0f;
+            hit &= v >= 0.0f & w >= 0.0f;
 
             float t = f * (e2x * qx + e2y * qy + e2z * qz);
 
@@ -158,6 +161,7 @@ __global__ void raycastKernel(
             ht = t * hit + ht * !hit;
             hu = u * hit + hu * !hit;
             hv = v * hit + hv * !hit;
+            hw = w * hit + hw * !hit;
             hidx = gi * hit + hidx * !hit;
         }
     }
@@ -168,39 +172,44 @@ __global__ void raycastKernel(
     }
 
     const AzMtl &hm = mats[fm[hidx]];
-    float hw = 1.0f - hu - hv;
+
+    // Normal interpolation
+    int n0 = fn0[hidx], n1 = fn1[hidx], n2 = fn2[hidx];
+    float nrml_x = nx[n0] * hw + nx[n1] * hu + nx[n2] * hv;
+    float nrml_y = ny[n0] * hw + ny[n1] * hu + ny[n2] * hv;
+    float nrml_z = nz[n0] * hw + nz[n1] * hu + nz[n2] * hv;
+    bool hasNrml = n0 > 0;
 
     // Texture interpolation (if available)
-    bool hasTxtr = hm.AlbMap > -1;
     int t0 = ft0[hidx], t1 = ft1[hidx], t2 = ft2[hidx];
-    float t_u = hasTxtr ? tx[t0] * hw + tx[t1] * hu + tx[t2] * hv : 0.0f;
-    float t_v = hasTxtr ? ty[t0] * hw + ty[t1] * hu + ty[t2] * hv : 0.0f;
+    float t_u = tx[t0] * hw + tx[t1] * hu + tx[t2] * hv;
+    float t_v = ty[t0] * hw + ty[t1] * hu + ty[t2] * hv;
     t_u -= floor(t_u); t_v -= floor(t_v);
 
-    int t_w = hasTxtr ? tw[hm.AlbMap] : 0;
-    int t_h = hasTxtr ? th[hm.AlbMap] : 0;
-    int t_off = hasTxtr ? toff[hm.AlbMap] : 0;
+    int alb_map = hm.AlbMap;
+    int t_w = tw[alb_map];
+    int t_h = th[alb_map];
+    int t_off = toff[alb_map];
 
     int t_x = (int)(t_u * t_w);
     int t_y = (int)(t_v * t_h);
     int t_idx = t_off + t_y * t_w + t_x;
 
-    Flt3 alb = hasTxtr ? Flt3(tr[t_idx], tg[t_idx], tb[t_idx]) : hm.Alb;
+    bool hasTxtr = hm.AlbMap > 0;
+    float alb_x = tr[t_idx] * hasTxtr + hm.Alb.x * !hasTxtr;
+    float alb_y = tg[t_idx] * hasTxtr + hm.Alb.y * !hasTxtr;
+    float alb_z = tb[t_idx] * hasTxtr + hm.Alb.z * !hasTxtr;
 
-    // Normal interpolation
-    Flt3 nrml; bool hasNrml = fn0[hidx] > -1;
-    int n0 = fn0[hidx], n1 = fn1[hidx], n2 = fn2[hidx];
-    nrml.x = hasNrml ? nx[n0] * hw + nx[n1] * hu + nx[n2] * hv : 0.0f;
-    nrml.y = hasNrml ? ny[n0] * hw + ny[n1] * hu + ny[n2] * hv : 0.0f;
-    nrml.z = hasNrml ? nz[n0] * hw + nz[n1] * hu + nz[n2] * hv : 0.0f;
+    // Fake shading
+    bool fShade = fakeShading && hasNrml;
+    float NdotL = nrml_x * ray.d.x + nrml_y * ray.d.y + nrml_z * ray.d.z;
+    NdotL *= NdotL;
 
-    // If fake shading is enabled, we'll shade based on the normal
-    if (fakeShading) {
-        float NdotL = nrml * ray.d;
-        alb *= NdotL * NdotL;
-    }
+    alb_x *= NdotL * fShade + !fShade;
+    alb_y *= NdotL * fShade + !fShade;
+    alb_z *= NdotL * fShade + !fShade;
 
-    frmbuffer[tIdx] = alb;
+    frmbuffer[tIdx] = Flt3(alb_x, alb_y, alb_z);
 };
 
 #endif

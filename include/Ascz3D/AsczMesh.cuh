@@ -100,20 +100,15 @@ struct MeshStruct {
 class AsczMesh {
 public:
     // SoA for better memory access
-    VecF h_vx;
-    VecF h_vy;
-    VecF h_vz;  
-    VecF h_tx;
-    VecF h_ty;
-    VecF h_nx;
-    VecF h_ny;
-    VecF h_nz;
+    VecF h_vx = {0.0f}, h_vy = {0.0f}, h_vz = {0.0f};
+    VecF h_nx = {0.0f}, h_ny = {0.0f}, h_nz = {0.0f};
+    VecF h_tx = {0.0f}, h_ty = {0.0f};
 
     // Geometry
     // VecGeom h_geom;
     VecI h_fv0, h_fv1, h_fv2; // Face vertices index
-    VecI h_ft0, h_ft1, h_ft2; // Face textures index
     VecI h_fn0, h_fn1, h_fn2; // Face normals index
+    VecI h_ft0, h_ft1, h_ft2; // Face textures index
     VecI h_fm; // Face materials index
 
     int oNum = 0; // Number of objects
@@ -129,12 +124,12 @@ public:
 
     // Device memory
     float *d_vx = nullptr, *d_vy = nullptr, *d_vz = nullptr;  int vNum = 0;
-    float *d_tx = nullptr, *d_ty = nullptr;                   int tNum = 0;
     float *d_nx = nullptr, *d_ny = nullptr, *d_nz = nullptr;  int nNum = 0;
+    float *d_tx = nullptr, *d_ty = nullptr;                   int tNum = 0;
 
     int *d_fv0 = nullptr, *d_fv1 = nullptr, *d_fv2 = nullptr;
-    int *d_ft0 = nullptr, *d_ft1 = nullptr, *d_ft2 = nullptr;
     int *d_fn0 = nullptr, *d_fn1 = nullptr, *d_fn2 = nullptr;
+    int *d_ft0 = nullptr, *d_ft1 = nullptr, *d_ft2 = nullptr;
     int *d_fm  = nullptr;
     int gNum   = 0;
 
