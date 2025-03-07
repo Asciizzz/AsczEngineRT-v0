@@ -1,13 +1,6 @@
 #include <PathTrace.cuh>
 #include <AzDevMath.cuh>
 
-__device__ Flt3 randomSphereSample(float r1, float r2) {
-    float theta = 2.0f * M_PI * r1;
-    float phi = acos(2.0f * r2 - 1.0f);
-
-    return Flt3(sin(phi) * cos(theta), sin(phi) * sin(theta), cos(phi));
-}
-
 
 __global__ void pathtraceKernel(
     AsczCam camera, Flt3 *frmbuffer, int frmW, int frmH, // In-out
@@ -247,7 +240,7 @@ __global__ void pathtraceKernel(
 // =================== Indirect lighting =========================
 
     /* For future me:
-    
+
     If the surface has a normal:
         We generate a random vector in the hemisphere
         based on cosine weight distribution.

@@ -160,6 +160,10 @@ LRESULT CALLBACK AsczWin::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM
             case WM_SETCURSOR:
                 SetCursor(LoadCursor(NULL, IDC_ARROW)); 
                 return TRUE;
+
+            case WM_MOUSEWHEEL:
+                self->scroll = GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
+                return 0;
         }
     }
 

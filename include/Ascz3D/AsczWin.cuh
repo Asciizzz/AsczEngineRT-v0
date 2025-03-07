@@ -24,11 +24,15 @@ public:
     BITMAPINFO bmi;
 
     // Input state handling
+
+    // Mouse state
     POINT mousePos = { 0, 0 };
     bool leftMouseDown = false;
     bool rightMouseDown = false;
+    // Keyboard state
     bool keys[256] = { false };
-
+    // Scroll state
+    int scroll = 0;
 
     // Constructor
     AsczWin(int w, int h, std::wstring t);

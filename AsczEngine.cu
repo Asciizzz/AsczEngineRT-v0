@@ -8,8 +8,8 @@
 #include <AsczBvh.cuh>
 #include <AsczCam.cuh>
 
-#include <PathTrace.cuh>
 #include <RayCast.cuh>
+#include <PathTrace.cuh>
 
 __global__ void copyFrmBuffer(Flt3 *from, Flt3 *to, int size) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -193,9 +193,11 @@ int main() {
             Win.keys['H'] = false; hasDebug = !hasDebug;
         }
 
-        // Press + and - to change FOV
-        if      (Win.keys[VK_OEM_PLUS])  Cam.fov += 0.1f;
-        else if (Win.keys[VK_OEM_MINUS]) Cam.fov -= 0.1f;
+        // Scroll to change FOV
+        if (Win.scroll != 0) {
+            Cam.fov += Win.scroll * 0.1f;
+            Win.scroll = 0;
+        }
 
         // Press 1-3 to toggle render mode
         if (Win.keys['1']) {
