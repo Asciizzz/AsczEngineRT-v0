@@ -15,7 +15,7 @@ int AsczTxtr::appendTexture(const char *path) {
     h_th.push_back(h);
     h_toff.push_back(size);
 
-    for (int y = 0; y < h; y++) {
+    for (int y = h - 1; y > -1; y--) {
         for (int x = 0; x < w; x++) {
             int i = (y * w + x) * 4;
 
