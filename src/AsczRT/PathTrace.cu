@@ -1,24 +1,6 @@
 #include <PathTrace.cuh>
 #include <AzDevMath.cuh>
 
-__device__ Flt3 randomHemisphereSample(float r1, float r2, const Flt3 &n) {
-    float theta = acos(sqrtf(1.0f - r1));
-    float phi = 2.0f * M_PI * r2;
-
-    float x = sin(theta) * cos(phi);
-    float y = sin(theta) * sin(phi);
-    float z = cos(theta);
-
-    // Construct a coordinate system
-    Flt3 tang = (fabsf(n.x) > 0.9 ? Flt3(0, 1, 0) : Flt3(1, 0, 0)) ^ n;
-    tang /= tang.x * tang.x + tang.y * tang.y + tang.z * tang.z;
-
-    Flt3 bitang = n ^ tang;
-
-    // Transform to world space
-    return tang * x + bitang * y + n * z;
-}
-
 __device__ Flt3 randomSphereSample(float r1, float r2) {
     float theta = 2.0f * M_PI * r1;
     float phi = acos(2.0f * r2 - 1.0f);
@@ -46,6 +28,9 @@ __global__ void pathtraceKernel(
     int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
     if (tIdx >= frmW * frmH) return;
 
+    const int MAX_BOUNCES = 4;
+    const int MAX_NODES = 64;
+
     int tX = tIdx % frmW, tY = tIdx / frmW;
 
     float rnd1 = curand_uniform(&rnd[tIdx]);
@@ -56,8 +41,16 @@ __global__ void pathtraceKernel(
     Ray ray = camera.castRay(tX, tY, frmW, frmH,
                             rnd1, rnd2, rnd3, rnd4);
 
-    const int MAX_NODES = 64;
-    const int MAX_BOUNCES = 4;
+    // Ray direction
+    float RD_x = ray.d.x, RD_y = ray.d.y, RD_z = ray.d.z;
+    // Ray inverse direction
+    float RInvd_x = ray.invd.x, RInvd_y = ray.invd.y, RInvd_z = ray.invd.z;
+    // Ray origin
+    float RO_x = ray.o.x, RO_y = ray.o.y, RO_z = ray.o.z;
+    // Ray ignore
+    int RIgnore = ray.ignore;
+    // Ray index of refraction
+    float RIor = ray.Ior;
 
     int nstack[MAX_NODES];
     int ns_top = 0;
@@ -79,20 +72,20 @@ __global__ void pathtraceKernel(
             int nidx = nstack[--ns_top];
 
             // Check if the ray is outside the bounding box
-            float t1n = (mi_x[nidx] - ray.o.x) * ray.invd.x;
-            float t2n = (mx_x[nidx] - ray.o.x) * ray.invd.x;
-            float t3n = (mi_y[nidx] - ray.o.y) * ray.invd.y;
-            float t4n = (mx_y[nidx] - ray.o.y) * ray.invd.y;
-            float t5n = (mi_z[nidx] - ray.o.z) * ray.invd.z;
-            float t6n = (mx_z[nidx] - ray.o.z) * ray.invd.z;
+            float t1n = (mi_x[nidx] - RO_x) * RInvd_x;
+            float t2n = (mx_x[nidx] - RO_x) * RInvd_x;
+            float t3n = (mi_y[nidx] - RO_y) * RInvd_y;
+            float t4n = (mx_y[nidx] - RO_y) * RInvd_y;
+            float t5n = (mi_z[nidx] - RO_z) * RInvd_z;
+            float t6n = (mx_z[nidx] - RO_z) * RInvd_z;
 
             float tminn = fminf(t1n, t2n), tmaxn = fmaxf(t1n, t2n);
             tminn = fmaxf(tminn, fminf(t3n, t4n)); tmaxn = fminf(tmaxn, fmaxf(t3n, t4n));
             tminn = fmaxf(tminn, fminf(t5n, t6n)); tmaxn = fminf(tmaxn, fmaxf(t5n, t6n));
 
-            bool nOut = ray.o.x < mi_x[nidx] | ray.o.x > mx_x[nidx] |
-                        ray.o.y < mi_y[nidx] | ray.o.y > mx_y[nidx] |
-                        ray.o.z < mi_z[nidx] | ray.o.z > mx_z[nidx];
+            bool nOut = RO_x < mi_x[nidx] | RO_x > mx_x[nidx] |
+                        RO_y < mi_y[nidx] | RO_y > mx_y[nidx] |
+                        RO_z < mi_z[nidx] | RO_z > mx_z[nidx];
             float nDist = ((tmaxn < tminn | tminn < 0) ? -1 : tminn) * nOut;
 
             if (nDist < 0 | nDist > ht) continue;
@@ -101,38 +94,38 @@ __global__ void pathtraceKernel(
             if (!lf[nidx]) {
                 // Find the distance to the left child
                 int tcl = pl[nidx];
-                float t1l = (mi_x[tcl] - ray.o.x) * ray.invd.x;
-                float t2l = (mx_x[tcl] - ray.o.x) * ray.invd.x;
-                float t3l = (mi_y[tcl] - ray.o.y) * ray.invd.y;
-                float t4l = (mx_y[tcl] - ray.o.y) * ray.invd.y;
-                float t5l = (mi_z[tcl] - ray.o.z) * ray.invd.z;
-                float t6l = (mx_z[tcl] - ray.o.z) * ray.invd.z;
+                float t1l = (mi_x[tcl] - RO_x) * RInvd_x;
+                float t2l = (mx_x[tcl] - RO_x) * RInvd_x;
+                float t3l = (mi_y[tcl] - RO_y) * RInvd_y;
+                float t4l = (mx_y[tcl] - RO_y) * RInvd_y;
+                float t5l = (mi_z[tcl] - RO_z) * RInvd_z;
+                float t6l = (mx_z[tcl] - RO_z) * RInvd_z;
 
                 float tminl = fminf(t1l, t2l), tmaxl = fmaxf(t1l, t2l);
                 tminl = fmaxf(tminl, fminf(t3l, t4l)); tmaxl = fminf(tmaxl, fmaxf(t3l, t4l));
                 tminl = fmaxf(tminl, fminf(t5l, t6l)); tmaxl = fminf(tmaxl, fmaxf(t5l, t6l));
 
-                bool lOut = ray.o.x < mi_x[tcl] | ray.o.x > mx_x[tcl] |
-                            ray.o.y < mi_y[tcl] | ray.o.y > mx_y[tcl] |
-                            ray.o.z < mi_z[tcl] | ray.o.z > mx_z[tcl];
+                bool lOut = RO_x < mi_x[tcl] | RO_x > mx_x[tcl] |
+                            RO_y < mi_y[tcl] | RO_y > mx_y[tcl] |
+                            RO_z < mi_z[tcl] | RO_z > mx_z[tcl];
                 float ldist = ((tmaxl < tminl | tminl < 0) ? -1 : tminl) * lOut;
 
                 // Find the distance to the right child
                 int tcr = pr[nidx];
-                float t1r = (mi_x[tcr] - ray.o.x) * ray.invd.x;
-                float t2r = (mx_x[tcr] - ray.o.x) * ray.invd.x;
-                float t3r = (mi_y[tcr] - ray.o.y) * ray.invd.y;
-                float t4r = (mx_y[tcr] - ray.o.y) * ray.invd.y;
-                float t5r = (mi_z[tcr] - ray.o.z) * ray.invd.z;
-                float t6r = (mx_z[tcr] - ray.o.z) * ray.invd.z;
+                float t1r = (mi_x[tcr] - RO_x) * RInvd_x;
+                float t2r = (mx_x[tcr] - RO_x) * RInvd_x;
+                float t3r = (mi_y[tcr] - RO_y) * RInvd_y;
+                float t4r = (mx_y[tcr] - RO_y) * RInvd_y;
+                float t5r = (mi_z[tcr] - RO_z) * RInvd_z;
+                float t6r = (mx_z[tcr] - RO_z) * RInvd_z;
 
                 float tminr = fminf(t1r, t2r), tmaxr = fmaxf(t1r, t2r);
                 tminr = fmaxf(tminr, fminf(t3r, t4r)); tmaxr = fminf(tmaxr, fmaxf(t3r, t4r));
                 tminr = fmaxf(tminr, fminf(t5r, t6r)); tmaxr = fminf(tmaxr, fmaxf(t5r, t6r));
 
-                bool rOut = ray.o.x < mi_x[tcr] | ray.o.x > mx_x[tcr] |
-                            ray.o.y < mi_y[tcr] | ray.o.y > mx_y[tcr] |
-                            ray.o.z < mi_z[tcr] | ray.o.z > mx_z[tcr];
+                bool rOut = RO_x < mi_x[tcr] | RO_x > mx_x[tcr] |
+                            RO_y < mi_y[tcr] | RO_y > mx_y[tcr] |
+                            RO_z < mi_z[tcr] | RO_z > mx_z[tcr];
                 float rdist = ((tmaxr < tminr | tminr < 0) ? -1 : tminr) * rOut;
 
 
@@ -151,7 +144,7 @@ __global__ void pathtraceKernel(
             for (int i = pl[nidx]; i < pr[nidx]; ++i) {
                 int gi = gIdx[i];
 
-                bool hit = gi != ray.ignore;
+                bool hit = gi != RIgnore;
 
                 float e1x = vx[fv1[gi]] - vx[fv0[gi]];
                 float e1y = vy[fv1[gi]] - vy[fv0[gi]];
@@ -161,9 +154,9 @@ __global__ void pathtraceKernel(
                 float e2y = vy[fv2[gi]] - vy[fv0[gi]];
                 float e2z = vz[fv2[gi]] - vz[fv0[gi]];
 
-                float hx = ray.d.y * e2z - ray.d.z * e2y;
-                float hy = ray.d.z * e2x - ray.d.x * e2z;
-                float hz = ray.d.x * e2y - ray.d.y * e2x;
+                float hx = RD_y * e2z - RD_z * e2y;
+                float hy = RD_z * e2x - RD_x * e2z;
+                float hz = RD_x * e2y - RD_y * e2x;
 
                 float a = e1x * hx + e1y * hy + e1z * hz;
 
@@ -172,9 +165,9 @@ __global__ void pathtraceKernel(
 
                 float f = 1.0f / a;
 
-                float sx = ray.o.x - vx[fv0[gi]];
-                float sy = ray.o.y - vy[fv0[gi]];
-                float sz = ray.o.z - vz[fv0[gi]];
+                float sx = RO_x - vx[fv0[gi]];
+                float sy = RO_y - vy[fv0[gi]];
+                float sz = RO_z - vz[fv0[gi]];
 
                 float u = f * (sx * hx + sy * hy + sz * hz);
 
@@ -184,7 +177,7 @@ __global__ void pathtraceKernel(
                 float qy = sz * e1x - sx * e1z;
                 float qz = sx * e1y - sy * e1x;
 
-                float v = f * (ray.d.x * qx + ray.d.y * qy + ray.d.z * qz);
+                float v = f * (RD_x * qx + RD_y * qy + RD_z * qz);
                 float w = 1.0f - u - v;
 
                 hit &= v >= 0.0f & w >= 0.0f;
@@ -207,7 +200,9 @@ __global__ void pathtraceKernel(
         const AzMtl &hm = mats[fm[hidx]];
 
         // Vertex linear interpolation
-        Flt3 vrtx = ray.o + ray.d * ht;
+        float vrtx_x = RO_x + RD_x * ht;
+        float vrtx_y = RO_y + RD_y * ht;
+        float vrtx_z = RO_z + RD_z * ht;
 
         // Texture interpolation (if available)
         bool hasTxtr = hm.AlbMap > -1;
@@ -224,42 +219,106 @@ __global__ void pathtraceKernel(
         int t_y = (int)(t_v * t_h);
         int t_idx = t_off + t_y * t_w + t_x;
 
-        Flt3 alb = hasTxtr ? Flt3(tr[t_idx], tg[t_idx], tb[t_idx]) : hm.Alb;
+        float alb_x = tr[t_idx] * hasTxtr + hm.Alb.x * !hasTxtr;
+        float alb_y = tg[t_idx] * hasTxtr + hm.Alb.y * !hasTxtr;
+        float alb_z = tb[t_idx] * hasTxtr + hm.Alb.z * !hasTxtr;
 
         // Normal interpolation
-        Flt3 nrml; bool hasNrml = fn0[hidx] > -1;
-        int n0 = fn0[hidx], n1 = fn1[hidx], n2 = fn2[hidx];
-        nrml.x = hasNrml ? nx[n0] * hw + nx[n1] * hu + nx[n2] * hv : 0.0f;
-        nrml.y = hasNrml ? ny[n0] * hw + ny[n1] * hu + ny[n2] * hv : 0.0f;
-        nrml.z = hasNrml ? nz[n0] * hw + nz[n1] * hu + nz[n2] * hv : 0.0f;
+
+        int n0 = fn0[hidx], n1 = fn1[hidx], n2 = fn2[hidx]; bool hasNrml = n0 > -1;
+        float nrml_x = hasNrml ? nx[n0] * hw + nx[n1] * hu + nx[n2] * hv : 0.0f;
+        float nrml_y = hasNrml ? ny[n0] * hw + ny[n1] * hu + ny[n2] * hv : 0.0f;
+        float nrml_z = hasNrml ? nz[n0] * hw + nz[n1] * hu + nz[n2] * hv : 0.0f;
 
         // Calculate the radiance
-        float NdotL = ray.d * nrml * hasNrml + !hasNrml;
-        float lIntensity = NdotL * NdotL * hm.Ems.w;
-        radi_x += thru_x * hm.Ems.x * alb.x * lIntensity;
-        radi_y += thru_y * hm.Ems.y * alb.y * lIntensity;
-        radi_z += thru_z * hm.Ems.z * alb.z * lIntensity;
+        float NdotL = RD_x * nrml_x + RD_y * nrml_y + RD_z * nrml_z;
+        float lIntensity = ((NdotL * NdotL) * hasNrml + !hasNrml) * hm.Ems.w;
+        radi_x += thru_x * hm.Ems.x * alb_x * lIntensity;
+        radi_y += thru_y * hm.Ems.y * alb_y * lIntensity;
+        radi_z += thru_z * hm.Ems.z * alb_z * lIntensity;
 
-        thru_x *= alb.x * (1.0f - hm.Tr) + hm.Tr;
-        thru_y *= alb.y * (1.0f - hm.Tr) + hm.Tr;
-        thru_z *= alb.z * (1.0f - hm.Tr) + hm.Tr;
+        thru_x *= alb_x * (1.0f - hm.Tr) + hm.Tr;
+        thru_y *= alb_y * (1.0f - hm.Tr) + hm.Tr;
+        thru_z *= alb_z * (1.0f - hm.Tr) + hm.Tr;
 
-        // Indirect lighting
+// =================== Indirect lighting =========================
+
+    /* For future me:
+    
+    If the surface has a normal:
+        We generate a random vector in the hemisphere
+        based on cosine weight distribution.
+    If the surface does not have a normal:
+        We generate a completely random vector in a sphere.
+    */
+
+    // Random diffuse lighting
         float rndA = curand_uniform(&rnd[tIdx]);
         float rndB = curand_uniform(&rnd[tIdx]);
 
-        ray.o = vrtx;
+        float theta1 = acosf(sqrtf(1.0f - rndA));
+        float phi1 = 2.0f * M_PI * rndB;
 
-        Flt3 diff = randomHemisphereSample(rndA, rndB, nrml);
-        Flt3 spec = ray.d - nrml * 2.0f * (nrml * ray.d);
-        // Lerp diffuse and specular from roughness
-        Flt3 rD = diff * hm.Rough + spec * (1.0f - hm.Rough);
-        rD /= rD.x * rD.x + rD.y * rD.y + rD.z * rD.z;
+        // Cosine weighted hemisphere
+        float rnd_x = sinf(theta1) * cosf(phi1);
+        float rnd_y = sinf(theta1) * sinf(phi1);
+        float rnd_z = cosf(theta1);
 
-        ray.d = hasNrml && !hm.NoShade ? rD : randomSphereSample(rndA, rndB);
-        ray.invd = 1.0f / ray.d;
-        ray.ignore = hidx;
-        ray.Ior = hm.Ior;
+        // For truly random direction
+        float phi2 = acosf(1.0f - 2.0f * rndA);
+        float truly_rnd_x = sinf(phi2) * cosf(phi1);
+        float truly_rnd_y = sinf(phi2) * sinf(phi1);
+        float truly_rnd_z = cosf(phi2);
+
+        // Construct a coordinate system
+        bool xGreater = fabsf(nrml_x) > 0.9;
+        float ta_x = !xGreater;
+        float ta_y = xGreater;
+
+        // Tangent vector
+        // There supposed to also be a ta_z, but since its = 0,
+        // you can ignore it in the cross product calculation
+        float tang_x =  ta_y * nrml_z;
+        float tang_y = -ta_x * nrml_z;
+        float tang_z = ta_x * nrml_y - ta_y * nrml_x;
+
+        // Bitangent vector
+        float bitang_x = tang_y * nrml_z - tang_z * nrml_y;
+        float bitang_y = tang_z * nrml_x - tang_x * nrml_z;
+        float bitang_z = tang_x * nrml_y - tang_y * nrml_x;
+
+        // Transform the vector to the normal space
+        float diff_x = rnd_x * tang_x + rnd_y * bitang_x + rnd_z * nrml_x;
+        float diff_y = rnd_x * tang_y + rnd_y * bitang_y + rnd_z * nrml_y;
+        float diff_z = rnd_x * tang_z + rnd_y * bitang_z + rnd_z * nrml_z;
+
+    // Specular direction (a.k.a. reflection)
+        float spec_x = RD_x - nrml_x * 2.0f * (nrml_x * RD_x);
+        float spec_y = RD_y - nrml_y * 2.0f * (nrml_y * RD_y);
+        float spec_z = RD_z - nrml_z * 2.0f * (nrml_z * RD_z);
+
+    // Lerp diffuse and specular from roughness/smoothness
+        float smooth = 1.0f - hm.Rough;
+        float rd_x = diff_x * hm.Rough + spec_x * smooth;
+        float rd_y = diff_y * hm.Rough + spec_y * smooth;
+        float rd_z = diff_z * hm.Rough + spec_z * smooth;
+
+    // Update the ray
+        // Origin (truly random for non-normal surfaces)
+        RO_x = vrtx_x;
+        RO_y = vrtx_y;
+        RO_z = vrtx_z;
+        // Direction
+        RD_x = rd_x * hasNrml + truly_rnd_x * !hasNrml;
+        RD_y = rd_y * hasNrml + truly_rnd_y * !hasNrml;
+        RD_z = rd_z * hasNrml + truly_rnd_z * !hasNrml;
+        // Inverse direction
+        RInvd_x = 1.0f / RD_x;
+        RInvd_y = 1.0f / RD_y;
+        RInvd_z = 1.0f / RD_z;
+        // Other ray properties
+        RIgnore = hidx;
+        RIor = hm.Ior;
     }
 
     frmbuffer[tIdx] = Flt3(radi_x, radi_y, radi_z);

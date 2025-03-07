@@ -1,4 +1,4 @@
-mtllib Cornell.mtl
+AzmLib Cornell.azm
 
 ## Object floor
 v  -1.01  0.00   0.99
@@ -8,7 +8,7 @@ v  -0.99  0.00  -1.04
 vn 0 1 0
 
 o floor
-usemtl floor
+AzMtl floor
 f -4//-1 -3//-1 -2//-1 -1//-1
 
 ## Object ceiling
@@ -19,7 +19,7 @@ v   1.00  1.99   0.99
 vn 0 -1 0
 
 o ceiling
-usemtl ceiling
+AzMtl ceiling
 f -4//-1 -3//-1 -2//-1 -1//-1
 
 ## Object backwall  
@@ -30,7 +30,7 @@ v  -1.02  1.99  -1.04
 vn 0 0 1
 
 o backWall
-usemtl backWall
+AzMtl backWall
 f -4//-1 -3//-1 -2//-1 -1//-1
 
 ## Object rightwall 
@@ -41,7 +41,7 @@ v	1.00  1.99  -1.04
 vn -1 0 0
 
 o rightWall
-usemtl rightWall
+AzMtl rightWall
 f -4//-1 -3//-1 -2//-1 -1//-1
 
 ## Object leftWall   
@@ -52,12 +52,12 @@ v  -1.02  1.99   0.99
 vn 1 0 0
 
 o leftWall
-usemtl leftWall
+AzMtl leftWall
 f -4//-1 -3//-1 -2//-1 -1//-1
 
 ## Object shortBox 
 o shortBox
-usemtl shortBox
+AzMtl shortBox
 
 # Top Face 
 v	0.53  0.60   0.75 
@@ -97,7 +97,7 @@ f -4 -3 -2 -1
 
 ## Object tallBox 
 o tallBox
-usemtl tallBox
+AzMtl tallBox
 
 # Top Face
 v	-0.53  1.20   0.09
@@ -136,7 +136,7 @@ f -4 -3 -2 -1
 
 
 o tallBox
-usemtl tallBox
+AzMtl tallBox
 
 ## Object light 
 v	-0.30 1.98   0.30
@@ -145,5 +145,5 @@ v	 0.30  1.98 -0.30
 v	 0.30  1.98  0.30
 
 #o light
-#usemtl light
+#AzMtl light
 #f -4 -3 -2 -1

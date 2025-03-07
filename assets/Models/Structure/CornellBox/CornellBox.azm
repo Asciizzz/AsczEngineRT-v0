@@ -1,0 +1,27 @@
+AzMtl leftWall
+Ni 1.5000
+Alb 0.63 0.065 0.05
+#Ems 0.63 0.065 0.05 7.0
+
+
+AzMtl rightWall
+Ni 1.5000
+Alb 0.14 0.45 0.091
+#Ems 0.14 0.45 0.091 7.0
+
+
+AzMtl floor
+Alb 0.725 0.71 0.68
+
+
+AzMtl ceiling
+Alb 0.725 0.71 0.68
+
+
+AzMtl backWall
+Alb 0.725 0.71 0.68
+Rough 0.3
+
+AzMtl light
+Alb 1 1 1
+Ems 1.0 1.0 1.0 3.0
