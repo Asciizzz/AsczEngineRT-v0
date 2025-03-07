@@ -72,7 +72,7 @@ __global__ void initRandState(curandState *state, int width, int height, int see
 int main() {
     // =================== Initialize FPS and Window ==============
     FpsHandler &FPS = FpsHandler::instance();
-    AsczWin Win(1000, 1000, L"AsczEngineRT_v0");
+    AsczWin Win(1600, 900, L"AsczEngineRT_v0");
 
     // =============== Initialize Important Managers ================
 
@@ -157,7 +157,6 @@ int main() {
     Flt3 prevRot = Cam.rot;
     float prevAptr = Cam.aperture;
     float prevFdst = Cam.focalDist;
-    short prevMode = renderMode;
 
     curandState *d_randStates;
     cudaMalloc(&d_randStates, Win.width * Win.height * sizeof(curandState));
@@ -205,7 +204,7 @@ int main() {
         else if (Win.keys['2'] || Win.keys['3']) {
             Win.keys['2'] = false;
             Win.keys['3'] = false;
-            renderMode = 2;
+            renderMode = 1;
         }
 
         // Press F to change focal distance
@@ -285,7 +284,6 @@ int main() {
             break;
 
         case 1:
-        case 2:
             pathtraceKernel<<<Win.blockCount, Win.threadCount>>>(
                 Cam, Win.d_frmbuffer1, Win.width, Win.height,
 
@@ -302,18 +300,17 @@ int main() {
             bool changeRender = prevPos != Cam.pos ||
                                 prevRot != Cam.rot ||
                                 prevAptr != Cam.aperture ||
-                                prevFdst != Cam.focalDist ||
-                                prevMode != renderMode;
+                                prevFdst != Cam.focalDist;
             if (changeRender) {
                 accumulate = 1;
-                copyFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer2, Win.width * Win.height);
+                copyFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer3, Win.width * Win.height);
             } else {
                 accumulate ++;
-                addFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer2, Win.d_frmbuffer1, Win.width * Win.height);
-                divFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer2, Win.width * Win.height, accumulate);
+                addFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer3, Win.d_frmbuffer1, Win.width * Win.height);
+                divFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer3, Win.width * Win.height, accumulate);
 
                 // Bilateral filter
-                bilateralFilter<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer3, Win.width, Win.height);
+                bilateralFilter<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer2, Win.width, Win.height);
                 // copyFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer3, Win.width * Win.height);
             }
             prevPos = Cam.pos;
@@ -322,7 +319,6 @@ int main() {
             prevFdst = Cam.focalDist;
             break;
         }
-        prevMode = renderMode;
 
         if (hasDebug) {
             Win.appendDebug(L"AsczEngineRT_v0", Int3(155, 255, 155));
