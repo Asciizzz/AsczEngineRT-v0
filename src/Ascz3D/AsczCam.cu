@@ -51,7 +51,7 @@ Ray AsczCam::castRay(float x, float y, float w, float h, float r1, float r2, flo
 
     Flt3 focalPoint = pos + rD * focalDist;
     // r3, r4 for antialiasing
-    focalPoint += (rght * (r3 - 0.5f) + up * (r4 - 0.5f)) * 0.001f;
+    focalPoint += (rght * (r3 - 0.5f) + up * (r4 - 0.5f)) * 0.004f;
 
     rD = (focalPoint - rO).norm();
 
