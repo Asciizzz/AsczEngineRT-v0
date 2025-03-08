@@ -47,7 +47,6 @@ void Utils::appendObj(
 
         if (type == "v") {
             Flt3 v; ss >> v.x >> v.y >> v.z;
-            v += trans;
             v.scale(0, scale);
 
             // Rotate the vertex
@@ -56,6 +55,8 @@ void Utils::appendObj(
                 v.x = v2.x * cos(yaw) - v2.z * sin(yaw);
                 v.z = v2.x * sin(yaw) + v2.z * cos(yaw);
             }
+
+            v += trans;
 
             mv.push_back(v);
             continue;

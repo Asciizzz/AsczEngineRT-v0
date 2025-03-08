@@ -1,8 +1,8 @@
-newmtl Base
-Kd 0.8 0.8 0.8
+AzMtl Base
+Alb 0.8 0.8 0.8
 
-newmtl Glass
-Tr 0.6
+AzMtl Glass
+Tr 0.7
 
 #Ems 1.0 1.0 1.0 2.0
 Rough 0.05

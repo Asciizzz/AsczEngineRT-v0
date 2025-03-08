@@ -21,7 +21,7 @@ __global__ void pathtraceKernel(
     int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
     if (tIdx >= frmW * frmH) return;
 
-    const int MAX_BOUNCES = 8;
+    const int MAX_BOUNCES = 5;
     const int MAX_NODES = 64;
 
     int tX = tIdx % frmW, tY = tIdx / frmW;
