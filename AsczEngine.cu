@@ -121,13 +121,19 @@ int main() {
 
         std::string objPath;
         short objPlacement = 0;
-        float objScale = 1.0f;
+        float objScl = 1.0f;
+        float objTx = 0.0f, objTy = 0.0f, objTz = 0.0f;
+        float objYaw = 0.0f;
 
-        ss >> objPath >> objPlacement >> objScale;
+        ss >> objPath >> objPlacement >> objScl >> objTx >> objTy >> objTz >> objYaw;
+
+        // Convert to radians
+        objYaw *= M_PI / 180.0f;
 
         Utils::appendObj(
             Mesh, Mat, Txtr,
-            objPath.c_str(), objPlacement, objScale
+            objPath.c_str(), objPlacement,
+            objScl, objYaw, Flt3(objTx, objTy, objTz)
         );
     }
 

@@ -1,8 +1,20 @@
-newmtl ground
-Kd 0.4 0.4 0.4
+newmtl Base
+Kd 0.8 0.8 0.8
 
-newmtl glass
-#Tr 1.0
-#Kd 20.0 20.0 20.0
-#Ems 0.5 0.5 0.5
-Rough 0.05
+newmtl Glass
+Tr 0.6
+
+#Ems 1.0 1.0 1.0 2.0
+#Rough 0.05
+
+
+
+AzMtl LightA
+Ems 1.0 1.0 1.0 2.0
+
+AzMtl Light1
+Ems 1.0 0.6 0.6 2.0
+AzMtl Light2
+Ems 0.6 1.0 0.6 2.0
+AzMtl Light3
+Ems 0.6 0.6 1.0 2.0

@@ -12,6 +12,7 @@ Alb 0.14 0.45 0.091
 
 AzMtl floor
 Alb 0.725 0.71 0.68
+Rough 0.05
 
 
 AzMtl ceiling

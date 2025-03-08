@@ -21,7 +21,7 @@ __global__ void pathtraceKernel(
     int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
     if (tIdx >= frmW * frmH) return;
 
-    const int MAX_BOUNCES = 4;
+    const int MAX_BOUNCES = 8;
     const int MAX_NODES = 64;
 
     int tX = tIdx % frmW, tY = tIdx / frmW;
@@ -194,11 +194,6 @@ __global__ void pathtraceKernel(
         // Get the face data
         const AzMtl &hm = mats[fm[hidx]];
 
-        // Vertex linear interpolation
-        float vrtx_x = RO_x + RD_x * ht;
-        float vrtx_y = RO_y + RD_y * ht;
-        float vrtx_z = RO_z + RD_z * ht;
-
         // Texture interpolation (if available)
         int t0 = ft0[hidx], t1 = ft1[hidx], t2 = ft2[hidx];
         float t_u = tx[t0] * hw + tx[t1] * hu + tx[t2] * hv;
@@ -219,6 +214,11 @@ __global__ void pathtraceKernel(
         float alb_y = tg[t_idx] * hasTxtr + hm.Alb.y * !hasTxtr;
         float alb_z = tb[t_idx] * hasTxtr + hm.Alb.z * !hasTxtr;
 
+        // Vertex linear interpolation
+        float vrtx_x = RO_x + RD_x * ht;
+        float vrtx_y = RO_y + RD_y * ht;
+        float vrtx_z = RO_z + RD_z * ht;
+
         // Normal interpolation
         int n0 = fn0[hidx], n1 = fn1[hidx], n2 = fn2[hidx];
         float nrml_x = nx[n0] * hw + nx[n1] * hu + nx[n2] * hv;
@@ -227,8 +227,8 @@ __global__ void pathtraceKernel(
         bool hasNrml = n0 > 0;
 
         // Calculate the radiance
-        float NdotL = RD_x * nrml_x + RD_y * nrml_y + RD_z * nrml_z;
-        float lIntensity = ((NdotL * NdotL) * hasNrml + !hasNrml) * hm.Ems.w;
+        float NdotV = RD_x * nrml_x + RD_y * nrml_y + RD_z * nrml_z;
+        float lIntensity = ((NdotV * NdotV) * hasNrml + !hasNrml) * hm.Ems.w;
         radi_x += thru_x * hm.Ems.x * alb_x * lIntensity;
         radi_y += thru_y * hm.Ems.y * alb_y * lIntensity;
         radi_z += thru_z * hm.Ems.z * alb_z * lIntensity;
@@ -298,6 +298,11 @@ __global__ void pathtraceKernel(
         float rd_x = diff_x * hm.Rough + spec_x * smooth;
         float rd_y = diff_y * hm.Rough + spec_y * smooth;
         float rd_z = diff_z * hm.Rough + spec_z * smooth;
+
+        bool hasTr = rndA < hm.Tr;
+        rd_x = rd_x * !hasTr + RD_x * hasTr;
+        rd_y = rd_y * !hasTr + RD_y * hasTr;
+        rd_z = rd_z * !hasTr + RD_z * hasTr;
 
     // Update the ray
         // Origin (truly random for non-normal surfaces)

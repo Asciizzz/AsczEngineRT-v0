@@ -1,9 +1,9 @@
-AzMtl floor
+AzMtl Box
 Alb 1.0 1.0 1.0
-Rough 0.05
+#Rough 0.05
 AlbMap Floor2.png
 
 
-AzMtl light
+AzMtl Light
 Alb 1.0 1.0 1.0
-#Ems 1.0 1.0 1.0 3.0
+Ems 0.4 0.4 1.0 0.6

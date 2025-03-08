@@ -18,7 +18,6 @@ struct AzMtl {
     Flt4 Ems = 0.0f; // r, g, b, intensity
 
     // Debug values
-    float Rf = 0.0f;
     bool NoShade = false;
 };
 

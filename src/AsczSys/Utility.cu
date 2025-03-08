@@ -2,7 +2,7 @@
 
 void Utils::appendObj(
     AsczMesh &MeshMgr, AsczMat &MatMgr, AsczTxtr &TxtrMgr,
-    const char *objPath, short placement, float scale
+    const char *objPath, short placement, float scale, float yaw, Flt3 trans
 ) {
     std::ifstream file(objPath);
     if (!file.is_open()) return;
@@ -47,10 +47,19 @@ void Utils::appendObj(
 
         if (type == "v") {
             Flt3 v; ss >> v.x >> v.y >> v.z;
-            v.scale(Flt3(), scale);
-            mv.push_back(v);
-        }
+            v += trans;
+            v.scale(0, scale);
 
+            // Rotate the vertex
+            if (yaw) {
+                Flt3 v2 = v;
+                v.x = v2.x * cos(yaw) - v2.z * sin(yaw);
+                v.z = v2.x * sin(yaw) + v2.z * cos(yaw);
+            }
+
+            mv.push_back(v);
+            continue;
+        }
         else if (type == "f") {
             VecI vs, ts, ns;
             while (ss.good()) {
@@ -92,21 +101,30 @@ void Utils::appendObj(
                 mO_AB.expand(mv[vs[i]]);
                 mSO_AB.back().expand(mv[vs[i]]);
             }
+            continue;
         }
 
         else if (type == "vt") {
             Flt2 t; ss >> t.x >> t.y;
-            mt.push_back(t);
+            mt.push_back(t);continue;
         }
 
         else if (type == "vn") {
             Flt3 n; ss >> n.x >> n.y >> n.z;
-            mn.push_back(n.norm());
+
+            // Rotate the normal
+            if (yaw) {
+                Flt3 n2 = n;
+                n.x = n2.x * cos(yaw) - n2.z * sin(yaw);
+                n.z = n2.x * sin(yaw) + n2.z * cos(yaw);
+            }
+
+            mn.push_back(n.norm());continue;
         }
 
         else if (type == "o") {
             mSOrF.push_back(mfv.size());
-            mSO_AB.push_back(AABB());
+            mSO_AB.push_back(AABB());continue;
         }
 
         else if (type == "usemtl" || type == "AzMtl") {
@@ -114,6 +132,7 @@ void Utils::appendObj(
             ss >> matName;
 
             matIdx = matMap[matName];
+            continue;
         }
 
         else if (type == "mtllib" || type == "AzmLib") {
@@ -186,14 +205,11 @@ void Utils::appendObj(
                 }
 
                 // DEBUG VALUES
-                else if (mtlType == "Rf") {
-                    float Rf; mtlSS >> Rf;
-                    MatMgr.h_mtls[matIdx].Rf = Rf;
-                }
                 else if (mtlType == "NoShade") {
                     MatMgr.h_mtls[matIdx].NoShade = true;
                 }
             }
+            continue;
         }
     }
     mSOrF.push_back(mfv.size());
@@ -202,10 +218,6 @@ void Utils::appendObj(
     // ---------------------------------------------------------
 
     Flt3 shift;
-    if (placement > 0) {
-        shift.x = (mO_AB.min.x + mO_AB.max.x) / 2;
-        shift.z = (mO_AB.min.z + mO_AB.max.z) / 2;
-    }
     if (placement == 1) {
         shift.y = (mO_AB.min.y + mO_AB.max.y) / 2;
     }
