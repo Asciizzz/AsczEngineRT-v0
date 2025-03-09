@@ -397,7 +397,7 @@ int main() {
         } 
         else if (renderMode == 1) {
             pathtraceKernel<<<Frame.blockCount, Frame.blockSize>>>(
-                Cam, Frame.d_fx1, Frame.d_fy1, Frame.d_fz1, Frame.width, Frame.height,
+                Cam, Frame.d_fx0, Frame.d_fy0, Frame.d_fz0, Frame.width, Frame.height,
 
                 Mesh.d_vx, Mesh.d_vy, Mesh.d_vz, Mesh.d_tx, Mesh.d_ty, Mesh.d_nx, Mesh.d_ny, Mesh.d_nz,
                 Mesh.d_fv0, Mesh.d_fv1, Mesh.d_fv2, Mesh.d_ft0, Mesh.d_ft1, Mesh.d_ft2, Mesh.d_fn0, Mesh.d_fn1, Mesh.d_fn2, Mesh.d_fm,
@@ -409,7 +409,7 @@ int main() {
                 Frame.d_rand
             );
 
-            Frame.toDraw1(false);
+            Frame.toDraw0(true);
         }
         else if (renderMode == 2) {
             // pathtraceKernel<<<Win.blockCount, Win.threadCount>>>(
