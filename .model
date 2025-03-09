@@ -71,22 +71,22 @@
 
 assets/Models/Structure/Buildings/Ground.obj 2 100
 
-assets/Models/Structure/Buildings/Building003.obj 2 1 
+# assets/Models/Structure/Buildings/Building003.obj 2 1 
 
-# assets/Models/Structure/Buildings/Building001.obj 2 1  50 0 40
-# assets/Models/Structure/Buildings/Building001.obj 2 1  0 0 0  -180
-# assets/Models/Structure/Buildings/Building001.obj 2 1  25 0 25  90
+assets/Models/Structure/Buildings/Building001.obj 2 1  50 0 40
+assets/Models/Structure/Buildings/Building001.obj 2 1  0 0 0  -180
+assets/Models/Structure/Buildings/Building001.obj 2 1  25 0 25  90
 
-# assets/Models/Structure/Buildings/Building002.obj 2 1  0 0 25  90
-# assets/Models/Structure/Buildings/Building002.obj 2 1  50 0 10
-# assets/Models/Structure/Buildings/Building002.obj 2 1  40 0 -15
+assets/Models/Structure/Buildings/Building002.obj 2 1  0 0 25  90
+assets/Models/Structure/Buildings/Building002.obj 2 1  50 0 10
+assets/Models/Structure/Buildings/Building002.obj 2 1  40 0 -15
 
-# assets/Models/Structure/Buildings/Building003.obj 2 1  -26 0 25  -180
-# assets/Models/Structure/Buildings/Building003.obj 2 1  20 0 0  90
-# assets/Models/Structure/Buildings/Building003.obj 2 1  20 0 -30  90
+assets/Models/Structure/Buildings/Building003.obj 2 1  -26 0 25  -180
+assets/Models/Structure/Buildings/Building003.obj 2 1  20 0 0  90
+assets/Models/Structure/Buildings/Building003.obj 2 1  20 0 -30  90
 
 assets/Models/Structure/Tree/Tree.obj 2 .3  14 4 12  0
-assets/Models/Structure/Tree/Tree.obj 2 .4  38 5 4  17
+assets/Models/Structure/Tree/Tree.obj 2 .3  38 5 4  17
 assets/Models/Structure/Tree/Tree.obj 2 .3  -14 4 -1  90
 assets/Models/Structure/Tree/Tree.obj 2 .3  28 4 14  45
 assets/Models/Structure/Tree/Tree.obj 2 .3  -15 4 14  167
