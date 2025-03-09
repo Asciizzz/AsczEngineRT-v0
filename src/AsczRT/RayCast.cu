@@ -196,9 +196,9 @@ __global__ void raycastKernel(
     int t_idx = t_off + t_y * t_w + t_x;
 
     bool hasTxtr = hm.AlbMap > 0;
-    float alb_x = tr[t_idx] * hasTxtr + hm.Alb.x * !hasTxtr;
-    float alb_y = tg[t_idx] * hasTxtr + hm.Alb.y * !hasTxtr;
-    float alb_z = tb[t_idx] * hasTxtr + hm.Alb.z * !hasTxtr;
+    float alb_x = tr[t_idx] * hasTxtr + hm.Alb_r * !hasTxtr;
+    float alb_y = tg[t_idx] * hasTxtr + hm.Alb_g * !hasTxtr;
+    float alb_z = tb[t_idx] * hasTxtr + hm.Alb_b * !hasTxtr;
 
     // Fake shading
     bool fShade = fakeShading && hasNrml;

@@ -3,7 +3,6 @@
 #include <AsczTxtr.cuh>
 #include <stb_image.h>
 #include <cuda_runtime.h>
-#include <iostream>
 
 AsczTxtr::~AsczTxtr() {
     cudaFree(d_tr);

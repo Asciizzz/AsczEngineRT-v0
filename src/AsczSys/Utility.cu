@@ -163,8 +163,13 @@ void Utils::appendObj(
                 }
                 // Albedo
                 else if (mtlType == "Kd" || mtlType == "Alb") {
-                    Flt3 Kd; mtlSS >> Kd.x >> Kd.y >> Kd.z;
-                    MatMgr.h_mtls[matIdx].Alb = Kd;
+                    // Flt3 Kd; mtlSS >> Kd.x >> Kd.y >> Kd.z;
+                    float alb_r, alb_g, alb_b;
+                    mtlSS >> alb_r >> alb_g >> alb_b;
+
+                    MatMgr.h_mtls[matIdx].Alb_r = alb_r;
+                    MatMgr.h_mtls[matIdx].Alb_g = alb_g;
+                    MatMgr.h_mtls[matIdx].Alb_b = alb_b;
                 }
                 // Albedo map
                 else if (mtlType == "map_Kd" || mtlType == "AlbMap") {
@@ -204,9 +209,14 @@ void Utils::appendObj(
                 }
                 // Emission
                 else if (mtlType == "Ke" || mtlType == "Ems") {
-                    Flt4 Ems; mtlSS >> Ems.x >> Ems.y >> Ems.z >> Ems.w;
-                    Ems.w = Ems.w ? Ems.w : 1.0f;
-                    MatMgr.h_mtls[matIdx].Ems = Ems;
+                    // Flt4 Ems; mtlSS >> Ems.x >> Ems.y >> Ems.z >> Ems.w;
+                    float Ems_r, Ems_g, Ems_b, Ems_i;
+                    mtlSS >> Ems_r >> Ems_g >> Ems_b >> Ems_i;
+                    Ems_i = Ems_i + !Ems_i; // In case the intensity is 0
+                    MatMgr.h_mtls[matIdx].Ems_r = Ems_r;
+                    MatMgr.h_mtls[matIdx].Ems_g = Ems_g;
+                    MatMgr.h_mtls[matIdx].Ems_b = Ems_b;
+                    MatMgr.h_mtls[matIdx].Ems_i = Ems_i;
                 }
 
                 // DEBUG VALUES

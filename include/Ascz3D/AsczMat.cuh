@@ -4,7 +4,10 @@
 #include <Vector.cuh>
 
 struct AzMtl {
-    Flt3 Alb = 1.0f;
+    float Alb_r = 0.0f;
+    float Alb_g = 0.0f;
+    float Alb_b = 0.0f;
+
     int AlbMap = -1;
 
     float Rough = 1.0f;
@@ -15,7 +18,11 @@ struct AzMtl {
     float Tr = 0.0f;
     float Ior = 1.0f;
 
-    Flt4 Ems = 0.0f; // r, g, b, intensity
+    // r, g, b, intensity
+    float Ems_r = 0.0f;
+    float Ems_g = 0.0f;
+    float Ems_b = 0.0f;
+    float Ems_i = 0.0f;
 
     // Debug values
     bool NoShade = false;

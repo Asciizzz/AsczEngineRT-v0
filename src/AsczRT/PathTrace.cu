@@ -211,9 +211,9 @@ __global__ void pathtraceKernel(
         int t_idx = t_off + t_y * t_w + t_x;
 
         bool hasTxtr = hm.AlbMap > 0;
-        float alb_x = tr[t_idx] * hasTxtr + hm.Alb.x * !hasTxtr;
-        float alb_y = tg[t_idx] * hasTxtr + hm.Alb.y * !hasTxtr;
-        float alb_z = tb[t_idx] * hasTxtr + hm.Alb.z * !hasTxtr;
+        float alb_x = tr[t_idx] * hasTxtr + hm.Alb_r * !hasTxtr;
+        float alb_y = tg[t_idx] * hasTxtr + hm.Alb_g * !hasTxtr;
+        float alb_z = tb[t_idx] * hasTxtr + hm.Alb_b * !hasTxtr;
 
         // Vertex linear interpolation
         float vrtx_x = RO_x + RD_x * ht;
@@ -229,10 +229,10 @@ __global__ void pathtraceKernel(
 
         // Calculate the radiance
         float NdotV = RD_x * nrml_x + RD_y * nrml_y + RD_z * nrml_z;
-        float lIntensity = ((NdotV * NdotV) * hasNrml + !hasNrml) * hm.Ems.w;
-        radi_x += thru_x * hm.Ems.x * alb_x * lIntensity;
-        radi_y += thru_y * hm.Ems.y * alb_y * lIntensity;
-        radi_z += thru_z * hm.Ems.z * alb_z * lIntensity;
+        float lIntensity = ((NdotV * NdotV) * hasNrml + !hasNrml) * hm.Ems_i;
+        radi_x += thru_x * hm.Ems_r * alb_x * lIntensity;
+        radi_y += thru_y * hm.Ems_g * alb_y * lIntensity;
+        radi_z += thru_z * hm.Ems_b * alb_z * lIntensity;
 
         thru_x *= alb_x * (1.0f - hm.Tr) + hm.Tr;
         thru_y *= alb_y * (1.0f - hm.Tr) + hm.Tr;
