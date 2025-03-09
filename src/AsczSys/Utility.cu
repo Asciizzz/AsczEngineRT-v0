@@ -154,7 +154,8 @@ void Utils::appendObj(
 
                 if (mtlType == "newmtl" || mtlType == "AzMtl") {
                     std::string matName; mtlSS >> matName;
-                    matIdx = MatMgr.append(AzMtl(), 
+                    std::string matPath = mtlDir;
+                    matIdx = MatMgr.append(AzMtl(),
                         std::wstring(matName.begin(), matName.end()), 
                         std::wstring(mtlDir.begin(), mtlDir.end())
                     );
