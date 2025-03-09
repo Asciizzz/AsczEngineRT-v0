@@ -29,11 +29,8 @@ __global__ void pathtraceKernel(
 
     float rnd1 = curand_uniform(&rnd[tIdx]);
     float rnd2 = curand_uniform(&rnd[tIdx]);
-    float rnd3 = curand_uniform(&rnd[tIdx]);
-    float rnd4 = curand_uniform(&rnd[tIdx]);
 
-    Ray ray = camera.castRay(tX, tY, frmw, frmh,
-                            rnd1, rnd2, rnd3, rnd4);
+    Ray ray = camera.castRay(tX, tY, frmw, frmh, rnd1, rnd2);
 
     // Ray direction
     float RD_x = ray.d.x, RD_y = ray.d.y, RD_z = ray.d.z;

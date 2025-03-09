@@ -33,7 +33,7 @@ void AsczCam::updateView() {
 }
 
 __device__
-Ray AsczCam::castRay(float x, float y, float w, float h, float r1, float r2, float r3, float r4) const {
+Ray AsczCam::castRay(float x, float y, float w, float h, float r1, float r2) const {
     float ndcX = (w - 2 * x) / w;
     float ndcY = (h - 2 * y) / h;
 
@@ -54,8 +54,8 @@ Ray AsczCam::castRay(float x, float y, float w, float h, float r1, float r2, flo
     float RdotF = rD * frwd;
 
     Flt3 focalPoint = pos + rD * focalDist / RdotF;
-    // r3, r4 for antialiasing
-    focalPoint += (rght * (r3 - 0.5f) + up * (r4 - 0.5f)) * 0.004f;
+    // Anti-aliasing
+    focalPoint += (rght * (r2 - 0.5f) + up * (r1 - 0.5f)) * 0.004f;
 
     rD = (focalPoint - rO).norm();
 
