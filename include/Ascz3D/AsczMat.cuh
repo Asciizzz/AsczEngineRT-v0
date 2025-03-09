@@ -1,7 +1,8 @@
 #ifndef AsczMat_CUH
 #define AsczMat_CUH
 
-#include <Vector.cuh>
+#include <vector>
+#include <string>
 
 struct AzMtl {
     float Alb_r = 0.0f;

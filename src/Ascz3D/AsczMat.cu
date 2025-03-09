@@ -2,10 +2,8 @@
 #include <cuda_runtime.h>
 
 AsczMat::~AsczMat() {
-    if (d_mtls) {
-        cudaFree(d_mtls);
-        d_mtls = nullptr;
-    }
+    cudaFree(d_mtls);
+    d_mtls = nullptr;
 }
 
 int AsczMat::append(AzMtl mtl, std::wstring name, std::wstring path) {
