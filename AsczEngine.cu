@@ -455,15 +455,15 @@ int main() {
                 cudaMemcpy(&depth, Frame.d_depth + center, sizeof(float), cudaMemcpyDeviceToHost);
                 cudaMemcpy(&mat, Frame.d_mat + center, sizeof(int), cudaMemcpyDeviceToHost);
 
-                std::wstring matName = mat > -1 ? Mat.names[mat] : L"None";
-                std::wstring matPath = mat > -1 ? Mat.paths[mat] : L"None";
-
-                Win.appendDebug(L"Depth: " + std::to_wstring(depth), Int3(255), 20);
-                Win.appendDebug(L"Material:", Int3(255), 20);
-                Win.appendDebug(L"Name: " + matName, Int3(255), 40);
-                Win.appendDebug(L"Path: " + matPath, Int3(255), 40);
-
                 if (mat > -1) {
+                    std::wstring matName = Mat.names[mat];
+                    std::wstring matPath = Mat.paths[mat];
+
+                    Win.appendDebug(L"Depth: " + std::to_wstring(depth), Int3(255), 20);
+                    Win.appendDebug(L"Material:", Int3(255), 20);
+                    Win.appendDebug(L"Name: " + matName, Int3(255), 40);
+                    Win.appendDebug(L"Path: " + matPath, Int3(255), 40);
+
                     const AzMtl &mtl = Mat.h_mtls[mat];
                     Win.appendDebug(L"Alb: " + std::to_wstring(mtl.Alb.x) + L", " + std::to_wstring(mtl.Alb.y) + L", " + std::to_wstring(mtl.Alb.z), Int3(255), 40);
                     Win.appendDebug(L"Ems: " + std::to_wstring(mtl.Ems.x) + L", " + std::to_wstring(mtl.Ems.y) + L", " + std::to_wstring(mtl.Ems.z) + L", " + std::to_wstring(mtl.Ems.w), Int3(255), 40);
