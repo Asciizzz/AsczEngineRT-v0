@@ -174,6 +174,8 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 
 ## What's Next
 
+### Multiple Importance Sampling (MIS)
+
 #### 1. What we have so far
 
 - **A. Standard path tracing**
@@ -188,9 +190,9 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
   - Instead of sampling bounces randomly, sample the light source directly.
     - Sample random light source, and random point on that light source.
     - Calculate the direct lighting contribution.
-  - However, it does come at the cost of extra computation (shadow rays).
+  - However, it does come at the cost of extra computation (shadow rays), yikes.
 
-#### 2. Multiple Importance Sampling (MIS) - The chimera
+#### 2. MIS - The chimera
 
 - Combining both NEE and path tracing to get the best of both worlds.
 - **Random bounces (path tracing)** ensure indirect lighting is captured.
