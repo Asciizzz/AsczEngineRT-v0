@@ -46,6 +46,9 @@ public:
     void toDraw1(bool toneMap=true, bool crosshair=true);
     void toDraw2(bool toneMap=true);
 
+    void biliFilter0();
+    void biliFilter1();
+
     void add0();
     void add1();
     void reset2();

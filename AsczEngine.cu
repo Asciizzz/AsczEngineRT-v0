@@ -12,42 +12,6 @@
 #include <RayCast.cuh>
 #include <PathTrace.cuh>
 
-__global__ void bilateralFilter(Flt3* framebuffer, Flt3* output, int width, int height, int radius = 3, float sigma_spatial = 1.5f, float sigma_color = 0.2f) {
-    int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
-    int x = tIdx % width;
-    int y = tIdx / width;
-    if (x >= width || y >= height) return;
-
-    int idx = y * width + x;
-    Flt3 centerColor = framebuffer[idx];
-
-    Flt3 sumColor = {0, 0, 0};
-    float sumWeight = 0.0f;
-
-    for (int dy = -radius; dy <= radius; dy++) {
-        for (int dx = -radius; dx <= radius; dx++) {
-            int nx = x + dx, ny = y + dy;
-            if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
-
-            int nIdx = ny * width + nx;
-            Flt3 neighborColor = framebuffer[nIdx];
-
-            // Spatial weight (Gaussian based on distance)
-            float spatialWeight = expf(-(dx * dx + dy * dy) / (2.0f * sigma_spatial * sigma_spatial));
-
-            // Color weight (Preserve edges by reducing weight for different colors)
-            float colorDiff = (neighborColor - centerColor).mag();
-            float colorWeight = expf(-(colorDiff * colorDiff) / (2.0f * sigma_color * sigma_color));
-
-            float weight = spatialWeight * colorWeight;
-            sumColor = sumColor + neighborColor * weight;
-            sumWeight += weight;
-        }
-    }
-
-    output[idx] = sumColor / sumWeight;
-}
-
 int main() {
     // =================== Initialize FPS and Window ==============
     FpsHandler &FPS = FpsHandler::instance();
@@ -416,7 +380,11 @@ int main() {
                                 prevAptr != Cam.aperture ||
                                 prevFdst != Cam.focalDist;
             if (changeRender)   Frame.reset2();
-            else                Frame.add0();
+            else {
+                Frame.biliFilter0();
+                Frame.biliFilter1();
+                Frame.add0();
+            }
 
             Frame.toDraw2(true);
             prevPos = Cam.pos;

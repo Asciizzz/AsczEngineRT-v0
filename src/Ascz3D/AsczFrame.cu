@@ -152,3 +152,77 @@ void AsczFrame::reset2() {
     resetKernel<<<blockCount, blockSize>>>(d_fx2, d_fy2, d_fz2, size);
     f_acc = 0;
 }
+
+
+__global__ void bilateralFilter(
+    float *fx0, float *fy0, float *fz0,  // Input frame
+    float *fx1, float *fy1, float *fz1,  // Output frame
+    float *depth,                         // Depth buffer
+    int width, int height,                // Image dimensions
+    float sigmaSpatial, float sigmaRange, // Filter parameters
+    int radius                            // Filter radius
+) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    int x = idx % width, y = idx / width;
+
+    if (x >= width || y >= height) return;
+
+    float centerDepth = depth[idx];
+    float centerR = fx0[idx];
+    float centerG = fy0[idx];
+    float centerB = fz0[idx];
+
+    float sumR = 0.0f, sumG = 0.0f, sumB = 0.0f;
+    float totalWeight = 0.0f;
+
+    for (int dy = -radius; dy <= radius; dy++) {
+        for (int dx = -radius; dx <= radius; dx++) {
+            int nx = x + dx, ny = y + dy;
+            if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
+
+            int nIdx = ny * width + nx;
+            float neighborDepth = depth[nIdx];
+            float neighborR = fx0[nIdx];
+            float neighborG = fy0[nIdx];
+            float neighborB = fz0[nIdx];
+
+            // Compute spatial weight (Gaussian blur based on distance)
+            float spatialWeight = expf(-(dx * dx + dy * dy) / (2.0f * sigmaSpatial * sigmaSpatial));
+
+            // Compute range weight (Gaussian depth similarity)
+            float rangeWeight = expf(-((neighborDepth - centerDepth) * (neighborDepth - centerDepth)) / (2.0f * sigmaRange * sigmaRange));
+
+            // Final weight
+            float weight = spatialWeight * rangeWeight;
+            totalWeight += weight;
+
+            // Apply weighted sum
+            sumR += neighborR * weight;
+            sumG += neighborG * weight;
+            sumB += neighborB * weight;
+        }
+    }
+
+    // Normalize and write back
+    fx1[idx] = sumR / totalWeight;
+    fy1[idx] = sumG / totalWeight;
+    fz1[idx] = sumB / totalWeight;
+}
+
+void AsczFrame::biliFilter0() {
+    bilateralFilter<<<blockCount, blockSize>>>(
+        d_fx0, d_fy0, d_fz0,
+        d_fx1, d_fy1, d_fz1,
+        d_depth, width, height,
+        1.0f, 0.1f, 3
+    );
+}
+
+void AsczFrame::biliFilter1() {
+    bilateralFilter<<<blockCount, blockSize>>>(
+        d_fx1, d_fy1, d_fz1,
+        d_fx0, d_fy0, d_fz0,
+        d_depth, width, height,
+        1.0f, 0.1f, 3
+    );
+}
