@@ -10,7 +10,7 @@
 #include <curand_kernel.h>
 
 __global__ void pathtraceKernel(
-    AsczCam camera, Flt3 *frmbuffer, int frmW, int frmH, // In-out
+    AsczCam camera, float *frmx, float *frmy, float *frmz, int frmw, int frmh,
     // Primitive data
     float *vx, float *vy, float *vz, float *tx, float *ty, float *nx, float *ny, float *nz,
     // Geometry data

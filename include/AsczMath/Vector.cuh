@@ -1,38 +1,12 @@
 #ifndef VECTOR_CUH
 #define VECTOR_CUH
 
-
+#include <AzDevMath.cuh>
 #include <iostream>
 #include <vector>
 #include <cstdio>
 #include <cmath>
 
-
-/*
-Take a screenshot of these abomination below
-to instantly kill a programmer on the spot
-*/
-
-#define VecI std::vector<int>
-#define VecF std::vector<float>
-
-#define VecUI32t std::vector<uint32_t>
-
-#define Vec2f std::vector<Flt2>
-#define Vec3f std::vector<Flt3>
-#define Vec4f std::vector<Flt4>
-
-#define Vec3i std::vector<Int3>
-
-constexpr float M_PI = 3.14159265358979323846; // 180 degrees
-constexpr float M_PI_2 = 1.57079632679489661923; // 90 degrees
-constexpr float M_PIx2 = 6.28318530717958647692; // 360 degrees
-constexpr float M_1_PI = 0.31830988618379067154; // 1/PI
-constexpr float M_E = 2.71828182845904523536;
-
-constexpr float EPSILON_1 = 1e-3;
-constexpr float EPSILON_2 = 1e-6;
-constexpr int THREADS_PER_BLOCK = 256;
 
 struct Flt2 {
     float x, y;

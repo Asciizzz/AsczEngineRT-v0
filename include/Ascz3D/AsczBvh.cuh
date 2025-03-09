@@ -26,7 +26,7 @@ struct DevNode { // Flattened structure friendly for shader code
 
 class AsczBvh {
 public:
-    VecI h_gIdx; // Geom's index
+    std::vector<int> h_gIdx; // Geom's index
     int *d_gIdx = nullptr;
 
     VecNode h_nodes;
@@ -48,9 +48,9 @@ public:
 
     // Sub-object split faces
     static int buildBvh(
-        // VecF &mi_x, VecF &mi_y, VecF &mi_z, VecF &mx_x, VecF &mx_y, VecF &mx_z,
-        // VecI &cl, VecI &cr, VecI &ll, VecI &lr,
-        VecNode &allNodes, VecI &allGIdx, DevNode &node, const VecAB &ABs,
+        // std::vector<float> &mi_x, std::vector<float> &mi_y, std::vector<float> &mi_z, std::vector<float> &mx_x, std::vector<float> &mx_y, std::vector<float> &mx_z,
+        // std::vector<int> &cl, std::vector<int> &cr, std::vector<int> &ll, std::vector<int> &lr,
+        VecNode &allNodes, std::vector<int> &allGIdx, DevNode &node, const VecAB &ABs,
         int depth, const int MAX_DEPTH, const int NODE_FACES, const int BIN_COUNT
     );
     void designBVH(AsczMesh &meshMgr);

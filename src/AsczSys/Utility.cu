@@ -14,10 +14,10 @@ void Utils::appendObj(
     Vec3i mfv;
     Vec3i mft;
     Vec3i mfn;
-    VecI mfm;
-    VecI mlSrc;
+    std::vector<int> mfm;
+    std::vector<int> mlSrc;
 
-    VecI mSOrF;
+    std::vector<int> mSOrF;
 
     AABB mO_AB; // Object AABB
     VecAB mSO_AB; // Sub-objects AABB
@@ -62,7 +62,7 @@ void Utils::appendObj(
             continue;
         }
         else if (type == "f") {
-            VecI vs, ts, ns;
+            std::vector<int> vs, ts, ns;
             while (ss.good()) {
                 std::string vtn; ss >> vtn;
                 std::stringstream ss2(vtn);
@@ -254,5 +254,5 @@ void Utils::appendObj(
     mesh.O_AB = mO_AB;
     mesh.SO_AB = mSO_AB;
 
-    MeshMgr.appendMesh(mesh);
+    MeshMgr.append(mesh);
 }

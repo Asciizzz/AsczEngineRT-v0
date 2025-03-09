@@ -7,6 +7,7 @@
 #include <AsczMesh.cuh>
 #include <AsczBvh.cuh>
 #include <AsczCam.cuh>
+#include <AsczFrame.cuh>
 
 #include <RayCast.cuh>
 #include <PathTrace.cuh>
@@ -62,17 +63,11 @@ __global__ void bilateralFilter(Flt3* framebuffer, Flt3* output, int width, int 
     output[idx] = sumColor / sumWeight;
 }
 
-__global__ void initRandState(curandState *state, int width, int height, int seed) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx < width * height) {
-        curand_init(seed, idx, 0, &state[idx]);
-    }
-}
-
 int main() {
     // =================== Initialize FPS and Window ==============
     FpsHandler &FPS = FpsHandler::instance();
     AsczWin Win(1600, 900, L"AsczEngineRT_v0");
+    AsczFrame Frame(Win.width, Win.height);
 
     // =============== Initialize Important Managers ================
 
@@ -139,6 +134,116 @@ int main() {
         );
     }
 
+// ========================== PLAYGROUND ==================================
+
+    // // Wave generation
+    // MeshStruct wave;
+    // float wave_start_x = -20.0f;
+    // float wave_start_z = -20.0f;
+    // float wave_height = 0.1f;
+    // float wave_rnd_up = 0.01f;
+    // float wave_rnd_dn = 0.01f;
+    // float wave_move_x = 0.4f;
+    // float wave_move_z = 0.4f;
+    // int wave_step_x = 100;
+    // int wave_step_z = 100;
+
+    // for (float z = 0; z < wave_step_z; z++) {
+    //     for (float x = 0; x < wave_step_x; x++) {
+    //         float px = wave_start_x + x * wave_move_x;
+    //         float pz = wave_start_z + z * wave_move_z;
+
+    //         float py = sin(px) * cos(pz) * wave_height;
+    //         wave.v.push_back(Flt3(px, py, pz));
+    //     }
+    // }
+
+    // AzMtl waveMat;
+    // waveMat.Rough = 0.05f;
+    // waveMat.Alb = Flt3(0.2f, 0.25f, 0.5f);
+
+    // int wMat = Mat.appendMaterial(waveMat);
+
+    // // Append faces
+    // AABB waveAB;
+    // for (int z = 0; z < wave_step_z - 1; z++) {
+    //     for (int x = 0; x < wave_step_x - 1; x++) {
+    //         // Find: (x, z), (x+1, z), (x, z+1), (x+1, z+1)
+    //         int v0idx = z * wave_step_x + x;
+    //         int v1idx = z * wave_step_x + x + 1;
+    //         int v2idx = (z + 1) * wave_step_x + x;
+    //         int v3idx = (z + 1) * wave_step_x + x + 1;
+
+    //         Flt3 v0 = wave.v[v0idx];
+    //         Flt3 v1 = wave.v[v1idx];
+    //         Flt3 v2 = wave.v[v2idx];
+    //         Flt3 v3 = wave.v[v3idx];
+
+    //         // Calculate normal by finding the gradient vector
+
+    //         Flt3 n0 = {
+    //             -cos(v0.x) * cos(v0.z) * wave_height,
+    //             sin(v0.x) * sin(v0.z) * wave_height,
+    //             -sin(v0.x) * cos(v0.z) * wave_height
+    //         };
+    //         n0 *= n0.y < 0 ? -1 : 1;
+    //         n0 /= sqrt(n0.x * n0.x + n0.y * n0.y + n0.z * n0.z);
+    //         Flt3 n1 = {
+    //             -cos(v1.x) * cos(v1.z) * wave_height,
+    //             sin(v1.x) * sin(v1.z) * wave_height,
+    //             -sin(v1.x) * cos(v1.z) * wave_height
+    //         };
+    //         n1 = n1.y < 0 ? -n1 : n1;
+    //         n1 /= sqrt(n1.x * n1.x + n1.y * n1.y + n1.z * n1.z);
+    //         Flt3 n2 = {
+    //             -cos(v2.x) * cos(v2.z) * wave_height,
+    //             sin(v2.x) * sin(v2.z) * wave_height,
+    //             -sin(v2.x) * cos(v2.z) * wave_height
+    //         };
+    //         n2 = n2.y < 0 ? -n2 : n2;
+    //         n2 /= sqrt(n2.x * n2.x + n2.y * n2.y + n2.z * n2.z);
+    //         Flt3 n3 = {
+    //             -cos(v3.x) * cos(v3.z) * wave_height,
+    //             sin(v3.x) * sin(v3.z) * wave_height,
+    //             -sin(v3.x) * cos(v3.z) * wave_height
+    //         };
+    //         n3 = n3.y < 0 ? -n3 : n3;
+    //         n3 /= sqrt(n3.x * n3.x + n3.y * n3.y + n3.z * n3.z);
+
+    //         // Append normal
+    //         wave.n.push_back(n0);
+    //         wave.n.push_back(n1);
+    //         wave.n.push_back(n2);
+    //         wave.n.push_back(n3);
+
+    //         int n0idx = wave.n.size() - 4;
+    //         int n1idx = wave.n.size() - 3;
+    //         int n2idx = wave.n.size() - 2;
+    //         int n3idx = wave.n.size() - 1;
+
+
+    //         // Expand AABB
+    //         waveAB.expand(v0);
+    //         waveAB.expand(v1);
+    //         waveAB.expand(v2);
+    //         waveAB.expand(v3);
+
+    //         wave.fv.push_back(Int3(v0idx, v1idx, v2idx));
+    //         wave.ft.push_back(-1);
+    //         wave.fn.push_back(Int3(n0idx, n1idx, n2idx));
+    //         wave.fm.push_back(wMat);
+
+    //         wave.fv.push_back(Int3(v1idx, v3idx, v2idx));
+    //         wave.ft.push_back(-1);
+    //         wave.fn.push_back(Int3(n1idx, n3idx, n2idx));
+    //         wave.fm.push_back(wMat);
+    //     }
+    // }
+    // wave.O_AB = waveAB;
+
+    // // Append to mesh
+    // Mesh.append(wave);
+
     // ======================= Copy to device memory ==========================
 
     // Copy to device memory
@@ -165,10 +270,6 @@ int main() {
     Flt3 prevRot = Cam.rot;
     float prevAptr = Cam.aperture;
     float prevFdst = Cam.focalDist;
-
-    curandState *d_randStates;
-    cudaMalloc(&d_randStates, Win.width * Win.height * sizeof(curandState));
-    initRandState<<<Win.blockCount, Win.threadCount>>>(d_randStates, Win.width, Win.height, accumulate);
 
     MSG msg = { 0 };
     while (msg.message != WM_QUIT) {
@@ -279,8 +380,8 @@ int main() {
 
         // Render
         if (renderMode == 0) {
-            raycastKernel<<<Win.blockCount, Win.threadCount>>>(
-                Cam, Win.d_frmbuffer1, Win.width, Win.height,
+            raycastKernel<<<Frame.blockCount, Frame.blockSize>>>(
+                Cam, Frame.d_fx0, Frame.d_fy0, Frame.d_fz0, Frame.width, Frame.height,
 
                 Mesh.d_vx, Mesh.d_vy, Mesh.d_vz, Mesh.d_tx, Mesh.d_ty, Mesh.d_nx, Mesh.d_ny, Mesh.d_nz,
                 Mesh.d_fv0, Mesh.d_fv1, Mesh.d_fv2, Mesh.d_ft0, Mesh.d_ft1, Mesh.d_ft2, Mesh.d_fn0, Mesh.d_fn1, Mesh.d_fn2, Mesh.d_fm,
@@ -291,51 +392,53 @@ int main() {
 
                 fakeShading
             );
+
+            Frame.toDraw0(false);
         } 
         else if (renderMode == 1) {
-            pathtraceKernel<<<Win.blockCount, Win.threadCount>>>(
-                Cam, Win.d_frmbuffer2, Win.width, Win.height,
+            // pathtraceKernel<<<Frame.blockCount, Frame.blockSize>>>(
+            //     Cam, Win.d_frmbuffer2, Win.width, Win.height,
 
-                Mesh.d_vx, Mesh.d_vy, Mesh.d_vz, Mesh.d_tx, Mesh.d_ty, Mesh.d_nx, Mesh.d_ny, Mesh.d_nz,
-                Mesh.d_fv0, Mesh.d_fv1, Mesh.d_fv2, Mesh.d_ft0, Mesh.d_ft1, Mesh.d_ft2, Mesh.d_fn0, Mesh.d_fn1, Mesh.d_fn2, Mesh.d_fm,
-                Mat.d_mtls,
-                Txtr.d_tr, Txtr.d_tg, Txtr.d_tb, Txtr.d_ta, Txtr.d_tw, Txtr.d_th, Txtr.d_toff,
+            //     Mesh.d_vx, Mesh.d_vy, Mesh.d_vz, Mesh.d_tx, Mesh.d_ty, Mesh.d_nx, Mesh.d_ny, Mesh.d_nz,
+            //     Mesh.d_fv0, Mesh.d_fv1, Mesh.d_fv2, Mesh.d_ft0, Mesh.d_ft1, Mesh.d_ft2, Mesh.d_fn0, Mesh.d_fn1, Mesh.d_fn2, Mesh.d_fm,
+            //     Mat.d_mtls,
+            //     Txtr.d_tr, Txtr.d_tg, Txtr.d_tb, Txtr.d_ta, Txtr.d_tw, Txtr.d_th, Txtr.d_toff,
 
-                Bvh.d_mi_x, Bvh.d_mi_y, Bvh.d_mi_z, Bvh.d_mx_x, Bvh.d_mx_y, Bvh.d_mx_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_gIdx,
+            //     Bvh.d_mi_x, Bvh.d_mi_y, Bvh.d_mi_z, Bvh.d_mx_x, Bvh.d_mx_y, Bvh.d_mx_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_gIdx,
 
-                d_randStates
-            );
+            //     Frame.d_rand
+            // );
         }
         else if (renderMode == 2) {
-            pathtraceKernel<<<Win.blockCount, Win.threadCount>>>(
-                Cam, Win.d_frmbuffer1, Win.width, Win.height,
+            // pathtraceKernel<<<Win.blockCount, Win.threadCount>>>(
+            //     Cam, Win.d_frmbuffer1, Win.width, Win.height,
 
-                Mesh.d_vx, Mesh.d_vy, Mesh.d_vz, Mesh.d_tx, Mesh.d_ty, Mesh.d_nx, Mesh.d_ny, Mesh.d_nz,
-                Mesh.d_fv0, Mesh.d_fv1, Mesh.d_fv2, Mesh.d_ft0, Mesh.d_ft1, Mesh.d_ft2, Mesh.d_fn0, Mesh.d_fn1, Mesh.d_fn2, Mesh.d_fm,
-                Mat.d_mtls,
-                Txtr.d_tr, Txtr.d_tg, Txtr.d_tb, Txtr.d_ta, Txtr.d_tw, Txtr.d_th, Txtr.d_toff,
+            //     Mesh.d_vx, Mesh.d_vy, Mesh.d_vz, Mesh.d_tx, Mesh.d_ty, Mesh.d_nx, Mesh.d_ny, Mesh.d_nz,
+            //     Mesh.d_fv0, Mesh.d_fv1, Mesh.d_fv2, Mesh.d_ft0, Mesh.d_ft1, Mesh.d_ft2, Mesh.d_fn0, Mesh.d_fn1, Mesh.d_fn2, Mesh.d_fm,
+            //     Mat.d_mtls,
+            //     Txtr.d_tr, Txtr.d_tg, Txtr.d_tb, Txtr.d_ta, Txtr.d_tw, Txtr.d_th, Txtr.d_toff,
 
-                Bvh.d_mi_x, Bvh.d_mi_y, Bvh.d_mi_z, Bvh.d_mx_x, Bvh.d_mx_y, Bvh.d_mx_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_gIdx,
+            //     Bvh.d_mi_x, Bvh.d_mi_y, Bvh.d_mi_z, Bvh.d_mx_x, Bvh.d_mx_y, Bvh.d_mx_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_gIdx,
 
-                d_randStates
-            );
+            //     Frame.d_rand
+            // );
 
-            bool changeRender = prevPos != Cam.pos ||
-                                prevRot != Cam.rot ||
-                                prevAptr != Cam.aperture ||
-                                prevFdst != Cam.focalDist;
-            if (changeRender) {
-                accumulate = 1;
-                copyFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer2, Win.width * Win.height);
-            } else {
-                accumulate ++;
-                addFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer2, Win.d_frmbuffer1, Win.width * Win.height);
-                divFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer2, Win.width * Win.height, accumulate);
+            // bool changeRender = prevPos != Cam.pos ||
+            //                     prevRot != Cam.rot ||
+            //                     prevAptr != Cam.aperture ||
+            //                     prevFdst != Cam.focalDist;
+            // if (changeRender) {
+            //     accumulate = 1;
+            //     copyFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer2, Win.width * Win.height);
+            // } else {
+            //     accumulate ++;
+            //     addFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer2, Win.d_frmbuffer1, Win.width * Win.height);
+            //     divFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer2, Win.width * Win.height, accumulate);
 
-                // Bilateral filter
-                bilateralFilter<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer3, Win.width, Win.height);
-                // copyFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer3, Win.width * Win.height);
-            }
+            //     // Bilateral filter
+            //     bilateralFilter<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer3, Win.width, Win.height);
+            //     // copyFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer3, Win.width * Win.height);
+            // }
             prevPos = Cam.pos;
             prevRot = Cam.rot;
             prevAptr = Cam.aperture;
@@ -356,14 +459,14 @@ int main() {
             Win.appendDebug(L"FocalDist: " + std::to_wstring(Cam.focalDist), Int3(255));
 
             // Retrieve the middle pixel color
-            unsigned int color = Win.h_drawbuffer[Win.width * Win.height / 2 + Win.width / 2];
+            unsigned int color = Frame.h_draw[Win.width * Win.height / 2 + Win.width / 2];
             int r = (color & 0x00FF0000) >> 16;
             int g = (color & 0x0000FF00) >> 8;
             int b = (color & 0x000000FF);
             Win.appendDebug(L"Color: " + std::to_wstring(r) + L", " + std::to_wstring(g) + L", " + std::to_wstring(b), Int3(255));
         }
 
-        Win.Draw(renderMode + 1, hasDebug);
+        Win.Draw(Frame.h_draw, hasDebug);
 
         FPS.endFrame();
     }

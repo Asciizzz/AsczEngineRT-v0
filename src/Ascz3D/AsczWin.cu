@@ -4,39 +4,10 @@
 
 #include <string>
 
-#define _GAMMA 1.0f/2.2f
-
-__global__ void copyToDrawBuffer(Flt3 *frmbuffer, unsigned int *drawbuffer, int width, int height, bool toneMap) {
-    int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (tIdx < width * height) {
-        int x = tIdx % width;
-        int y = tIdx / width;
-        int i = y * width + x;
-
-        Flt3 color = frmbuffer[i];
-        color.clamp(0.0f, 1.0f);
-
-        color.x = AzDevMath::ACESFilm(powf(color.x, _GAMMA)) * toneMap + color.x * !toneMap;
-        color.y = AzDevMath::ACESFilm(powf(color.y, _GAMMA)) * toneMap + color.y * !toneMap;
-        color.z = AzDevMath::ACESFilm(powf(color.z, _GAMMA)) * toneMap + color.z * !toneMap;
-
-        drawbuffer[i] = (int(color.x * 255) << 16) | (int(color.y * 255) << 8) | int(color.z * 255);
-    }
-}
-
 // Constructor
 AsczWin::AsczWin(int w, int h, std::wstring t) : width(w), height(h), title(t) {
     InitWindow();
     InitGDI();
-
-    blockCount = (width * height + threadCount - 1) / threadCount;
-
-    h_drawbuffer = new unsigned int[width * height];
-    cudaMalloc(&d_drawbuffer, width * height * sizeof(unsigned int));
-
-    cudaMalloc(&d_frmbuffer1, width * height * sizeof(Flt3));
-    cudaMalloc(&d_frmbuffer2, width * height * sizeof(Flt3));
-    cudaMalloc(&d_frmbuffer3, width * height * sizeof(Flt3));
 }
 
 void AsczWin::InitWindow() {
@@ -88,21 +59,10 @@ void AsczWin::appendDebug(std::string text, Int3 color) {
     appendDebug(std::wstring(text.begin(), text.end()), color);
 }
 
-// Framebuffer
-void AsczWin::DrawFramebuffer(int buffer) {
-    copyToDrawBuffer<<<blockCount, threadCount>>>(
-        buffer == 1 ? d_frmbuffer1 :
-        buffer == 2 ? d_frmbuffer2 : d_frmbuffer3,
-        d_drawbuffer, width, height, buffer > 1
-    );
-
-    cudaMemcpy(h_drawbuffer, d_drawbuffer, width * height * sizeof(unsigned int), cudaMemcpyDeviceToHost);
-    StretchDIBits(hdc, 0, 0, width, height, 0, 0, width, height, h_drawbuffer, &bmi, DIB_RGB_COLORS, SRCCOPY);
-}
-
 // Draw everything
-void AsczWin::Draw(int buffer, bool debug) {
-    DrawFramebuffer(buffer);
+void AsczWin::Draw(unsigned int *draw, bool debug) {
+    // DrawFramebuffer(buffer);
+    StretchDIBits(hdc, 0, 0, width, height, 0, 0, width, height, draw, &bmi, DIB_RGB_COLORS, SRCCOPY);
 
     if (!debug) return;
 
@@ -115,13 +75,6 @@ void AsczWin::Draw(int buffer, bool debug) {
 
 // Clear everything
 void AsczWin::Terminate() {
-    delete[] h_drawbuffer;
-    cudaFree(d_drawbuffer);
-
-    cudaFree(d_frmbuffer1);
-    cudaFree(d_frmbuffer2);
-    cudaFree(d_frmbuffer3);
-
     ReleaseDC(hwnd, hdc);
     DestroyWindow(hwnd);
     UnregisterClass(L"Win32App", GetModuleHandle(nullptr));

@@ -2,7 +2,7 @@
 #include <ToDevice.cuh>
 #include <omp.h>
 
-void AsczMesh::appendMesh(MeshStruct mesh) {
+void AsczMesh::append(MeshStruct mesh) {
     #pragma omp parallel for
     for (int i = 0; i < mesh.SOrF.size(); ++i) {
         SOrF.push_back(mesh.SOrF[i] + h_fv0.size());

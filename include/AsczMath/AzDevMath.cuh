@@ -1,6 +1,18 @@
 #ifndef AZDEVMATH_CUH
 #define AZDEVMATH_CUH
 
+#define VecUI32t std::vector<uint32_t>
+
+constexpr float M_PI = 3.14159265358979323846; // 180 degrees
+constexpr float M_PI_2 = 1.57079632679489661923; // 90 degrees
+constexpr float M_PIx2 = 6.28318530717958647692; // 360 degrees
+constexpr float M_1_PI = 0.31830988618379067154; // 1/PI
+constexpr float M_E = 2.71828182845904523536;
+
+constexpr float EPSILON_1 = 1e-3;
+constexpr float EPSILON_2 = 1e-6;
+constexpr int THREADS_PER_BLOCK = 256;
+
 // A class that contain optimized math functions for device
 class AzDevMath {
 public:

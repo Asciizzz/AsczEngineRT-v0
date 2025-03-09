@@ -1,18 +1,18 @@
 #ifndef ASCZTXTR_CUH
 #define ASCZTXTR_CUH
 
-#include <Vector.cuh>
+#include <vector>
 
 class AsczTxtr {
 public:
     // Host memory
-    VecF h_tr = {0.0f};
-    VecF h_tg = {0.0f};
-    VecF h_tb = {0.0f};
-    VecF h_ta = {0.0f};
-    VecI h_tw = {0};
-    VecI h_th = {0};
-    VecI h_toff = {0};
+    std::vector<float> h_tr = {0.0f};
+    std::vector<float> h_tg = {0.0f};
+    std::vector<float> h_tb = {0.0f};
+    std::vector<float> h_ta = {0.0f};
+    std::vector<int> h_tw = {0};
+    std::vector<int> h_th = {0};
+    std::vector<int> h_toff = {0};
 
     int appendTexture(const char *path);
 

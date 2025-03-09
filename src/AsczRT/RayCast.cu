@@ -1,7 +1,7 @@
 #include <RayCast.cuh>
 
 __global__ void raycastKernel(
-    AsczCam camera, Flt3 *frmbuffer, int frmW, int frmH, // In-out
+    AsczCam camera, float *frmx, float *frmy, float *frmz, int frmw, int frmh,
     // Primitive data
     float *vx, float *vy, float *vz, float *tx, float *ty, float *nx, float *ny, float *nz,
     // Geometry data
@@ -16,10 +16,11 @@ __global__ void raycastKernel(
     bool fakeShading
 ) {
     int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (tIdx >= frmW * frmH) return;
+    if (tIdx >= frmw * frmh) return;
 
-    int x = tIdx % frmW, y = tIdx / frmW;
-    Ray ray = camera.castRay(x, y, frmW, frmH);
+    int x = tIdx % frmw;
+    int y = tIdx / frmw;
+    Ray ray = camera.castRay(x, y, frmw, frmh);
 
     // Hit info
     int hidx = -1;
@@ -160,7 +161,9 @@ __global__ void raycastKernel(
     }
 
     if (hidx == -1) {
-        frmbuffer[tIdx] = 0.0f;
+        frmx[tIdx] = 0.0f;
+        frmy[tIdx] = 0.0f;
+        frmz[tIdx] = 0.0f;
         return;
     }
 
@@ -202,5 +205,7 @@ __global__ void raycastKernel(
     alb_y *= NdotL * fShade + !fShade;
     alb_z *= NdotL * fShade + !fShade;
 
-    frmbuffer[tIdx] = Flt3(alb_x, alb_y, alb_z);
+    frmx[tIdx] = alb_x;
+    frmy[tIdx] = alb_y;
+    frmz[tIdx] = alb_z;
 };

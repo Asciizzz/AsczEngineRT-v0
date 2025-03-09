@@ -46,19 +46,8 @@ public:
     void appendDebug(std::wstring text, Int3 color=255);
     void appendDebug(std::string text, Int3 color=255);
 
-    // Framebuffers
-    int threadCount = 256;
-    int blockCount;
-    Flt3 *d_frmbuffer1;
-    Flt3 *d_frmbuffer2;
-    Flt3 *d_frmbuffer3;
-    unsigned int* d_drawbuffer;
-    unsigned int* h_drawbuffer;
-    void DrawFramebuffer(int buffer=1);
-
-
     // Draw
-    void Draw(int buffer=1, bool debug=true);
+    void Draw(unsigned int *draw, bool debug=true);
 
     // Destroy Window
     void Terminate();

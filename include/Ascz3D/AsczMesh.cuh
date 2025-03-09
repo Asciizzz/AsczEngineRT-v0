@@ -42,6 +42,12 @@ To handle this, I have came up with a way to handle objects as well as their sub
     => SOrF = Human{0, 2, 5, 9} + Animal{11, 14} = {0, 2, 5, 9, 11, 14}
 */
 
+#define Vec2f std::vector<Flt2>
+#define Vec3f std::vector<Flt3>
+#define Vec4f std::vector<Flt4>
+
+#define Vec3i std::vector<Int3>
+
 #define VecAB std::vector<AABB>
 
 struct AABB {
@@ -87,11 +93,11 @@ struct MeshStruct {
     Vec3i fv;
     Vec3i ft;
     Vec3i fn;
-    VecI  fm; // Face materials
+    std::vector<int>  fm; // Face materials
 
-    VecI lSrc; // Light sources
+    std::vector<int> lSrc; // Light sources
 
-    VecI  SOrF; // Sub-objects
+    std::vector<int>  SOrF; // Sub-objects
 
     AABB O_AB; // Object AABB
     VecAB SO_AB; // Sub-objects AABB
@@ -100,27 +106,27 @@ struct MeshStruct {
 class AsczMesh {
 public:
     // SoA for better memory access
-    VecF h_vx = {0.0f}, h_vy = {0.0f}, h_vz = {0.0f};
-    VecF h_nx = {0.0f}, h_ny = {0.0f}, h_nz = {0.0f};
-    VecF h_tx = {0.0f}, h_ty = {0.0f};
+    std::vector<float> h_vx = {0.0f}, h_vy = {0.0f}, h_vz = {0.0f};
+    std::vector<float> h_nx = {0.0f}, h_ny = {0.0f}, h_nz = {0.0f};
+    std::vector<float> h_tx = {0.0f}, h_ty = {0.0f};
 
     // Geometry
     // VecGeom h_geom;
-    VecI h_fv0, h_fv1, h_fv2; // Face vertices index
-    VecI h_fn0, h_fn1, h_fn2; // Face normals index
-    VecI h_ft0, h_ft1, h_ft2; // Face textures index
-    VecI h_fm; // Face materials index
+    std::vector<int> h_fv0, h_fv1, h_fv2; // Face vertices index
+    std::vector<int> h_fn0, h_fn1, h_fn2; // Face normals index
+    std::vector<int> h_ft0, h_ft1, h_ft2; // Face textures index
+    std::vector<int> h_fm; // Face materials index
 
     int oNum = 0; // Number of objects
-    VecI  OrSO = {0}; // Object references sub-objects
-    VecI  SOrF = {0}; // Sub-object references faces
+    std::vector<int>  OrSO = {0}; // Object references sub-objects
+    std::vector<int>  SOrF = {0}; // Sub-object references faces
 
     AABB GlbAB; // Global AABB
     VecAB O_AB; // Objects AABB
     VecAB SO_AB; // Sub-objects AABB
     VecAB G_AB; // Geoms AABB
 
-    void appendMesh(MeshStruct mesh);
+    void append(MeshStruct mesh);
 
     // Device memory
     float *d_vx = nullptr, *d_vy = nullptr, *d_vz = nullptr;  int vNum = 0;

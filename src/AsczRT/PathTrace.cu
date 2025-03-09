@@ -3,7 +3,7 @@
 
 
 __global__ void pathtraceKernel(
-    AsczCam camera, Flt3 *frmbuffer, int frmW, int frmH, // In-out
+    AsczCam camera, float *frmx, float *frmy, float *frmz, int frmw, int frmh,
     // Primitive data
     float *vx, float *vy, float *vz, float *tx, float *ty, float *nx, float *ny, float *nz,
     // Geometry data
@@ -19,19 +19,20 @@ __global__ void pathtraceKernel(
     curandState *rnd
 ) {
     int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (tIdx >= frmW * frmH) return;
+    if (tIdx >= frmw * frmh) return;
 
     const int MAX_BOUNCES = 5;
     const int MAX_NODES = 64;
 
-    int tX = tIdx % frmW, tY = tIdx / frmW;
+    int tX = tIdx % frmw;
+    int tY = tIdx / frmw;
 
     float rnd1 = curand_uniform(&rnd[tIdx]);
     float rnd2 = curand_uniform(&rnd[tIdx]);
     float rnd3 = curand_uniform(&rnd[tIdx]);
     float rnd4 = curand_uniform(&rnd[tIdx]);
 
-    Ray ray = camera.castRay(tX, tY, frmW, frmH,
+    Ray ray = camera.castRay(tX, tY, frmw, frmh,
                             rnd1, rnd2, rnd3, rnd4);
 
     // Ray direction
@@ -325,5 +326,7 @@ __global__ void pathtraceKernel(
         RIor = hm.Ior;
     }
 
-    frmbuffer[tIdx] = Flt3(radi_x, radi_y, radi_z);
+    frmx[tIdx] = radi_x;
+    frmy[tIdx] = radi_y;
+    frmz[tIdx] = radi_z;
 }

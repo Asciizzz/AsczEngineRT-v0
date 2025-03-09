@@ -40,6 +40,7 @@ add_executable(AsczEngine
     src/AsczMath/Vector.cu
     src/AsczMath/Matrix.cu
 
+    src/Ascz3D/AsczFrame.cu
     src/Ascz3D/AsczMat.cu
     src/Ascz3D/AsczTxtr.cu
     src/Ascz3D/AsczMesh.cu

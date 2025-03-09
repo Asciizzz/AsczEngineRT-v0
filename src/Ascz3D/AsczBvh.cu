@@ -73,7 +73,7 @@ void AsczBvh::toDevice() {
 
 
 int AsczBvh::buildBvh(
-    VecNode &allNodes, VecI &allGIdx, DevNode &node, const VecAB &ABs,
+    VecNode &allNodes, std::vector<int> &allGIdx, DevNode &node, const VecAB &ABs,
     int depth, const int MAX_DEPTH, const int NODE_FACES, const int BIN_COUNT
 ) {
     allNodes.push_back(node);
