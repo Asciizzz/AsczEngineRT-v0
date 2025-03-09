@@ -69,7 +69,9 @@
 .heavy/Dream/Skybox.obj 0 2
 
 
-# assets/Models/Structure/Buildings/Ground.obj 2 100
+assets/Models/Structure/Buildings/Ground.obj 2 100
+
+assets/Models/Structure/Buildings/Building003.obj 2 1 
 
 # assets/Models/Structure/Buildings/Building001.obj 2 1  50 0 40
 # assets/Models/Structure/Buildings/Building001.obj 2 1  0 0 0  -180
@@ -83,45 +85,45 @@
 # assets/Models/Structure/Buildings/Building003.obj 2 1  20 0 0  90
 # assets/Models/Structure/Buildings/Building003.obj 2 1  20 0 -30  90
 
-# assets/Models/Structure/Tree/Tree.obj 2 .3  14 4 12  0
-# assets/Models/Structure/Tree/Tree.obj 2 .4  38 5 4  17
-# assets/Models/Structure/Tree/Tree.obj 2 .3  -14 4 -1  90
-# assets/Models/Structure/Tree/Tree.obj 2 .3  28 4 14  45
-# assets/Models/Structure/Tree/Tree.obj 2 .3  -15 4 14  167
+assets/Models/Structure/Tree/Tree.obj 2 .3  14 4 12  0
+assets/Models/Structure/Tree/Tree.obj 2 .4  38 5 4  17
+assets/Models/Structure/Tree/Tree.obj 2 .3  -14 4 -1  90
+assets/Models/Structure/Tree/Tree.obj 2 .3  28 4 14  45
+assets/Models/Structure/Tree/Tree.obj 2 .3  -15 4 14  167
 
-# assets/Models/Structure/Tree/Tree.obj 2 .3  39 4 48  65
-# assets/Models/Structure/Tree/Tree.obj 2 .4  34 5 49  27
-# assets/Models/Structure/Tree/Tree.obj 2 .3  30 4 48  0
-# assets/Models/Structure/Tree/Tree.obj 2 .3  27 4 50  17
-# assets/Models/Structure/Tree/Tree.obj 2 .4  22 5 49  90
-# assets/Models/Structure/Tree/Tree.obj 2 .4  18 5 50  -90
-# assets/Models/Structure/Tree/Tree.obj 2 .3  16 4 50  74
-# assets/Models/Structure/Tree/Tree.obj 2 .3  14 4 48  65
-# assets/Models/Structure/Tree/Tree.obj 2 .4  10 5 49  27
-# assets/Models/Structure/Tree/Tree.obj 2 .3  8 4 48  0
-# assets/Models/Structure/Tree/Tree.obj 2 .3  5 4 50  17
-# assets/Models/Structure/Tree/Tree.obj 2 .4  2 5 49  90
-# assets/Models/Structure/Tree/Tree.obj 2 .4  0 5 50  -90
-# assets/Models/Structure/Tree/Tree.obj 2 .3  -5 4 50  74
+assets/Models/Structure/Tree/Tree.obj 2 .3  39 4 48  65
+assets/Models/Structure/Tree/Tree.obj 2 .4  34 5 49  27
+assets/Models/Structure/Tree/Tree.obj 2 .3  30 4 48  0
+assets/Models/Structure/Tree/Tree.obj 2 .3  27 4 50  17
+assets/Models/Structure/Tree/Tree.obj 2 .4  22 5 49  90
+assets/Models/Structure/Tree/Tree.obj 2 .4  18 5 50  -90
+assets/Models/Structure/Tree/Tree.obj 2 .3  16 4 50  74
+assets/Models/Structure/Tree/Tree.obj 2 .3  14 4 48  65
+assets/Models/Structure/Tree/Tree.obj 2 .4  10 5 49  27
+assets/Models/Structure/Tree/Tree.obj 2 .3  8 4 48  0
+assets/Models/Structure/Tree/Tree.obj 2 .3  5 4 50  17
+assets/Models/Structure/Tree/Tree.obj 2 .4  2 5 49  90
+assets/Models/Structure/Tree/Tree.obj 2 .4  0 5 50  -90
+assets/Models/Structure/Tree/Tree.obj 2 .3  -5 4 50  74
 
-# assets/Models/Structure/Tree/Tree.obj 2 .3  37 4 55  65
-# assets/Models/Structure/Tree/Tree.obj 2 .4  32 5 52  27
-# assets/Models/Structure/Tree/Tree.obj 2 .3  29 4 50  0
-# assets/Models/Structure/Tree/Tree.obj 2 .3  24 4 55  17
-# assets/Models/Structure/Tree/Tree.obj 2 .4  20 5 53  90
-# assets/Models/Structure/Tree/Tree.obj 2 .4  16 5 52  -90
-# assets/Models/Structure/Tree/Tree.obj 2 .3  13 4 55  74
-# assets/Models/Structure/Tree/Tree.obj 2 .3  10 4 50  65
-# assets/Models/Structure/Tree/Tree.obj 2 .4  7 5 52  27
-# assets/Models/Structure/Tree/Tree.obj 2 .3  4 4 50  0
-# assets/Models/Structure/Tree/Tree.obj 2 .3  1 4 55  17
-# assets/Models/Structure/Tree/Tree.obj 2 .4  -2 5 51  90
-# assets/Models/Structure/Tree/Tree.obj 2 .4  -5 5 52  -90
-# assets/Models/Structure/Tree/Tree.obj 2 .3  -7 4 54  74
+assets/Models/Structure/Tree/Tree.obj 2 .3  37 4 55  65
+assets/Models/Structure/Tree/Tree.obj 2 .4  32 5 52  27
+assets/Models/Structure/Tree/Tree.obj 2 .3  29 4 50  0
+assets/Models/Structure/Tree/Tree.obj 2 .3  24 4 55  17
+assets/Models/Structure/Tree/Tree.obj 2 .4  20 5 53  90
+assets/Models/Structure/Tree/Tree.obj 2 .4  16 5 52  -90
+assets/Models/Structure/Tree/Tree.obj 2 .3  13 4 55  74
+assets/Models/Structure/Tree/Tree.obj 2 .3  10 4 50  65
+assets/Models/Structure/Tree/Tree.obj 2 .4  7 5 52  27
+assets/Models/Structure/Tree/Tree.obj 2 .3  4 4 50  0
+assets/Models/Structure/Tree/Tree.obj 2 .3  1 4 55  17
+assets/Models/Structure/Tree/Tree.obj 2 .4  -2 5 51  90
+assets/Models/Structure/Tree/Tree.obj 2 .4  -5 5 52  -90
+assets/Models/Structure/Tree/Tree.obj 2 .3  -7 4 54  74
 
-# assets/Models/Structure/Tree/Tree.obj 2 1  -6 13 -23  0
-
-
+assets/Models/Structure/Tree/Tree.obj 2 1  -6 13 -23  0
 
 
-assets/Models/City/City.obj 2 0.01
+
+
+# assets/Models/City/City.obj 2 0.01
