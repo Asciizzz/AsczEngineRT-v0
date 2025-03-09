@@ -414,8 +414,8 @@ int main() {
                                 prevRot != Cam.rot ||
                                 prevAptr != Cam.aperture ||
                                 prevFdst != Cam.focalDist;
-            if (changeRender) Frame.reset2();
-            else              Frame.add0();
+            if (changeRender)   Frame.reset2();
+            else                Frame.add0();
 
             Frame.toDraw2(true);
             prevPos = Cam.pos;
