@@ -18,9 +18,9 @@
 # .heavy/Street/Light.obj 0 1
 
 ## Bedroom
-assets/Models/Structure/Bedroom/Bedroom.obj 3 1
-assets/Models/Structure/Bedroom/Additional.obj 0 1
-assets/Models/Structure/Bedroom/Light.obj 0 1
+# assets/Models/Structure/Bedroom/Bedroom.obj 3 1
+# assets/Models/Structure/Bedroom/Additional.obj 0 1
+# assets/Models/Structure/Bedroom/Light.obj 0 1
 
 ## Bedroom2
 # assets/Models/Structure/Bedroom2/Bedroom.obj 3 1
@@ -65,7 +65,7 @@ assets/Models/Structure/Bedroom/Light.obj 0 1
 
 # .heavy/Luxury/Luxury.obj 2 1
 
-~
+
 
 assets/Models/Structure/Buildings/Ground.obj 2 100
 

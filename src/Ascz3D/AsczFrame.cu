@@ -1,6 +1,6 @@
 #include <AsczFrame.cuh>
 #include <AzDevMath.cuh>
-#include <iostream>
+
 #define _GAMMA 1.0f/2.2f
 
 __global__ void initRandState(curandState *state, int width, int size) {
