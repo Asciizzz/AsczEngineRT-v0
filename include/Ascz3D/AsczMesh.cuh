@@ -87,7 +87,7 @@ struct MeshStruct {
     std::vector<Int3> ft;
 
     std::vector<int>  fm; // Face materials
-    std::vector<int>  lSrc; // Light sources
+    std::vector<int>  lsrc; // Light sources
     std::vector<int>  SOrF; // Sub-objects
 
     AABB O_AB; // Object AABB

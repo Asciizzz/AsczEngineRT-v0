@@ -61,8 +61,8 @@ void AsczMesh::append(MeshStruct mesh) {
 
     // Append light sources and offset
     #pragma omp parallel
-    for (int i = 0; i < mesh.lSrc.size(); ++i) {
-        h_lsrc.push_back(mesh.lSrc[i] + h_fv0.size());
+    for (int i = 0; i < mesh.lsrc.size(); ++i) {
+        h_lsrc.push_back(mesh.lsrc[i] + h_fv0.size());
     }
 
     #pragma omp parallel for
@@ -100,7 +100,7 @@ void AsczMesh::append(MeshStruct mesh) {
     nNum = h_nx.size();
 
     gNum = h_fv0.size();
-    lNum = mesh.lSrc.size();
+    lNum = mesh.lsrc.size();
 }
 
 void AsczMesh::toDevice() {

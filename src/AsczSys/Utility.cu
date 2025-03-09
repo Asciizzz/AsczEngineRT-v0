@@ -15,7 +15,7 @@ void Utils::appendObj(
     std::vector<Int3> mft;
     std::vector<Int3> mfn;
     std::vector<int> mfm;
-    std::vector<int> mlSrc;
+    std::vector<int> mlsrc;
 
     std::vector<int> mSOrF;
 
@@ -97,7 +97,7 @@ void Utils::appendObj(
 
                 mfm.push_back(matIdx);
 
-                if (matIsLight) mlSrc.push_back(mfv.size() - 1);
+                if (matIsLight) mlsrc.push_back(mfv.size() - 1);
             }
 
             // Expand the AABB  
@@ -276,7 +276,7 @@ void Utils::appendObj(
     mesh.ft = mft;
     mesh.fn = mfn;
     mesh.fm = mfm;
-    mesh.lSrc = mlSrc;
+    mesh.lsrc = mlsrc;
     mesh.SOrF = mSOrF;
     mesh.O_AB = mO_AB;
     mesh.SO_AB = mSO_AB;
