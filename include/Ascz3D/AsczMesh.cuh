@@ -42,14 +42,6 @@ To handle this, I have came up with a way to handle objects as well as their sub
     => SOrF = Human{0, 2, 5, 9} + Animal{11, 14} = {0, 2, 5, 9, 11, 14}
 */
 
-#define Vec2f std::vector<Flt2>
-#define Vec3f std::vector<Flt3>
-#define Vec4f std::vector<Flt4>
-
-#define Vec3i std::vector<Int3>
-
-#define VecAB std::vector<AABB>
-
 struct AABB {
     Flt3 min, max;
 
@@ -86,21 +78,20 @@ struct AABB {
 };
 
 struct MeshStruct {
-    Vec3f v;
-    Vec2f t;
-    Vec3f n;
+    std::vector<Flt3> v;
+    std::vector<Flt2> t;
+    std::vector<Flt3> n;
 
-    Vec3i fv;
-    Vec3i ft;
-    Vec3i fn;
+    std::vector<Int3> fv;
+    std::vector<Int3> ft;
+    std::vector<Int3> fn;
+
     std::vector<int>  fm; // Face materials
-
     std::vector<int> lSrc; // Light sources
-
     std::vector<int>  SOrF; // Sub-objects
 
     AABB O_AB; // Object AABB
-    VecAB SO_AB; // Sub-objects AABB
+    std::vector<AABB> SO_AB; // Sub-objects AABB
 };
 
 class AsczMesh {
@@ -124,9 +115,9 @@ public:
     std::vector<int>  SOrF = {0}; // Sub-object references faces
 
     AABB GlbAB; // Global AABB
-    VecAB O_AB; // Objects AABB
-    VecAB SO_AB; // Sub-objects AABB
-    VecAB G_AB; // Geoms AABB
+    std::vector<AABB> O_AB; // Objects AABB
+    std::vector<AABB> SO_AB; // Sub-objects AABB
+    std::vector<AABB> G_AB; // Geoms AABB
 
     void append(MeshStruct mesh);
 
@@ -140,6 +131,9 @@ public:
     int *d_ft0 = nullptr, *d_ft1 = nullptr, *d_ft2 = nullptr;
     int *d_fm  = nullptr;
     int gNum   = 0;
+
+    // For multiple importance sampling
+    int *d_lsrc = nullptr; int lNum = 0;
 
     void toDevice();
 };

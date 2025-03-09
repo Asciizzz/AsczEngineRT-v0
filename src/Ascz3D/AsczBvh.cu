@@ -70,7 +70,7 @@ void AsczBvh::toDevice() {
 
 
 int AsczBvh::buildBvh(
-    VecNode &allNodes, std::vector<int> &allGIdx, DevNode &node, const VecAB &ABs,
+    VecNode &allNodes, std::vector<int> &allGIdx, DevNode &node, const std::vector<AABB> &ABs,
     int depth, const int MAX_DEPTH, const int NODE_FACES, const int BIN_COUNT
 ) {
     allNodes.push_back(node);
@@ -174,9 +174,9 @@ int AsczBvh::buildBvh(
 void AsczBvh::designBVH(AsczMesh &meshMgr) {
     const int &gNum = meshMgr.gNum;
     const AABB &GlbAB = meshMgr.GlbAB;
-    // const VecAB &O_AB = meshMgr.O_AB;
-    // const VecAB &SO_AB = meshMgr.SO_AB;
-    const VecAB &G_AB = meshMgr.G_AB;
+    // const std::vector<AABB> &O_AB = meshMgr.O_AB;
+    // const std::vector<AABB> &SO_AB = meshMgr.SO_AB;
+    const std::vector<AABB> &G_AB = meshMgr.G_AB;
 
     DevNode root = { GlbAB, -1, -1, 0, gNum };
 

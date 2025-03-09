@@ -7,20 +7,20 @@ void Utils::appendObj(
     std::ifstream file(objPath);
     if (!file.is_open()) return;
 
-    Vec3f mv;
-    Vec2f mt;
-    Vec3f mn;
+    std::vector<Flt3> mv;
+    std::vector<Flt2> mt;
+    std::vector<Flt3> mn;
 
-    Vec3i mfv;
-    Vec3i mft;
-    Vec3i mfn;
+    std::vector<Int3> mfv;
+    std::vector<Int3> mft;
+    std::vector<Int3> mfn;
     std::vector<int> mfm;
     std::vector<int> mlSrc;
 
     std::vector<int> mSOrF;
 
     AABB mO_AB; // Object AABB
-    VecAB mSO_AB; // Sub-objects AABB
+    std::vector<AABB> mSO_AB; // Sub-objects AABB
 
     int matIdx = 0;
     std::unordered_map<std::string, int> matMap;

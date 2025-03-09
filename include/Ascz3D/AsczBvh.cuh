@@ -52,7 +52,7 @@ public:
     static int buildBvh(
         // std::vector<float> &mi_x, std::vector<float> &mi_y, std::vector<float> &mi_z, std::vector<float> &mx_x, std::vector<float> &mx_y, std::vector<float> &mx_z,
         // std::vector<int> &cl, std::vector<int> &cr, std::vector<int> &ll, std::vector<int> &lr,
-        VecNode &allNodes, std::vector<int> &allGIdx, DevNode &node, const VecAB &ABs,
+        VecNode &allNodes, std::vector<int> &allGIdx, DevNode &node, const std::vector<AABB> &ABs,
         int depth, const int MAX_DEPTH, const int NODE_FACES, const int BIN_COUNT
     );
     void designBVH(AsczMesh &meshMgr);
