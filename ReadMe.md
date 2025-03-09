@@ -174,9 +174,20 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 
 ## What's Next
 
-- GPU-based BVH construction.
-- Dynamic BVH.
-- Real-time path tracing. This is a whole different beast, but doable.
+#### Importance sampling on light sources.
+
+- **A. Standard path tracing** relies on *indirect sampling* via *random bounces*:
+  - Shoot a ray from camera and accumulate radiance through multiple bounces.
+  - Lighting is gathered indirectly.
+  - This method *eventually* converges to the correct solution, but:
+    - Hard to sample low-probability paths (small light sources).
+    - High noise, ughh.
+- **B. Next Event Estimation (NEE)**:
+  - Instead of sampling bounces randomly, sample the light source directly.
+    - Sample random light source, and random point on that light source.
+    - Calculate the direct lighting contribution using the rendering equation:
+      - $L_o(p, \omega_o) = L_e(p, \omega_o) + \int_{\Omega} f(p, \omega_i, \omega_o) L_i(p, \omega_i) (\omega_i \cdot n) d\omega_i$
+  - However, it does come at the cost of extra computation (shadow rays).
 
 ## How to Use
 
