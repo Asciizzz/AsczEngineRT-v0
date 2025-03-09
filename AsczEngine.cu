@@ -12,21 +12,6 @@
 #include <RayCast.cuh>
 #include <PathTrace.cuh>
 
-__global__ void copyFrmBuffer(Flt3 *from, Flt3 *to, int size) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx < size) to[idx] = from[idx];
-}
-
-__global__ void addFrmBuffer(Flt3 *f1, Flt3 *f2, int size) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx < size) f1[idx] += f2[idx];
-}
-
-__global__ void divFrmBuffer(Flt3 *f1, Flt3 *f2, int size, int count) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx < size) f1[idx] = f2[idx] / count;
-}
-
 __global__ void bilateralFilter(Flt3* framebuffer, Flt3* output, int width, int height, int radius = 3, float sigma_spatial = 1.5f, float sigma_color = 0.2f) {
     int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
     int x = tIdx % width;
@@ -412,35 +397,27 @@ int main() {
             Frame.toDraw0(true);
         }
         else if (renderMode == 2) {
-            // pathtraceKernel<<<Win.blockCount, Win.threadCount>>>(
-            //     Cam, Win.d_frmbuffer1, Win.width, Win.height,
+            pathtraceKernel<<<Frame.blockCount, Frame.blockSize>>>(
+                Cam, Frame.d_fx0, Frame.d_fy0, Frame.d_fz0, Frame.width, Frame.height,
 
-            //     Mesh.d_vx, Mesh.d_vy, Mesh.d_vz, Mesh.d_tx, Mesh.d_ty, Mesh.d_nx, Mesh.d_ny, Mesh.d_nz,
-            //     Mesh.d_fv0, Mesh.d_fv1, Mesh.d_fv2, Mesh.d_ft0, Mesh.d_ft1, Mesh.d_ft2, Mesh.d_fn0, Mesh.d_fn1, Mesh.d_fn2, Mesh.d_fm,
-            //     Mat.d_mtls,
-            //     Txtr.d_tr, Txtr.d_tg, Txtr.d_tb, Txtr.d_ta, Txtr.d_tw, Txtr.d_th, Txtr.d_toff,
+                Mesh.d_vx, Mesh.d_vy, Mesh.d_vz, Mesh.d_tx, Mesh.d_ty, Mesh.d_nx, Mesh.d_ny, Mesh.d_nz,
+                Mesh.d_fv0, Mesh.d_fv1, Mesh.d_fv2, Mesh.d_ft0, Mesh.d_ft1, Mesh.d_ft2, Mesh.d_fn0, Mesh.d_fn1, Mesh.d_fn2, Mesh.d_fm,
+                Mat.d_mtls,
+                Txtr.d_tr, Txtr.d_tg, Txtr.d_tb, Txtr.d_ta, Txtr.d_tw, Txtr.d_th, Txtr.d_toff,
 
-            //     Bvh.d_mi_x, Bvh.d_mi_y, Bvh.d_mi_z, Bvh.d_mx_x, Bvh.d_mx_y, Bvh.d_mx_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_gIdx,
+                Bvh.d_mi_x, Bvh.d_mi_y, Bvh.d_mi_z, Bvh.d_mx_x, Bvh.d_mx_y, Bvh.d_mx_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_gIdx,
 
-            //     Frame.d_rand
-            // );
+                Frame.d_rand
+            );
 
-            // bool changeRender = prevPos != Cam.pos ||
-            //                     prevRot != Cam.rot ||
-            //                     prevAptr != Cam.aperture ||
-            //                     prevFdst != Cam.focalDist;
-            // if (changeRender) {
-            //     accumulate = 1;
-            //     copyFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer2, Win.width * Win.height);
-            // } else {
-            //     accumulate ++;
-            //     addFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer2, Win.d_frmbuffer1, Win.width * Win.height);
-            //     divFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer2, Win.width * Win.height, accumulate);
+            bool changeRender = prevPos != Cam.pos ||
+                                prevRot != Cam.rot ||
+                                prevAptr != Cam.aperture ||
+                                prevFdst != Cam.focalDist;
+            if (changeRender) Frame.reset2();
+            else              Frame.add0();
 
-            //     // Bilateral filter
-            //     bilateralFilter<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer3, Win.width, Win.height);
-            //     // copyFrmBuffer<<<Win.blockCount, Win.threadCount>>>(Win.d_frmbuffer1, Win.d_frmbuffer3, Win.width * Win.height);
-            // }
+            Frame.toDraw2(true);
             prevPos = Cam.pos;
             prevRot = Cam.rot;
             prevAptr = Cam.aperture;

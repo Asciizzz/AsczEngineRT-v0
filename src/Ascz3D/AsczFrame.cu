@@ -8,17 +8,6 @@ __global__ void initRandState(curandState *state, int width, int size) {
     if (idx < size) curand_init(1234, idx, 0, &state[idx]);
 }
 
-__global__ void toDrawBuffer(float *fx, float *fy, float *fz, unsigned int *draw, int width, int size, bool toneMap) {
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (i >= size) return;
-
-    float r = AzDevMath::ACESFilm(powf(fx[i], _GAMMA)) * toneMap + fx[i] * !toneMap;
-    float g = AzDevMath::ACESFilm(powf(fy[i], _GAMMA)) * toneMap + fy[i] * !toneMap;
-    float b = AzDevMath::ACESFilm(powf(fz[i], _GAMMA)) * toneMap + fz[i] * !toneMap;
-
-    draw[i] = (int(r * 255) << 16) | (int(g * 255) << 8) | int(b * 255);
-}
-
 
 AsczFrame::AsczFrame(int w, int h) : width(w), height(h), size(w * h) {
     blockCount = (size + blockSize - 1) / blockSize;
@@ -52,15 +41,79 @@ AsczFrame::~AsczFrame() {
     cudaFree(d_draw); delete[] h_draw;
 }
 
+
+
+__global__ void toDrawBuffer(float *fx, float *fy, float *fz, unsigned int *draw, int width, int size, bool toneMap) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i >= size) return;
+
+    float r = AzDevMath::ACESFilm(powf(fx[i], _GAMMA)) * toneMap + fx[i] * !toneMap;
+    float g = AzDevMath::ACESFilm(powf(fy[i], _GAMMA)) * toneMap + fy[i] * !toneMap;
+    float b = AzDevMath::ACESFilm(powf(fz[i], _GAMMA)) * toneMap + fz[i] * !toneMap;
+
+    draw[i] = (int(r * 255) << 16) | (int(g * 255) << 8) | int(b * 255);
+}
+
 void AsczFrame::toDraw0(bool toneMap) {
     toDrawBuffer<<<blockCount, blockSize>>>(d_fx0, d_fy0, d_fz0, d_draw, width, size, toneMap);
     cudaMemcpy(h_draw, d_draw, size * sizeof(unsigned int), cudaMemcpyDeviceToHost);
 }
+
 void AsczFrame::toDraw1(bool toneMap) {
     toDrawBuffer<<<blockCount, blockSize>>>(d_fx1, d_fy1, d_fz1, d_draw, width, size, toneMap);
     cudaMemcpy(h_draw, d_draw, size * sizeof(unsigned int), cudaMemcpyDeviceToHost);
 }
+
+
+__global__ void toDrawAccumulatedBuffer(float *fx, float *fy, float *fz, unsigned int *draw, int width, int size, int acc, bool toneMap) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i >= size) return;
+
+    float rf = fx[i] / acc;
+    float gf = fy[i] / acc;
+    float bf = fz[i] / acc;
+
+    float r = AzDevMath::ACESFilm(powf(rf, _GAMMA)) * toneMap + rf * !toneMap;
+    float g = AzDevMath::ACESFilm(powf(gf, _GAMMA)) * toneMap + gf * !toneMap;
+    float b = AzDevMath::ACESFilm(powf(bf, _GAMMA)) * toneMap + bf * !toneMap;
+
+    draw[i] = (int(r * 255) << 16) | (int(g * 255) << 8) | int(b * 255);
+}
+
 void AsczFrame::toDraw2(bool toneMap) {
-    toDrawBuffer<<<blockCount, blockSize>>>(d_fx2, d_fy2, d_fz2, d_draw, width, size, toneMap);
+    toDrawAccumulatedBuffer<<<blockCount, blockSize>>>(d_fx2, d_fy2, d_fz2, d_draw, width, size, f_acc, toneMap);
     cudaMemcpy(h_draw, d_draw, size * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+}
+
+
+
+__global__ void addKernel(float *fx, float *fy, float *fz, float *fx2, float *fy2, float *fz2, int size) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i >= size) return;
+
+    fx[i] += fx2[i];
+    fy[i] += fy2[i];
+    fz[i] += fz2[i];
+}
+
+void AsczFrame::add0() {
+    addKernel<<<blockCount, blockSize>>>(d_fx2, d_fy2, d_fz2, d_fx0, d_fy0, d_fz0, size);
+    f_acc++;
+}
+void AsczFrame::add1() {
+    addKernel<<<blockCount, blockSize>>>(d_fx2, d_fy2, d_fz2, d_fx1, d_fy1, d_fz1, size);
+    f_acc++;
+}
+
+
+__global__ void resetKernel(float *fx, float *fy, float *fz, int size) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < size) {
+        fx[i] = 0.0f; fy[i] = 0.0f; fz[i] = 0.0f;
+    }
+}
+
+void AsczFrame::reset2() {
+    resetKernel<<<blockCount, blockSize>>>(d_fx2, d_fy2, d_fz2, size);
+    f_acc = 0;
 }

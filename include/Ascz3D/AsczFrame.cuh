@@ -38,6 +38,10 @@ public:
     void toDraw0(bool toneMap=true);
     void toDraw1(bool toneMap=true);
     void toDraw2(bool toneMap=true);
+
+    void add0();
+    void add1();
+    void reset2();
 };
 
 #endif
