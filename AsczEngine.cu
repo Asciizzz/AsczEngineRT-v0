@@ -113,9 +113,11 @@ int main() {
     std::ifstream objsFile(".model");
     std::string objLine;
 
+    bool objStop = false;
     while (std::getline(objsFile, objLine)) {
         if (objLine.size() == 0 || objLine[0] == '#') continue;
-        if (objLine[0] == '~') break;
+        if (objLine[0] == '~') objStop = !objStop;
+        if (objStop) continue;
 
         std::stringstream ss(objLine);
 

@@ -299,7 +299,10 @@ __global__ void pathtraceKernel(
         float rd_y = diff_y * hm.Rough + spec_y * smooth;
         float rd_z = diff_z * hm.Rough + spec_z * smooth;
 
-        bool hasTr = rndA < hm.Tr;
+        float Frefl = powf(1.0f - fabs(NdotV), 5.0f);
+        float Frefr = 1.0f - Frefl;
+
+        bool hasTr = rndA < hm.Tr * Frefr;
         rd_x = rd_x * !hasTr + RD_x * hasTr;
         rd_y = rd_y * !hasTr + RD_y * hasTr;
         rd_z = rd_z * !hasTr + RD_z * hasTr;
