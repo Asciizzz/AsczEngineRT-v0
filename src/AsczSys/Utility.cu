@@ -23,6 +23,7 @@ void Utils::appendObj(
     std::vector<AABB> mSO_AB; // Sub-objects AABB
 
     int matIdx = 0;
+    bool matIsLight = false;
     std::unordered_map<std::string, int> matMap;
 
     std::string path(objPath);
@@ -95,6 +96,8 @@ void Utils::appendObj(
                 mfn.push_back(Int3(ns[0], ns[i], ns[i + 1]));
 
                 mfm.push_back(matIdx);
+
+                if (matIsLight) mlSrc.push_back(mfv.size() - 1);
             }
 
             // Expand the AABB  
@@ -133,6 +136,7 @@ void Utils::appendObj(
             ss >> matName;
 
             matIdx = matMap[matName];
+            matIsLight = MatMgr.h_mtls[matIdx].Ems_i;
             continue;
         }
 
@@ -272,6 +276,7 @@ void Utils::appendObj(
     mesh.ft = mft;
     mesh.fn = mfn;
     mesh.fm = mfm;
+    mesh.lSrc = mlSrc;
     mesh.SOrF = mSOrF;
     mesh.O_AB = mO_AB;
     mesh.SO_AB = mSO_AB;

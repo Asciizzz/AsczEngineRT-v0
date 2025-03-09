@@ -37,22 +37,32 @@ void AsczMesh::append(MeshStruct mesh) {
     SO_AB.insert(SO_AB.end(), mesh.SO_AB.begin(), mesh.SO_AB.end());
 
     int vPrev = h_vx.size();
-    int tPrev = h_tx.size();
     int nPrev = h_nx.size();
+    int tPrev = h_tx.size();
 
+    // Appending vertices, normals, and textures
+    #pragma omp parallel
     for (int i = 0; i < mesh.v.size(); ++i) {
         h_vx.push_back(mesh.v[i].x);
         h_vy.push_back(mesh.v[i].y);
         h_vz.push_back(mesh.v[i].z);
     }
-    for (int i = 0; i < mesh.t.size(); ++i) {
-        h_tx.push_back(mesh.t[i].x);
-        h_ty.push_back(mesh.t[i].y);
-    }
+    #pragma omp parallel
     for (int i = 0; i < mesh.n.size(); ++i) {
         h_nx.push_back(mesh.n[i].x);
         h_ny.push_back(mesh.n[i].y);
         h_nz.push_back(mesh.n[i].z);
+    }
+    #pragma omp parallel
+    for (int i = 0; i < mesh.t.size(); ++i) {
+        h_tx.push_back(mesh.t[i].x);
+        h_ty.push_back(mesh.t[i].y);
+    }
+
+    // Append light sources and offset
+    #pragma omp parallel
+    for (int i = 0; i < mesh.lSrc.size(); ++i) {
+        h_lsrc.push_back(mesh.lSrc[i] + h_fv0.size());
     }
 
     #pragma omp parallel for
@@ -90,6 +100,7 @@ void AsczMesh::append(MeshStruct mesh) {
     nNum = h_nx.size();
 
     gNum = h_fv0.size();
+    lNum = mesh.lSrc.size();
 }
 
 void AsczMesh::toDevice() {
@@ -101,4 +112,5 @@ void AsczMesh::toDevice() {
     ToDevice::I(h_fn0, d_fn0); ToDevice::I(h_fn1, d_fn1); ToDevice::I(h_fn2, d_fn2);
     ToDevice::I(h_ft0, d_ft0); ToDevice::I(h_ft1, d_ft1); ToDevice::I(h_ft2, d_ft2);
     ToDevice::I(h_fm,  d_fm);
+    ToDevice::I(h_lsrc, d_lsrc);
 }

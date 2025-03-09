@@ -79,15 +79,15 @@ struct AABB {
 
 struct MeshStruct {
     std::vector<Flt3> v;
-    std::vector<Flt2> t;
     std::vector<Flt3> n;
+    std::vector<Flt2> t;
 
     std::vector<Int3> fv;
-    std::vector<Int3> ft;
     std::vector<Int3> fn;
+    std::vector<Int3> ft;
 
     std::vector<int>  fm; // Face materials
-    std::vector<int> lSrc; // Light sources
+    std::vector<int>  lSrc; // Light sources
     std::vector<int>  SOrF; // Sub-objects
 
     AABB O_AB; // Object AABB
@@ -109,6 +109,7 @@ public:
     std::vector<int> h_fn0, h_fn1, h_fn2; // Face normals index
     std::vector<int> h_ft0, h_ft1, h_ft2; // Face textures index
     std::vector<int> h_fm; // Face materials index
+    std::vector<int> h_lsrc; // Light sources index
 
     int oNum = 0; // Number of objects
     std::vector<int>  OrSO = {0}; // Object references sub-objects
@@ -122,18 +123,17 @@ public:
     void append(MeshStruct mesh);
 
     // Device memory
-    float *d_vx = nullptr, *d_vy = nullptr, *d_vz = nullptr;  int vNum = 0;
-    float *d_nx = nullptr, *d_ny = nullptr, *d_nz = nullptr;  int nNum = 0;
-    float *d_tx = nullptr, *d_ty = nullptr;                   int tNum = 0;
+    float *d_vx = nullptr, *d_vy = nullptr, *d_vz = nullptr; int vNum = 0;
+    float *d_nx = nullptr, *d_ny = nullptr, *d_nz = nullptr; int nNum = 0;
+    float *d_tx = nullptr, *d_ty = nullptr;                  int tNum = 0;
 
     int *d_fv0 = nullptr, *d_fv1 = nullptr, *d_fv2 = nullptr;
     int *d_fn0 = nullptr, *d_fn1 = nullptr, *d_fn2 = nullptr;
     int *d_ft0 = nullptr, *d_ft1 = nullptr, *d_ft2 = nullptr;
-    int *d_fm  = nullptr;
-    int gNum   = 0;
+    int *d_fm  = nullptr;                       int gNum = 0;
 
     // For multiple importance sampling
-    int *d_lsrc = nullptr; int lNum = 0;
+    int *d_lsrc = nullptr;                      int lNum = 0;
 
     void toDevice();
 };
