@@ -28,7 +28,7 @@ public:
     int *d_toff = nullptr;
     int count = 1;
 
-    void freeDevice();
+    ~AsczTxtr();
     void toDevice();
 };
 

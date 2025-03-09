@@ -166,7 +166,7 @@ void Utils::appendObj(
                     Flt3 Kd; mtlSS >> Kd.x >> Kd.y >> Kd.z;
                     MatMgr.h_mtls[matIdx].Alb = Kd;
                 }
-                // Albedo map   
+                // Albedo map
                 else if (mtlType == "map_Kd" || mtlType == "AlbMap") {
                     std::string txtrPath; mtlSS >> txtrPath;
 
@@ -223,11 +223,19 @@ void Utils::appendObj(
     // ---------------------------------------------------------
 
     Flt3 shift;
+    // In the middle of the y-axis
     if (placement == 1) {
         shift.y = (mO_AB.min.y + mO_AB.max.y) / 2;
     }
+    // On the floor
     else if (placement == 2) {
         shift.y = mO_AB.min.y;
+    }
+    // On the floor and in the dead center
+    else if (placement == 3) {
+        shift.y = mO_AB.min.y;
+        shift.x = (mO_AB.min.x + mO_AB.max.x) / 2;
+        shift.z = (mO_AB.min.z + mO_AB.max.z) / 2;
     }
 
     #pragma omp parallel for

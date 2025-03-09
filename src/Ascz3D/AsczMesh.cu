@@ -2,6 +2,28 @@
 #include <ToDevice.cuh>
 #include <omp.h>
 
+AsczMesh::~AsczMesh() {
+    if (d_vx) { cudaFree(d_vx); d_vx = nullptr; }
+    if (d_vy) { cudaFree(d_vy); d_vy = nullptr; }
+    if (d_vz) { cudaFree(d_vz); d_vz = nullptr; }
+    if (d_nx) { cudaFree(d_nx); d_nx = nullptr; }
+    if (d_ny) { cudaFree(d_ny); d_ny = nullptr; }
+    if (d_nz) { cudaFree(d_nz); d_nz = nullptr; }
+    if (d_tx) { cudaFree(d_tx); d_tx = nullptr; }
+    if (d_ty) { cudaFree(d_ty); d_ty = nullptr; }
+
+    if (d_fv0) { cudaFree(d_fv0); d_fv0 = nullptr; }
+    if (d_fv1) { cudaFree(d_fv1); d_fv1 = nullptr; }
+    if (d_fv2) { cudaFree(d_fv2); d_fv2 = nullptr; }
+    if (d_fn0) { cudaFree(d_fn0); d_fn0 = nullptr; }
+    if (d_fn1) { cudaFree(d_fn1); d_fn1 = nullptr; }
+    if (d_fn2) { cudaFree(d_fn2); d_fn2 = nullptr; }
+    if (d_ft0) { cudaFree(d_ft0); d_ft0 = nullptr; }
+    if (d_ft1) { cudaFree(d_ft1); d_ft1 = nullptr; }
+    if (d_ft2) { cudaFree(d_ft2); d_ft2 = nullptr; }
+    if (d_fm)  { cudaFree(d_fm);  d_fm  = nullptr; }
+}
+
 void AsczMesh::append(MeshStruct mesh) {
     #pragma omp parallel for
     for (int i = 0; i < mesh.SOrF.size(); ++i) {
@@ -70,31 +92,7 @@ void AsczMesh::append(MeshStruct mesh) {
     gNum = h_fv0.size();
 }
 
-void AsczMesh::freeDevice() {
-    if (d_vx) { cudaFree(d_vx); d_vx = nullptr; }
-    if (d_vy) { cudaFree(d_vy); d_vy = nullptr; }
-    if (d_vz) { cudaFree(d_vz); d_vz = nullptr; }
-    if (d_nx) { cudaFree(d_nx); d_nx = nullptr; }
-    if (d_ny) { cudaFree(d_ny); d_ny = nullptr; }
-    if (d_nz) { cudaFree(d_nz); d_nz = nullptr; }
-    if (d_tx) { cudaFree(d_tx); d_tx = nullptr; }
-    if (d_ty) { cudaFree(d_ty); d_ty = nullptr; }
-
-    if (d_fv0) { cudaFree(d_fv0); d_fv0 = nullptr; }
-    if (d_fv1) { cudaFree(d_fv1); d_fv1 = nullptr; }
-    if (d_fv2) { cudaFree(d_fv2); d_fv2 = nullptr; }
-    if (d_fn0) { cudaFree(d_fn0); d_fn0 = nullptr; }
-    if (d_fn1) { cudaFree(d_fn1); d_fn1 = nullptr; }
-    if (d_fn2) { cudaFree(d_fn2); d_fn2 = nullptr; }
-    if (d_ft0) { cudaFree(d_ft0); d_ft0 = nullptr; }
-    if (d_ft1) { cudaFree(d_ft1); d_ft1 = nullptr; }
-    if (d_ft2) { cudaFree(d_ft2); d_ft2 = nullptr; }
-    if (d_fm)  { cudaFree(d_fm);  d_fm  = nullptr; }
-}
-
 void AsczMesh::toDevice() {
-    freeDevice();
-
     ToDevice::F(h_vx, d_vx); ToDevice::F(h_vy, d_vy); ToDevice::F(h_vz, d_vz);
     ToDevice::F(h_nx, d_nx); ToDevice::F(h_ny, d_ny); ToDevice::F(h_nz, d_nz);
     ToDevice::F(h_tx, d_tx); ToDevice::F(h_ty, d_ty);

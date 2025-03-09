@@ -105,6 +105,8 @@ struct MeshStruct {
 
 class AsczMesh {
 public:
+    ~AsczMesh();
+
     // SoA for better memory access
     std::vector<float> h_vx = {0.0f}, h_vy = {0.0f}, h_vz = {0.0f};
     std::vector<float> h_nx = {0.0f}, h_ny = {0.0f}, h_nz = {0.0f};
@@ -139,7 +141,6 @@ public:
     int *d_fm  = nullptr;
     int gNum   = 0;
 
-    void freeDevice();
     void toDevice();
 };
 

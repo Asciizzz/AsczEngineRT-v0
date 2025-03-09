@@ -5,6 +5,17 @@
 #include <cuda_runtime.h>
 #include <iostream>
 
+AsczTxtr::~AsczTxtr() {
+    cudaFree(d_tr);
+    cudaFree(d_tg);
+    cudaFree(d_tb);
+    cudaFree(d_ta);
+
+    cudaFree(d_tw);
+    cudaFree(d_th);
+    cudaFree(d_toff);
+}
+
 int AsczTxtr::appendTexture(const char *path) {
     int w, h, n;
     unsigned char *data = stbi_load(path, &w, &h, &n, 4);
@@ -31,22 +42,7 @@ int AsczTxtr::appendTexture(const char *path) {
     return count++;
 }
 
-void AsczTxtr::freeDevice() {
-    if (size == 0 || count == 0) return;
-
-    cudaFree(d_tr);
-    cudaFree(d_tg);
-    cudaFree(d_tb);
-    cudaFree(d_ta);
-
-    cudaFree(d_tw);
-    cudaFree(d_th);
-    cudaFree(d_toff);
-}
-
 void AsczTxtr::toDevice() {
-    freeDevice();
-
     cudaMalloc(&d_tr, size * sizeof(float));
     cudaMalloc(&d_tg, size * sizeof(float));
     cudaMalloc(&d_tb, size * sizeof(float));

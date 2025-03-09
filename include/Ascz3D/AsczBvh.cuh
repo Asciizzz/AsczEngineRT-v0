@@ -26,6 +26,9 @@ struct DevNode { // Flattened structure friendly for shader code
 
 class AsczBvh {
 public:
+
+    ~AsczBvh();
+
     std::vector<int> h_gIdx; // Geom's index
     int *d_gIdx = nullptr;
 
@@ -43,7 +46,6 @@ public:
     int NODE_FACES = 1;
     int BIN_COUNT = 11;
 
-    void freeDevice();
     void toDevice();
 
     // Sub-object split faces

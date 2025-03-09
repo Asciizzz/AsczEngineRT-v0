@@ -466,6 +466,7 @@ int main() {
 
                     const AzMtl &mtl = Mat.h_mtls[mat];
                     Win.appendDebug(L"Alb: " + std::to_wstring(mtl.Alb.x) + L", " + std::to_wstring(mtl.Alb.y) + L", " + std::to_wstring(mtl.Alb.z), Int3(255), 40);
+
                     Win.appendDebug(L"Ems: " + std::to_wstring(mtl.Ems.x) + L", " + std::to_wstring(mtl.Ems.y) + L", " + std::to_wstring(mtl.Ems.z) + L", " + std::to_wstring(mtl.Ems.w), Int3(255), 40);
                     Win.appendDebug(L"Rough: " + std::to_wstring(mtl.Rough), Int3(255), 40);
                 }
@@ -481,10 +482,6 @@ int main() {
     // ========================================================================
 
     // Free everything
-    Txtr.freeDevice();
-    Mat.freeDevice();
-    Mesh.freeDevice();
-    Bvh.freeDevice();
     Win.Terminate();
 
     return 0;

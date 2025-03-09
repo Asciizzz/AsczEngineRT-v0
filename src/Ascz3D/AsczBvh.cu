@@ -28,9 +28,7 @@ __global__ void toSoAKernel(
     pr[idx] = lf[idx] ? nodes[idx].lr : nodes[idx].cr;
 }
 
-void AsczBvh::freeDevice() {
-    if (nNum == 0) return;
-
+AsczBvh::~AsczBvh() {
     cudaFree(d_nodes);
     cudaFree(d_mi_x);
     cudaFree(d_mi_y);
@@ -43,9 +41,8 @@ void AsczBvh::freeDevice() {
     cudaFree(d_lf);
     cudaFree(d_gIdx);
 }
-void AsczBvh::toDevice() {
-    freeDevice();
 
+void AsczBvh::toDevice() {
     nNum = h_nodes.size();
 
     cudaMalloc(&d_nodes, nNum * sizeof(DevNode));
