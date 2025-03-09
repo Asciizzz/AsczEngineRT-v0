@@ -448,12 +448,13 @@ int main() {
             Win.appendDebug(L"Color: " + std::to_wstring(r) + L", " + std::to_wstring(g) + L", " + std::to_wstring(b), Int3(255), 20);
 
             if (renderMode == 0) {
-                cudaMemcpy(Frame.h_depth, Frame.d_depth, Frame.size * sizeof(float), cudaMemcpyDeviceToHost);
-                cudaMemcpy(Frame.h_mat, Frame.d_mat, Frame.size * sizeof(int), cudaMemcpyDeviceToHost);
+                int center = Frame.width * Frame.height / 2 + Frame.width / 2;
 
-                // Retrieve the middle pixel depth and material
-                float depth = Frame.h_depth[Win.width * Win.height / 2 + Win.width / 2];
-                int mat = Frame.h_mat[Win.width * Win.height / 2 + Win.width / 2];
+                float depth= -1.0f;
+                int mat = -1;
+                cudaMemcpy(&depth, Frame.d_depth + center, sizeof(float), cudaMemcpyDeviceToHost);
+                cudaMemcpy(&mat, Frame.d_mat + center, sizeof(int), cudaMemcpyDeviceToHost);
+
                 std::wstring matName = mat > -1 ? Mat.names[mat] : L"None";
                 std::wstring matPath = mat > -1 ? Mat.paths[mat] : L"None";
 
