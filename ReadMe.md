@@ -174,20 +174,27 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 
 ## What's Next
 
-#### Importance sampling on light sources.
+#### 1. What we have so far
 
-- **A. Standard path tracing** relies on *indirect sampling* via *random bounces*:
+- **A. Standard path tracing**
+  - Relies on *indirect sampling* via *random bounces*:
   - Shoot a ray from camera and accumulate radiance through multiple bounces.
   - Lighting is gathered indirectly.
   - This method *eventually* converges to the correct solution, but:
     - Hard to sample low-probability paths (small light sources).
     - High noise, ughh.
-- **B. Next Event Estimation (NEE)**:
+  - ---
+- **B. Next Event Estimation (NEE, Importance sampling on light sources.)**:
   - Instead of sampling bounces randomly, sample the light source directly.
     - Sample random light source, and random point on that light source.
-    - Calculate the direct lighting contribution using the rendering equation:
-      - $L_o(p, \omega_o) = L_e(p, \omega_o) + \int_{\Omega} f(p, \omega_i, \omega_o) L_i(p, \omega_i) (\omega_i \cdot n) d\omega_i$
+    - Calculate the direct lighting contribution.
   - However, it does come at the cost of extra computation (shadow rays).
+
+#### 2. Multiple Importance Sampling (MIS) - The chimera
+
+- Combining both NEE and path tracing to get the best of both worlds.
+- **Random bounces (path tracing)** ensure indirect lighting is captured.
+- **Next Event Estimation (NEE)** improves efficiency by reducing variance in direct lighting.
 
 ## How to Use
 
