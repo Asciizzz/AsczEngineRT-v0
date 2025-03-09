@@ -61,7 +61,7 @@ assets/Models/Cornell/Cornell.obj 2 1
 # assets/Models/Structure/Other/Other.obj 2 300
 
 # .heavy/Skybox/Skybox.obj 0 20
-# .heavy/Skybox/Moon.obj 0 1.0 1000 400 1000
+.heavy/Skybox/Moon.obj 0 1.0 -1000 400 -1000
 
 # .heavy/Luxury/Luxury.obj 2 1
 

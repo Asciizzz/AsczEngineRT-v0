@@ -49,7 +49,11 @@ Ray AsczCam::castRay(float x, float y, float w, float h, float r1, float r2, flo
 
     Flt3 rO = pos + (rght*cosf(theta) + up*sinf(theta)) * r;
 
-    Flt3 focalPoint = pos + rD * focalDist;
+    // To make sure the focal point is exactly on the focal plane
+    // And not on the radius of a sphere
+    float RdotF = rD * frwd;
+
+    Flt3 focalPoint = pos + rD * focalDist / RdotF;
     // r3, r4 for antialiasing
     focalPoint += (rght * (r3 - 0.5f) + up * (r4 - 0.5f)) * 0.004f;
 

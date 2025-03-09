@@ -1,15 +1,15 @@
 AzmLib Cornell.azm
 
-## Object floor
-v  -100  0.00   100
-v   100  0.00   100
-v   100  0.00  -100
-v  -100  0.00  -100
-vn 0 1 0
+# ## Object floor
+# v  -100  0.00   100
+# v   100  0.00   100
+# v   100  0.00  -100
+# v  -100  0.00  -100
+# vn 0 1 0
 
-o floor
-AzMtl floor
-f -4//-1 -3//-1 -2//-1 -1//-1
+# o floor
+# AzMtl floor
+# f -4//-1 -3//-1 -2//-1 -1//-1
 
 ## Object ceiling
 v  -1.00  2.00   1.00
