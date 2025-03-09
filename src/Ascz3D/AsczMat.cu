@@ -1,8 +1,10 @@
 #include <AsczMat.cuh>
 #include <cuda_runtime.h>
 
-int AsczMat::appendMaterial(AzMtl mtl) {
+int AsczMat::append(AzMtl mtl, std::wstring name, std::wstring path) {
     h_mtls.push_back(mtl);
+    names.push_back(name);
+    paths.push_back(path);
     return mtlsNum++;
 }
 

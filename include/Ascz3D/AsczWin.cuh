@@ -12,6 +12,7 @@
 struct AsczDebug {
     std::wstring text;
     Int3 color;
+    int offx = 0;
 };
 
 class AsczWin {
@@ -42,9 +43,8 @@ public:
     // Debug
     std::vector<AsczDebug> debugs;
 
-    void DrawText(HDC hdc, int x, int y, const AsczDebug &db);
-    void appendDebug(std::wstring text, Int3 color=255);
-    void appendDebug(std::string text, Int3 color=255);
+    void DrawTxt(HDC hdc, int x, int y, const AsczDebug &db);
+    void appendDebug(std::wstring text, Int3 color=255, int offx=0);
 
     // Draw
     void Draw(unsigned int *draw, bool debug=true);

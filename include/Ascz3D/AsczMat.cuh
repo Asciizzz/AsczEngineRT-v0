@@ -32,13 +32,15 @@ Diamond: 2.42
 class AsczMat {
 public:
     // Host memory
+    std::vector<std::wstring> names = { L"Default" };
+    std::vector<std::wstring> paths = { L"AsczEngine" };
     std::vector<AzMtl> h_mtls = { AzMtl() };
 
     // Device memory
     AzMtl *d_mtls = nullptr;
     int mtlsNum = 1;
 
-    int appendMaterial(AzMtl mtl);
+    int append(AzMtl mtl, std::wstring name, std::wstring path);
     void freeDevice();
     void toDevice();
 };

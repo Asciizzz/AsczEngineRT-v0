@@ -13,7 +13,9 @@ __global__ void raycastKernel(
     // BVH data
     float *mi_x, float *mi_y, float *mi_z, float *mx_x, float *mx_y, float *mx_z, int *pl, int *pr, bool *lf, int *gIdx,
     // Fake shading (for better feel since you can get lost in the scene)
-    bool fakeShading
+    bool fakeShading,
+    // Debugging
+    float *frmdepth, int *frmmat
 ) {
     int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
     if (tIdx >= frmw * frmh) return;
@@ -164,6 +166,8 @@ __global__ void raycastKernel(
         frmx[tIdx] = 0.0f;
         frmy[tIdx] = 0.0f;
         frmz[tIdx] = 0.0f;
+        frmdepth[tIdx] = -1.0f;
+        frmmat[tIdx] = -1;
         return;
     }
 
@@ -208,4 +212,6 @@ __global__ void raycastKernel(
     frmx[tIdx] = alb_x;
     frmy[tIdx] = alb_y;
     frmz[tIdx] = alb_z;
+    frmdepth[tIdx] = ht;
+    frmmat[tIdx] = fm[hidx];
 };

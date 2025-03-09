@@ -20,7 +20,9 @@ __global__ void raycastKernel(
     // BVH data
     float *mi_x, float *mi_y, float *mi_z, float *mx_x, float *mx_y, float *mx_z, int *pl, int *pr, bool *lf, int *gIdx,
     // Fake shading (for better feel since you can get lost in the scene)
-    bool fakeShading
+    bool fakeShading,
+    // Debugging
+    float *frmdepth, int *frmmat
 );
 
 #endif

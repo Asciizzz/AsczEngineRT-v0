@@ -153,8 +153,11 @@ void Utils::appendObj(
                 mtlSS >> mtlType;
 
                 if (mtlType == "newmtl" || mtlType == "AzMtl") {
-                    matIdx = MatMgr.appendMaterial(AzMtl());
                     std::string matName; mtlSS >> matName;
+                    matIdx = MatMgr.append(AzMtl(), 
+                        std::wstring(matName.begin(), matName.end()), 
+                        std::wstring(mtlDir.begin(), mtlDir.end())
+                    );
                     matMap[matName] = matIdx;
                 }
                 // Albedo

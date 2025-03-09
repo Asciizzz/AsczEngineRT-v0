@@ -25,6 +25,13 @@ public:
     unsigned int *d_draw;
     unsigned int *h_draw;
 
+    // Other values
+    float *d_depth;
+    float *h_depth;
+
+    int *d_mat;
+    int *h_mat;
+
     int width;
     int height;
     int size;
@@ -35,8 +42,8 @@ public:
     AsczFrame(int w, int h);
     ~AsczFrame();
 
-    void toDraw0(bool toneMap=true);
-    void toDraw1(bool toneMap=true);
+    void toDraw0(bool toneMap=true, bool crosshair=true);
+    void toDraw1(bool toneMap=true, bool crosshair=true);
     void toDraw2(bool toneMap=true);
 
     void add0();

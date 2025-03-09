@@ -147,7 +147,7 @@ int main() {
     // waveMat.Rough = 0.05f;
     // waveMat.Alb = Flt3(0.2f, 0.25f, 0.5f);
 
-    // int wMat = Mat.appendMaterial(waveMat);
+    // int wMat = Mat.append(waveMat);
 
     // // Append faces
     // AABB waveAB;
@@ -247,9 +247,8 @@ int main() {
 
     short renderMode = 0;
     bool hasDebug = true;
+    bool hasCrosshair = true;
     bool fakeShading = false;
-
-    int accumulate = 0;
 
     Flt3 prevPos = Cam.pos;
     Flt3 prevRot = Cam.rot;
@@ -375,10 +374,12 @@ int main() {
 
                 Bvh.d_mi_x, Bvh.d_mi_y, Bvh.d_mi_z, Bvh.d_mx_x, Bvh.d_mx_y, Bvh.d_mx_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_gIdx,
 
-                fakeShading
+                fakeShading,
+
+                Frame.d_depth, Frame.d_mat
             );
 
-            Frame.toDraw0(false);
+            Frame.toDraw0(false, hasCrosshair);
         } 
         else if (renderMode == 1) {
             pathtraceKernel<<<Frame.blockCount, Frame.blockSize>>>(
@@ -394,7 +395,7 @@ int main() {
                 Frame.d_rand
             );
 
-            Frame.toDraw0(true);
+            Frame.toDraw0(true, hasCrosshair);
         }
         else if (renderMode == 2) {
             pathtraceKernel<<<Frame.blockCount, Frame.blockSize>>>(
@@ -427,22 +428,47 @@ int main() {
         if (hasDebug) {
             Win.appendDebug(L"AsczEngineRT_v0", Int3(155, 255, 155));
             Win.appendDebug(L"FPS: " + std::to_wstring(FPS.fps), Int3(0, 255, 0));
-            Win.appendDebug(L"CAMERA", Int3(255, 0, 0));
-            Win.appendDebug(L"Pos: " + std::to_wstring(Cam.pos.x) + L", " + std::to_wstring(Cam.pos.y) + L", " + std::to_wstring(Cam.pos.z), Int3(255));    
-            Win.appendDebug(L"Rot: " + std::to_wstring(Cam.rot.x) + L", " + std::to_wstring(Cam.rot.y) + L", " + std::to_wstring(Cam.rot.z), Int3(255));
-            Win.appendDebug(L"Fd: " + std::to_wstring(Cam.frwd.x) + L", " + std::to_wstring(Cam.frwd.y) + L", " + std::to_wstring(Cam.frwd.z), Int3(255));
-            Win.appendDebug(L"Rg: " + std::to_wstring(Cam.rght.x) + L", " + std::to_wstring(Cam.rght.y) + L", " + std::to_wstring(Cam.rght.z), Int3(255));
-            Win.appendDebug(L"Up: " + std::to_wstring(Cam.up.x) + L", " + std::to_wstring(Cam.up.y) + L", " + std::to_wstring(Cam.up.z), Int3(255));
-            Win.appendDebug(L"Fov: " + std::to_wstring(Cam.fov * 180 / M_PI), Int3(255));
-            Win.appendDebug(L"Aperature: " + std::to_wstring(Cam.aperture), Int3(255));
-            Win.appendDebug(L"FocalDist: " + std::to_wstring(Cam.focalDist), Int3(255));
+            Win.appendDebug(L"CAMERA", Int3(255, 50, 50));
+            Win.appendDebug(L"Pos: " + std::to_wstring(Cam.pos.x) + L", " + std::to_wstring(Cam.pos.y) + L", " + std::to_wstring(Cam.pos.z), Int3(255), 20);    
+            Win.appendDebug(L"Rot: " + std::to_wstring(Cam.rot.x) + L", " + std::to_wstring(Cam.rot.y) + L", " + std::to_wstring(Cam.rot.z), Int3(255), 20);
+            Win.appendDebug(L"Fd: " + std::to_wstring(Cam.frwd.x) + L", " + std::to_wstring(Cam.frwd.y) + L", " + std::to_wstring(Cam.frwd.z), Int3(255), 20);
+            Win.appendDebug(L"Rg: " + std::to_wstring(Cam.rght.x) + L", " + std::to_wstring(Cam.rght.y) + L", " + std::to_wstring(Cam.rght.z), Int3(255), 20);
+            Win.appendDebug(L"Up: " + std::to_wstring(Cam.up.x) + L", " + std::to_wstring(Cam.up.y) + L", " + std::to_wstring(Cam.up.z), Int3(255), 20);
+            Win.appendDebug(L"Fov: " + std::to_wstring(Cam.fov * 180 / M_PI), Int3(255), 20);
+            Win.appendDebug(L"Aperature: " + std::to_wstring(Cam.aperture), Int3(255), 20);
+            Win.appendDebug(L"FocalDist: " + std::to_wstring(Cam.focalDist), Int3(255), 20);
+
+            Win.appendDebug(L"Fragments", Int3(50, 50, 255));
 
             // Retrieve the middle pixel color
             unsigned int color = Frame.h_draw[Win.width * Win.height / 2 + Win.width / 2];
             int r = (color & 0x00FF0000) >> 16;
             int g = (color & 0x0000FF00) >> 8;
             int b = (color & 0x000000FF);
-            Win.appendDebug(L"Color: " + std::to_wstring(r) + L", " + std::to_wstring(g) + L", " + std::to_wstring(b), Int3(255));
+            Win.appendDebug(L"Color: " + std::to_wstring(r) + L", " + std::to_wstring(g) + L", " + std::to_wstring(b), Int3(255), 20);
+
+            if (renderMode == 0) {
+                cudaMemcpy(Frame.h_depth, Frame.d_depth, Frame.size * sizeof(float), cudaMemcpyDeviceToHost);
+                cudaMemcpy(Frame.h_mat, Frame.d_mat, Frame.size * sizeof(int), cudaMemcpyDeviceToHost);
+
+                // Retrieve the middle pixel depth and material
+                float depth = Frame.h_depth[Win.width * Win.height / 2 + Win.width / 2];
+                int mat = Frame.h_mat[Win.width * Win.height / 2 + Win.width / 2];
+                std::wstring matName = mat > -1 ? Mat.names[mat] : L"None";
+                std::wstring matPath = mat > -1 ? Mat.paths[mat] : L"None";
+
+                Win.appendDebug(L"Depth: " + std::to_wstring(depth), Int3(255), 20);
+                Win.appendDebug(L"Material:", Int3(255), 20);
+                Win.appendDebug(L"Name: " + matName, Int3(255), 40);
+                Win.appendDebug(L"Path: " + matPath, Int3(255), 40);
+
+                if (mat > -1) {
+                    const AzMtl &mtl = Mat.h_mtls[mat];
+                    Win.appendDebug(L"Alb: " + std::to_wstring(mtl.Alb.x) + L", " + std::to_wstring(mtl.Alb.y) + L", " + std::to_wstring(mtl.Alb.z), Int3(255), 40);
+                    Win.appendDebug(L"Ems: " + std::to_wstring(mtl.Ems.x) + L", " + std::to_wstring(mtl.Ems.y) + L", " + std::to_wstring(mtl.Ems.z) + L", " + std::to_wstring(mtl.Ems.w), Int3(255), 40);
+                    Win.appendDebug(L"Rough: " + std::to_wstring(mtl.Rough), Int3(255), 40);
+                }
+            }
         }
 
         Win.Draw(Frame.h_draw, hasDebug);

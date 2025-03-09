@@ -44,19 +44,17 @@ void AsczWin::InitGDI() {
 
 
 // Debug
-void AsczWin::DrawText(HDC hdc, int x, int y, const AsczDebug &db) {
+void AsczWin::DrawTxt(HDC hdc, int x, int y, const AsczDebug &db) {
     SetBkMode(hdc, TRANSPARENT);
     SetTextColor(hdc, RGB(db.color.x, db.color.y, db.color.z));
-    TextOut(hdc, x, y, db.text.c_str(), db.text.length());
+    TextOut(hdc, x + db.offx, y, db.text.c_str(), db.text.size());
 }
-void AsczWin::appendDebug(std::wstring text, Int3 color) {
+void AsczWin::appendDebug(std::wstring text, Int3 color, int offx) {
     AsczDebug db;
     db.text = text;
     db.color = color;
+    db.offx = offx;
     debugs.push_back(db);
-}
-void AsczWin::appendDebug(std::string text, Int3 color) {
-    appendDebug(std::wstring(text.begin(), text.end()), color);
 }
 
 // Draw everything
@@ -67,7 +65,7 @@ void AsczWin::Draw(unsigned int *draw, bool debug) {
     if (!debug) return;
 
     for (int i = 0; i < debugs.size(); i++) {
-        DrawText(hdc, 10, 10 + i * 20, debugs[i]);
+        DrawTxt(hdc, 10, 10 + i * 20, debugs[i]);
     }
     debugs.clear();
 }
