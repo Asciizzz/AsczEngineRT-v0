@@ -88,13 +88,13 @@ void Utils::appendObj(
 
             // Triangulate the face
             for (int i = 1; i < vs.size() - 1; ++i) {
+                if (matIsLight) mlsrc.push_back(mfv.size());
+
                 mfv.push_back(Int3(vs[0], vs[i], vs[i + 1]));
                 mft.push_back(Int3(ts[0], ts[i], ts[i + 1]));
                 mfn.push_back(Int3(ns[0], ns[i], ns[i + 1]));
 
                 mfm.push_back(matIdx);
-
-                if (matIsLight) mlsrc.push_back(mfv.size() - 1);
             }
 
             // Expand the AABB  
@@ -131,7 +131,7 @@ void Utils::appendObj(
             ss >> matName;
 
             matIdx = matMap[matName];
-            matIsLight = MatMgr.h_mtls[matIdx].Ems_i;
+            matIsLight = MatMgr.h_mtls[matIdx].Ems_i > 0;
             continue;
         }
 

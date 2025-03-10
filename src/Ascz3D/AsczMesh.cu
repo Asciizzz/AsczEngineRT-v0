@@ -100,7 +100,7 @@ void AsczMesh::append(MeshStruct mesh) {
     nNum = h_nx.size();
 
     gNum = h_fv0.size();
-    lNum = mesh.lsrc.size();
+    lNum = h_lsrc.size();
 }
 
 void AsczMesh::toDevice() {
