@@ -381,7 +381,7 @@ int main() {
                                 prevAptr != Cam.aperture ||
                                 prevFdst != Cam.focalDist;
             if (changeRender)   Frame.reset2();
-            else {
+            else if (Frame.f_acc < 1000) {
                 Frame.biliFilter0();
                 Frame.add1();
             }

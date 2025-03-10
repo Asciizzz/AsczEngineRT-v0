@@ -41,7 +41,7 @@
 # assets/Models/Structure/City/City.obj 2 0.01
 # assets/Models/Structure/City/Light.obj 0 1
 
-assets/Models/Cornell/Cornell.obj 2 1
+# assets/Models/Cornell/Cornell.obj 2 1
 
 # assets/Models/Backroom/Backroom.obj 2 1
 # assets/Models/Character/Shiroko/Shiroko.obj 2 0.5
@@ -60,13 +60,12 @@ assets/Models/Cornell/Cornell.obj 2 1
 # assets/Models/Structure/Other/Other.obj 2 300
 
 # .heavy/Skybox/Skybox.obj 0 20
-# .heavy/Skybox/Moon.obj 0 1.0 -1000 400 -1000
 
 # .heavy/Luxury/Luxury.obj 2 1
 
-~
 
-assets/Models/Structure/Buildings/Ground.obj 2 100
+
+assets/Models/Structure/Buildings/Ground.obj 2 10000
 
 # assets/Models/Structure/Buildings/Building003.obj 2 1 
 
