@@ -382,8 +382,9 @@ int main() {
                                 prevFdst != Cam.focalDist;
             if (changeRender)   Frame.reset2();
             else if (Frame.f_acc < 1000) {
-                Frame.biliFilter0();
-                Frame.add1();
+                // Frame.biliFilter0();
+                // Frame.add1();
+                Frame.add0();
             }
 
             Frame.toDraw2(true);
@@ -396,7 +397,7 @@ int main() {
         if (hasDebug) {
             Win.appendDebug(L"AsczEngineRT_v0", Int3(155, 255, 155));
             Win.appendDebug(L"FPS: " + std::to_wstring(FPS.fps), Int3(0, 255, 0));
-            Win.appendDebug(L"CAMERA", Int3(255, 50, 50));
+            Win.appendDebug(L"CAMERA", Int3(255, 100, 100));
             Win.appendDebug(L"Pos: " + std::to_wstring(Cam.pos.x) + L", " + std::to_wstring(Cam.pos.y) + L", " + std::to_wstring(Cam.pos.z), Int3(255), 20);    
             Win.appendDebug(L"Rot: " + std::to_wstring(Cam.rot.x) + L", " + std::to_wstring(Cam.rot.y) + L", " + std::to_wstring(Cam.rot.z), Int3(255), 20);
             Win.appendDebug(L"Fd: " + std::to_wstring(Cam.frwd.x) + L", " + std::to_wstring(Cam.frwd.y) + L", " + std::to_wstring(Cam.frwd.z), Int3(255), 20);
@@ -406,7 +407,13 @@ int main() {
             Win.appendDebug(L"Aperature: " + std::to_wstring(Cam.aperture), Int3(255), 20);
             Win.appendDebug(L"FocalDist: " + std::to_wstring(Cam.focalDist), Int3(255), 20);
 
-            Win.appendDebug(L"Fragments", Int3(50, 50, 255));
+            
+            Win.appendDebug(L"Mesh", Int3(100, 255, 100));
+            Win.appendDebug(L"Vertices: " + std::to_wstring(Mesh.vNum), Int3(255), 20);
+            Win.appendDebug(L"Faces: " + std::to_wstring(Mesh.gNum), Int3(255), 20);
+            Win.appendDebug(L"Materials: " + std::to_wstring(Mat.mtlsNum), Int3(255), 20);
+
+            Win.appendDebug(L"Fragments", Int3(100, 100, 255));
 
             // Retrieve the middle pixel color
             unsigned int color = Frame.h_draw[Win.width * Win.height / 2 + Win.width / 2];
