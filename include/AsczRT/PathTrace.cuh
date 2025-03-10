@@ -1,10 +1,7 @@
 #ifndef PATHTRACE_CUH
 #define PATHTRACE_CUH
 
-#include <AsczTxtr.cuh>
 #include <AsczMat.cuh>
-#include <AsczMesh.cuh>
-#include <AsczBvh.cuh>
 #include <AsczCam.cuh>
 
 #include <curand_kernel.h>
@@ -16,7 +13,7 @@ __global__ void pathtraceKernel(
     // Geometry data
     int *fv0, int *fv1, int *fv2, int *ft0, int *ft1, int *ft2, int *fn0, int *fn1, int *fn2, int *fm,
     // Materials
-    AzMtl *mats,
+    AzMtl *mats, int *lsrc, int lNum,
     // Textures
     float *tr, float *tg, float *tb, float *ta, int *tw, int *th, int *toff,
     // BVH data
