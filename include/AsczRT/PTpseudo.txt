@@ -13,39 +13,21 @@ pathtrace:
 
         if idx == -1: break
 
-        // Vertex interpolation
-        Flt3 vrtx = ray.o + ray.d * t
+        vertex = ray.o + ray.d * t
 
         // Texture interpolation (if available)
-        if has Texture: alb = lookupTexture(u, v)
-        else:           alb = material.Alb
+        if has Texture: albedo = lookupTexture(u, v)
+        else:           albedo = materialAlbedo
 
-        // Normal interpolation
-        Flt3 nrml = u * n0 + v * n1 + w * n2
+        normal = u * n0 + v * n1 + w * n2
 
-        radiance += throughput x (alb x hm.Ems)
-
-        // Direct lighting
-        for all Light (keep in mind Light is a triangle):
-            lPos = randomPointOnTriangle(Light)
-            lDir = lPos - vrtx
-
-            inLight = traverse and find any intersection
-
-            diff = computeLighting(alb + other stuff)
-
-            resultColor += (throughput x diff x lMat.Ems) * inLight
-
-        // Indirect lighting
-        ray.o = vrtx
-        ray.d = randomHemisphereSample(&rnd, nrml)
-        ray.invd = 1.0f / ray.d
-        ray.ignore = hidx
-
-        throughput x= alb * 1/Pi
-
-        radiance += resultColor
+        radiance += throughput x materialEmission;
+        throughput x= albedo
 
 
-    frmbuffer[tIdx] = tonemapping(radiance)
+        newDirection = sampleHemisphere(normal)
+        ray = { vertex, newDirection }
+
+
+    frameBuffer[of this pixel] = tonemapping(radiance)
 

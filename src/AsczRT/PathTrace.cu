@@ -1,5 +1,6 @@
 #include <PathTrace.cuh>
 #include <AzDevMath.cuh>
+#include <random>
 
 
 __global__ void pathtraceKernel(
@@ -189,7 +190,54 @@ __global__ void pathtraceKernel(
             }
         }
 
-        if (hidx == -1) break;
+        if (hidx == -1) {
+            // Return environment light, similar to Sebastian Lague's implementation
+
+            float sky_t = RD_y / 0.4f;
+            sky_t = sky_t < 0.0f ? 0.0f : sky_t > 1.0f ? 1.0f : sky_t;
+
+            // Mess around with these values for fun           
+            float3 ground = { 0.01f, 0.01f, 0.03f };
+            float3 skyHorizon = { 0.01f, 0.01f, 0.03f };
+            float3 skyZenith = { 0.00f, 0.00f, 0.00f };
+            // Not necessarily the sun, but a directional light
+            float3 sunDir = { -1.0f, -1.0f, -1.0f };
+            float sunFocus = 160.0f, sunIntensity = 0.2f;
+
+            float sunMag = sqrtf(sunDir.x * sunDir.x + sunDir.y * sunDir.y + sunDir.z * sunDir.z);
+            sunDir.x /= sunMag; sunDir.y /= sunMag; sunDir.z /= sunMag;
+
+
+            // Sky calculation
+            float skyGradT = powf(sky_t, 0.35f);
+            float skyGradR = skyHorizon.x * (1.0f - skyGradT) + skyZenith.x * skyGradT;
+            float skyGradG = skyHorizon.y * (1.0f - skyGradT) + skyZenith.y * skyGradT;
+            float skyGradB = skyHorizon.z * (1.0f - skyGradT) + skyZenith.z * skyGradT;
+
+            // Ground calculation
+            float ground_t = (RD_y + 0.01f) / 0.01f;
+            ground_t = ground_t < 0.0f ? 0.0f : ground_t > 1.0f ? 1.0f : ground_t;
+
+            // Sun calculation
+            float SdotR = sunDir.x * RD_x + sunDir.y * RD_y + sunDir.z * RD_z;
+            SdotR *= -(SdotR < 0.0f);
+            float sun_t = powf(SdotR, sunFocus) * sunIntensity;
+            bool sun_mask = ground_t >= 1.0f;
+
+            // // Star calculation
+            // float theta = atan2f(RD_z, RD_x);
+            // float phi = acosf(RD_y);
+
+            float final_r = ground.x * (1.0f - ground_t) + skyGradR * ground_t + sun_t * sun_mask;
+            float final_g = ground.y * (1.0f - ground_t) + skyGradG * ground_t + sun_t * sun_mask;
+            float final_b = ground.z * (1.0f - ground_t) + skyGradB * ground_t + sun_t * sun_mask;
+
+            radi_x += final_r * thru_x;
+            radi_y += final_g * thru_y;
+            radi_z += final_b * thru_z;
+
+            break;
+        }
 
         // Get the face data
         const AzMtl &hm = mats[fm[hidx]];
