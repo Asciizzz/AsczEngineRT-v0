@@ -137,13 +137,15 @@ __global__ void pathtraceKernel(
 
                 bool hit = gi != RIgnore;
 
-                float e1x = vx[fv1[gi]] - vx[fv0[gi]];
-                float e1y = vy[fv1[gi]] - vy[fv0[gi]];
-                float e1z = vz[fv1[gi]] - vz[fv0[gi]];
+                int f0 = fv0[gi], f1 = fv1[gi], f2 = fv2[gi];
 
-                float e2x = vx[fv2[gi]] - vx[fv0[gi]];
-                float e2y = vy[fv2[gi]] - vy[fv0[gi]];
-                float e2z = vz[fv2[gi]] - vz[fv0[gi]];
+                float e1x = vx[f1] - vx[f0];
+                float e1y = vy[f1] - vy[f0];
+                float e1z = vz[f1] - vz[f0];
+
+                float e2x = vx[f2] - vx[f0];
+                float e2y = vy[f2] - vy[f0];
+                float e2z = vz[f2] - vz[f0];
 
                 float hx = RD_y * e2z - RD_z * e2y;
                 float hy = RD_z * e2x - RD_x * e2z;
@@ -154,9 +156,9 @@ __global__ void pathtraceKernel(
                 hit &= a != 0.0f;
                 a = !hit + a * hit;
 
-                float sx = RO_x - vx[fv0[gi]];
-                float sy = RO_y - vy[fv0[gi]];
-                float sz = RO_z - vz[fv0[gi]];
+                float sx = RO_x - vx[f0];
+                float sy = RO_y - vy[f0];
+                float sz = RO_z - vz[f0];
 
                 // Since 1/a is used twice and division is expensive
                 // Store it in f = 1/a

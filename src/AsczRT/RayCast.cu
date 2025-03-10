@@ -111,15 +111,19 @@ __global__ void raycastKernel(
         for (int i = pl[nidx]; i < pr[nidx]; ++i) {
             int gi = gIdx[i];
 
-            bool hit = gi != ray.ignore;
+            bool hit = true;
 
-            float e1x = vx[fv1[gi]] - vx[fv0[gi]];
-            float e1y = vy[fv1[gi]] - vy[fv0[gi]];
-            float e1z = vz[fv1[gi]] - vz[fv0[gi]];
+            int f0 = fv0[gi];
+            int f1 = fv1[gi];
+            int f2 = fv2[gi];
 
-            float e2x = vx[fv2[gi]] - vx[fv0[gi]];
-            float e2y = vy[fv2[gi]] - vy[fv0[gi]];
-            float e2z = vz[fv2[gi]] - vz[fv0[gi]];
+            float e1x = vx[f1] - vx[f0];
+            float e1y = vy[f1] - vy[f0];
+            float e1z = vz[f1] - vz[f0];
+
+            float e2x = vx[f2] - vx[f0];
+            float e2y = vy[f2] - vy[f0];
+            float e2z = vz[f2] - vz[f0];
 
             float hx = ray.d.y * e2z - ray.d.z * e2y;
             float hy = ray.d.z * e2x - ray.d.x * e2z;
@@ -132,9 +136,9 @@ __global__ void raycastKernel(
 
             float f = 1.0f / a;
 
-            float sx = ray.o.x - vx[fv0[gi]];
-            float sy = ray.o.y - vy[fv0[gi]];
-            float sz = ray.o.z - vz[fv0[gi]];
+            float sx = ray.o.x - vx[f0];
+            float sy = ray.o.y - vy[f0];
+            float sz = ray.o.z - vz[f0];
 
             float u = f * (sx * hx + sy * hy + sz * hz);
 
