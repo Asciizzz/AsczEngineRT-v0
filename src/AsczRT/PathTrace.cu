@@ -193,22 +193,20 @@ __global__ void pathtraceKernel(
         if (hidx == -1) {
             // Return environment light, similar to Sebastian Lague's implementation
 
-            float sky_t = RD_y / 0.4f;
-            sky_t = sky_t < 0.0f ? 0.0f : sky_t > 1.0f ? 1.0f : sky_t;
-
             // Mess around with these values for fun           
             float3 ground = { 0.01f, 0.01f, 0.03f };
             float3 skyHorizon = { 0.01f, 0.01f, 0.03f };
             float3 skyZenith = { 0.00f, 0.00f, 0.00f };
             // Not necessarily the sun, but a directional light
             float3 sunDir = { -1.0f, -1.0f, -1.0f };
-            float sunFocus = 160.0f, sunIntensity = 0.2f;
+            float sunFocus = 160.0f, sunIntensity = 2.0f;
 
             float sunMag = sqrtf(sunDir.x * sunDir.x + sunDir.y * sunDir.y + sunDir.z * sunDir.z);
             sunDir.x /= sunMag; sunDir.y /= sunMag; sunDir.z /= sunMag;
 
-
             // Sky calculation
+            float sky_t = (RD_y + 0.1f) / 0.4f;
+            sky_t = fmaxf(0.0f, fminf(1.0f, sky_t));
             float skyGradT = powf(sky_t, 0.35f);
             float skyGradR = skyHorizon.x * (1.0f - skyGradT) + skyZenith.x * skyGradT;
             float skyGradG = skyHorizon.y * (1.0f - skyGradT) + skyZenith.y * skyGradT;
@@ -216,7 +214,7 @@ __global__ void pathtraceKernel(
 
             // Ground calculation
             float ground_t = (RD_y + 0.01f) / 0.01f;
-            ground_t = ground_t < 0.0f ? 0.0f : ground_t > 1.0f ? 1.0f : ground_t;
+            ground_t = fmaxf(0.0f, fminf(1.0f, ground_t));
 
             // Sun calculation
             float SdotR = sunDir.x * RD_x + sunDir.y * RD_y + sunDir.z * RD_z;

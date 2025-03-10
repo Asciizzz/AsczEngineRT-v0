@@ -85,114 +85,112 @@ int main() {
 
 // ========================== PLAYGROUND ==================================
 
-    // // Wave generation
-    // MeshStruct wave;
-    // float wave_start_x = -20.0f;
-    // float wave_start_z = -20.0f;
-    // float wave_height = 0.1f;
-    // float wave_rnd_up = 0.01f;
-    // float wave_rnd_dn = 0.01f;
-    // float wave_move_x = 0.4f;
-    // float wave_move_z = 0.4f;
-    // int wave_step_x = 100;
-    // int wave_step_z = 100;
+    // Wave generation
+    MeshStruct wave;
+    float wave_start_x = -5.0f;
+    float wave_start_z = -5.0f;
+    float wave_start_y = 0.14f;
+    float wave_height = 0.2f;
+    float wave_move_x = 0.2f;
+    float wave_move_z = 0.2f;
+    int wave_step_x = 50;
+    int wave_step_z = 50;
 
-    // for (float z = 0; z < wave_step_z; z++) {
-    //     for (float x = 0; x < wave_step_x; x++) {
-    //         float px = wave_start_x + x * wave_move_x;
-    //         float pz = wave_start_z + z * wave_move_z;
+    for (float z = 0; z < wave_step_z; z++) {
+        for (float x = 0; x < wave_step_x; x++) {
+            float px = wave_start_x + x * wave_move_x;
+            float pz = wave_start_z + z * wave_move_z;
 
-    //         float py = sin(px) * cos(pz) * wave_height;
-    //         wave.v.push_back(Flt3(px, py, pz));
-    //     }
-    // }
+            float py = sin(px) * cos(pz) * wave_height + wave_start_y;
+            wave.v.push_back(Flt3(px, py, pz));
+        }
+    }
 
-    // AzMtl waveMat;
-    // waveMat.Rough = 0.05f;
-    // waveMat.Alb_r = 0.2;
-    // waveMat.Alb_g = 0.3;
-    // waveMat.Alb_b = 0.8;
+    AzMtl waveMat;
+    waveMat.Rough = 0.05f;
+    waveMat.Alb_r = 0.2;
+    waveMat.Alb_g = 0.3;
+    waveMat.Alb_b = 0.8;
 
-    // int wMat = Mat.append(waveMat, L"Wave", L"AsczEngine");
+    int wMat = Mat.append(waveMat, L"Wave", L"AsczEngine");
 
-    // // Append faces
-    // AABB waveAB;
-    // for (int z = 0; z < wave_step_z - 1; z++) {
-    //     for (int x = 0; x < wave_step_x - 1; x++) {
-    //         // Find: (x, z), (x+1, z), (x, z+1), (x+1, z+1)
-    //         int v0idx = z * wave_step_x + x;
-    //         int v1idx = z * wave_step_x + x + 1;
-    //         int v2idx = (z + 1) * wave_step_x + x;
-    //         int v3idx = (z + 1) * wave_step_x + x + 1;
+    // Append faces
+    AABB waveAB;
+    for (int z = 0; z < wave_step_z - 1; z++) {
+        for (int x = 0; x < wave_step_x - 1; x++) {
+            // Find: (x, z), (x+1, z), (x, z+1), (x+1, z+1)
+            int v0idx = z * wave_step_x + x;
+            int v1idx = z * wave_step_x + x + 1;
+            int v2idx = (z + 1) * wave_step_x + x;
+            int v3idx = (z + 1) * wave_step_x + x + 1;
 
-    //         Flt3 v0 = wave.v[v0idx];
-    //         Flt3 v1 = wave.v[v1idx];
-    //         Flt3 v2 = wave.v[v2idx];
-    //         Flt3 v3 = wave.v[v3idx];
+            Flt3 v0 = wave.v[v0idx];
+            Flt3 v1 = wave.v[v1idx];
+            Flt3 v2 = wave.v[v2idx];
+            Flt3 v3 = wave.v[v3idx];
 
-    //         // Calculate normal by finding the gradient vector
+            // Calculate normal by finding the gradient vector
 
-    //         Flt3 n0 = {
-    //             -cos(v0.x) * cos(v0.z) * wave_height,
-    //             sin(v0.x) * sin(v0.z) * wave_height,
-    //             -sin(v0.x) * cos(v0.z) * wave_height
-    //         };
-    //         n0 *= n0.y < 0 ? -1 : 1;
-    //         n0 /= sqrt(n0.x * n0.x + n0.y * n0.y + n0.z * n0.z);
-    //         Flt3 n1 = {
-    //             -cos(v1.x) * cos(v1.z) * wave_height,
-    //             sin(v1.x) * sin(v1.z) * wave_height,
-    //             -sin(v1.x) * cos(v1.z) * wave_height
-    //         };
-    //         n1 = n1.y < 0 ? -n1 : n1;
-    //         n1 /= sqrt(n1.x * n1.x + n1.y * n1.y + n1.z * n1.z);
-    //         Flt3 n2 = {
-    //             -cos(v2.x) * cos(v2.z) * wave_height,
-    //             sin(v2.x) * sin(v2.z) * wave_height,
-    //             -sin(v2.x) * cos(v2.z) * wave_height
-    //         };
-    //         n2 = n2.y < 0 ? -n2 : n2;
-    //         n2 /= sqrt(n2.x * n2.x + n2.y * n2.y + n2.z * n2.z);
-    //         Flt3 n3 = {
-    //             -cos(v3.x) * cos(v3.z) * wave_height,
-    //             sin(v3.x) * sin(v3.z) * wave_height,
-    //             -sin(v3.x) * cos(v3.z) * wave_height
-    //         };
-    //         n3 = n3.y < 0 ? -n3 : n3;
-    //         n3 /= sqrt(n3.x * n3.x + n3.y * n3.y + n3.z * n3.z);
+            Flt3 n0 = {
+                -cos(v0.x) * cos(v0.z) * wave_height,
+                1,
+                sin(v0.x) * sin(v0.z) * wave_height
+            };
+            n0 /= n0.x * n0.x + n0.y * n0.y + n0.z * n0.z;
 
-    //         // Append normal
-    //         wave.n.push_back(n0);
-    //         wave.n.push_back(n1);
-    //         wave.n.push_back(n2);
-    //         wave.n.push_back(n3);
+            Flt3 n1 = {
+                -cos(v1.x) * cos(v1.z) * wave_height,
+                1,
+                sin(v1.x) * sin(v1.z) * wave_height
+            };
+            n1 /= n1.x * n1.x + n1.y * n1.y + n1.z * n1.z;
 
-    //         int n0idx = wave.n.size() - 4;
-    //         int n1idx = wave.n.size() - 3;
-    //         int n2idx = wave.n.size() - 2;
-    //         int n3idx = wave.n.size() - 1;
+            Flt3 n2 = {
+                -cos(v2.x) * cos(v2.z) * wave_height,
+                1,
+                sin(v2.x) * sin(v2.z) * wave_height
+            };
+            n2 /= n2.x * n2.x + n2.y * n2.y + n2.z * n2.z;
 
-    //         // Expand AABB
-    //         waveAB.expand(v0);
-    //         waveAB.expand(v1);
-    //         waveAB.expand(v2);
-    //         waveAB.expand(v3);
+            Flt3 n3 = {
+                -cos(v3.x) * cos(v3.z) * wave_height,
+                1,
+                sin(v3.x) * sin(v3.z) * wave_height
+            };
+            n3 /= n3.x * n3.x + n3.y * n3.y + n3.z * n3.z;
 
-    //         wave.fv.push_back(Int3(v0idx, v1idx, v2idx));
-    //         wave.ft.push_back(-1);
-    //         wave.fn.push_back(Int3(n0idx, n1idx, n2idx));
-    //         wave.fm.push_back(wMat);
+            // Append normal
+            wave.n.push_back(n0);
+            wave.n.push_back(n1);
+            wave.n.push_back(n2);
+            wave.n.push_back(n3);
 
-    //         wave.fv.push_back(Int3(v1idx, v3idx, v2idx));
-    //         wave.ft.push_back(-1);
-    //         wave.fn.push_back(Int3(n1idx, n3idx, n2idx));
-    //         wave.fm.push_back(wMat);
-    //     }
-    // }
-    // wave.O_AB = waveAB;
+            int n0idx = wave.n.size() - 4;
+            int n1idx = wave.n.size() - 3;
+            int n2idx = wave.n.size() - 2;
+            int n3idx = wave.n.size() - 1;
 
-    // // Append to mesh
-    // Mesh.append(wave);
+            // Expand AABB
+            waveAB.expand(v0);
+            waveAB.expand(v1);
+            waveAB.expand(v2);
+            waveAB.expand(v3);
+
+            wave.fv.push_back(Int3(v0idx, v1idx, v2idx));
+            wave.ft.push_back(-1);
+            wave.fn.push_back(Int3(n0idx, n1idx, n2idx));
+            wave.fm.push_back(wMat);
+
+            wave.fv.push_back(Int3(v1idx, v3idx, v2idx));
+            wave.ft.push_back(-1);
+            wave.fn.push_back(Int3(n1idx, n3idx, n2idx));
+            wave.fm.push_back(wMat);
+        }
+    }
+    wave.O_AB = waveAB;
+
+    // Append to mesh
+    Mesh.append(wave);
 
     // ======================= Copy to device memory ==========================
 

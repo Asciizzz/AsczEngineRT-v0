@@ -55,8 +55,7 @@
 # assets/Models/Structure/Lounge/Lounge.obj 2 1
 
 
-
-# assets/Models/Casa/Casa.obj 2 1
+assets/Models/Casa/Casa.obj 3 1
 
 # assets/Models/Structure/Other/Other.obj 2 300
 
@@ -65,7 +64,7 @@
 
 # .heavy/Luxury/Luxury.obj 2 1
 
-
+~
 
 assets/Models/Structure/Buildings/Ground.obj 2 100
 
