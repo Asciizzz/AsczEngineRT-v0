@@ -51,11 +51,8 @@ void Utils::appendObj(
             v.scale(0, scale);
 
             // Rotate the vertex
-            if (yaw) {
-                Flt3 v2 = v;
-                v.x = v2.x * cos(yaw) - v2.z * sin(yaw);
-                v.z = v2.x * sin(yaw) + v2.z * cos(yaw);
-            }
+            v.x = v.x * cos(yaw) - v.z * sin(yaw);
+            v.z = v.x * sin(yaw) + v.z * cos(yaw);
 
             v += trans;
 
@@ -67,7 +64,6 @@ void Utils::appendObj(
             while (ss.good()) {
                 std::string vtn; ss >> vtn;
                 std::stringstream ss2(vtn);
-
                 int v, t, n;
 
                 // Read vertex index
