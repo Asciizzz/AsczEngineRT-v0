@@ -5,9 +5,9 @@
 #include <string>
 
 struct AzMtl {
-    float Alb_r = 0.0f;
-    float Alb_g = 0.0f;
-    float Alb_b = 0.0f;
+    float Alb_r = 1.0f;
+    float Alb_g = 1.0f;
+    float Alb_b = 1.0f;
     int AlbMap = -1;
 
     float Rough = 1.0f;

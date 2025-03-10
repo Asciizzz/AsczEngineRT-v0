@@ -51,8 +51,9 @@ void Utils::appendObj(
             v.scale(0, scale);
 
             // Rotate the vertex
-            v.x = v.x * cos(yaw) - v.z * sin(yaw);
-            v.z = v.x * sin(yaw) + v.z * cos(yaw);
+            float x = v.x, z = v.z;
+            v.x = x * cos(yaw) - z * sin(yaw);
+            v.z = x * sin(yaw) + z * cos(yaw);
 
             v += trans;
 
@@ -113,11 +114,9 @@ void Utils::appendObj(
             Flt3 n; ss >> n.x >> n.y >> n.z;
 
             // Rotate the normal
-            if (yaw) {
-                Flt3 n2 = n;
-                n.x = n2.x * cos(yaw) - n2.z * sin(yaw);
-                n.z = n2.x * sin(yaw) + n2.z * cos(yaw);
-            }
+            float x = n.x, z = n.z;
+            n.x = x * cos(yaw) - z * sin(yaw);
+            n.z = x * sin(yaw) + z * cos(yaw);
 
             mn.push_back(n.norm());continue;
         }
