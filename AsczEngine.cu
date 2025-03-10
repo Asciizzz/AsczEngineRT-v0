@@ -85,12 +85,13 @@ int main() {
 
 // ========================== PLAYGROUND ==================================
 
+/*
     // Wave generation
     MeshStruct wave;
     float wave_start_x = -5.0f;
     float wave_start_z = -5.0f;
     float wave_start_y = 0.14f;
-    float wave_height = 0.2f;
+    float wave_height = 0.3f;
     float wave_move_x = 0.2f;
     float wave_move_z = 0.2f;
     int wave_step_x = 50;
@@ -191,6 +192,7 @@ int main() {
 
     // Append to mesh
     Mesh.append(wave);
+*/
 
     // ======================= Copy to device memory ==========================
 
@@ -381,8 +383,7 @@ int main() {
             if (changeRender)   Frame.reset2();
             else {
                 Frame.biliFilter0();
-                Frame.biliFilter1();
-                Frame.add0();
+                Frame.add1();
             }
 
             Frame.toDraw2(true);

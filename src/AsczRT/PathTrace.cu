@@ -193,12 +193,16 @@ __global__ void pathtraceKernel(
         if (hidx == -1) {
             // Return environment light, similar to Sebastian Lague's implementation
 
-            // Mess around with these values for fun           
-            float3 ground = { 0.01f, 0.01f, 0.03f };
-            float3 skyHorizon = { 0.01f, 0.01f, 0.03f };
-            float3 skyZenith = { 0.00f, 0.00f, 0.00f };
+            // Mess around with these values for fun
+            // float3 ground = { 0.01f, 0.01f, 0.03f };
+            // float3 skyHorizon = { 0.01f, 0.01f, 0.03f };
+            // float3 skyZenith = { 0.00f, 0.00f, 0.00f };
+            
+            float3 ground = { 1.00f, 1.00f, 1.00f };
+            float3 skyHorizon = { 0.70f, 0.70f, 0.70f };
+            float3 skyZenith = { 0.10f, 0.20f, 0.90f };
             // Not necessarily the sun, but a directional light
-            float3 sunDir = { -1.0f, -1.0f, -1.0f };
+            float3 sunDir = { -0.535f, -0.596f, 0.598f };
             float sunFocus = 160.0f, sunIntensity = 2.0f;
 
             float sunMag = sqrtf(sunDir.x * sunDir.x + sunDir.y * sunDir.y + sunDir.z * sunDir.z);

@@ -41,7 +41,7 @@
 # assets/Models/Structure/City/City.obj 2 0.01
 # assets/Models/Structure/City/Light.obj 0 1
 
-# assets/Models/Cornell/Cornell.obj 2 1
+assets/Models/Cornell/Cornell.obj 2 1
 
 # assets/Models/Backroom/Backroom.obj 2 1
 # assets/Models/Character/Shiroko/Shiroko.obj 2 0.5
@@ -55,7 +55,7 @@
 # assets/Models/Structure/Lounge/Lounge.obj 2 1
 
 
-assets/Models/Casa/Casa.obj 3 1
+# assets/Models/Casa/Casa.obj 3 1
 
 # assets/Models/Structure/Other/Other.obj 2 300
 
