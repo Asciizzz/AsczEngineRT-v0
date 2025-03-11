@@ -201,12 +201,12 @@ Ior 1.500000
 AzMtl Windows1
 Alb 0.000000 1.000000 0.879623
 Ior 1.500000
-Ems 1.0 1.0 1.0 1.0
+Rough 0.07
 
 AzMtl Windows2
 Alb 0.000000 0.577581 0.799103
 Ior 1.500000
-Ems 1.0 1.0 1.0 1.0
+Rough 0.07
 
 AzMtl _D_blue
 Alb 0.049706 0.270498 0.590619
@@ -227,7 +227,7 @@ Ior 1.000000
 AzMtl mat_window
 Alb 0.203665 0.195885 0.186187
 Ior 1.000000
-Ems 1.0 1.0 1.0 1.0
+Rough 0.07
 
 AzMtl off_white
 Alb 0.760698 0.760698 0.760698
@@ -244,14 +244,14 @@ Ior 1.500000
 AzMtl windows
 Alb 0.000000 0.533277 1.000000
 Ior 1.500000
-Ems 1.0 1.0 1.0 1.0
+Rough 0.07
 
 AzMtl windows01
 Alb 0.287163 0.818772 0.818772
 Ior 1.500000
-Ems 1.0 1.0 1.0 1.0
+Rough 0.07
 
 AzMtl windows3
 Alb 1.000000 0.846874 0.184475
 Ior 1.500000
-Ems 1.0 1.0 1.0 1.0
+Rough 0.07
