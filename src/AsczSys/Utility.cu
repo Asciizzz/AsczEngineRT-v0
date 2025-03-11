@@ -121,7 +121,7 @@ void Utils::appendObj(
             mn.push_back(n.norm());continue;
         }
 
-        else if (type == "o") {
+        else if (type == "o" || type == "g") {
             mSOrF.push_back(mfv.size());
             mSO_AB.push_back(AABB());continue;
         }

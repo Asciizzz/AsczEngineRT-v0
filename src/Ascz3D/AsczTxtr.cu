@@ -19,7 +19,7 @@ int AsczTxtr::appendTexture(const char *path) {
     int w, h, n;
     unsigned char *data = stbi_load(path, &w, &h, &n, 4);
 
-    if (data == nullptr) return -1;
+    if (data == nullptr) return 0;
 
     h_tw.push_back(w);
     h_th.push_back(h);
