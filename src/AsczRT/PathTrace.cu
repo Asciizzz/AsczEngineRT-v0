@@ -202,8 +202,8 @@ __global__ void pathtraceKernel(
             float3 skyHorizon = { 0.70f, 0.70f, 0.70f };
             float3 skyZenith = { 0.10f, 0.20f, 0.90f };
             // Not necessarily the sun, but a directional light
-            float3 sunDir = { -0.535f, -0.596f, 0.598f };
-            float sunFocus = 160.0f, sunIntensity = 2.0f;
+            float3 sunDir = { 0, 0, -1 };
+            float sunFocus = 130.0f, sunIntensity = 2.0f;
 
             float sunMag = sqrtf(sunDir.x * sunDir.x + sunDir.y * sunDir.y + sunDir.z * sunDir.z);
             sunDir.x /= sunMag; sunDir.y /= sunMag; sunDir.z /= sunMag;
