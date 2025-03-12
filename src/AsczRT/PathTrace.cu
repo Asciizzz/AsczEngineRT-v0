@@ -307,7 +307,7 @@ __global__ void pathtraceKernel(
         float linvd_y = 1.0f / ld_y;
         float linvd_z = 1.0f / ld_z;
 
-        // Find direct lighting
+        // Check for occlusion
         ns_top = 0;
         nstack[ns_top++] = 0;
 
@@ -441,11 +441,15 @@ __global__ void pathtraceKernel(
 
         // Calculate the radiance
         float NdotL = nrml_x * ld_x + nrml_y * ld_y + nrml_z * ld_z;
-        float lIntensity = (NdotL * NdotL * hasNrml + !hasNrml)
-                            * lm.Ems_i * !occluded;
-        radi_x += thru_x * lm.Ems_r * alb_x * lIntensity + hm.Ems_r * hm.Ems_i;
-        radi_y += thru_y * lm.Ems_g * alb_y * lIntensity + hm.Ems_g * hm.Ems_i;
-        radi_z += thru_z * lm.Ems_b * alb_z * lIntensity + hm.Ems_b * hm.Ems_i;
+        NdotL *= NdotL + !hasNrml;
+
+        float ldistRsqr = 1 / (ldist * ldist);
+
+        float radi_i = lm.Ems_i * NdotL * !occluded * ldistRsqr;
+
+        radi_x += thru_x * lm.Ems_r * alb_x * radi_i + hm.Ems_r * hm.Ems_i;
+        radi_y += thru_y * lm.Ems_g * alb_y * radi_i + hm.Ems_g * hm.Ems_i;
+        radi_z += thru_z * lm.Ems_b * alb_z * radi_i + hm.Ems_b * hm.Ems_i;
 
         thru_x *= alb_x * (1.0f - hm.Tr) + hm.Tr;
         thru_y *= alb_y * (1.0f - hm.Tr) + hm.Tr;

@@ -1,0 +1,44 @@
+
+        // Sample random point on random light source
+
+        int lIdx = lsrc[(int)(lNum * curand_uniform(&rnd[tIdx]))];
+        const AzMtl &lm = mats[fm[lIdx]];
+        float l_u = curand_uniform(&rnd[tIdx]);
+        float l_v = curand_uniform(&rnd[tIdx]);
+        bool l_uv_valid = l_u + l_v < 1.0f;
+        l_u = l_u * l_uv_valid + (1.0f - l_u) * !l_uv_valid;
+        l_v = l_v * l_uv_valid + (1.0f - l_v) * !l_uv_valid;
+        float l_w = 1.0f - l_u - l_v;
+
+        int l0 = fv0[lIdx], l1 = fv1[lIdx], l2 = fv2[lIdx];
+        float lo_x = vx[l0] * l_u + vx[l1] * l_v + vx[l2] * l_w;
+        float lo_y = vy[l0] * l_u + vy[l1] * l_v + vy[l2] * l_w;
+        float lo_z = vz[l0] * l_u + vz[l1] * l_v + vz[l2] * l_w;
+
+        float ld_x = vrtx_x - lo_x;
+        float ld_y = vrtx_y - lo_y;
+        float ld_z = vrtx_z - lo_z;
+
+        float ldist = sqrtf(ld_x * ld_x + ld_y * ld_y + ld_z * ld_z);
+        ld_x /= ldist; ld_y /= ldist; ld_z /= ldist;
+
+        float linvd_x = 1.0f / ld_x;
+        float linvd_y = 1.0f / ld_y;
+        float linvd_z = 1.0f / ld_z;
+
+        // Find occlusion
+        bool occlusion = ... you don't have to concern yourself with this
+
+        // Calculate the radiance
+        float NdotL = nrml_x * ld_x + nrml_y * ld_y + nrml_z * ld_z;
+        NdotL *= NdotL + !hasNrml;
+
+        float radi_i = lm.Ems_i * NdotL * !occluded;
+
+        radi_x += thru_x * lm.Ems_r * alb_x * radi_i + hm.Ems_r * hm.Ems_i;
+        radi_y += thru_y * lm.Ems_g * alb_y * radi_i + hm.Ems_g * hm.Ems_i;
+        radi_z += thru_z * lm.Ems_b * alb_z * radi_i + hm.Ems_b * hm.Ems_i;
+
+        thru_x *= alb_x * (1.0f - hm.Tr) + hm.Tr;
+        thru_y *= alb_y * (1.0f - hm.Tr) + hm.Tr;
+        thru_z *= alb_z * (1.0f - hm.Tr) + hm.Tr;

@@ -1,0 +1,33 @@
+
+pathtrace:
+    Ray = camera ray at the current pixel
+
+    const int MAX_NODES = 64
+    const int MAX_BOUNCES = 4
+
+    throughput = { 1.0f, 1.0f, 1.0f }
+    radiance = { 0.0f, 0.0f, 0.0f }
+
+    for bounce from 0 to MAX_BOUNCES:
+        HitInfo { t, u, v, idx } = traverse and find closest intersection
+
+        if idx == -1: break
+
+        vertex = ray.o + ray.d * t
+
+        // Texture interpolation (if available)
+        if has Texture: albedo = lookupTexture(u, v)
+        else:           albedo = materialAlbedo
+
+        normal = u * n0 + v * n1 + w * n2
+
+        radiance += throughput x materialEmission;
+        throughput x= albedo
+
+
+        newDirection = sampleHemisphere(normal)
+        ray = { vertex, newDirection }
+
+
+    frameBuffer[of this pixel] = tonemapping(radiance)
+

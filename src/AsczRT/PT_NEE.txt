@@ -1,0 +1,39 @@
+
+pathtrace:
+    Ray = camera ray at the current pixel
+
+    const int MAX_NODES = 64
+    const int MAX_BOUNCES = 4
+
+    throughput = { 1.0f, 1.0f, 1.0f }
+    radiance = { 0.0f, 0.0f, 0.0f }
+
+    for bounce from 0 to MAX_BOUNCES:
+        HitInfo { t, u, v, idx } = traverse and find closest intersection
+
+        if idx == -1: break
+
+        vertex = ray.o + ray.d * t
+
+        if has Texture: albedo = lookupTexture(u, v)
+        else:           albedo = materialAlbedo
+
+        normal = u * n0 + v * n1 + w * n2
+
+        Choose a random light source and sample a point on it
+        lightVertex, lightDirection, lightDistance = sampleLightSource()
+
+        occluded = traceShadowRay(vertex, lightVertex)
+
+        if (!occluded)
+            radiance += throughput x lightEmission x albedo
+        
+        throughput x= albedo
+
+
+        newDirection = sampleHemisphere(normal)
+        ray = { vertex, newDirection }
+
+
+    frameBuffer[of this pixel] = tonemapping(radiance)
+
