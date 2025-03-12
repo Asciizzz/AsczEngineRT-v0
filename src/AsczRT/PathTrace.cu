@@ -197,17 +197,17 @@ __global__ void pathtraceKernel(
             // Return environment light, similar to Sebastian Lague's implementation
 
             // Mess around with these values for fun
-            // float3 ground = { 0.01f, 0.01f, 0.03f };
-            // float3 skyHorizon = { 0.01f, 0.01f, 0.03f };
-            // float3 skyZenith = { 0.00f, 0.00f, 0.00f };
-            // float3 sunDir = { -1, -1, 1 };
-            // float sunFocus = 169.0f, sunIntensity = 0.6f;
-
-            float3 ground = { 1.00f, 1.00f, 1.00f };
-            float3 skyHorizon = { 0.70f, 0.70f, 0.70f };
-            float3 skyZenith = { 0.10f, 0.20f, 0.90f };
+            float3 ground = { 0.01f, 0.01f, 0.03f };
+            float3 skyHorizon = { 0.01f, 0.01f, 0.03f };
+            float3 skyZenith = { 0.00f, 0.00f, 0.00f };
             float3 sunDir = { -1, -1, 1 };
-            float sunFocus = 60.0f, sunIntensity = 8.0f;
+            float sunFocus = 169.0f, sunIntensity = 0.6f;
+
+            // float3 ground = { 1.00f, 1.00f, 1.00f };
+            // float3 skyHorizon = { 0.70f, 0.70f, 0.70f };
+            // float3 skyZenith = { 0.10f, 0.20f, 0.90f };
+            // float3 sunDir = { -1, -1, 1 };
+            // float sunFocus = 60.0f, sunIntensity = 8.0f;
 
             float sunMag = sqrtf(sunDir.x * sunDir.x + sunDir.y * sunDir.y + sunDir.z * sunDir.z);
             sunDir.x /= sunMag; sunDir.y /= sunMag; sunDir.z /= sunMag;
@@ -347,24 +347,6 @@ __global__ void pathtraceKernel(
         rd_y = rd_y * !hasTr + RD_y * hasTr;
         rd_z = rd_z * !hasTr + RD_z * hasTr;
 
-    // Update the ray
-        // Origin (truly random for non-normal surfaces)
-        RO_x = vrtx_x;
-        RO_y = vrtx_y;
-        RO_z = vrtx_z;
-        // Direction
-        RD_x = rd_x * hasNrml + truly_rnd_x * !hasNrml;
-        RD_y = rd_y * hasNrml + truly_rnd_y * !hasNrml;
-        RD_z = rd_z * hasNrml + truly_rnd_z * !hasNrml;
-        // Inverse direction
-        RInvd_x = 1.0f / RD_x;
-        RInvd_y = 1.0f / RD_y;
-        RInvd_z = 1.0f / RD_z;
-        // Other ray properties
-        RIgnore = hidx;
-        RIor = hm.Ior;
-
-
 // =================== Direct lighting =========================
 
         if (lNum == 0) {
@@ -393,7 +375,10 @@ __global__ void pathtraceKernel(
         float ld_y = vrtx_y - lo_y;
         float ld_z = vrtx_z - lo_z;
 
-        float ldist = sqrtf(ld_x * ld_x + ld_y * ld_y + ld_z * ld_z);
+        float ldistSqr = ld_x * ld_x + ld_y * ld_y + ld_z * ld_z;
+        float ldistRsqr = 1.0f / (ldistSqr + !ldistSqr); // Incase ldistSqr = 0
+        float ldist = sqrtf(ldistSqr);
+
         ld_x /= ldist; ld_y /= ldist; ld_z /= ldist;
 
         float linvd_x = 1.0f / ld_x;
@@ -538,9 +523,7 @@ __global__ void pathtraceKernel(
         float NdotL = nrml_x * ld_x + nrml_y * ld_y + nrml_z * ld_z;
         NdotL *= NdotL + !hasNrml;
 
-        float ldistSqr = ldist * ldist + !ldist;
-
-        float radi_i = lm.Ems_i * NdotL * !occluded / ldistSqr;
+        float radi_i = lm.Ems_i * NdotL * !occluded;
 
         radi_x += thru_x * lm.Ems_r * alb_x * radi_i + hm.Ems_r * hm.Ems_i;
         radi_y += thru_y * lm.Ems_g * alb_y * radi_i + hm.Ems_g * hm.Ems_i;
@@ -549,6 +532,23 @@ __global__ void pathtraceKernel(
         thru_x *= alb_x * (1.0f - hm.Tr) + hm.Tr;
         thru_y *= alb_y * (1.0f - hm.Tr) + hm.Tr;
         thru_z *= alb_z * (1.0f - hm.Tr) + hm.Tr;
+
+// =================== Construct new ray =========================
+        // Origin (truly random for non-normal surfaces)
+        RO_x = vrtx_x;
+        RO_y = vrtx_y;
+        RO_z = vrtx_z;
+        // Direction
+        RD_x = rd_x * hasNrml + truly_rnd_x * !hasNrml;
+        RD_y = rd_y * hasNrml + truly_rnd_y * !hasNrml;
+        RD_z = rd_z * hasNrml + truly_rnd_z * !hasNrml;
+        // Inverse direction
+        RInvd_x = 1.0f / RD_x;
+        RInvd_y = 1.0f / RD_y;
+        RInvd_z = 1.0f / RD_z;
+        // Other ray properties
+        RIgnore = hidx;
+        RIor = hm.Ior;
     }
 
     frmx[tIdx] = radi_x;

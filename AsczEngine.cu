@@ -85,7 +85,7 @@ int main() {
 
 // ========================== PLAYGROUND ==================================
 
-///*
+/*
     // Wave generation
     MeshStruct wave;
     float wave_start_x = -5.0f;
@@ -192,7 +192,7 @@ int main() {
 
     // Append to mesh
     Mesh.append(wave);
-//*/
+*/
 
     // ======================= Copy to device memory ==========================
 

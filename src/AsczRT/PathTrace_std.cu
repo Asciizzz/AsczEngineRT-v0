@@ -191,48 +191,47 @@ __global__ void pathtraceKernel(
         }
 
         if (hidx == -1) {
+            break;
+            
             // Return environment light, similar to Sebastian Lague's implementation
 
             // Mess around with these values for fun
             // float3 ground = { 0.01f, 0.01f, 0.03f };
             // float3 skyHorizon = { 0.01f, 0.01f, 0.03f };
             // float3 skyZenith = { 0.00f, 0.00f, 0.00f };
-            
+            // float3 sunDir = { -1, -1, 1 };
+            // float sunFocus = 169.0f, sunIntensity = 0.6f;
+
             float3 ground = { 1.00f, 1.00f, 1.00f };
             float3 skyHorizon = { 0.70f, 0.70f, 0.70f };
             float3 skyZenith = { 0.10f, 0.20f, 0.90f };
-            // Not necessarily the sun, but a directional light
-            float3 sunDir = { -1, -1, -1 };
-            float sunFocus = 69.0f, sunIntensity = 8.0f;
+            float3 sunDir = { -1, -1, 1 };
+            float sunFocus = 60.0f, sunIntensity = 8.0f;
 
             float sunMag = sqrtf(sunDir.x * sunDir.x + sunDir.y * sunDir.y + sunDir.z * sunDir.z);
             sunDir.x /= sunMag; sunDir.y /= sunMag; sunDir.z /= sunMag;
 
             // Sky calculation
-            float sky_t = (RD_y + 0.1f) / 0.4f;
+            float sky_t = RD_y * 2.2f;
             sky_t = fmaxf(0.0f, fminf(1.0f, sky_t));
             float skyGradT = powf(sky_t, 0.35f);
             float skyGradR = skyHorizon.x * (1.0f - skyGradT) + skyZenith.x * skyGradT;
             float skyGradG = skyHorizon.y * (1.0f - skyGradT) + skyZenith.y * skyGradT;
             float skyGradB = skyHorizon.z * (1.0f - skyGradT) + skyZenith.z * skyGradT;
 
-            // Ground calculation
-            float ground_t = (RD_y + 0.01f) / 0.01f;
-            ground_t = fmaxf(0.0f, fminf(1.0f, ground_t));
-
             // Sun calculation
             float SdotR = sunDir.x * RD_x + sunDir.y * RD_y + sunDir.z * RD_z;
             SdotR *= -(SdotR < 0.0f);
             float sun_t = powf(SdotR, sunFocus) * sunIntensity;
-            bool sun_mask = ground_t >= 1.0f;
+            bool sun_mask = RD_y > 0.0f;
 
             // // Star calculation
             // float theta = atan2f(RD_z, RD_x);
             // float phi = acosf(RD_y);
 
-            float final_r = ground.x * (1.0f - ground_t) + skyGradR * ground_t + sun_t * sun_mask;
-            float final_g = ground.y * (1.0f - ground_t) + skyGradG * ground_t + sun_t * sun_mask;
-            float final_b = ground.z * (1.0f - ground_t) + skyGradB * ground_t + sun_t * sun_mask;
+            float final_r = ground.x * !sun_mask + (skyGradR + sun_t) * sun_mask;
+            float final_g = ground.y * !sun_mask + (skyGradG + sun_t) * sun_mask;
+            float final_b = ground.z * !sun_mask + (skyGradB + sun_t) * sun_mask;
 
             radi_x += final_r * thru_x;
             radi_y += final_g * thru_y;
