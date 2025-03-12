@@ -37,8 +37,8 @@ int main() {
         std::stringstream ss(cfgLine);
         std::string type; ss >> type;
 
-        if      (type == "CameraPos")  ss >> Cam.pos.x >> Cam.pos.y >> Cam.pos.z;
-        else if (type == "CameraRot")  ss >> Cam.rot.x >> Cam.rot.y >> Cam.rot.z;
+        if      (type == "CameraPos")  ss >> Cam.px >> Cam.py >> Cam.pz;
+        else if (type == "CameraRot")  ss >> Cam.rpit >> Cam.ryaw;
         else if (type == "CameraFov")  ss >> Cam.fov;
         else if (type == "VelSpec")    ss >> Cam.velSpec;
         else if (type == "SlowFactor") ss >> Cam.slowFactor;
@@ -215,11 +215,6 @@ int main() {
     bool hasCrosshair = true;
     bool fakeShading = false;
 
-    Flt3 prevPos = Cam.pos;
-    Flt3 prevRot = Cam.rot;
-    float prevAptr = Cam.aperture;
-    float prevFdst = Cam.focalDist;
-
     MSG msg = { 0 };
     while (msg.message != WM_QUIT) {
         FPS.startFrame();
@@ -295,8 +290,8 @@ int main() {
             float dy = center.y - prev.y;
 
             // Update camera rotation
-            Cam.rot.y -= dx * Cam.mSens * FPS.dTimeSec;
-            Cam.rot.x += dy * Cam.mSens * FPS.dTimeSec;
+            Cam.ryaw -= dx * Cam.mSens * FPS.dTimeSec;
+            Cam.rpit += dy * Cam.mSens * FPS.dTimeSec;
 
             // CSGO perspective movement
             float vel = Cam.velSpec;
@@ -312,12 +307,34 @@ int main() {
             else if (k_shift && !k_ctrl) vel *= Cam.fastFactor;
 
             // Press W/S to move frwd/backward
-            if (k_w && !k_s) Cam.pos += Cam.frwd * vel * FPS.dTimeSec;
-            if (k_s && !k_w) Cam.pos -= Cam.frwd * vel * FPS.dTimeSec;
+            // if (k_w && !k_s) Cam.pos += Cam.frwd * vel * FPS.dTimeSec;
+            // if (k_s && !k_w) Cam.pos -= Cam.frwd * vel * FPS.dTimeSec;
 
-            // Press A/D to move left/rght
-            if (k_a && !k_d) Cam.pos += Cam.rght * vel * FPS.dTimeSec;
-            if (k_d && !k_a) Cam.pos -= Cam.rght * vel * FPS.dTimeSec;
+            // // Press A/D to move left/rght
+            // if (k_a && !k_d) Cam.pos += Cam.rght * vel * FPS.dTimeSec;
+            // if (k_d && !k_a) Cam.pos -= Cam.rght * vel * FPS.dTimeSec;
+
+            if (k_w && !k_s) {
+                Cam.px += Cam.fw_x * vel * FPS.dTimeSec;
+                Cam.py += Cam.fw_y * vel * FPS.dTimeSec;
+                Cam.pz += Cam.fw_z * vel * FPS.dTimeSec;
+            }
+            if (k_s && !k_w) {
+                Cam.px -= Cam.fw_x * vel * FPS.dTimeSec;
+                Cam.py -= Cam.fw_y * vel * FPS.dTimeSec;
+                Cam.pz -= Cam.fw_z * vel * FPS.dTimeSec;
+            }
+
+            if (k_a && !k_d) {
+                Cam.px += Cam.rg_x * vel * FPS.dTimeSec;
+                Cam.py += Cam.rg_y * vel * FPS.dTimeSec;
+                Cam.pz += Cam.rg_z * vel * FPS.dTimeSec;
+            }
+            if (k_d && !k_a) {
+                Cam.px -= Cam.rg_x * vel * FPS.dTimeSec;
+                Cam.py -= Cam.rg_y * vel * FPS.dTimeSec;
+                Cam.pz -= Cam.rg_z * vel * FPS.dTimeSec;
+            }
 
             // Update camera
             Cam.update();
@@ -376,32 +393,20 @@ int main() {
                 Frame.d_rand
             );
 
-            bool changeRender = prevPos != Cam.pos ||
-                                prevRot != Cam.rot ||
-                                prevAptr != Cam.aperture ||
-                                prevFdst != Cam.focalDist;
-            if (changeRender) Frame.reset2();
-
-            // Frame.biliFilter0();
-            // Frame.add1();
             Frame.add0();
 
             Frame.toDraw2(true);
-            prevPos = Cam.pos;
-            prevRot = Cam.rot;
-            prevAptr = Cam.aperture;
-            prevFdst = Cam.focalDist;
         }
 
         if (hasDebug) {
             Win.appendDebug(L"AsczEngineRT_v0", Int3(155, 255, 155));
             Win.appendDebug(L"FPS: " + std::to_wstring(FPS.fps), Int3(0, 255, 0));
             Win.appendDebug(L"CAMERA", Int3(255, 100, 100));
-            Win.appendDebug(L"Pos: " + std::to_wstring(Cam.pos.x) + L", " + std::to_wstring(Cam.pos.y) + L", " + std::to_wstring(Cam.pos.z), Int3(255), 20);    
-            Win.appendDebug(L"Rot: " + std::to_wstring(Cam.rot.x) + L", " + std::to_wstring(Cam.rot.y) + L", " + std::to_wstring(Cam.rot.z), Int3(255), 20);
-            Win.appendDebug(L"Fd: " + std::to_wstring(Cam.frwd.x) + L", " + std::to_wstring(Cam.frwd.y) + L", " + std::to_wstring(Cam.frwd.z), Int3(255), 20);
-            Win.appendDebug(L"Rg: " + std::to_wstring(Cam.rght.x) + L", " + std::to_wstring(Cam.rght.y) + L", " + std::to_wstring(Cam.rght.z), Int3(255), 20);
-            Win.appendDebug(L"Up: " + std::to_wstring(Cam.up.x) + L", " + std::to_wstring(Cam.up.y) + L", " + std::to_wstring(Cam.up.z), Int3(255), 20);
+            Win.appendDebug(L"Pos: " + std::to_wstring(Cam.px) + L", " + std::to_wstring(Cam.py) + L", " + std::to_wstring(Cam.pz), Int3(255), 20);    
+            Win.appendDebug(L"Rot: " + std::to_wstring(Cam.rpit) + L", " + std::to_wstring(Cam.ryaw), Int3(255), 20);
+            Win.appendDebug(L"Fd: " + std::to_wstring(Cam.fw_x) + L", " + std::to_wstring(Cam.fw_y) + L", " + std::to_wstring(Cam.fw_z), Int3(255), 20);
+            Win.appendDebug(L"Rg: " + std::to_wstring(Cam.rg_x) + L", " + std::to_wstring(Cam.rg_y) + L", " + std::to_wstring(Cam.rg_z), Int3(255), 20);
+            Win.appendDebug(L"Up: " + std::to_wstring(Cam.up_x) + L", " + std::to_wstring(Cam.up_y) + L", " + std::to_wstring(Cam.up_z), Int3(255), 20);
             Win.appendDebug(L"Fov: " + std::to_wstring(Cam.fov * 180 / M_PI), Int3(255), 20);
             Win.appendDebug(L"Aperature: " + std::to_wstring(Cam.aperture), Int3(255), 20);
             Win.appendDebug(L"FocalDist: " + std::to_wstring(Cam.focalDist), Int3(255), 20);

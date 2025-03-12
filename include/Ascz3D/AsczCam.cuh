@@ -22,10 +22,18 @@ class AsczCam {
 public:
     float fov = M_PI_2; // The most perfect fov imo
 
-    Flt3 pos, rot;
+    float px = 0.0f;
+    float py = 0.0f;
+    float pz = 0.0f;
+    float rpit = 0.0f; // To look up and down
+    float ryaw = 0.0f; // To look around
+
     void restrictRot();
 
-    Flt3 frwd, rght, up;
+    float fw_x = 0.0f, fw_y = 0.0f, fw_z = 0.0f;
+    float rg_x = 0.0f, rg_y = 0.0f, rg_z = 0.0f;
+    float up_x = 0.0f, up_y = 0.0f, up_z = 0.0f;
+
     void updateView();
 
     float aperture = 0.0f;
