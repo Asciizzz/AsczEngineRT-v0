@@ -200,42 +200,39 @@ __global__ void pathtraceKernel(
             // float3 ground = { 0.01f, 0.01f, 0.03f };
             // float3 skyHorizon = { 0.01f, 0.01f, 0.03f };
             // float3 skyZenith = { 0.00f, 0.00f, 0.00f };
-            
+            // float3 sunDir = { -1, -1, 1 };
+            // float sunFocus = 169.0f, sunIntensity = 0.6f;
+
             float3 ground = { 1.00f, 1.00f, 1.00f };
             float3 skyHorizon = { 0.70f, 0.70f, 0.70f };
             float3 skyZenith = { 0.10f, 0.20f, 0.90f };
-            // Not necessarily the sun, but a directional light
-            float3 sunDir = { -1, -1, -1 };
-            float sunFocus = 69.0f, sunIntensity = 8.0f;
+            float3 sunDir = { -1, -1, 1 };
+            float sunFocus = 60.0f, sunIntensity = 8.0f;
 
             float sunMag = sqrtf(sunDir.x * sunDir.x + sunDir.y * sunDir.y + sunDir.z * sunDir.z);
             sunDir.x /= sunMag; sunDir.y /= sunMag; sunDir.z /= sunMag;
 
             // Sky calculation
-            float sky_t = (RD_y + 0.1f) / 0.4f;
+            float sky_t = RD_y * 2.2f;
             sky_t = fmaxf(0.0f, fminf(1.0f, sky_t));
             float skyGradT = powf(sky_t, 0.35f);
             float skyGradR = skyHorizon.x * (1.0f - skyGradT) + skyZenith.x * skyGradT;
             float skyGradG = skyHorizon.y * (1.0f - skyGradT) + skyZenith.y * skyGradT;
             float skyGradB = skyHorizon.z * (1.0f - skyGradT) + skyZenith.z * skyGradT;
 
-            // Ground calculation
-            float ground_t = (RD_y + 0.01f) / 0.01f;
-            ground_t = fmaxf(0.0f, fminf(1.0f, ground_t));
-
             // Sun calculation
             float SdotR = sunDir.x * RD_x + sunDir.y * RD_y + sunDir.z * RD_z;
             SdotR *= -(SdotR < 0.0f);
             float sun_t = powf(SdotR, sunFocus) * sunIntensity;
-            bool sun_mask = ground_t >= 1.0f;
+            bool sun_mask = RD_y > 0.0f;
 
             // // Star calculation
             // float theta = atan2f(RD_z, RD_x);
             // float phi = acosf(RD_y);
 
-            float final_r = ground.x * (1.0f - ground_t) + skyGradR * ground_t + sun_t * sun_mask;
-            float final_g = ground.y * (1.0f - ground_t) + skyGradG * ground_t + sun_t * sun_mask;
-            float final_b = ground.z * (1.0f - ground_t) + skyGradB * ground_t + sun_t * sun_mask;
+            float final_r = ground.x * !sun_mask + (skyGradR + sun_t) * sun_mask;
+            float final_g = ground.y * !sun_mask + (skyGradG + sun_t) * sun_mask;
+            float final_b = ground.z * !sun_mask + (skyGradB + sun_t) * sun_mask;
 
             radi_x += final_r * thru_x;
             radi_y += final_g * thru_y;
@@ -279,7 +276,103 @@ __global__ void pathtraceKernel(
         float nrml_z = nz[n0] * hw + nz[n1] * hu + nz[n2] * hv;
         bool hasNrml = n0 > 0;
 
+// =================== Indirect lighting =========================
+
+    /* For future me:
+
+    If the surface has a normal:
+        We generate a random vector in the hemisphere
+        based on cosine weight distribution.
+    If the surface does not have a normal:
+        We generate a completely random vector in a sphere.
+    */
+
+    // Random diffuse lighting
+        float rndA = curand_uniform(&rnd[tIdx]);
+        float rndB = curand_uniform(&rnd[tIdx]);
+
+        float theta1 = acosf(sqrtf(1.0f - rndA));
+        float phi = 2.0f * M_PI * rndB;
+
+        // Cosine weighted hemisphere
+        float rnd_x = sinf(theta1) * cosf(phi);
+        float rnd_y = sinf(theta1) * sinf(phi);
+        float rnd_z = cosf(theta1);
+
+        // For truly random direction
+        float theta2 = acosf(1.0f - 2.0f * rndA);
+        float truly_rnd_x = sinf(theta2) * cosf(phi);
+        float truly_rnd_y = sinf(theta2) * sinf(phi);
+        float truly_rnd_z = cosf(theta2);
+
+        // Construct a coordinate system
+        bool xGreater = fabsf(nrml_x) > 0.9;
+        float ta_x = !xGreater;
+        float ta_y = xGreater;
+
+        // Tangent vector
+        // There supposed to also be a ta_z, but since its = 0,
+        // you can ignore it in the cross product calculation
+        float tang_x =  ta_y * nrml_z;
+        float tang_y = -ta_x * nrml_z;
+        float tang_z = ta_x * nrml_y - ta_y * nrml_x;
+
+        // Bitangent vector
+        float bitang_x = tang_y * nrml_z - tang_z * nrml_y;
+        float bitang_y = tang_z * nrml_x - tang_x * nrml_z;
+        float bitang_z = tang_x * nrml_y - tang_y * nrml_x;
+
+        // Transform the vector to the normal space
+        float diff_x = rnd_x * tang_x + rnd_y * bitang_x + rnd_z * nrml_x;
+        float diff_y = rnd_x * tang_y + rnd_y * bitang_y + rnd_z * nrml_y;
+        float diff_z = rnd_x * tang_z + rnd_y * bitang_z + rnd_z * nrml_z;
+
+    // Specular direction (a.k.a. reflection)
+        float spec_x = RD_x - nrml_x * 2.0f * (nrml_x * RD_x);
+        float spec_y = RD_y - nrml_y * 2.0f * (nrml_y * RD_y);
+        float spec_z = RD_z - nrml_z * 2.0f * (nrml_z * RD_z);
+
+    // Lerp diffuse and specular from roughness/smoothness
+        float smooth = 1.0f - hm.Rough;
+        float rd_x = diff_x * hm.Rough + spec_x * smooth;
+        float rd_y = diff_y * hm.Rough + spec_y * smooth;
+        float rd_z = diff_z * hm.Rough + spec_z * smooth;
+
+        float NdotV = nrml_x * RD_x + nrml_y * RD_y + nrml_z * RD_z;
+        float Frefl = powf(1.0f - fabs(NdotV), 5.0f);
+        float Frefr = 1.0f - Frefl;
+
+        bool hasTr = rndA < hm.Tr * Frefr;
+        rd_x = rd_x * !hasTr + RD_x * hasTr;
+        rd_y = rd_y * !hasTr + RD_y * hasTr;
+        rd_z = rd_z * !hasTr + RD_z * hasTr;
+
+    // Update the ray
+        // Origin (truly random for non-normal surfaces)
+        RO_x = vrtx_x;
+        RO_y = vrtx_y;
+        RO_z = vrtx_z;
+        // Direction
+        RD_x = rd_x * hasNrml + truly_rnd_x * !hasNrml;
+        RD_y = rd_y * hasNrml + truly_rnd_y * !hasNrml;
+        RD_z = rd_z * hasNrml + truly_rnd_z * !hasNrml;
+        // Inverse direction
+        RInvd_x = 1.0f / RD_x;
+        RInvd_y = 1.0f / RD_y;
+        RInvd_z = 1.0f / RD_z;
+        // Other ray properties
+        RIgnore = hidx;
+        RIor = hm.Ior;
+
+
 // =================== Direct lighting =========================
+
+        if (lNum == 0) {
+            thru_x *= alb_x;
+            thru_y *= alb_y;
+            thru_z *= alb_z;
+            continue;
+        }
 
         // Sample random point on random light source
         int lIdx = lsrc[(int)(lNum * curand_uniform(&rnd[tIdx]))];
@@ -439,13 +532,15 @@ __global__ void pathtraceKernel(
             }
         }
 
+        occluded = occluded & ldist > EPSILON_2;
+
         // Calculate the radiance
         float NdotL = nrml_x * ld_x + nrml_y * ld_y + nrml_z * ld_z;
         NdotL *= NdotL + !hasNrml;
 
-        float ldistRsqr = 1 / (ldist * ldist);
+        float ldistSqr = ldist * ldist + !ldist;
 
-        float radi_i = lm.Ems_i * NdotL * !occluded * ldistRsqr;
+        float radi_i = lm.Ems_i * NdotL * !occluded / ldistSqr;
 
         radi_x += thru_x * lm.Ems_r * alb_x * radi_i + hm.Ems_r * hm.Ems_i;
         radi_y += thru_y * lm.Ems_g * alb_y * radi_i + hm.Ems_g * hm.Ems_i;
@@ -454,94 +549,6 @@ __global__ void pathtraceKernel(
         thru_x *= alb_x * (1.0f - hm.Tr) + hm.Tr;
         thru_y *= alb_y * (1.0f - hm.Tr) + hm.Tr;
         thru_z *= alb_z * (1.0f - hm.Tr) + hm.Tr;
-
-// =================== Indirect lighting =========================
-
-    /* For future me:
-
-    If the surface has a normal:
-        We generate a random vector in the hemisphere
-        based on cosine weight distribution.
-    If the surface does not have a normal:
-        We generate a completely random vector in a sphere.
-    */
-
-    // Random diffuse lighting
-        float rndA = curand_uniform(&rnd[tIdx]);
-        float rndB = curand_uniform(&rnd[tIdx]);
-
-        float theta1 = acosf(sqrtf(1.0f - rndA));
-        float phi = 2.0f * M_PI * rndB;
-
-        // Cosine weighted hemisphere
-        float rnd_x = sinf(theta1) * cosf(phi);
-        float rnd_y = sinf(theta1) * sinf(phi);
-        float rnd_z = cosf(theta1);
-
-        // For truly random direction
-        float theta2 = acosf(1.0f - 2.0f * rndA);
-        float truly_rnd_x = sinf(theta2) * cosf(phi);
-        float truly_rnd_y = sinf(theta2) * sinf(phi);
-        float truly_rnd_z = cosf(theta2);
-
-        // Construct a coordinate system
-        bool xGreater = fabsf(nrml_x) > 0.9;
-        float ta_x = !xGreater;
-        float ta_y = xGreater;
-
-        // Tangent vector
-        // There supposed to also be a ta_z, but since its = 0,
-        // you can ignore it in the cross product calculation
-        float tang_x =  ta_y * nrml_z;
-        float tang_y = -ta_x * nrml_z;
-        float tang_z = ta_x * nrml_y - ta_y * nrml_x;
-
-        // Bitangent vector
-        float bitang_x = tang_y * nrml_z - tang_z * nrml_y;
-        float bitang_y = tang_z * nrml_x - tang_x * nrml_z;
-        float bitang_z = tang_x * nrml_y - tang_y * nrml_x;
-
-        // Transform the vector to the normal space
-        float diff_x = rnd_x * tang_x + rnd_y * bitang_x + rnd_z * nrml_x;
-        float diff_y = rnd_x * tang_y + rnd_y * bitang_y + rnd_z * nrml_y;
-        float diff_z = rnd_x * tang_z + rnd_y * bitang_z + rnd_z * nrml_z;
-
-    // Specular direction (a.k.a. reflection)
-        float spec_x = RD_x - nrml_x * 2.0f * (nrml_x * RD_x);
-        float spec_y = RD_y - nrml_y * 2.0f * (nrml_y * RD_y);
-        float spec_z = RD_z - nrml_z * 2.0f * (nrml_z * RD_z);
-
-    // Lerp diffuse and specular from roughness/smoothness
-        float smooth = 1.0f - hm.Rough;
-        float rd_x = diff_x * hm.Rough + spec_x * smooth;
-        float rd_y = diff_y * hm.Rough + spec_y * smooth;
-        float rd_z = diff_z * hm.Rough + spec_z * smooth;
-
-        float NdotV = nrml_x * RD_x + nrml_y * RD_y + nrml_z * RD_z;
-        float Frefl = powf(1.0f - fabs(NdotV), 5.0f);
-        float Frefr = 1.0f - Frefl;
-
-        bool hasTr = rndA < hm.Tr * Frefr;
-        rd_x = rd_x * !hasTr + RD_x * hasTr;
-        rd_y = rd_y * !hasTr + RD_y * hasTr;
-        rd_z = rd_z * !hasTr + RD_z * hasTr;
-
-    // Update the ray
-        // Origin (truly random for non-normal surfaces)
-        RO_x = vrtx_x;
-        RO_y = vrtx_y;
-        RO_z = vrtx_z;
-        // Direction
-        RD_x = rd_x * hasNrml + truly_rnd_x * !hasNrml;
-        RD_y = rd_y * hasNrml + truly_rnd_y * !hasNrml;
-        RD_z = rd_z * hasNrml + truly_rnd_z * !hasNrml;
-        // Inverse direction
-        RInvd_x = 1.0f / RD_x;
-        RInvd_y = 1.0f / RD_y;
-        RInvd_z = 1.0f / RD_z;
-        // Other ray properties
-        RIgnore = hidx;
-        RIor = hm.Ior;
     }
 
     frmx[tIdx] = radi_x;
