@@ -306,35 +306,35 @@ int main() {
             if (k_ctrl && !k_shift)      vel *= Cam.slowFactor;
             else if (k_shift && !k_ctrl) vel *= Cam.fastFactor;
 
-            // Press W/S to move frwd/backward
-            // if (k_w && !k_s) Cam.pos += Cam.frwd * vel * FPS.dTimeSec;
-            // if (k_s && !k_w) Cam.pos -= Cam.frwd * vel * FPS.dTimeSec;
+            // if (k_w && !k_s) {
+            //     Cam.px += Cam.fw_x * vel * FPS.dTimeSec;
+            //     Cam.py += Cam.fw_y * vel * FPS.dTimeSec;
+            //     Cam.pz += Cam.fw_z * vel * FPS.dTimeSec;
+            // }
+            // if (k_s && !k_w) {
+            //     Cam.px -= Cam.fw_x * vel * FPS.dTimeSec;
+            //     Cam.py -= Cam.fw_y * vel * FPS.dTimeSec;
+            //     Cam.pz -= Cam.fw_z * vel * FPS.dTimeSec;
+            // }
 
-            // // Press A/D to move left/rght
-            // if (k_a && !k_d) Cam.pos += Cam.rght * vel * FPS.dTimeSec;
-            // if (k_d && !k_a) Cam.pos -= Cam.rght * vel * FPS.dTimeSec;
+            // if (k_a && !k_d) {
+            //     Cam.px += Cam.rg_x * vel * FPS.dTimeSec;
+            //     Cam.py += Cam.rg_y * vel * FPS.dTimeSec;
+            //     Cam.pz += Cam.rg_z * vel * FPS.dTimeSec;
+            // }
+            // if (k_d && !k_a) {
+            //     Cam.px -= Cam.rg_x * vel * FPS.dTimeSec;
+            //     Cam.py -= Cam.rg_y * vel * FPS.dTimeSec;
+            //     Cam.pz -= Cam.rg_z * vel * FPS.dTimeSec;
+            // }
 
-            if (k_w && !k_s) {
-                Cam.px += Cam.fw_x * vel * FPS.dTimeSec;
-                Cam.py += Cam.fw_y * vel * FPS.dTimeSec;
-                Cam.pz += Cam.fw_z * vel * FPS.dTimeSec;
-            }
-            if (k_s && !k_w) {
-                Cam.px -= Cam.fw_x * vel * FPS.dTimeSec;
-                Cam.py -= Cam.fw_y * vel * FPS.dTimeSec;
-                Cam.pz -= Cam.fw_z * vel * FPS.dTimeSec;
-            }
+            float dVel = vel * FPS.dTimeSec;
+            short moveFrwd = (k_w && !k_s) - (k_s && !k_w);
+            short moveSide = (k_a && !k_d) - (k_d && !k_a);
 
-            if (k_a && !k_d) {
-                Cam.px += Cam.rg_x * vel * FPS.dTimeSec;
-                Cam.py += Cam.rg_y * vel * FPS.dTimeSec;
-                Cam.pz += Cam.rg_z * vel * FPS.dTimeSec;
-            }
-            if (k_d && !k_a) {
-                Cam.px -= Cam.rg_x * vel * FPS.dTimeSec;
-                Cam.py -= Cam.rg_y * vel * FPS.dTimeSec;
-                Cam.pz -= Cam.rg_z * vel * FPS.dTimeSec;
-            }
+            Cam.px += Cam.fw_x * moveFrwd * dVel + Cam.rg_x * moveSide * dVel;
+            Cam.py += Cam.fw_y * moveFrwd * dVel + Cam.rg_y * moveSide * dVel;
+            Cam.pz += Cam.fw_z * moveFrwd * dVel + Cam.rg_z * moveSide * dVel;
 
             // Update camera
             Cam.update();
@@ -403,7 +403,7 @@ int main() {
             Win.appendDebug(L"FPS: " + std::to_wstring(FPS.fps), Int3(0, 255, 0));
             Win.appendDebug(L"CAMERA", Int3(255, 100, 100));
             Win.appendDebug(L"Pos: " + std::to_wstring(Cam.px) + L", " + std::to_wstring(Cam.py) + L", " + std::to_wstring(Cam.pz), Int3(255), 20);    
-            Win.appendDebug(L"Rot: " + std::to_wstring(Cam.rpit) + L", " + std::to_wstring(Cam.ryaw), Int3(255), 20);
+            Win.appendDebug(L"Pitch: " + std::to_wstring(Cam.rpit) + L"| Yaw: " + std::to_wstring(Cam.ryaw), Int3(255), 20);
             Win.appendDebug(L"Fd: " + std::to_wstring(Cam.fw_x) + L", " + std::to_wstring(Cam.fw_y) + L", " + std::to_wstring(Cam.fw_z), Int3(255), 20);
             Win.appendDebug(L"Rg: " + std::to_wstring(Cam.rg_x) + L", " + std::to_wstring(Cam.rg_y) + L", " + std::to_wstring(Cam.rg_z), Int3(255), 20);
             Win.appendDebug(L"Up: " + std::to_wstring(Cam.up_x) + L", " + std::to_wstring(Cam.up_y) + L", " + std::to_wstring(Cam.up_z), Int3(255), 20);

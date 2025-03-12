@@ -39,20 +39,20 @@ __global__ void raycastKernel(
         int nidx = nstack[--ns_top];
 
         // Check if the ray is outside the bounding box
-        float t1n = (mi_x[nidx] - ray.o.x) * ray.invd.x;
-        float t2n = (mx_x[nidx] - ray.o.x) * ray.invd.x;
-        float t3n = (mi_y[nidx] - ray.o.y) * ray.invd.y;
-        float t4n = (mx_y[nidx] - ray.o.y) * ray.invd.y;
-        float t5n = (mi_z[nidx] - ray.o.z) * ray.invd.z;
-        float t6n = (mx_z[nidx] - ray.o.z) * ray.invd.z;
+        float t1n = (mi_x[nidx] - ray.ox) * ray.rdx;
+        float t2n = (mx_x[nidx] - ray.ox) * ray.rdx;
+        float t3n = (mi_y[nidx] - ray.oy) * ray.rdy;
+        float t4n = (mx_y[nidx] - ray.oy) * ray.rdy;
+        float t5n = (mi_z[nidx] - ray.oz) * ray.rdz;
+        float t6n = (mx_z[nidx] - ray.oz) * ray.rdz;
 
         float tminn = fminf(t1n, t2n), tmaxn = fmaxf(t1n, t2n);
         tminn = fmaxf(tminn, fminf(t3n, t4n)); tmaxn = fminf(tmaxn, fmaxf(t3n, t4n));
         tminn = fmaxf(tminn, fminf(t5n, t6n)); tmaxn = fminf(tmaxn, fmaxf(t5n, t6n));
 
-        bool nOut = ray.o.x < mi_x[nidx] | ray.o.x > mx_x[nidx] |
-                    ray.o.y < mi_y[nidx] | ray.o.y > mx_y[nidx] |
-                    ray.o.z < mi_z[nidx] | ray.o.z > mx_z[nidx];
+        bool nOut = ray.ox < mi_x[nidx] | ray.ox > mx_x[nidx] |
+                    ray.oy < mi_y[nidx] | ray.oy > mx_y[nidx] |
+                    ray.oz < mi_z[nidx] | ray.oz > mx_z[nidx];
         float nDist = ((tmaxn < tminn | tminn < 0) ? -1 : tminn) * nOut;
 
         if (nDist < 0 | nDist > ht) continue;
@@ -61,38 +61,38 @@ __global__ void raycastKernel(
         if (!lf[nidx]) {
             // Find the distance to the left child
             int tcl = pl[nidx];
-            float t1l = (mi_x[tcl] - ray.o.x) * ray.invd.x;
-            float t2l = (mx_x[tcl] - ray.o.x) * ray.invd.x;
-            float t3l = (mi_y[tcl] - ray.o.y) * ray.invd.y;
-            float t4l = (mx_y[tcl] - ray.o.y) * ray.invd.y;
-            float t5l = (mi_z[tcl] - ray.o.z) * ray.invd.z;
-            float t6l = (mx_z[tcl] - ray.o.z) * ray.invd.z;
+            float t1l = (mi_x[tcl] - ray.ox) * ray.rdx;
+            float t2l = (mx_x[tcl] - ray.ox) * ray.rdx;
+            float t3l = (mi_y[tcl] - ray.oy) * ray.rdy;
+            float t4l = (mx_y[tcl] - ray.oy) * ray.rdy;
+            float t5l = (mi_z[tcl] - ray.oz) * ray.rdz;
+            float t6l = (mx_z[tcl] - ray.oz) * ray.rdz;
 
             float tminl = fminf(t1l, t2l), tmaxl = fmaxf(t1l, t2l);
             tminl = fmaxf(tminl, fminf(t3l, t4l)); tmaxl = fminf(tmaxl, fmaxf(t3l, t4l));
             tminl = fmaxf(tminl, fminf(t5l, t6l)); tmaxl = fminf(tmaxl, fmaxf(t5l, t6l));
 
-            bool lOut = ray.o.x < mi_x[tcl] | ray.o.x > mx_x[tcl] |
-                        ray.o.y < mi_y[tcl] | ray.o.y > mx_y[tcl] |
-                        ray.o.z < mi_z[tcl] | ray.o.z > mx_z[tcl];
+            bool lOut = ray.ox < mi_x[tcl] | ray.ox > mx_x[tcl] |
+                        ray.oy < mi_y[tcl] | ray.oy > mx_y[tcl] |
+                        ray.oz < mi_z[tcl] | ray.oz > mx_z[tcl];
             float ldist = ((tmaxl < tminl | tminl < 0) ? -1 : tminl) * lOut;
 
             // Find the distance to the right child
             int tcr = pr[nidx];
-            float t1r = (mi_x[tcr] - ray.o.x) * ray.invd.x;
-            float t2r = (mx_x[tcr] - ray.o.x) * ray.invd.x;
-            float t3r = (mi_y[tcr] - ray.o.y) * ray.invd.y;
-            float t4r = (mx_y[tcr] - ray.o.y) * ray.invd.y;
-            float t5r = (mi_z[tcr] - ray.o.z) * ray.invd.z;
-            float t6r = (mx_z[tcr] - ray.o.z) * ray.invd.z;
+            float t1r = (mi_x[tcr] - ray.ox) * ray.rdx;
+            float t2r = (mx_x[tcr] - ray.ox) * ray.rdx;
+            float t3r = (mi_y[tcr] - ray.oy) * ray.rdy;
+            float t4r = (mx_y[tcr] - ray.oy) * ray.rdy;
+            float t5r = (mi_z[tcr] - ray.oz) * ray.rdz;
+            float t6r = (mx_z[tcr] - ray.oz) * ray.rdz;
 
             float tminr = fminf(t1r, t2r), tmaxr = fmaxf(t1r, t2r);
             tminr = fmaxf(tminr, fminf(t3r, t4r)); tmaxr = fminf(tmaxr, fmaxf(t3r, t4r));
             tminr = fmaxf(tminr, fminf(t5r, t6r)); tmaxr = fminf(tmaxr, fmaxf(t5r, t6r));
 
-            bool rOut = ray.o.x < mi_x[tcr] | ray.o.x > mx_x[tcr] |
-                        ray.o.y < mi_y[tcr] | ray.o.y > mx_y[tcr] |
-                        ray.o.z < mi_z[tcr] | ray.o.z > mx_z[tcr];
+            bool rOut = ray.ox < mi_x[tcr] | ray.ox > mx_x[tcr] |
+                        ray.oy < mi_y[tcr] | ray.oy > mx_y[tcr] |
+                        ray.oz < mi_z[tcr] | ray.oz > mx_z[tcr];
             float rdist = ((tmaxr < tminr | tminr < 0) ? -1 : tminr) * rOut;
 
 
@@ -125,9 +125,9 @@ __global__ void raycastKernel(
             float e2y = vy[f2] - vy[f0];
             float e2z = vz[f2] - vz[f0];
 
-            float hx = ray.d.y * e2z - ray.d.z * e2y;
-            float hy = ray.d.z * e2x - ray.d.x * e2z;
-            float hz = ray.d.x * e2y - ray.d.y * e2x;
+            float hx = ray.dy * e2z - ray.dz * e2y;
+            float hy = ray.dz * e2x - ray.dx * e2z;
+            float hz = ray.dx * e2y - ray.dy * e2x;
 
             float a = e1x * hx + e1y * hy + e1z * hz;
 
@@ -136,9 +136,9 @@ __global__ void raycastKernel(
 
             float f = 1.0f / a;
 
-            float sx = ray.o.x - vx[f0];
-            float sy = ray.o.y - vy[f0];
-            float sz = ray.o.z - vz[f0];
+            float sx = ray.ox - vx[f0];
+            float sy = ray.oy - vy[f0];
+            float sz = ray.oz - vz[f0];
 
             float u = f * (sx * hx + sy * hy + sz * hz);
 
@@ -148,7 +148,7 @@ __global__ void raycastKernel(
             float qy = sz * e1x - sx * e1z;
             float qz = sx * e1y - sy * e1x;
 
-            float v = f * (ray.d.x * qx + ray.d.y * qy + ray.d.z * qz);
+            float v = f * (ray.dx * qx + ray.dy * qy + ray.dz * qz);
             
             float w = 1.0f - u - v;
 
@@ -206,7 +206,7 @@ __global__ void raycastKernel(
 
     // Fake shading
     bool fShade = fakeShading && hasNrml;
-    float NdotL = nrml_x * ray.d.x + nrml_y * ray.d.y + nrml_z * ray.d.z;
+    float NdotL = nrml_x * ray.dx + nrml_y * ray.dy + nrml_z * ray.dz;
     NdotL *= NdotL;
 
     alb_x *= NdotL * fShade + !fShade;

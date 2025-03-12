@@ -39,11 +39,11 @@ __global__ void pathtraceKernel(
     Ray ray = camera.castRay(tX, tY, frmw, frmh, rnd1, rnd2);
 
     // Ray direction
-    float RD_x = ray.d.x, RD_y = ray.d.y, RD_z = ray.d.z;
+    float RD_x = ray.dx, RD_y = ray.dy, RD_z = ray.dz;
     // Ray inverse direction
-    float RInvd_x = ray.invd.x, RInvd_y = ray.invd.y, RInvd_z = ray.invd.z;
+    float RInvd_x = ray.rdx, RInvd_y = ray.rdy, RInvd_z = ray.rdz;
     // Ray origin
-    float RO_x = ray.o.x, RO_y = ray.o.y, RO_z = ray.o.z;
+    float RO_x = ray.ox, RO_y = ray.oy, RO_z = ray.oz;
     // Ray ignore
     int RIgnore = ray.ignore;
     // Ray index of refraction

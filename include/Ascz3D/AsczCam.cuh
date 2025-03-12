@@ -1,19 +1,22 @@
 #ifndef ASCZCAM_CUH
 #define ASCZCAM_CUH
 
-#include <Vector.cuh>
+#include <AzDevMath.cuh>
 
 struct Ray {
-    Flt3 o;
-    Flt3 d;
-    Flt3 invd; // Inverse direction for AABB intersection since division is a b*tch
+    float ox, oy, oz; // Origin
+    float dx, dy, dz; // Direction
+    float rdx, rdy, rdz; // Inverse direction for AABB intersection since division is a b*tch
     float w = 1.0f; // Weight
     float Ior = 1.0f; // Refractive index
-
     int ignore = -1; // Index of the object to ignore
 
     __device__ Ray();
-    __device__ Ray(Flt3 o, Flt3 d, float w=1.0f, float Ior=1.0f, int ignore=-1);
+    __device__ Ray(
+        float ox, float oy, float oz,
+        float dx, float dy, float dz,
+        float w=1.0f, float Ior=1.0f, int ignore=-1
+    );
 };
 
 
