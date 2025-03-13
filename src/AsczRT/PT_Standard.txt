@@ -2,9 +2,6 @@
 pathtrace:
     Ray = camera ray at the current pixel
 
-    const int MAX_NODES = 64
-    const int MAX_BOUNCES = 4
-
     throughput = { 1.0f, 1.0f, 1.0f }
     radiance = { 0.0f, 0.0f, 0.0f }
 
@@ -15,15 +12,16 @@ pathtrace:
 
         vertex = ray.o + ray.d * t
 
+        material = material of hit surface
+
         // Texture interpolation (if available)
-        if has Texture: albedo = lookupTexture(u, v)
-        else:           albedo = materialAlbedo
+        if has Texture: albedo = lookupTexture(material, u, v)
+        else:           albedo = material.albedo
 
         normal = u * n0 + v * n1 + w * n2
 
-        radiance += throughput x materialEmission;
-        throughput x= albedo
-
+        radiance = radiance + throughput x material.EmissionColor x material.EmissionStrength
+        throughput = throughput x albedo
 
         newDirection = sampleHemisphere(normal)
         ray = { vertex, newDirection }
