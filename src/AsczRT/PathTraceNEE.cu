@@ -43,7 +43,8 @@ __global__ void pathtraceNEEKernel(
     float THRU_x = 1.0f, THRU_y = 1.0f, THRU_z = 1.0f; // Throughput
     float RADI_x = 0.0f, RADI_y = 0.0f, RADI_z = 0.0f; // Radiance
 
-    for (int b = 0; b < MAX_BOUNCES; ++b) {
+    int R_bounce = 0;
+    while (R_bounce < MAX_BOUNCES) {
         int H_Idx = -1;
         float H_t = 1e9f;
         float H_u = 0.0f;
@@ -521,6 +522,7 @@ IL_: indirect light
         IL_r_dz = IL_r_dz * !IL_hasTr + R_dz * IL_hasTr;
 
 // =================== Construct new ray =========================
+
         // Origin (truly random for non-normal surfaces)
         R_ox = H_vx;
         R_oy = H_vy;
@@ -536,6 +538,22 @@ IL_: indirect light
         // Other ray properties
         RIgnore = H_Idx;
         // RIor = H_m.Ior;
+
+// =================== RUSSIAN ROULETTE TERMINATION =========================
+
+        float THRU_lumi = 0.2126f * THRU_x + 0.7152f * THRU_y + 0.0722f * THRU_z;
+
+        float R_survival = fmaxf(1.0f, THRU_lumi);
+        float R_rsurvival = 1.0f / R_survival;
+
+        bool R_survived = curand_uniform(&rnd[tIdx]) < R_survival;
+
+        R_bounce += 1 + !R_survived * MAX_BOUNCES;
+
+        // Boost for the surviving ray
+        THRU_x *= R_rsurvival;
+        THRU_y *= R_rsurvival;
+        THRU_z *= R_rsurvival;
     }
 
     frmx[tIdx] = RADI_x;
