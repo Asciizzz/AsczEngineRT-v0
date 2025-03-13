@@ -309,28 +309,6 @@ int main() {
             if (k_ctrl && !k_shift)      vel *= Cam.slowFactor;
             else if (k_shift && !k_ctrl) vel *= Cam.fastFactor;
 
-            // if (k_w && !k_s) {
-            //     Cam.px += Cam.fw_x * vel * FPS.dTimeSec;
-            //     Cam.py += Cam.fw_y * vel * FPS.dTimeSec;
-            //     Cam.pz += Cam.fw_z * vel * FPS.dTimeSec;
-            // }
-            // if (k_s && !k_w) {
-            //     Cam.px -= Cam.fw_x * vel * FPS.dTimeSec;
-            //     Cam.py -= Cam.fw_y * vel * FPS.dTimeSec;
-            //     Cam.pz -= Cam.fw_z * vel * FPS.dTimeSec;
-            // }
-
-            // if (k_a && !k_d) {
-            //     Cam.px += Cam.rg_x * vel * FPS.dTimeSec;
-            //     Cam.py += Cam.rg_y * vel * FPS.dTimeSec;
-            //     Cam.pz += Cam.rg_z * vel * FPS.dTimeSec;
-            // }
-            // if (k_d && !k_a) {
-            //     Cam.px -= Cam.rg_x * vel * FPS.dTimeSec;
-            //     Cam.py -= Cam.rg_y * vel * FPS.dTimeSec;
-            //     Cam.pz -= Cam.rg_z * vel * FPS.dTimeSec;
-            // }
-
             float dVel = vel * FPS.dTimeSec;
             short moveFrwd = (k_w && !k_s) - (k_s && !k_w);
             short moveSide = (k_a && !k_d) - (k_d && !k_a);
