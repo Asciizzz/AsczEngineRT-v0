@@ -16,14 +16,7 @@ __device__ Ray::Ray(float ox, float oy, float oz, float dx, float dy, float dz, 
 // ================================ Camera ================================
 
 void AsczCam::restrictRot() {
-    // if (rpit <= -M_PI_2) rpit = -M_PI_2 + 0.001;
-    // else if (rpit >= M_PI_2) rpit = M_PI_2 - 0.001;
-
-    // if (ryaw > M_PIx2) ryaw -= M_PIx2;
-    // else if (ryaw < 0) ryaw += M_PIx2;
-
     rpit = fminf(fmaxf(rpit, -M_PI_2), M_PI_2);
-
     ryaw = fmodf(ryaw, M_PIx2);
 }
 
@@ -36,7 +29,7 @@ void AsczCam::updateView() {
     float fw_mag = sqrt(fw_x * fw_x + fw_y * fw_y + fw_z * fw_z);
     fw_x /= fw_mag, fw_y /= fw_mag, fw_z /= fw_mag;
 
-    // Right vector
+    // Right vector (<0, 1, 0> cross forward)
     rg_x = fw_z;  // rx = 1 * fw_z - 0 * fw_y;
     rg_y = 0;     // ry = 0 * fw_x - 0 * fw_z;
     rg_z = -fw_x; // rz = 0 * fw_y - 1 * fw_x;
@@ -44,7 +37,7 @@ void AsczCam::updateView() {
     float rg_mag = sqrt(rg_x * rg_x + rg_y * rg_y + rg_z * rg_z);
     rg_x /= rg_mag, rg_y /= rg_mag, rg_z /= rg_mag;
 
-    // Up vector
+    // Up vector (forward cross right)
     up_x = fw_y * rg_z - fw_z * rg_y;
     up_y = fw_z * rg_x - fw_x * rg_z;
     up_z = fw_x * rg_y - fw_y * rg_x;
@@ -55,16 +48,15 @@ void AsczCam::updateView() {
 
 __device__
 Ray AsczCam::castRay(float x, float y, float w, float h, float r1, float r2) const {
-    float ndcX = (w - 2 * x) / w;
+    float ndcX = (w - 2 * x) / h;
     float ndcY = (h - 2 * y) / h;
 
     float tanFov = tanf(fov / 2);
-    float w_h = w / h;
 
     // Find perfect direction
-    float rD_x = fw_x + (rg_x * ndcX * w_h + up_x * ndcY) * tanFov;
-    float rD_y = fw_y + (rg_y * ndcX * w_h + up_y * ndcY) * tanFov;
-    float rD_z = fw_z + (rg_z * ndcX * w_h + up_z * ndcY) * tanFov;
+    float rD_x = fw_x + (rg_x * ndcX + up_x * ndcY) * tanFov;
+    float rD_y = fw_y + (rg_y * ndcX + up_y * ndcY) * tanFov;
+    float rD_z = fw_z + (rg_z * ndcX + up_z * ndcY) * tanFov;
 
     float rD_mag = sqrt(rD_x * rD_x + rD_y * rD_y + rD_z * rD_z);
     rD_x /= rD_mag, rD_y /= rD_mag, rD_z /= rD_mag;

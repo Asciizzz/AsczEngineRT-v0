@@ -10,7 +10,8 @@
 #include <AsczFrame.cuh>
 
 #include <RayCast.cuh>
-#include <PathTrace.cuh>
+#include <PathTraceSTD.cuh>
+#include <PathTraceNEE.cuh>
 
 int main() {
     // =================== Initialize FPS and Window ==============
@@ -212,7 +213,7 @@ int main() {
     // Hide cursor
     ShowCursor(FALSE);
 
-    short renderMode = 0;
+    short renderMode = 0, prevRenderMode = 0;
     bool hasDebug = true;
     bool hasCrosshair = true;
     bool fakeShading = false;
@@ -257,14 +258,16 @@ int main() {
         // Press 1-3 to toggle render mode
         if (Win.keys['1']) {
             if (renderMode == 0) fakeShading = !fakeShading;
-
-            Win.keys['1'] = false;
-            renderMode = 0;
-
-            Frame.reset2();
+            Win.keys['1'] = false; renderMode = 0;
         }
         else if (Win.keys['2']) { Win.keys['2'] = false; renderMode = 1; }
         else if (Win.keys['3']) { Win.keys['3'] = false; renderMode = 2; }
+        else if (Win.keys['4']) { Win.keys['4'] = false; renderMode = 3; }
+
+        if (renderMode != prevRenderMode) {
+            Frame.reset2();
+            prevRenderMode = renderMode;
+        }
 
         // Press F to change focal distance
         if (Win.keys['F']) {
@@ -345,7 +348,7 @@ int main() {
             Frame.toDraw0(false, hasCrosshair);
         } 
         else if (renderMode == 1) {
-            pathtraceKernel<<<Frame.blockCount, Frame.blockSize>>>(
+            pathtraceNEEKernel<<<Frame.blockCount, Frame.blockSize>>>(
                 Cam, Frame.d_fx0, Frame.d_fy0, Frame.d_fz0, Frame.width, Frame.height,
 
                 Mesh.d_vx, Mesh.d_vy, Mesh.d_vz, Mesh.d_tx, Mesh.d_ty, Mesh.d_nx, Mesh.d_ny, Mesh.d_nz,
@@ -362,7 +365,25 @@ int main() {
             Frame.toDraw1(true, hasCrosshair);
         }
         else if (renderMode == 2) {
-            pathtraceKernel<<<Frame.blockCount, Frame.blockSize>>>(
+            pathtraceNEEKernel<<<Frame.blockCount, Frame.blockSize>>>(
+                Cam, Frame.d_fx0, Frame.d_fy0, Frame.d_fz0, Frame.width, Frame.height,
+
+                Mesh.d_vx, Mesh.d_vy, Mesh.d_vz, Mesh.d_tx, Mesh.d_ty, Mesh.d_nx, Mesh.d_ny, Mesh.d_nz,
+                Mesh.d_fv0, Mesh.d_fv1, Mesh.d_fv2, Mesh.d_ft0, Mesh.d_ft1, Mesh.d_ft2, Mesh.d_fn0, Mesh.d_fn1, Mesh.d_fn2, Mesh.d_fm,
+                Mat.d_mtls, Mesh.d_lsrc, Mesh.lNum,
+                Txtr.d_tr, Txtr.d_tg, Txtr.d_tb, Txtr.d_ta, Txtr.d_tw, Txtr.d_th, Txtr.d_toff,
+
+                Bvh.d_mi_x, Bvh.d_mi_y, Bvh.d_mi_z, Bvh.d_mx_x, Bvh.d_mx_y, Bvh.d_mx_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_gIdx,
+
+                Frame.d_rand
+            );
+
+            Frame.add0();
+
+            Frame.toDraw2(true);
+        }
+        else if (renderMode == 3) {
+            pathtraceSTDKernel<<<Frame.blockCount, Frame.blockSize>>>(
                 Cam, Frame.d_fx0, Frame.d_fy0, Frame.d_fz0, Frame.width, Frame.height,
 
                 Mesh.d_vx, Mesh.d_vy, Mesh.d_vz, Mesh.d_tx, Mesh.d_ty, Mesh.d_nx, Mesh.d_ny, Mesh.d_nz,
@@ -383,6 +404,14 @@ int main() {
         if (hasDebug) {
             Win.appendDebug(L"AsczEngineRT_v0", 155, 255, 155);
             Win.appendDebug(L"FPS: " + std::to_wstring(FPS.fps), 0, 255, 0);
+
+            std::wstring rMod = renderMode == 0 ? L"Raycast" :
+                                renderMode == 1 ? L"PathTrace NEE + Bilateral" :
+                                renderMode == 2 ? L"PathTrace NEE + Accum" :
+                                renderMode == 3 ? L"PathTrace Standard + Accum" : L"Unknown";
+            Win.appendDebug(L"RENDER MODE: ", 0, 255, 255);
+            Win.appendDebug(rMod, 255, 255, 255, 20);
+
             Win.appendDebug(L"CAMERA", 255, 100, 100);
             Win.appendDebug(L"Pos: " + std::to_wstring(Cam.px) + L", " + std::to_wstring(Cam.py) + L", " + std::to_wstring(Cam.pz), 255, 255, 255, 20);    
             Win.appendDebug(L"Pitch: " + std::to_wstring(Cam.rpit) + L"| Yaw: " + std::to_wstring(Cam.ryaw), 255, 255, 255, 20);

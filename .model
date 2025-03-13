@@ -42,11 +42,11 @@
 ## City
 # assets/Models/Structure/City/City.obj 2 0.1
 
-# assets/Models/Cornell/Cornell.obj 2 1
+assets/Models/Cornell/Cornell.obj 2 1
 
 
-assets/Models/Character/Shiroko/Shiroko.obj 2 1.6
-assets/Models/Structure/CornellBox/CornellBox.obj 2 1
+# assets/Models/Character/Shiroko/Shiroko.obj 2 1.6
+# assets/Models/Structure/CornellBox/CornellBox.obj 2 1
 
 # assets/Models/Structure/Room/Room.obj 2 1
 
