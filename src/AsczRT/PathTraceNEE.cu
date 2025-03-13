@@ -26,10 +26,10 @@ __global__ void pathtraceNEEKernel(
     int tX = tIdx % frmw;
     int tY = tIdx / frmw;
 
-    float rnd1 = curand_uniform(&rnd[tIdx]);
-    float rnd2 = curand_uniform(&rnd[tIdx]);
+    float R_rndA = curand_uniform(&rnd[tIdx]);
+    float R_rndB = curand_uniform(&rnd[tIdx]);
 
-    Ray ray = camera.castRay(tX, tY, frmw, frmh, rnd1, rnd2);
+    Ray ray = camera.castRay(tX, tY, frmw, frmh, R_rndA, R_rndB);
 
     float R_ox  = ray.ox,  R_oy  = ray.oy,  R_oz  = ray.oz;  // Origin
     float R_dx  = ray.dx,  R_dy  = ray.dy,  R_dz  = ray.dz;  // Direction
@@ -146,14 +146,12 @@ __global__ void pathtraceNEEKernel(
                 float a = e1x * hx + e1y * hy + e1z * hz;
 
                 hit &= a != 0.0f;
-                a = !hit + a * hit;
+                a = !hit + a;
 
                 float sx = R_ox - vx[fv0[gi]];
                 float sy = R_oy - vy[fv0[gi]];
                 float sz = R_oz - vz[fv0[gi]];
 
-                // Since 1/a is used twice and division is expensive
-                // Store it in f = 1/a
                 float f = 1.0f / a;
 
                 float u = f * (sx * hx + sy * hy + sz * hz);
@@ -211,15 +209,15 @@ __global__ void pathtraceNEEKernel(
             float SdotR = sunDir.x * R_dx + sunDir.y * R_dy + sunDir.z * R_dz;
             SdotR *= -(SdotR < 0.0f);
             float sun_t = powf(SdotR, sunFocus) * sunIntensity;
-            bool sun_mask = R_dy > 0.0f;
+            bool sky_mask = R_dy > 0.0f;
 
             // // Star calculation
             // float theta = atan2f(R_dz, R_dx);
             // float phi = acosf(R_dy);
 
-            float final_r = ground.x * !sun_mask + (skyGradR + sun_t) * sun_mask;
-            float final_g = ground.y * !sun_mask + (skyGradG + sun_t) * sun_mask;
-            float final_b = ground.z * !sun_mask + (skyGradB + sun_t) * sun_mask;
+            float final_r = ground.x * !sky_mask + (skyGradR + sun_t) * sky_mask;
+            float final_g = ground.y * !sky_mask + (skyGradG + sun_t) * sky_mask;
+            float final_b = ground.z * !sky_mask + (skyGradB + sun_t) * sky_mask;
 
             RADI_x += final_r * THRU_x;
             RADI_y += final_g * THRU_y;
@@ -307,12 +305,13 @@ IL_: indirect light
 
         // Sample light's distance
         float LdistSqr = DL_dx * DL_dx + DL_dy * DL_dy + DL_dz * DL_dz;
-        float LdistRsqr = 1.0f / (LdistSqr + !LdistSqr); // Incase LdistSqr = 0
-        float Ldist = sqrtf(LdistSqr);
+        float LdistRsqrt = AzDevMath::rsqrt(LdistSqr + !LdistSqr); // Avoid zero division
+        float Ldist = LdistSqr * LdistRsqrt;
 
         // Normalize light direction
-        float Lrdist = 1.0f / Ldist;
-        DL_dx *= Lrdist; DL_dy *= Lrdist; DL_dz *= Lrdist;
+        DL_dx *= LdistRsqrt;
+        DL_dy *= LdistRsqrt;
+        DL_dz *= LdistRsqrt;
 
         // Sample light's inverse direction (for traversal)
         float DL_rdx = 1.0f / DL_dx;
@@ -429,8 +428,6 @@ IL_: indirect light
                 float sy = DL_vy - vy[f0];
                 float sz = DL_vz - vz[f0];
 
-                // Since 1/a is used twice and division is expensive
-                // Store it in f = 1/a
                 float f = 1.0f / a;
 
                 float u = f * (sx * hx + sy * hy + sz * hz);

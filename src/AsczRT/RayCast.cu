@@ -132,7 +132,7 @@ __global__ void raycastKernel(
             float a = e1x * hx + e1y * hy + e1z * hz;
 
             hit &= a != 0.0f;
-            a = a == 0.0f ? 1.0f : a;
+            a = !hit + a;
 
             float f = 1.0f / a;
 
@@ -206,12 +206,12 @@ __global__ void raycastKernel(
 
     // Fake shading
     bool fShade = fakeShading && H_hasN;
-    float NdotL = H_nx * ray.dx + H_ny * ray.dy + H_nz * ray.dz;
-    NdotL = NdotL * NdotL * fShade + !fShade;
+    float H_NdotR_D = H_nx * ray.dx + H_ny * ray.dy + H_nz * ray.dz;
+    H_NdotR_D = (0.4 + H_NdotR_D * H_NdotR_D * 0.6) * fShade + !fShade;
 
-    frmx[tIdx] = H_alb_x * NdotL;
-    frmy[tIdx] = H_alb_y * NdotL;
-    frmz[tIdx] = H_alb_z * NdotL;
+    frmx[tIdx] = H_alb_x * H_NdotR_D;
+    frmy[tIdx] = H_alb_y * H_NdotR_D;
+    frmz[tIdx] = H_alb_z * H_NdotR_D;
     frmdepth[tIdx] = H_t;
     frmmat[tIdx] = fm[H_Idx];
 };
