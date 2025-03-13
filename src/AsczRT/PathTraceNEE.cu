@@ -276,7 +276,7 @@ IL_: indirect light
         // Retrieve the light source and it's informations
 
         // Sample random light source
-        int DL_Idx = lsrc[(int)(lNum * curand_uniform(&rnd[tIdx]))];
+        int DL_Idx = lNum ? lsrc[(int)(lNum * curand_uniform(&rnd[tIdx]))] : 0;
         const AzMtl &DL_m = mats[fm[DL_Idx]];
 
         // Sample random point on the light source
@@ -324,8 +324,8 @@ IL_: indirect light
         DL_NdotH_N = DL_NdotH_N * DL_NdotH_N + !H_hasN;
 
         // Check for occlusion
-        ns_top = 0;
-        nstack[ns_top++] = 0;
+        nstack[0] = 0;
+        ns_top = DL_Idx > 0;
         bool occluded = false;
 
         while (ns_top > 0) {

@@ -14,7 +14,7 @@
 # .heavy/Fnaf/Light.obj 0 1
 
 ## LivingRoom
-assets/Models/Structure/LivingRoom/LivingRoom.obj 2 1
+# assets/Models/Structure/LivingRoom/LivingRoom.obj 2 1
 
 ## Street
 # .heavy/Street/Street.obj 2 0.1
@@ -26,8 +26,8 @@ assets/Models/Structure/LivingRoom/LivingRoom.obj 2 1
 # assets/Models/Structure/Bedroom/Light.obj 0 1
 
 ## Bedroom2
-# assets/Models/Structure/Bedroom2/Bedroom.obj 3 1
-# assets/Models/Structure/Bedroom2/Additional.obj 0 1
+assets/Models/Structure/Bedroom2/Bedroom.obj 3 1
+assets/Models/Structure/Bedroom2/Additional.obj 0 1
 
 ## Dust2 + Short Dust (wingman)
 # assets/Models/Structure/de_dust2/de_dust2.obj 3 1
