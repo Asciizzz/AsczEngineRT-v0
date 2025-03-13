@@ -543,7 +543,7 @@ IL_: indirect light
 
         float THRU_lumi = 0.2126f * THRU_x + 0.7152f * THRU_y + 0.0722f * THRU_z;
 
-        float R_survival = fmaxf(1.0f, THRU_lumi);
+        float R_survival = fminf(1.0f, THRU_lumi);
         float R_rsurvival = 1.0f / R_survival;
 
         bool R_survived = curand_uniform(&rnd[tIdx]) < R_survival;
