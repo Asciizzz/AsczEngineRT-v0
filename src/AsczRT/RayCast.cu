@@ -25,11 +25,11 @@ __global__ void raycastKernel(
     Ray ray = camera.castRay(x, y, frmw, frmh);
 
     // Hit info
-    int hidx = -1;
-    float ht = 1e9f;
-    float hu = 0.0f;
-    float hv = 0.0f;
-    float hw = 0.0f;
+    int H_Idx = -1;
+    float H_t = 1e9f;
+    float H_u = 0.0f;
+    float H_v = 0.0f;
+    float H_w = 0.0f;
 
     const int MAX_NODES = 64;
     int nstack[MAX_NODES] = { 0 };
@@ -55,7 +55,7 @@ __global__ void raycastKernel(
                     ray.oz < mi_z[nidx] | ray.oz > mx_z[nidx];
         float nDist = ((tmaxn < tminn | tminn < 0) ? -1 : tminn) * nOut;
 
-        if (nDist < 0 | nDist > ht) continue;
+        if (nDist < 0 | nDist > H_t) continue;
 
         // If node is not a leaf:
         if (!lf[nidx]) {
@@ -77,7 +77,7 @@ __global__ void raycastKernel(
                         ray.oz < mi_z[tcl] | ray.oz > mx_z[tcl];
             float ldist = ((tmaxl < tminl | tminl < 0) ? -1 : tminl) * lOut;
 
-            // Find the distance to the right child
+            // Find the distance to the rigH_t child
             int tcr = pr[nidx];
             float t1r = (mi_x[tcr] - ray.ox) * ray.rdx;
             float t2r = (mx_x[tcr] - ray.ox) * ray.rdx;
@@ -156,17 +156,17 @@ __global__ void raycastKernel(
 
             float t = f * (e2x * qx + e2y * qy + e2z * qz);
 
-            hit &= t > 0.0f & t < ht;
+            hit &= t > 0.0f & t < H_t;
 
-            ht = t * hit + ht * !hit;
-            hu = u * hit + hu * !hit;
-            hv = v * hit + hv * !hit;
-            hw = w * hit + hw * !hit;
-            hidx = gi * hit + hidx * !hit;
+            H_t = t * hit + H_t * !hit;
+            H_u = u * hit + H_u * !hit;
+            H_v = v * hit + H_v * !hit;
+            H_w = w * hit + H_w * !hit;
+            H_Idx = gi * hit + H_Idx * !hit;
         }
     }
 
-    if (hidx == -1) {
+    if (H_Idx == -1) {
         frmx[tIdx] = 0.0f;
         frmy[tIdx] = 0.0f;
         frmz[tIdx] = 0.0f;
@@ -175,47 +175,43 @@ __global__ void raycastKernel(
         return;
     }
 
-    const AzMtl &hm = mats[fm[hidx]];
-
-    // Normal interpolation
-    int n0 = fn0[hidx], n1 = fn1[hidx], n2 = fn2[hidx];
-    float nrml_x = nx[n0] * hw + nx[n1] * hu + nx[n2] * hv;
-    float nrml_y = ny[n0] * hw + ny[n1] * hu + ny[n2] * hv;
-    float nrml_z = nz[n0] * hw + nz[n1] * hu + nz[n2] * hv;
-    bool hasNrml = n0 > 0;
+    const AzMtl &H_m = mats[fm[H_Idx]];
 
     // Texture interpolation (if available)
-    int t0 = ft0[hidx], t1 = ft1[hidx], t2 = ft2[hidx];
-    float t_u = tx[t0] * hw + tx[t1] * hu + tx[t2] * hv;
-    float t_v = ty[t0] * hw + ty[t1] * hu + ty[t2] * hv;
-    t_u -= floor(t_u); t_v -= floor(t_v);
+    int ht0 = ft0[H_Idx], ht1 = ft1[H_Idx], ht2 = ft2[H_Idx];
+    float H_tu = tx[ht0] * H_w + tx[ht1] * H_u + tx[ht2] * H_v;
+    float H_tv = ty[ht0] * H_w + ty[ht1] * H_u + ty[ht2] * H_v;
+    H_tu -= floor(H_tu); H_tv -= floor(H_tv);
 
-    int alb_map = hm.AlbMap;
-    int t_w = tw[alb_map];
-    int t_h = th[alb_map];
-    int t_off = toff[alb_map];
+    int H_alb_map = H_m.AlbMap;
+    int H_tw = tw[H_alb_map];
+    int H_th = th[H_alb_map];
+    int H_toff = toff[H_alb_map];
 
-    int t_x = (int)(t_u * t_w);
-    int t_y = (int)(t_v * t_h);
-    int t_idx = t_off + t_y * t_w + t_x;
+    int H_tx = (int)(H_tu * H_tw);
+    int H_ty = (int)(H_tv * H_th);
+    int H_tIdx = H_toff + H_ty * H_tw + H_tx;
 
-    bool hasTxtr = hm.AlbMap > 0;
-    float alb_x = tr[t_idx] * hasTxtr + hm.Alb_r * !hasTxtr;
-    float alb_y = tg[t_idx] * hasTxtr + hm.Alb_g * !hasTxtr;
-    float alb_z = tb[t_idx] * hasTxtr + hm.Alb_b * !hasTxtr;
+    bool H_hasT = H_m.AlbMap > 0;
+    float H_alb_x = tr[H_tIdx] * H_hasT + H_m.Alb_r * !H_hasT;
+    float H_alb_y = tg[H_tIdx] * H_hasT + H_m.Alb_g * !H_hasT;
+    float H_alb_z = tb[H_tIdx] * H_hasT + H_m.Alb_b * !H_hasT;
+
+    // Normal interpolation
+    int hn0 = fn0[H_Idx], hn1 = fn1[H_Idx], hn2 = fn2[H_Idx];
+    float H_nx = nx[hn0] * H_w + nx[hn1] * H_u + nx[hn2] * H_v;
+    float H_ny = ny[hn0] * H_w + ny[hn1] * H_u + ny[hn2] * H_v;
+    float H_nz = nz[hn0] * H_w + nz[hn1] * H_u + nz[hn2] * H_v;
+    bool H_hasN = hn0 > 0;
 
     // Fake shading
-    bool fShade = fakeShading && hasNrml;
-    float NdotL = nrml_x * ray.dx + nrml_y * ray.dy + nrml_z * ray.dz;
-    NdotL *= NdotL;
+    bool fShade = fakeShading && H_hasN;
+    float NdotL = H_nx * ray.dx + H_ny * ray.dy + H_nz * ray.dz;
+    NdotL = NdotL * NdotL * fShade + !fShade;
 
-    alb_x *= NdotL * fShade + !fShade;
-    alb_y *= NdotL * fShade + !fShade;
-    alb_z *= NdotL * fShade + !fShade;
-
-    frmx[tIdx] = alb_x;
-    frmy[tIdx] = alb_y;
-    frmz[tIdx] = alb_z;
-    frmdepth[tIdx] = ht;
-    frmmat[tIdx] = fm[hidx];
+    frmx[tIdx] = H_alb_x * NdotL;
+    frmy[tIdx] = H_alb_y * NdotL;
+    frmz[tIdx] = H_alb_z * NdotL;
+    frmdepth[tIdx] = H_t;
+    frmmat[tIdx] = fm[H_Idx];
 };

@@ -30,8 +30,8 @@
 # assets/Models/Structure/Bedroom2/Additional.obj 0 1
 
 ## Dust2 + Short Dust (wingman)
-assets/Models/Structure/de_dust2/de_dust2.obj 3 1
-assets/Models/Structure/de_dust2/Light.obj  0 1
+# assets/Models/Structure/de_dust2/de_dust2.obj 3 1
+# assets/Models/Structure/de_dust2/Light.obj 0 1
 
 ## Island
 # assets/Models/Structure/Island/Island.obj 3 1
@@ -45,8 +45,8 @@ assets/Models/Structure/de_dust2/Light.obj  0 1
 # assets/Models/Cornell/Cornell.obj 2 1
 
 
-# assets/Models/Character/Shiroko/Shiroko.obj 2 1.6
-# assets/Models/Structure/CornellBox/CornellBox.obj 2 1
+assets/Models/Character/Shiroko/Shiroko.obj 2 1.6
+assets/Models/Structure/CornellBox/CornellBox.obj 2 1
 
 # assets/Models/Structure/Room/Room.obj 2 1
 

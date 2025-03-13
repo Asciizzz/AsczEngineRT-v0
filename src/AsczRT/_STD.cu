@@ -27,7 +27,7 @@ __global__ void pathtraceKernel(
     int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
     if (tIdx >= frmw * frmh) return;
 
-    const int MAX_BOUNCES = 2;
+    const int MAX_BOUNCES = 5;
     const int MAX_NODES = 64;
 
     int tX = tIdx % frmw;
@@ -189,7 +189,6 @@ __global__ void pathtraceKernel(
         }
 
         if (H_Idx == -1) {
-            break;
             // Mess around with these values for fun
             // float3 ground = { 0.01f, 0.01f, 0.03f };
             // float3 skyHorizon = { 0.01f, 0.01f, 0.03f };
@@ -237,19 +236,15 @@ __global__ void pathtraceKernel(
 
 /* Guide:
 
+R_: ray
 H_: hit point
 DL_: direct light
 IL_: indirect light
 
 */
 
-        // Get the face material
+        // Get the face data
         const AzMtl &H_m = mats[fm[H_Idx]];
-
-        // Vertex linear interpolation
-        float H_vx = R_ox + R_dx * H_t;
-        float H_vy = R_oy + R_dy * H_t;
-        float H_vz = R_oz + R_dz * H_t;
 
         // Texture interpolation (if available)
         int ht0 = ft0[H_Idx], ht1 = ft1[H_Idx], ht2 = ft2[H_Idx];
@@ -264,216 +259,42 @@ IL_: indirect light
 
         int H_tx = (int)(H_tu * H_tw);
         int H_ty = (int)(H_tv * H_th);
-        int H_tIdx = H_toff + H_ty * H_tw + H_tx;
+        int H_tidx = H_toff + H_ty * H_tw + H_tx;
 
-        bool H_hasT = H_m.AlbMap > 0;
-        float H_alb_x = tr[H_tIdx] * H_hasT + H_m.Alb_r * !H_hasT;
-        float H_alb_y = tg[H_tIdx] * H_hasT + H_m.Alb_g * !H_hasT;
-        float H_alb_z = tb[H_tIdx] * H_hasT + H_m.Alb_b * !H_hasT;
+        bool H_hasT = H_m.AlbMap > 0; // T mask
+        float H_alb_x = tr[H_tidx] * H_hasT + H_m.Alb_r * !H_hasT;
+        float H_alb_y = tg[H_tidx] * H_hasT + H_m.Alb_g * !H_hasT;
+        float H_alb_z = tb[H_tidx] * H_hasT + H_m.Alb_b * !H_hasT;
+
+        // Vertex linear interpolation
+        float H_vx = R_ox + R_dx * H_t;
+        float H_vy = R_oy + R_dy * H_t;
+        float H_vz = R_oz + R_dz * H_t;
 
         // Normal interpolation
         int hn0 = fn0[H_Idx], hn1 = fn1[H_Idx], hn2 = fn2[H_Idx];
         float H_nx = nx[hn0] * H_w + nx[hn1] * H_u + nx[hn2] * H_v;
         float H_ny = ny[hn0] * H_w + ny[hn1] * H_u + ny[hn2] * H_v;
         float H_nz = nz[hn0] * H_w + nz[hn1] * H_u + nz[hn2] * H_v;
-        bool H_hasN = hn0 > 0;
+        bool H_hasN = hn0 > 0; // Quite important later on
 
-// =================== Direct lighting =========================
+// ================== Light contribution =========================
 
-        // Retrieve the light source and it's informations
+        float H_NdotR_D = H_nx * R_dx + H_ny * R_dy + H_nz * R_dz;
+        H_NdotR_D = H_NdotR_D * H_NdotR_D + !H_hasN;
 
-        // Sample random light source
-        int DL_Idx = lsrc[(int)(lNum * curand_uniform(&rnd[tIdx]))];
-        const AzMtl &DL_m = mats[fm[DL_Idx]];
-
-        // Sample random point on the light source
-        float DL_u = curand_uniform(&rnd[tIdx]);
-        float DL_v = curand_uniform(&rnd[tIdx]);
-        bool DL_uv_valid = DL_u + DL_v < 1.0f;
-
-        DL_u = DL_u * DL_uv_valid + (1.0f - DL_u) * !DL_uv_valid;
-        DL_v = DL_v * DL_uv_valid + (1.0f - DL_v) * !DL_uv_valid;
-        float DL_w = 1.0f - DL_u - DL_v;
-
-        // Sample light's vertex
-        int lv0 = fv0[DL_Idx], lv1 = fv1[DL_Idx], lv2 = fv2[DL_Idx];
-        float DL_vx = vx[lv0] * DL_u + vx[lv1] * DL_v + vx[lv2] * DL_w;
-        float DL_vy = vy[lv0] * DL_u + vy[lv1] * DL_v + vy[lv2] * DL_w;
-        float DL_vz = vz[lv0] * DL_u + vz[lv1] * DL_v + vz[lv2] * DL_w;
-
-        // // Sample light's normal
-        // int ln0 = fn0[DL_Idx], ln1 = fn1[DL_Idx], ln2 = fn2[DL_Idx];
-        // float DL_nx = nx[ln0] * DL_u + nx[ln1] * DL_v + nx[ln2] * DL_w;
-        // float DL_ny = ny[ln0] * DL_u + ny[ln1] * DL_v + ny[ln2] * DL_w;
-        // float DL_nz = nz[ln0] * DL_u + nz[ln1] * DL_v + nz[ln2] * DL_w;
-
-        // Sample light's direction (not normalized)
-        float DL_dx = H_vx - DL_vx;
-        float DL_dy = H_vy - DL_vy;
-        float DL_dz = H_vz - DL_vz;
-
-        // Sample light's distance
-        float LdistSqr = DL_dx * DL_dx + DL_dy * DL_dy + DL_dz * DL_dz;
-        float LdistRsqr = 1.0f / (LdistSqr + !LdistSqr); // Incase LdistSqr = 0
-        float Ldist = sqrtf(LdistSqr);
-
-        // Normalize light direction
-        DL_dx /= Ldist; DL_dy /= Ldist; DL_dz /= Ldist;
-
-        // Sample light's inverse direction (for traversal)
-        float DL_rdx = 1.0f / DL_dx;
-        float DL_rdy = 1.0f / DL_dy;
-        float DL_rdz = 1.0f / DL_dz;
-
-        // Get relevant data
-        float DL_NdotH_N = DL_dx * H_nx + DL_dy * H_ny + DL_dz * H_nz;
-        DL_NdotH_N = DL_NdotH_N * DL_NdotH_N + !H_hasN;
-
-        // Check for occlusion
-        ns_top = 0;
-        nstack[ns_top++] = 0;
-        bool occluded = false;
-
-        while (ns_top > 0) {
-            int nidx = nstack[--ns_top];
-
-            // Check if the ray is outside the bounding box
-            float t1n = (mi_x[nidx] - DL_vx) * DL_rdx;
-            float t2n = (mx_x[nidx] - DL_vx) * DL_rdx;
-            float t3n = (mi_y[nidx] - DL_vy) * DL_rdy;
-            float t4n = (mx_y[nidx] - DL_vy) * DL_rdy;
-            float t5n = (mi_z[nidx] - DL_vz) * DL_rdz;
-            float t6n = (mx_z[nidx] - DL_vz) * DL_rdz;
-
-            float tminn = fminf(t1n, t2n), tmaxn = fmaxf(t1n, t2n);
-            tminn = fmaxf(tminn, fminf(t3n, t4n)); tmaxn = fminf(tmaxn, fmaxf(t3n, t4n));
-            tminn = fmaxf(tminn, fminf(t5n, t6n)); tmaxn = fminf(tmaxn, fmaxf(t5n, t6n));
-
-            bool nOut = DL_vx < mi_x[nidx] | DL_vx > mx_x[nidx] |
-                        DL_vy < mi_y[nidx] | DL_vy > mx_y[nidx] |
-                        DL_vz < mi_z[nidx] | DL_vz > mx_z[nidx];
-            float nDist = ((tmaxn < tminn | tminn < 0) ? -1 : tminn) * nOut;
-
-            if (nDist < 0 | nDist > Ldist) continue;
-
-            // If node is not a leaf:
-            if (!lf[nidx]) {
-                // Find the distance to the left child
-                int tcl = pl[nidx];
-                float t1l = (mi_x[tcl] - DL_vx) * DL_rdx;
-                float t2l = (mx_x[tcl] - DL_vx) * DL_rdx;
-                float t3l = (mi_y[tcl] - DL_vy) * DL_rdy;
-                float t4l = (mx_y[tcl] - DL_vy) * DL_rdy;
-                float t5l = (mi_z[tcl] - DL_vz) * DL_rdz;
-                float t6l = (mx_z[tcl] - DL_vz) * DL_rdz;
-
-                float tminl = fminf(t1l, t2l), tmaxl = fmaxf(t1l, t2l);
-                tminl = fmaxf(tminl, fminf(t3l, t4l)); tmaxl = fminf(tmaxl, fmaxf(t3l, t4l));
-                tminl = fmaxf(tminl, fminf(t5l, t6l)); tmaxl = fminf(tmaxl, fmaxf(t5l, t6l));
-
-                bool lOut = DL_vx < mi_x[tcl] | DL_vx > mx_x[tcl] |
-                            DL_vy < mi_y[tcl] | DL_vy > mx_y[tcl] |
-                            DL_vz < mi_z[tcl] | DL_vz > mx_z[tcl];
-                float Ldist = ((tmaxl < tminl | tminl < 0) ? -1 : tminl) * lOut;
-
-                // Find the distance to the right child
-                int tcr = pr[nidx];
-                float t1r = (mi_x[tcr] - DL_vx) * DL_rdx;
-                float t2r = (mx_x[tcr] - DL_vx) * DL_rdx;
-                float t3r = (mi_y[tcr] - DL_vy) * DL_rdy;
-                float t4r = (mx_y[tcr] - DL_vy) * DL_rdy;
-                float t5r = (mi_z[tcr] - DL_vz) * DL_rdz;
-                float t6r = (mx_z[tcr] - DL_vz) * DL_rdz;
-
-                float tminr = fminf(t1r, t2r), tmaxr = fmaxf(t1r, t2r);
-                tminr = fmaxf(tminr, fminf(t3r, t4r)); tmaxr = fminf(tmaxr, fmaxf(t3r, t4r));
-                tminr = fmaxf(tminr, fminf(t5r, t6r)); tmaxr = fminf(tmaxr, fmaxf(t5r, t6r));
-
-                bool rOut = DL_vx < mi_x[tcr] | DL_vx > mx_x[tcr] |
-                            DL_vy < mi_y[tcr] | DL_vy > mx_y[tcr] |
-                            DL_vz < mi_z[tcr] | DL_vz > mx_z[tcr];
-                float rdist = ((tmaxr < tminr | tminr < 0) ? -1 : tminr) * rOut;
-
-
-                // Child ordering for closer intersection and early exit
-                bool lcloser = Ldist < rdist;
-
-                nstack[ns_top] = tcr * lcloser + tcl * !lcloser;
-                ns_top += (rdist >= 0) * lcloser + (Ldist >= 0) * !lcloser;
-
-                nstack[ns_top] = tcl * lcloser + tcr * !lcloser;
-                ns_top += (Ldist >= 0) * lcloser + (rdist >= 0) * !lcloser;
-
-                continue;
-            }
-
-            for (int i = pl[nidx]; i < pr[nidx]; ++i) {
-                int gi = gIdx[i];
-
-                bool hit = gi != RIgnore & gi != H_Idx;
-
-                int f0 = fv0[gi], f1 = fv1[gi], f2 = fv2[gi];
-
-                float e1x = vx[f1] - vx[f0];
-                float e1y = vy[f1] - vy[f0];
-                float e1z = vz[f1] - vz[f0];
-
-                float e2x = vx[f2] - vx[f0];
-                float e2y = vy[f2] - vy[f0];
-                float e2z = vz[f2] - vz[f0];
-
-                float hx = DL_dy * e2z - DL_dz * e2y;
-                float hy = DL_dz * e2x - DL_dx * e2z;
-                float hz = DL_dx * e2y - DL_dy * e2x;
-
-                float a = e1x * hx + e1y * hy + e1z * hz;
-
-                hit &= a != 0.0f;
-                a = !hit + a;
-
-                float sx = DL_vx - vx[f0];
-                float sy = DL_vy - vy[f0];
-                float sz = DL_vz - vz[f0];
-
-                // Since 1/a is used twice and division is expensive
-                // Store it in f = 1/a
-                float f = 1.0f / a;
-
-                float u = f * (sx * hx + sy * hy + sz * hz);
-
-                hit &= u >= 0.0f & u <= 1.0f;
-
-                float qx = sy * e1z - sz * e1y;
-                float qy = sz * e1x - sx * e1z;
-                float qz = sx * e1y - sy * e1x;
-
-                float v = f * (DL_dx * qx + DL_dy * qy + DL_dz * qz);
-                float w = 1.0f - u - v;
-
-                hit &= v >= 0.0f & w >= 0.0f;
-
-                float t = f * (e2x * qx + e2y * qy + e2z * qz);
-
-                hit &= t > 0.0f & t < Ldist;
-
-                occluded |= hit;
-                ns_top *= !hit;
-            }
-        }
-
-        float RADI_i = DL_NdotH_N * DL_m.Ems_i * !occluded;
-        RADI_x += THRU_x * DL_m.Ems_r * H_alb_x * RADI_i + THRU_x * H_m.Ems_r * H_m.Ems_i;
-        RADI_y += THRU_y * DL_m.Ems_g * H_alb_y * RADI_i + THRU_x * H_m.Ems_g * H_m.Ems_i;
-        RADI_z += THRU_z * DL_m.Ems_b * H_alb_z * RADI_i + THRU_x * H_m.Ems_b * H_m.Ems_i;
+        float RADI_i = H_NdotR_D * H_m.Ems_i;
+        RADI_x += THRU_x * H_m.Ems_r * RADI_i;
+        RADI_y += THRU_y * H_m.Ems_g * RADI_i;
+        RADI_z += THRU_z * H_m.Ems_b * RADI_i;
 
         THRU_x *= H_alb_x * (1.0f - H_m.Tr) + H_m.Tr;
         THRU_y *= H_alb_y * (1.0f - H_m.Tr) + H_m.Tr;
         THRU_z *= H_alb_z * (1.0f - H_m.Tr) + H_m.Tr;
 
-
 // =================== Indirect lighting =========================
 
-        // Random diffuse lighting
+    // Random diffuse direction
         float IL_rndA = curand_uniform(&rnd[tIdx]);
         float IL_rndB = curand_uniform(&rnd[tIdx]);
 
@@ -524,8 +345,8 @@ IL_: indirect light
         float IL_r_dy = IL_diff_y * H_m.Rough + IL_spec_y * IL_smooth;
         float IL_r_dz = IL_diff_z * H_m.Rough + IL_spec_z * IL_smooth;
 
-        float H_NdotR_D = H_nx * R_dx + H_ny * R_dy + H_nz * R_dz;
-        float IL_Frefl = powf(1.0f - fabs(H_NdotR_D), 5.0f);
+        float IL_NdotV = H_nx * R_dx + H_ny * R_dy + H_nz * R_dz;
+        float IL_Frefl = powf(1.0f - fabs(IL_NdotV), 5.0f);
         float IL_Frefr = 1.0f - IL_Frefl;
 
         bool IL_hasTr = IL_rndA < H_m.Tr * IL_Frefr;

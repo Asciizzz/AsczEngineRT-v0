@@ -358,7 +358,8 @@ int main() {
                 Frame.d_rand
             );
 
-            Frame.toDraw0(true, hasCrosshair);
+            Frame.biliFilter0();
+            Frame.toDraw1(true, hasCrosshair);
         }
         else if (renderMode == 2) {
             pathtraceKernel<<<Frame.blockCount, Frame.blockSize>>>(

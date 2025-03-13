@@ -16,14 +16,19 @@ __device__ Ray::Ray(float ox, float oy, float oz, float dx, float dy, float dz, 
 // ================================ Camera ================================
 
 void AsczCam::restrictRot() {
-    if (rpit <= -M_PI_2) rpit = -M_PI_2 + 0.001;
-    else if (rpit >= M_PI_2) rpit = M_PI_2 - 0.001;
+    // if (rpit <= -M_PI_2) rpit = -M_PI_2 + 0.001;
+    // else if (rpit >= M_PI_2) rpit = M_PI_2 - 0.001;
 
-    if (ryaw > M_PIx2) ryaw -= M_PIx2;
-    else if (ryaw < 0) ryaw += M_PIx2;
+    // if (ryaw > M_PIx2) ryaw -= M_PIx2;
+    // else if (ryaw < 0) ryaw += M_PIx2;
+
+    rpit = fminf(fmaxf(rpit, -M_PI_2), M_PI_2);
+
+    ryaw = fmodf(ryaw, M_PIx2);
 }
 
 void AsczCam::updateView() {
+    // Forward vector
     fw_x = sin(ryaw) * cos(rpit);
     fw_y = sin(rpit);
     fw_z = cos(ryaw) * cos(rpit);
@@ -31,18 +36,15 @@ void AsczCam::updateView() {
     float fw_mag = sqrt(fw_x * fw_x + fw_y * fw_y + fw_z * fw_z);
     fw_x /= fw_mag, fw_y /= fw_mag, fw_z /= fw_mag;
 
-    /*
-    rx = 1 * fw_z - 0 * fw_y;
-    ry = 0 * fw_x - 0 * fw_z;
-    rz = 0 * fw_y - 1 * fw_x;
-    */
-    rg_x = fw_z;
-    rg_y = 0;
-    rg_z = -fw_x;
+    // Right vector
+    rg_x = fw_z;  // rx = 1 * fw_z - 0 * fw_y;
+    rg_y = 0;     // ry = 0 * fw_x - 0 * fw_z;
+    rg_z = -fw_x; // rz = 0 * fw_y - 1 * fw_x;
 
     float rg_mag = sqrt(rg_x * rg_x + rg_y * rg_y + rg_z * rg_z);
     rg_x /= rg_mag, rg_y /= rg_mag, rg_z /= rg_mag;
 
+    // Up vector
     up_x = fw_y * rg_z - fw_z * rg_y;
     up_y = fw_z * rg_x - fw_x * rg_z;
     up_z = fw_x * rg_y - fw_y * rg_x;
