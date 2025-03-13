@@ -16,7 +16,7 @@ __device__ Ray::Ray(float ox, float oy, float oz, float dx, float dy, float dz, 
 // ================================ Camera ================================
 
 void AsczCam::restrictRot() {
-    rpit = fminf(fmaxf(rpit, -M_PI_2), M_PI_2);
+    rpit = fminf(fmaxf(rpit, EPSILON_2-M_PI_2), M_PI_2-EPSILON_2);
     ryaw = fmodf(ryaw, M_PIx2);
 }
 

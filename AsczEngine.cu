@@ -300,11 +300,12 @@ int main() {
             float dy = center.y - prev.y;
 
             // Update camera rotation
-            Cam.ryaw += dx * Cam.mSens * FPS.dTimeSec;
-            Cam.rpit += dy * Cam.mSens * FPS.dTimeSec;
+            float dMsens = Cam.mSens * FPS.dTimeSec;
+            Cam.ryaw += dx * dMsens;
+            Cam.rpit += dy * dMsens;
 
             // CSGO perspective movement
-            float vel = Cam.velSpec;
+            float dVel = Cam.velSpec * FPS.dTimeSec;
             bool k_w = Win.keys['W'];
             bool k_a = Win.keys['A'];
             bool k_s = Win.keys['S'];
@@ -313,16 +314,15 @@ int main() {
             bool k_shift = Win.keys[VK_SHIFT];
 
             // Hold ctrl to go slow, hold shift to go fast
-            if (k_ctrl && !k_shift)      vel *= Cam.slowFactor;
-            else if (k_shift && !k_ctrl) vel *= Cam.fastFactor;
+            if (k_ctrl && !k_shift)      dVel *= Cam.slowFactor;
+            else if (k_shift && !k_ctrl) dVel *= Cam.fastFactor;
 
-            float dVel = vel * FPS.dTimeSec;
             short moveFrwd = (k_w && !k_s) - (k_s && !k_w);
             short moveSide = (k_a && !k_d) - (k_d && !k_a);
 
-            Cam.px += Cam.fw_x * moveFrwd * dVel + Cam.rg_x * moveSide * dVel;
-            Cam.py += Cam.fw_y * moveFrwd * dVel + Cam.rg_y * moveSide * dVel;
-            Cam.pz += Cam.fw_z * moveFrwd * dVel + Cam.rg_z * moveSide * dVel;
+            Cam.px += (Cam.fw_x * moveFrwd + Cam.rg_x * moveSide) * dVel;
+            Cam.py += (Cam.fw_y * moveFrwd + Cam.rg_y * moveSide) * dVel;
+            Cam.pz += (Cam.fw_z * moveFrwd + Cam.rg_z * moveSide) * dVel;
 
             // Update camera
             Cam.update();
