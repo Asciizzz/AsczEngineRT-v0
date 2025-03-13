@@ -29,13 +29,13 @@ __global__ void pathtraceSTDKernel(
     float R_rndA = curand_uniform(&rnd[tIdx]);
     float R_rndB = curand_uniform(&rnd[tIdx]);
 
-    Ray ray = camera.castRay(tX, tY, frmw, frmh, R_rndA, R_rndB);
+    Ray R_cast = camera.castRay(tX, tY, frmw, frmh, R_rndA, R_rndB);
 
-    float R_ox  = ray.ox,  R_oy  = ray.oy,  R_oz  = ray.oz;  // Origin
-    float R_dx  = ray.dx,  R_dy  = ray.dy,  R_dz  = ray.dz;  // Direction
-    float R_rdx = ray.rdx, R_rdy = ray.rdy, R_rdz = ray.rdz; // Inverse direction
-    int RIgnore = ray.ignore; // Ignore face index
-    // float RIor = ray.Ior;     // Index of refraction
+    float R_ox  = R_cast.ox,  R_oy  = R_cast.oy,  R_oz  = R_cast.oz;  // Origin
+    float R_dx  = R_cast.dx,  R_dy  = R_cast.dy,  R_dz  = R_cast.dz;  // Direction
+    float R_rdx = R_cast.rdx, R_rdy = R_cast.rdy, R_rdz = R_cast.rdz; // Inverse direction
+    int RIgnore = R_cast.ignore; // Ignore face index
+    // float RIor = R_cast.Ior;     // Index of refraction
 
     int nstack[MAX_NODES];
     int ns_top = 0;

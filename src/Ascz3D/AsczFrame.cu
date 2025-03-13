@@ -5,7 +5,7 @@
 
 __global__ void initRandState(curandState *state, int width, int size) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx < size) curand_init(1234, idx, 0, &state[idx]);
+    if (idx < size) curand_init(idx, idx, 0, &state[idx]);
 }
 
 
