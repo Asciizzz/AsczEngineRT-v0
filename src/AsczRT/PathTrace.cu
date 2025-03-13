@@ -38,16 +38,11 @@ __global__ void pathtraceKernel(
 
     Ray ray = camera.castRay(tX, tY, frmw, frmh, rnd1, rnd2);
 
-    // Ray direction
-    float RD_x = ray.dx, RD_y = ray.dy, RD_z = ray.dz;
-    // Ray inverse direction
-    float RInvd_x = ray.rdx, RInvd_y = ray.rdy, RInvd_z = ray.rdz;
-    // Ray origin
-    float RO_x = ray.ox, RO_y = ray.oy, RO_z = ray.oz;
-    // Ray ignore
-    int RIgnore = ray.ignore;
-    // Ray index of refraction
-    float RIor = ray.Ior;
+    float R_ox  = ray.ox,  R_oy  = ray.oy,  R_oz  = ray.oz;  // Origin
+    float R_dx  = ray.dx,  R_dy  = ray.dy,  R_dz  = ray.dz;  // Direction
+    float R_rdx = ray.rdx, R_rdy = ray.rdy, R_rdz = ray.rdz; // Inverse direction
+    int RIgnore = ray.ignore; // Ignore face index
+    float RIor = ray.Ior;     // Index of refraction
 
     int nstack[MAX_NODES];
     int ns_top = 0;
@@ -69,20 +64,20 @@ __global__ void pathtraceKernel(
             int nidx = nstack[--ns_top];
 
             // Check if the ray is outside the bounding box
-            float t1n = (mi_x[nidx] - RO_x) * RInvd_x;
-            float t2n = (mx_x[nidx] - RO_x) * RInvd_x;
-            float t3n = (mi_y[nidx] - RO_y) * RInvd_y;
-            float t4n = (mx_y[nidx] - RO_y) * RInvd_y;
-            float t5n = (mi_z[nidx] - RO_z) * RInvd_z;
-            float t6n = (mx_z[nidx] - RO_z) * RInvd_z;
+            float t1n = (mi_x[nidx] - R_ox) * R_rdx;
+            float t2n = (mx_x[nidx] - R_ox) * R_rdx;
+            float t3n = (mi_y[nidx] - R_oy) * R_rdy;
+            float t4n = (mx_y[nidx] - R_oy) * R_rdy;
+            float t5n = (mi_z[nidx] - R_oz) * R_rdz;
+            float t6n = (mx_z[nidx] - R_oz) * R_rdz;
 
             float tminn = fminf(t1n, t2n), tmaxn = fmaxf(t1n, t2n);
             tminn = fmaxf(tminn, fminf(t3n, t4n)); tmaxn = fminf(tmaxn, fmaxf(t3n, t4n));
             tminn = fmaxf(tminn, fminf(t5n, t6n)); tmaxn = fminf(tmaxn, fmaxf(t5n, t6n));
 
-            bool nOut = RO_x < mi_x[nidx] | RO_x > mx_x[nidx] |
-                        RO_y < mi_y[nidx] | RO_y > mx_y[nidx] |
-                        RO_z < mi_z[nidx] | RO_z > mx_z[nidx];
+            bool nOut = R_ox < mi_x[nidx] | R_ox > mx_x[nidx] |
+                        R_oy < mi_y[nidx] | R_oy > mx_y[nidx] |
+                        R_oz < mi_z[nidx] | R_oz > mx_z[nidx];
             float nDist = ((tmaxn < tminn | tminn < 0) ? -1 : tminn) * nOut;
 
             if (nDist < 0 | nDist > ht) continue;
@@ -91,38 +86,38 @@ __global__ void pathtraceKernel(
             if (!lf[nidx]) {
                 // Find the distance to the left child
                 int tcl = pl[nidx];
-                float t1l = (mi_x[tcl] - RO_x) * RInvd_x;
-                float t2l = (mx_x[tcl] - RO_x) * RInvd_x;
-                float t3l = (mi_y[tcl] - RO_y) * RInvd_y;
-                float t4l = (mx_y[tcl] - RO_y) * RInvd_y;
-                float t5l = (mi_z[tcl] - RO_z) * RInvd_z;
-                float t6l = (mx_z[tcl] - RO_z) * RInvd_z;
+                float t1l = (mi_x[tcl] - R_ox) * R_rdx;
+                float t2l = (mx_x[tcl] - R_ox) * R_rdx;
+                float t3l = (mi_y[tcl] - R_oy) * R_rdy;
+                float t4l = (mx_y[tcl] - R_oy) * R_rdy;
+                float t5l = (mi_z[tcl] - R_oz) * R_rdz;
+                float t6l = (mx_z[tcl] - R_oz) * R_rdz;
 
                 float tminl = fminf(t1l, t2l), tmaxl = fmaxf(t1l, t2l);
                 tminl = fmaxf(tminl, fminf(t3l, t4l)); tmaxl = fminf(tmaxl, fmaxf(t3l, t4l));
                 tminl = fmaxf(tminl, fminf(t5l, t6l)); tmaxl = fminf(tmaxl, fmaxf(t5l, t6l));
 
-                bool lOut = RO_x < mi_x[tcl] | RO_x > mx_x[tcl] |
-                            RO_y < mi_y[tcl] | RO_y > mx_y[tcl] |
-                            RO_z < mi_z[tcl] | RO_z > mx_z[tcl];
+                bool lOut = R_ox < mi_x[tcl] | R_ox > mx_x[tcl] |
+                            R_oy < mi_y[tcl] | R_oy > mx_y[tcl] |
+                            R_oz < mi_z[tcl] | R_oz > mx_z[tcl];
                 float ldist = ((tmaxl < tminl | tminl < 0) ? -1 : tminl) * lOut;
 
                 // Find the distance to the right child
                 int tcr = pr[nidx];
-                float t1r = (mi_x[tcr] - RO_x) * RInvd_x;
-                float t2r = (mx_x[tcr] - RO_x) * RInvd_x;
-                float t3r = (mi_y[tcr] - RO_y) * RInvd_y;
-                float t4r = (mx_y[tcr] - RO_y) * RInvd_y;
-                float t5r = (mi_z[tcr] - RO_z) * RInvd_z;
-                float t6r = (mx_z[tcr] - RO_z) * RInvd_z;
+                float t1r = (mi_x[tcr] - R_ox) * R_rdx;
+                float t2r = (mx_x[tcr] - R_ox) * R_rdx;
+                float t3r = (mi_y[tcr] - R_oy) * R_rdy;
+                float t4r = (mx_y[tcr] - R_oy) * R_rdy;
+                float t5r = (mi_z[tcr] - R_oz) * R_rdz;
+                float t6r = (mx_z[tcr] - R_oz) * R_rdz;
 
                 float tminr = fminf(t1r, t2r), tmaxr = fmaxf(t1r, t2r);
                 tminr = fmaxf(tminr, fminf(t3r, t4r)); tmaxr = fminf(tmaxr, fmaxf(t3r, t4r));
                 tminr = fmaxf(tminr, fminf(t5r, t6r)); tmaxr = fminf(tmaxr, fmaxf(t5r, t6r));
 
-                bool rOut = RO_x < mi_x[tcr] | RO_x > mx_x[tcr] |
-                            RO_y < mi_y[tcr] | RO_y > mx_y[tcr] |
-                            RO_z < mi_z[tcr] | RO_z > mx_z[tcr];
+                bool rOut = R_ox < mi_x[tcr] | R_ox > mx_x[tcr] |
+                            R_oy < mi_y[tcr] | R_oy > mx_y[tcr] |
+                            R_oz < mi_z[tcr] | R_oz > mx_z[tcr];
                 float rdist = ((tmaxr < tminr | tminr < 0) ? -1 : tminr) * rOut;
 
 
@@ -151,18 +146,18 @@ __global__ void pathtraceKernel(
                 float e2y = vy[fv2[gi]] - vy[fv0[gi]];
                 float e2z = vz[fv2[gi]] - vz[fv0[gi]];
 
-                float hx = RD_y * e2z - RD_z * e2y;
-                float hy = RD_z * e2x - RD_x * e2z;
-                float hz = RD_x * e2y - RD_y * e2x;
+                float hx = R_dy * e2z - R_dz * e2y;
+                float hy = R_dz * e2x - R_dx * e2z;
+                float hz = R_dx * e2y - R_dy * e2x;
 
                 float a = e1x * hx + e1y * hy + e1z * hz;
 
                 hit &= a != 0.0f;
                 a = !hit + a * hit;
 
-                float sx = RO_x - vx[fv0[gi]];
-                float sy = RO_y - vy[fv0[gi]];
-                float sz = RO_z - vz[fv0[gi]];
+                float sx = R_ox - vx[fv0[gi]];
+                float sy = R_oy - vy[fv0[gi]];
+                float sz = R_oz - vz[fv0[gi]];
 
                 // Since 1/a is used twice and division is expensive
                 // Store it in f = 1/a
@@ -176,7 +171,7 @@ __global__ void pathtraceKernel(
                 float qy = sz * e1x - sx * e1z;
                 float qz = sx * e1y - sy * e1x;
 
-                float v = f * (RD_x * qx + RD_y * qy + RD_z * qz);
+                float v = f * (R_dx * qx + R_dy * qy + R_dz * qz);
                 float w = 1.0f - u - v;
 
                 hit &= v >= 0.0f & w >= 0.0f;
@@ -213,7 +208,7 @@ __global__ void pathtraceKernel(
             sunDir.x /= sunMag; sunDir.y /= sunMag; sunDir.z /= sunMag;
 
             // Sky calculation
-            float sky_t = RD_y * 2.2f;
+            float sky_t = R_dy * 2.2f;
             sky_t = fmaxf(0.0f, fminf(1.0f, sky_t));
             float skyGradT = powf(sky_t, 0.35f);
             float skyGradR = skyHorizon.x * (1.0f - skyGradT) + skyZenith.x * skyGradT;
@@ -221,14 +216,14 @@ __global__ void pathtraceKernel(
             float skyGradB = skyHorizon.z * (1.0f - skyGradT) + skyZenith.z * skyGradT;
 
             // Sun calculation
-            float SdotR = sunDir.x * RD_x + sunDir.y * RD_y + sunDir.z * RD_z;
+            float SdotR = sunDir.x * R_dx + sunDir.y * R_dy + sunDir.z * R_dz;
             SdotR *= -(SdotR < 0.0f);
             float sun_t = powf(SdotR, sunFocus) * sunIntensity;
-            bool sun_mask = RD_y > 0.0f;
+            bool sun_mask = R_dy > 0.0f;
 
             // // Star calculation
-            // float theta = atan2f(RD_z, RD_x);
-            // float phi = acosf(RD_y);
+            // float theta = atan2f(R_dz, R_dx);
+            // float phi = acosf(R_dy);
 
             float final_r = ground.x * !sun_mask + (skyGradR + sun_t) * sun_mask;
             float final_g = ground.y * !sun_mask + (skyGradG + sun_t) * sun_mask;
@@ -265,9 +260,9 @@ __global__ void pathtraceKernel(
         float alb_z = tb[t_idx] * hasTxtr + hm.Alb_b * !hasTxtr;
 
         // Vertex linear interpolation
-        float vrtx_x = RO_x + RD_x * ht;
-        float vrtx_y = RO_y + RD_y * ht;
-        float vrtx_z = RO_z + RD_z * ht;
+        float vrtx_x = R_ox + R_dx * ht;
+        float vrtx_y = R_oy + R_dy * ht;
+        float vrtx_z = R_oz + R_dz * ht;
 
         // Normal interpolation
         int n0 = fn0[hidx], n1 = fn1[hidx], n2 = fn2[hidx];
@@ -328,24 +323,24 @@ __global__ void pathtraceKernel(
         float diff_z = rnd_x * tang_z + rnd_y * bitang_z + rnd_z * nrml_z;
 
     // Specular direction (a.k.a. reflection)
-        float spec_x = RD_x - nrml_x * 2.0f * (nrml_x * RD_x);
-        float spec_y = RD_y - nrml_y * 2.0f * (nrml_y * RD_y);
-        float spec_z = RD_z - nrml_z * 2.0f * (nrml_z * RD_z);
+        float spec_x = R_dx - nrml_x * 2.0f * (nrml_x * R_dx);
+        float spec_y = R_dy - nrml_y * 2.0f * (nrml_y * R_dy);
+        float spec_z = R_dz - nrml_z * 2.0f * (nrml_z * R_dz);
 
     // Lerp diffuse and specular from roughness/smoothness
         float smooth = 1.0f - hm.Rough;
-        float rd_x = diff_x * hm.Rough + spec_x * smooth;
-        float rd_y = diff_y * hm.Rough + spec_y * smooth;
-        float rd_z = diff_z * hm.Rough + spec_z * smooth;
+        float r_dx = diff_x * hm.Rough + spec_x * smooth;
+        float r_dy = diff_y * hm.Rough + spec_y * smooth;
+        float r_dz = diff_z * hm.Rough + spec_z * smooth;
 
-        float NdotV = nrml_x * RD_x + nrml_y * RD_y + nrml_z * RD_z;
+        float NdotV = nrml_x * R_dx + nrml_y * R_dy + nrml_z * R_dz;
         float Frefl = powf(1.0f - fabs(NdotV), 5.0f);
         float Frefr = 1.0f - Frefl;
 
         bool hasTr = rndA < hm.Tr * Frefr;
-        rd_x = rd_x * !hasTr + RD_x * hasTr;
-        rd_y = rd_y * !hasTr + RD_y * hasTr;
-        rd_z = rd_z * !hasTr + RD_z * hasTr;
+        r_dx = r_dx * !hasTr + R_dx * hasTr;
+        r_dy = r_dy * !hasTr + R_dy * hasTr;
+        r_dz = r_dz * !hasTr + R_dz * hasTr;
 
 // =================== Direct lighting =========================
 
@@ -535,17 +530,17 @@ __global__ void pathtraceKernel(
 
 // =================== Construct new ray =========================
         // Origin (truly random for non-normal surfaces)
-        RO_x = vrtx_x;
-        RO_y = vrtx_y;
-        RO_z = vrtx_z;
+        R_ox = vrtx_x;
+        R_oy = vrtx_y;
+        R_oz = vrtx_z;
         // Direction
-        RD_x = rd_x * hasNrml + truly_rnd_x * !hasNrml;
-        RD_y = rd_y * hasNrml + truly_rnd_y * !hasNrml;
-        RD_z = rd_z * hasNrml + truly_rnd_z * !hasNrml;
+        R_dx = r_dx * hasNrml + truly_rnd_x * !hasNrml;
+        R_dy = r_dy * hasNrml + truly_rnd_y * !hasNrml;
+        R_dz = r_dz * hasNrml + truly_rnd_z * !hasNrml;
         // Inverse direction
-        RInvd_x = 1.0f / RD_x;
-        RInvd_y = 1.0f / RD_y;
-        RInvd_z = 1.0f / RD_z;
+        R_rdx = 1.0f / R_dx;
+        R_rdy = 1.0f / R_dy;
+        R_rdz = 1.0f / R_dz;
         // Other ray properties
         RIgnore = hidx;
         RIor = hm.Ior;
