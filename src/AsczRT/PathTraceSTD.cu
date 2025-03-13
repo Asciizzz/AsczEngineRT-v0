@@ -228,15 +228,6 @@ __global__ void pathtraceSTDKernel(
             break;
         }
 
-/* Guide:
-
-R_: ray
-H_: hit point
-DL_: direct light
-IL_: indirect light
-
-*/
-
         // Get the face data
         const AzMtl &H_m = mats[fm[H_Idx]];
 
