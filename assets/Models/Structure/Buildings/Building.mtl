@@ -2,10 +2,9 @@ AzMtl Base
 Alb 0.8 0.8 0.8
 
 AzMtl Glass
-Tr 0.7
+Tr 0.8
 
 #Ems 1.0 1.0 1.0 2.0
-Rough 0.05
 
 
 AzMtl Light1

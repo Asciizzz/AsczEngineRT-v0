@@ -167,9 +167,49 @@ __global__ void raycastKernel(
     }
 
     if (H_Idx == -1) {
-        frmx[tIdx] = 0.0f;
-        frmy[tIdx] = 0.0f;
-        frmz[tIdx] = 0.0f;
+        // Mess around with these values for fun
+        // float3 ground = { 0.01f, 0.01f, 0.03f };
+        // float3 skyHorizon = { 0.01f, 0.01f, 0.03f };
+        // float3 skyZenith = { 0.00f, 0.00f, 0.00f };
+        // float3 sunDir = { -1, -1, 1 };
+        // float sunFocus = 169.0f, sunIntensity = 0.6f;
+
+        float3 ground = { 1.00f, 1.00f, 1.00f };
+        float3 skyHorizon = { 0.70f, 0.70f, 0.70f };
+        float3 skyZenith = { 0.10f, 0.20f, 0.90f };
+        float3 sunDir = { -1, -1, 1 };
+        float sunFocus = 100.0f, sunIntensity = 8.0f;
+
+        // float sunMag = sqrtf(sunDir.x * sunDir.x + sunDir.y * sunDir.y + sunDir.z * sunDir.z);
+        float rsunMag = AzDevMath::rsqrt(sunDir.x * sunDir.x + sunDir.y * sunDir.y + sunDir.z * sunDir.z);
+        sunDir.x *= rsunMag; sunDir.y *= rsunMag; sunDir.z *= rsunMag;
+
+        // Sky calculation
+        float sky_t = ray.dy * 2.2f;
+        sky_t = fmaxf(0.0f, fminf(1.0f, sky_t));
+        float skyGradT = powf(sky_t, 0.35f);
+        float skyGradR = skyHorizon.x * (1.0f - skyGradT) + skyZenith.x * skyGradT;
+        float skyGradG = skyHorizon.y * (1.0f - skyGradT) + skyZenith.y * skyGradT;
+        float skyGradB = skyHorizon.z * (1.0f - skyGradT) + skyZenith.z * skyGradT;
+
+        // Sun calculation
+        float SdotR = sunDir.x * ray.dx + sunDir.y * ray.dy + sunDir.z * ray.dz;
+        SdotR *= -(SdotR < 0.0f);
+        float sun_t = powf(SdotR, sunFocus) * sunIntensity;
+        bool sky_mask = ray.dy > 0.0f;
+
+        // Final color calculation
+        float final_r = ground.x * !sky_mask + (skyGradR + sun_t) * sky_mask;
+        float final_g = ground.y * !sky_mask + (skyGradG + sun_t) * sky_mask;
+        float final_b = ground.z * !sky_mask + (skyGradB + sun_t) * sky_mask;
+
+        final_r = fmaxf(0.0f, fminf(1.0f, final_r));
+        final_g = fmaxf(0.0f, fminf(1.0f, final_g));
+        final_b = fmaxf(0.0f, fminf(1.0f, final_b));
+
+        frmx[tIdx] = fakeShading * final_r;
+        frmy[tIdx] = fakeShading * final_g;
+        frmz[tIdx] = fakeShading * final_b;
         frmdepth[tIdx] = -1.0f;
         frmmat[tIdx] = -1;
         return;

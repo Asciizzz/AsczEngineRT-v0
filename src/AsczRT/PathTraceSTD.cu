@@ -20,7 +20,7 @@ __global__ void pathtraceSTDKernel(
     int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
     if (tIdx >= frmw * frmh) return;
 
-    const int MAX_BOUNCES = 2;
+    const int MAX_BOUNCES = 4;
     const int MAX_NODES = 64;
 
     int tX = tIdx % frmw;
@@ -190,8 +190,8 @@ __global__ void pathtraceSTDKernel(
             // float sunFocus = 169.0f, sunIntensity = 0.6f;
 
             float3 ground = { 1.00f, 1.00f, 1.00f };
-            float3 skyHorizon = { 0.70f, 0.70f, 0.70f };
-            float3 skyZenith = { 0.10f, 0.20f, 0.90f };
+            float3 skyHorizon = { 1.00f, 1.00f, 1.00f };
+            float3 skyZenith = { 0.20f, 0.30f, 1.00f };
             float3 sunDir = { -1, -1, 1 };
             float sunFocus = 100.0f, sunIntensity = 8.0f;
 
@@ -327,11 +327,7 @@ __global__ void pathtraceSTDKernel(
         float IL_r_dy = IL_diff_y * H_m.Rough + IL_spec_y * IL_smooth;
         float IL_r_dz = IL_diff_z * H_m.Rough + IL_spec_z * IL_smooth;
 
-        float IL_NdotV = H_nx * R_dx + H_ny * R_dy + H_nz * R_dz;
-        float IL_Frefl = powf(1.0f - fabs(IL_NdotV), 5.0f);
-        float IL_Frefr = 1.0f - IL_Frefl;
-
-        bool IL_hasTr = IL_rndA < H_m.Tr * IL_Frefr;
+        bool IL_hasTr = IL_rndA < H_m.Tr;
         IL_r_dx = IL_r_dx * !IL_hasTr + R_dx * IL_hasTr;
         IL_r_dy = IL_r_dy * !IL_hasTr + R_dy * IL_hasTr;
         IL_r_dz = IL_r_dz * !IL_hasTr + R_dz * IL_hasTr;
