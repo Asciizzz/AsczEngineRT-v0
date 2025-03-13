@@ -6,12 +6,13 @@
 #define UNICODE
 #define _UNICODE
 
-#include <Vector.cuh>
+#include <vector>
 #include <windows.h>
+#include <string>
 
 struct AsczDebug {
     std::wstring text;
-    Int3 color;
+    int r = 255, g = 255, b = 255;
     int offx = 0;
 };
 
@@ -44,7 +45,7 @@ public:
     std::vector<AsczDebug> debugs;
 
     void DrawTxt(HDC hdc, int x, int y, const AsczDebug &db);
-    void appendDebug(std::wstring text, Int3 color=255, int offx=0);
+    void appendDebug(std::wstring text, int r=255, int g=255, int b=255, int offx=0);
 
     // Draw
     void Draw(unsigned int *draw, bool debug=true);

@@ -24,11 +24,6 @@ void AsczWin::InitWindow() {
         CW_USEDEFAULT, CW_USEDEFAULT, width, height, nullptr, nullptr, GetModuleHandle(nullptr), this
     );
 
-    if (!hwnd) {
-        std::cerr << "Failed to create window!\n";
-        exit(1);
-    }
-
     hdc = GetDC(hwnd);
 }
 
@@ -46,13 +41,15 @@ void AsczWin::InitGDI() {
 // Debug
 void AsczWin::DrawTxt(HDC hdc, int x, int y, const AsczDebug &db) {
     SetBkMode(hdc, TRANSPARENT);
-    SetTextColor(hdc, RGB(db.color.x, db.color.y, db.color.z));
+    SetTextColor(hdc, RGB(db.r, db.g, db.b));
     TextOut(hdc, x + db.offx, y, db.text.c_str(), db.text.size());
 }
-void AsczWin::appendDebug(std::wstring text, Int3 color, int offx) {
+void AsczWin::appendDebug(std::wstring text, int r, int g, int b, int offx) {
     AsczDebug db;
     db.text = text;
-    db.color = color;
+    db.r = r;
+    db.g = g;
+    db.b = b;
     db.offx = offx;
     debugs.push_back(db);
 }

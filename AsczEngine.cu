@@ -66,10 +66,12 @@ int main() {
         std::stringstream ss(objLine);
 
         std::string objPath;
-        short objPlacement = 0;
-        float objScl = 1.0f;
-        float objTx = 0.0f, objTy = 0.0f, objTz = 0.0f;
-        float objYaw = 0.0f;
+        short   objPlacement = 0;
+        float   objScl = 1.0f;
+        float   objTx = 0.0f,
+                objTy = 0.0f,
+                objTz = 0.0f;
+        float   objYaw = 0.0f;
 
         ss >> objPath >> objPlacement >> objScl >> objTx >> objTy >> objTz >> objYaw;
 
@@ -254,11 +256,12 @@ int main() {
 
         // Press 1-3 to toggle render mode
         if (Win.keys['1']) {
-            if (renderMode == 0)
-                fakeShading = !fakeShading;
+            if (renderMode == 0) fakeShading = !fakeShading;
 
             Win.keys['1'] = false;
             renderMode = 0;
+
+            Frame.reset2();
         }
         else if (Win.keys['2']) { Win.keys['2'] = false; renderMode = 1; }
         else if (Win.keys['3']) { Win.keys['3'] = false; renderMode = 2; }
@@ -286,11 +289,11 @@ int main() {
             ClientToScreen(Win.hwnd, &center);
             SetCursorPos(center.x, center.y);
 
-            float dx = prev.x - center.x;
+            float dx = center.x - prev.x;
             float dy = center.y - prev.y;
 
             // Update camera rotation
-            Cam.ryaw -= dx * Cam.mSens * FPS.dTimeSec;
+            Cam.ryaw += dx * Cam.mSens * FPS.dTimeSec;
             Cam.rpit += dy * Cam.mSens * FPS.dTimeSec;
 
             // CSGO perspective movement
@@ -399,32 +402,32 @@ int main() {
         }
 
         if (hasDebug) {
-            Win.appendDebug(L"AsczEngineRT_v0", Int3(155, 255, 155));
-            Win.appendDebug(L"FPS: " + std::to_wstring(FPS.fps), Int3(0, 255, 0));
-            Win.appendDebug(L"CAMERA", Int3(255, 100, 100));
-            Win.appendDebug(L"Pos: " + std::to_wstring(Cam.px) + L", " + std::to_wstring(Cam.py) + L", " + std::to_wstring(Cam.pz), Int3(255), 20);    
-            Win.appendDebug(L"Pitch: " + std::to_wstring(Cam.rpit) + L"| Yaw: " + std::to_wstring(Cam.ryaw), Int3(255), 20);
-            Win.appendDebug(L"Fd: " + std::to_wstring(Cam.fw_x) + L", " + std::to_wstring(Cam.fw_y) + L", " + std::to_wstring(Cam.fw_z), Int3(255), 20);
-            Win.appendDebug(L"Rg: " + std::to_wstring(Cam.rg_x) + L", " + std::to_wstring(Cam.rg_y) + L", " + std::to_wstring(Cam.rg_z), Int3(255), 20);
-            Win.appendDebug(L"Up: " + std::to_wstring(Cam.up_x) + L", " + std::to_wstring(Cam.up_y) + L", " + std::to_wstring(Cam.up_z), Int3(255), 20);
-            Win.appendDebug(L"Fov: " + std::to_wstring(Cam.fov * 180 / M_PI), Int3(255), 20);
-            Win.appendDebug(L"Aperature: " + std::to_wstring(Cam.aperture), Int3(255), 20);
-            Win.appendDebug(L"FocalDist: " + std::to_wstring(Cam.focalDist), Int3(255), 20);
+            Win.appendDebug(L"AsczEngineRT_v0", 155, 255, 155);
+            Win.appendDebug(L"FPS: " + std::to_wstring(FPS.fps), 0, 255, 0);
+            Win.appendDebug(L"CAMERA", 255, 100, 100);
+            Win.appendDebug(L"Pos: " + std::to_wstring(Cam.px) + L", " + std::to_wstring(Cam.py) + L", " + std::to_wstring(Cam.pz), 255, 255, 255, 20);    
+            Win.appendDebug(L"Pitch: " + std::to_wstring(Cam.rpit) + L"| Yaw: " + std::to_wstring(Cam.ryaw), 255, 255, 255, 20);
+            Win.appendDebug(L"Fd: " + std::to_wstring(Cam.fw_x) + L", " + std::to_wstring(Cam.fw_y) + L", " + std::to_wstring(Cam.fw_z), 255, 255, 255, 20);
+            Win.appendDebug(L"Rg: " + std::to_wstring(Cam.rg_x) + L", " + std::to_wstring(Cam.rg_y) + L", " + std::to_wstring(Cam.rg_z), 255, 255, 255, 20);
+            Win.appendDebug(L"Up: " + std::to_wstring(Cam.up_x) + L", " + std::to_wstring(Cam.up_y) + L", " + std::to_wstring(Cam.up_z), 255, 255, 255, 20);
+            Win.appendDebug(L"Fov: " + std::to_wstring(Cam.fov * 180 / M_PI), 255, 255, 255, 20);
+            Win.appendDebug(L"Aperature: " + std::to_wstring(Cam.aperture), 255, 255, 255, 20);
+            Win.appendDebug(L"FocalDist: " + std::to_wstring(Cam.focalDist), 255, 255, 255, 20);
 
             
-            Win.appendDebug(L"Mesh", Int3(100, 255, 100));
-            Win.appendDebug(L"Vertices: " + std::to_wstring(Mesh.vNum), Int3(255), 20);
-            Win.appendDebug(L"Faces: " + std::to_wstring(Mesh.gNum), Int3(255), 20);
-            Win.appendDebug(L"Materials: " + std::to_wstring(Mat.mtlsNum), Int3(255), 20);
+            Win.appendDebug(L"Mesh", 100, 255, 100);
+            Win.appendDebug(L"Vertices: " + std::to_wstring(Mesh.vNum), 255, 255, 255, 20);
+            Win.appendDebug(L"Faces: " + std::to_wstring(Mesh.gNum), 255, 255, 255, 20);
+            Win.appendDebug(L"Materials: " + std::to_wstring(Mat.mtlsNum), 255, 255, 255, 20);
 
-            Win.appendDebug(L"Fragments", Int3(100, 100, 255));
+            Win.appendDebug(L"Fragments", 100, 100, 255);
 
             // Retrieve the middle pixel color
             unsigned int color = Frame.h_draw[Win.width * Win.height / 2 + Win.width / 2];
             int r = (color & 0x00FF0000) >> 16;
             int g = (color & 0x0000FF00) >> 8;
             int b = (color & 0x000000FF);
-            Win.appendDebug(L"Color: " + std::to_wstring(r) + L", " + std::to_wstring(g) + L", " + std::to_wstring(b), Int3(255), 20);
+            Win.appendDebug(L"Color: " + std::to_wstring(r) + L", " + std::to_wstring(g) + L", " + std::to_wstring(b), 255, 255, 255, 20);
 
             if (renderMode == 0) {
                 int center = Frame.width * Frame.height / 2 + Frame.width / 2;
@@ -438,16 +441,16 @@ int main() {
                     std::wstring matName = Mat.names[mat];
                     std::wstring matPath = Mat.paths[mat];
 
-                    Win.appendDebug(L"Depth: " + std::to_wstring(depth), Int3(255), 20);
-                    Win.appendDebug(L"Material:", Int3(255), 20);
-                    Win.appendDebug(L"Name: " + matName, Int3(255), 40);
-                    Win.appendDebug(L"Path: " + matPath, Int3(255), 40);
+                    Win.appendDebug(L"Depth: " + std::to_wstring(depth), 255, 255, 255, 20);
+                    Win.appendDebug(L"Material:", 255, 255, 255, 20);
+                    Win.appendDebug(L"Name: " + matName, 255, 255, 255, 40);
+                    Win.appendDebug(L"Path: " + matPath, 255, 255, 255, 40);
 
                     const AzMtl &mtl = Mat.h_mtls[mat];
-                    Win.appendDebug(L"Alb: " + std::to_wstring(mtl.Alb_r) + L", " + std::to_wstring(mtl.Alb_g) + L", " + std::to_wstring(mtl.Alb_b), Int3(255), 40);
+                    Win.appendDebug(L"Alb: " + std::to_wstring(mtl.Alb_r) + L", " + std::to_wstring(mtl.Alb_g) + L", " + std::to_wstring(mtl.Alb_b), 255, 255, 255, 40);
 
-                    Win.appendDebug(L"Ems: " + std::to_wstring(mtl.Ems_r) + L", " + std::to_wstring(mtl.Ems_g) + L", " + std::to_wstring(mtl.Ems_b) + L", " + std::to_wstring(mtl.Ems_i), Int3(255), 40);
-                    Win.appendDebug(L"Rough: " + std::to_wstring(mtl.Rough), Int3(255), 40);
+                    Win.appendDebug(L"Ems: " + std::to_wstring(mtl.Ems_r) + L", " + std::to_wstring(mtl.Ems_g) + L", " + std::to_wstring(mtl.Ems_b) + L", " + std::to_wstring(mtl.Ems_i), 255, 255, 255, 40);
+                    Win.appendDebug(L"Rough: " + std::to_wstring(mtl.Rough), 255, 255, 255, 40);
                 }
             }
         }
