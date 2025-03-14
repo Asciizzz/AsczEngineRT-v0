@@ -23,13 +23,10 @@ __global__ void pathtraceNEEKernel(
     const int MAX_BOUNCES = 4;
     const int MAX_NODES = 64;
 
-    int tX = tIdx % frmw;
-    int tY = tIdx / frmw;
-
-    float R_rndA = curand_uniform(&rnd[tIdx]);
-    float R_rndB = curand_uniform(&rnd[tIdx]);
-
-    Ray R_cast = camera.castRay(tX, tY, frmw, frmh, R_rndA, R_rndB);
+    Ray R_cast = camera.castRay(
+        tIdx % frmw, tIdx / frmw, frmw, frmh,
+        curand_uniform(&rnd[tIdx]), curand_uniform(&rnd[tIdx])
+    );
 
     float R_ox  = R_cast.ox,  R_oy  = R_cast.oy,  R_oz  = R_cast.oz;  // Origin
     float R_dx  = R_cast.dx,  R_dy  = R_cast.dy,  R_dz  = R_cast.dz;  // Direction
@@ -51,8 +48,8 @@ __global__ void pathtraceNEEKernel(
         float H_v = 0.0f;
         float H_w = 0.0f;
 
-        ns_top = 0;
-        nstack[ns_top++] = 0;
+        ns_top = 1;
+        nstack[0] = 0;
 
         while (ns_top > 0) {
             int nidx = nstack[--ns_top];
@@ -65,16 +62,19 @@ __global__ void pathtraceNEEKernel(
             float t5n = (mi_z[nidx] - R_oz) * R_rdz;
             float t6n = (mx_z[nidx] - R_oz) * R_rdz;
 
-            float tminn = fminf(t1n, t2n), tmaxn = fmaxf(t1n, t2n);
-            tminn = fmaxf(tminn, fminf(t3n, t4n)); tmaxn = fminf(tmaxn, fmaxf(t3n, t4n));
-            tminn = fmaxf(tminn, fminf(t5n, t6n)); tmaxn = fminf(tmaxn, fmaxf(t5n, t6n));
+            float tminn1 = fminf(t1n, t2n), tmaxn1 = fmaxf(t1n, t2n);
+            float tminn2 = fminf(t3n, t4n), tmaxn2 = fmaxf(t3n, t4n);
+            float tminn3 = fminf(t5n, t6n), tmaxn3 = fmaxf(t5n, t6n);
+    
+            float tminn = fmaxf(fmaxf(tminn1, tminn2), tminn3);
+            float tmaxn = fminf(fminf(tmaxn1, tmaxn2), tmaxn3);
 
             bool nOut = R_ox < mi_x[nidx] | R_ox > mx_x[nidx] |
                         R_oy < mi_y[nidx] | R_oy > mx_y[nidx] |
                         R_oz < mi_z[nidx] | R_oz > mx_z[nidx];
-            float nDist = ((tmaxn < tminn | tminn < 0) ? -1 : tminn) * nOut;
+            bool nMiss = tmaxn < tminn | (tminn < 0 & nOut) | tminn > H_t;
 
-            if (nDist < 0 | nDist > H_t) continue;
+            if (nMiss) continue;
 
             // If node is not a leaf:
             if (!lf[nidx]) {
@@ -87,14 +87,18 @@ __global__ void pathtraceNEEKernel(
                 float t5l = (mi_z[tcl] - R_oz) * R_rdz;
                 float t6l = (mx_z[tcl] - R_oz) * R_rdz;
 
-                float tminl = fminf(t1l, t2l), tmaxl = fmaxf(t1l, t2l);
-                tminl = fmaxf(tminl, fminf(t3l, t4l)); tmaxl = fminf(tmaxl, fmaxf(t3l, t4l));
-                tminl = fmaxf(tminl, fminf(t5l, t6l)); tmaxl = fminf(tmaxl, fmaxf(t5l, t6l));
+                float tminl1 = fminf(t1l, t2l), tmaxl1 = fmaxf(t1l, t2l);
+                float tminl2 = fminf(t3l, t4l), tmaxl2 = fmaxf(t3l, t4l);
+                float tminl3 = fminf(t5l, t6l), tmaxl3 = fmaxf(t5l, t6l);
+    
+                float tminl = fmaxf(fmaxf(tminl1, tminl2), tminl3);
+                float tmaxl = fminf(fminf(tmaxl1, tmaxl2), tmaxl3);
 
                 bool lOut = R_ox < mi_x[tcl] | R_ox > mx_x[tcl] |
                             R_oy < mi_y[tcl] | R_oy > mx_y[tcl] |
                             R_oz < mi_z[tcl] | R_oz > mx_z[tcl];
-                float Ldist = ((tmaxl < tminl | tminl < 0) ? -1 : tminl) * lOut;
+                bool lMiss = tmaxl < tminl | tminl < 0;
+                float lDist = (-lMiss + tminl * !lMiss) * lOut;
 
                 // Find the distance to the right child
                 int tcr = pr[nidx];
@@ -105,24 +109,28 @@ __global__ void pathtraceNEEKernel(
                 float t5r = (mi_z[tcr] - R_oz) * R_rdz;
                 float t6r = (mx_z[tcr] - R_oz) * R_rdz;
 
-                float tminr = fminf(t1r, t2r), tmaxr = fmaxf(t1r, t2r);
-                tminr = fmaxf(tminr, fminf(t3r, t4r)); tmaxr = fminf(tmaxr, fmaxf(t3r, t4r));
-                tminr = fmaxf(tminr, fminf(t5r, t6r)); tmaxr = fminf(tmaxr, fmaxf(t5r, t6r));
+                float tminr1 = fminf(t1r, t2r), tmaxr1 = fmaxf(t1r, t2r);
+                float tminr2 = fminf(t3r, t4r), tmaxr2 = fmaxf(t3r, t4r);
+                float tminr3 = fminf(t5r, t6r), tmaxr3 = fmaxf(t5r, t6r);
+    
+                float tminr = fmaxf(fmaxf(tminr1, tminr2), tminr3);
+                float tmaxr = fminf(fminf(tmaxr1, tmaxr2), tmaxr3);
 
                 bool rOut = R_ox < mi_x[tcr] | R_ox > mx_x[tcr] |
                             R_oy < mi_y[tcr] | R_oy > mx_y[tcr] |
                             R_oz < mi_z[tcr] | R_oz > mx_z[tcr];
-                float rdist = ((tmaxr < tminr | tminr < 0) ? -1 : tminr) * rOut;
+                bool rMiss = tmaxr < tminr | tminr < 0;
+                float rDist = (-rMiss + tminr * !rMiss) * rOut;
 
 
                 // Child ordering for closer intersection and early exit
-                bool lcloser = Ldist < rdist;
+                bool lcloser = lDist < rDist;
 
                 nstack[ns_top] = tcr * lcloser + tcl * !lcloser;
-                ns_top += (rdist >= 0) * lcloser + (Ldist >= 0) * !lcloser;
+                ns_top += (rDist >= 0) * lcloser + (lDist >= 0) * !lcloser;
 
                 nstack[ns_top] = tcl * lcloser + tcr * !lcloser;
-                ns_top += (Ldist >= 0) * lcloser + (rdist >= 0) * !lcloser;
+                ns_top += (lDist >= 0) * lcloser + (rDist >= 0) * !lcloser;
 
                 continue;
             }
@@ -288,16 +296,10 @@ IL_: indirect light
         float DL_w = 1.0f - DL_u - DL_v;
 
         // Sample light's vertex
-        int lv0 = fv0[DL_Idx], lv1 = fv1[DL_Idx], lv2 = fv2[DL_Idx];
-        float DL_vx = vx[lv0] * DL_u + vx[lv1] * DL_v + vx[lv2] * DL_w;
-        float DL_vy = vy[lv0] * DL_u + vy[lv1] * DL_v + vy[lv2] * DL_w;
-        float DL_vz = vz[lv0] * DL_u + vz[lv1] * DL_v + vz[lv2] * DL_w;
-
-        // // Sample light's normal
-        // int ln0 = fn0[DL_Idx], ln1 = fn1[DL_Idx], ln2 = fn2[DL_Idx];
-        // float DL_nx = nx[ln0] * DL_u + nx[ln1] * DL_v + nx[ln2] * DL_w;
-        // float DL_ny = ny[ln0] * DL_u + ny[ln1] * DL_v + ny[ln2] * DL_w;
-        // float DL_nz = nz[ln0] * DL_u + nz[ln1] * DL_v + nz[ln2] * DL_w;
+        int DL_fv0 = fv0[DL_Idx], DL_fv1 = fv1[DL_Idx], DL_fv2 = fv2[DL_Idx];
+        float DL_vx = vx[DL_fv0] * DL_u + vx[DL_fv1] * DL_v + vx[DL_fv2] * DL_w;
+        float DL_vy = vy[DL_fv0] * DL_u + vy[DL_fv1] * DL_v + vy[DL_fv2] * DL_w;
+        float DL_vz = vz[DL_fv0] * DL_u + vz[DL_fv1] * DL_v + vz[DL_fv2] * DL_w;
 
         // Sample light's direction (not normalized)
         float DL_dx = H_vx - DL_vx;
@@ -305,14 +307,14 @@ IL_: indirect light
         float DL_dz = H_vz - DL_vz;
 
         // Sample light's distance
-        float LdistSqr = DL_dx * DL_dx + DL_dy * DL_dy + DL_dz * DL_dz;
-        float LdistRsqrt = AzDevMath::rsqrt(LdistSqr + !LdistSqr); // Avoid zero division
-        float Ldist = LdistSqr * LdistRsqrt;
+        float DL_distSqr = DL_dx * DL_dx + DL_dy * DL_dy + DL_dz * DL_dz;
+        float DL_distRsqrt = AzDevMath::rsqrt(DL_distSqr + !DL_distSqr); // Avoid zero division
+        float DL_dist = DL_distSqr * DL_distRsqrt;
 
         // Normalize light direction
-        DL_dx *= LdistRsqrt;
-        DL_dy *= LdistRsqrt;
-        DL_dz *= LdistRsqrt;
+        DL_dx *= DL_distRsqrt;
+        DL_dy *= DL_distRsqrt;
+        DL_dz *= DL_distRsqrt;
 
         // Sample light's inverse direction (for traversal)
         float DL_rdx = 1.0f / DL_dx;
@@ -324,10 +326,11 @@ IL_: indirect light
         DL_NdotH_N = -DL_NdotH_N * (DL_NdotH_N < 0.0f) + !H_hasN;
 
         // Check for occlusion
-        nstack[0] = 0;
-        ns_top = DL_Idx > 0;
-        bool occluded = false;
 
+        ns_top = DL_Idx > 0;
+        nstack[0] = 0;
+
+        bool occluded = false;
         while (ns_top > 0) {
             int nidx = nstack[--ns_top];
 
@@ -339,16 +342,19 @@ IL_: indirect light
             float t5n = (mi_z[nidx] - DL_vz) * DL_rdz;
             float t6n = (mx_z[nidx] - DL_vz) * DL_rdz;
 
-            float tminn = fminf(t1n, t2n), tmaxn = fmaxf(t1n, t2n);
-            tminn = fmaxf(tminn, fminf(t3n, t4n)); tmaxn = fminf(tmaxn, fmaxf(t3n, t4n));
-            tminn = fmaxf(tminn, fminf(t5n, t6n)); tmaxn = fminf(tmaxn, fmaxf(t5n, t6n));
+            float tminn1 = fminf(t1n, t2n), tmaxn1 = fmaxf(t1n, t2n);
+            float tminn2 = fminf(t3n, t4n), tmaxn2 = fmaxf(t3n, t4n);
+            float tminn3 = fminf(t5n, t6n), tmaxn3 = fmaxf(t5n, t6n);
+
+            float tminn = fmaxf(fmaxf(tminn1, tminn2), tminn3);
+            float tmaxn = fminf(fminf(tmaxn1, tmaxn2), tmaxn3);
 
             bool nOut = DL_vx < mi_x[nidx] | DL_vx > mx_x[nidx] |
                         DL_vy < mi_y[nidx] | DL_vy > mx_y[nidx] |
                         DL_vz < mi_z[nidx] | DL_vz > mx_z[nidx];
-            float nDist = ((tmaxn < tminn | tminn < 0) ? -1 : tminn) * nOut;
+            bool nMiss = tmaxn < tminn | (tminn < 0 & nOut) | tminn > H_t;
 
-            if (nDist < 0 | nDist > Ldist) continue;
+            if (nMiss) continue;
 
             // If node is not a leaf:
             if (!lf[nidx]) {
@@ -361,14 +367,18 @@ IL_: indirect light
                 float t5l = (mi_z[tcl] - DL_vz) * DL_rdz;
                 float t6l = (mx_z[tcl] - DL_vz) * DL_rdz;
 
-                float tminl = fminf(t1l, t2l), tmaxl = fmaxf(t1l, t2l);
-                tminl = fmaxf(tminl, fminf(t3l, t4l)); tmaxl = fminf(tmaxl, fmaxf(t3l, t4l));
-                tminl = fmaxf(tminl, fminf(t5l, t6l)); tmaxl = fminf(tmaxl, fmaxf(t5l, t6l));
+                float tminl1 = fminf(t1l, t2l), tmaxl1 = fmaxf(t1l, t2l);
+                float tminl2 = fminf(t3l, t4l), tmaxl2 = fmaxf(t3l, t4l);
+                float tminl3 = fminf(t5l, t6l), tmaxl3 = fmaxf(t5l, t6l);
+
+                float tminl = fmaxf(fmaxf(tminl1, tminl2), tminl3);
+                float tmaxl = fminf(fminf(tmaxl1, tmaxl2), tmaxl3);
 
                 bool lOut = DL_vx < mi_x[tcl] | DL_vx > mx_x[tcl] |
                             DL_vy < mi_y[tcl] | DL_vy > mx_y[tcl] |
                             DL_vz < mi_z[tcl] | DL_vz > mx_z[tcl];
-                float Ldist = ((tmaxl < tminl | tminl < 0) ? -1 : tminl) * lOut;
+                bool lMiss = tmaxl < tminl | tminl < 0;
+                float lDist = (-lMiss + tminl * !lMiss) * lOut;
 
                 // Find the distance to the right child
                 int tcr = pr[nidx];
@@ -379,24 +389,24 @@ IL_: indirect light
                 float t5r = (mi_z[tcr] - DL_vz) * DL_rdz;
                 float t6r = (mx_z[tcr] - DL_vz) * DL_rdz;
 
-                float tminr = fminf(t1r, t2r), tmaxr = fmaxf(t1r, t2r);
-                tminr = fmaxf(tminr, fminf(t3r, t4r)); tmaxr = fminf(tmaxr, fmaxf(t3r, t4r));
-                tminr = fmaxf(tminr, fminf(t5r, t6r)); tmaxr = fminf(tmaxr, fmaxf(t5r, t6r));
+                float tminr1 = fminf(t1r, t2r), tmaxr1 = fmaxf(t1r, t2r);
+                float tminr2 = fminf(t3r, t4r), tmaxr2 = fmaxf(t3r, t4r);
+                float tminr3 = fminf(t5r, t6r), tmaxr3 = fmaxf(t5r, t6r);
+
+                float tminr = fmaxf(fmaxf(tminr1, tminr2), tminr3);
+                float tmaxr = fminf(fminf(tmaxr1, tmaxr2), tmaxr3);
 
                 bool rOut = DL_vx < mi_x[tcr] | DL_vx > mx_x[tcr] |
                             DL_vy < mi_y[tcr] | DL_vy > mx_y[tcr] |
                             DL_vz < mi_z[tcr] | DL_vz > mx_z[tcr];
-                float rdist = ((tmaxr < tminr | tminr < 0) ? -1 : tminr) * rOut;
+                bool rMiss = tmaxr < tminr | tminr < 0;
+                float rDist = (-rMiss + tminr * !rMiss) * rOut;
 
-
-                // Child ordering for closer intersection and early exit
-                bool lcloser = Ldist < rdist;
-
-                nstack[ns_top] = tcr * lcloser + tcl * !lcloser;
-                ns_top += (rdist >= 0) * lcloser + (Ldist >= 0) * !lcloser;
-
-                nstack[ns_top] = tcl * lcloser + tcr * !lcloser;
-                ns_top += (Ldist >= 0) * lcloser + (rdist >= 0) * !lcloser;
+                // No child ordering required for anyHit()
+                nstack[ns_top] = tcl;
+                ns_top += lDist >= 0;
+                nstack[ns_top] = tcr;
+                ns_top += rDist >= 0;
 
                 continue;
             }
@@ -446,7 +456,7 @@ IL_: indirect light
 
                 float t = f * (e2x * qx + e2y * qy + e2z * qz);
 
-                hit &= t > 0.0f & t < Ldist;
+                hit &= t > 0.0f & t < DL_dist;
 
                 occluded |= hit;
                 ns_top *= !hit;
@@ -470,30 +480,34 @@ IL_: indirect light
         float IL_rndB = curand_uniform(&rnd[tIdx]);
 
         float IL_theta1 = acosf(sqrtf(1.0f - IL_rndA));
+        float IL_sinTheta1 = sinf(IL_theta1);
+
         float IL_phi = M_PIx2 * IL_rndB;
+        float IL_sinPhi = sinf(IL_phi);
+        float IL_cosPhi = cosf(IL_phi);
 
         // Cosine weighted hemisphere
-        float IL_rnd_x = sinf(IL_theta1) * cosf(IL_phi);
-        float IL_rnd_y = sinf(IL_theta1) * sinf(IL_phi);
+        float IL_rnd_x = IL_sinTheta1 * IL_cosPhi;
+        float IL_rnd_y = IL_sinTheta1 * IL_sinPhi;
         float IL_rnd_z = cosf(IL_theta1);
 
         // Truly random direction
         float IL_theta2 = acosf(1.0f - 2.0f * IL_rndA);
-        float IL_truly_rnd_x = sinf(IL_theta2) * cosf(IL_phi);
-        float IL_truly_rnd_y = sinf(IL_theta2) * sinf(IL_phi);
+        float IL_sinTheta2 = sinf(IL_theta2);
+
+        float IL_truly_rnd_x = IL_sinTheta2 * IL_cosPhi;
+        float IL_truly_rnd_y = IL_sinTheta2 * IL_sinPhi;
         float IL_truly_rnd_z = cosf(IL_theta2);
 
         // Construct a coordinate system
         bool IL_xGreater = fabsf(H_nx) > 0.9;
-        float IL_ta_x = !IL_xGreater;
-        float IL_ta_y = IL_xGreater;
 
         // Tangent vector
         // There supposed to also be a ta_z, but since its = 0,
         // you can ignore it in the cross product calculation
-        float IL_tang_x =  IL_ta_y * H_nz;
-        float IL_tang_y = -IL_ta_x * H_nz;
-        float IL_tang_z = IL_ta_x * H_ny - IL_ta_y * H_nx;
+        float IL_tang_x = IL_xGreater * H_nz;
+        float IL_tang_y = (IL_xGreater - 1) * H_nz;
+        float IL_tang_z = (1 - IL_xGreater) * H_ny - IL_xGreater * H_nx;
 
         // Bitangent vector
         float IL_bitang_x = IL_tang_y * H_nz - IL_tang_z * H_ny;
@@ -541,9 +555,10 @@ IL_: indirect light
 
 // =================== RUSSIAN ROULETTE TERMINATION =========================
 
-        float THRU_lumi = 0.2126f * THRU_x + 0.7152f * THRU_y + 0.0722f * THRU_z;
+        float R_survival = fminf(1.0f, // Luminance
+            0.2126f * THRU_x + 0.7152f * THRU_y + 0.0722f * THRU_z
+        );
 
-        float R_survival = fminf(1.0f, THRU_lumi);
         float R_rsurvival = 1.0f / R_survival;
 
         bool R_survived = curand_uniform(&rnd[tIdx]) < R_survival;

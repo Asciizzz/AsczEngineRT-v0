@@ -94,7 +94,8 @@ __global__ void pathtraceSTDKernel(
                 bool lOut = R_ox < mi_x[tcl] | R_ox > mx_x[tcl] |
                             R_oy < mi_y[tcl] | R_oy > mx_y[tcl] |
                             R_oz < mi_z[tcl] | R_oz > mx_z[tcl];
-                float Ldist = ((tmaxl < tminl | tminl < 0) ? -1 : tminl) * lOut;
+                bool lMiss = tmaxl < tminl | tminl < 0;
+                float lDist = (-lMiss + tminl * !lMiss) * lOut;
 
                 // Find the distance to the right child
                 int tcr = pr[nidx];
@@ -112,17 +113,18 @@ __global__ void pathtraceSTDKernel(
                 bool rOut = R_ox < mi_x[tcr] | R_ox > mx_x[tcr] |
                             R_oy < mi_y[tcr] | R_oy > mx_y[tcr] |
                             R_oz < mi_z[tcr] | R_oz > mx_z[tcr];
-                float rdist = ((tmaxr < tminr | tminr < 0) ? -1 : tminr) * rOut;
+                bool rMiss = tmaxr < tminr | tminr < 0;
+                float rDist = (-rMiss + tminr * !rMiss) * rOut;
 
 
                 // Child ordering for closer intersection and early exit
-                bool lcloser = Ldist < rdist;
+                bool lcloser = lDist < rDist;
 
                 nstack[ns_top] = tcr * lcloser + tcl * !lcloser;
-                ns_top += (rdist >= 0) * lcloser + (Ldist >= 0) * !lcloser;
+                ns_top += (rDist >= 0) * lcloser + (lDist >= 0) * !lcloser;
 
                 nstack[ns_top] = tcl * lcloser + tcr * !lcloser;
-                ns_top += (Ldist >= 0) * lcloser + (rdist >= 0) * !lcloser;
+                ns_top += (lDist >= 0) * lcloser + (rDist >= 0) * !lcloser;
 
                 continue;
             }

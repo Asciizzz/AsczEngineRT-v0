@@ -46,19 +46,20 @@ __global__ void raycastKernel(
         float t5n = (mi_z[nidx] - ray.oz) * ray.rdz;
         float t6n = (mx_z[nidx] - ray.oz) * ray.rdz;
 
-        float tminn = fminf(t1n, t2n), tmaxn = fmaxf(t1n, t2n);
-        tminn = fmaxf(tminn, fminf(t3n, t4n)); tmaxn = fminf(tmaxn, fmaxf(t3n, t4n));
-        tminn = fmaxf(tminn, fminf(t5n, t6n)); tmaxn = fminf(tmaxn, fmaxf(t5n, t6n));
+        float tminn1 = fminf(t1n, t2n), tmaxn1 = fmaxf(t1n, t2n);
+        float tminn2 = fminf(t3n, t4n), tmaxn2 = fmaxf(t3n, t4n);
+        float tminn3 = fminf(t5n, t6n), tmaxn3 = fmaxf(t5n, t6n);
+
+        float tminn = fmaxf(fmaxf(tminn1, tminn2), tminn3);
+        float tmaxn = fminf(fminf(tmaxn1, tmaxn2), tmaxn3);
 
         bool nOut = ray.ox < mi_x[nidx] | ray.ox > mx_x[nidx] |
                     ray.oy < mi_y[nidx] | ray.oy > mx_y[nidx] |
                     ray.oz < mi_z[nidx] | ray.oz > mx_z[nidx];
-        float nDist = ((tmaxn < tminn | tminn < 0) ? -1 : tminn) * nOut;
-
-        if (nDist < 0 | nDist > H_t) continue;
+        bool nMiss = tmaxn < tminn | (tminn < 0 & nOut) | tminn > H_t;
 
         // If node is not a leaf:
-        if (!lf[nidx]) {
+        if (!lf[nidx] & !nMiss) {
             // Find the distance to the left child
             int tcl = pl[nidx];
             float t1l = (mi_x[tcl] - ray.ox) * ray.rdx;
@@ -68,16 +69,20 @@ __global__ void raycastKernel(
             float t5l = (mi_z[tcl] - ray.oz) * ray.rdz;
             float t6l = (mx_z[tcl] - ray.oz) * ray.rdz;
 
-            float tminl = fminf(t1l, t2l), tmaxl = fmaxf(t1l, t2l);
-            tminl = fmaxf(tminl, fminf(t3l, t4l)); tmaxl = fminf(tmaxl, fmaxf(t3l, t4l));
-            tminl = fmaxf(tminl, fminf(t5l, t6l)); tmaxl = fminf(tmaxl, fmaxf(t5l, t6l));
+            float tminl1 = fminf(t1l, t2l), tmaxl1 = fmaxf(t1l, t2l);
+            float tminl2 = fminf(t3l, t4l), tmaxl2 = fmaxf(t3l, t4l);
+            float tminl3 = fminf(t5l, t6l), tmaxl3 = fmaxf(t5l, t6l);
+
+            float tminl = fmaxf(fmaxf(tminl1, tminl2), tminl3);
+            float tmaxl = fminf(fminf(tmaxl1, tmaxl2), tmaxl3);
 
             bool lOut = ray.ox < mi_x[tcl] | ray.ox > mx_x[tcl] |
                         ray.oy < mi_y[tcl] | ray.oy > mx_y[tcl] |
                         ray.oz < mi_z[tcl] | ray.oz > mx_z[tcl];
-            float ldist = ((tmaxl < tminl | tminl < 0) ? -1 : tminl) * lOut;
+            bool lMiss = tmaxl < tminl | tminl < 0;
+            float lDist = (-lMiss + tminl * !lMiss) * lOut;
 
-            // Find the distance to the rigH_t child
+            // Find the distance to the right child
             int tcr = pr[nidx];
             float t1r = (mi_x[tcr] - ray.ox) * ray.rdx;
             float t2r = (mx_x[tcr] - ray.ox) * ray.rdx;
@@ -86,24 +91,28 @@ __global__ void raycastKernel(
             float t5r = (mi_z[tcr] - ray.oz) * ray.rdz;
             float t6r = (mx_z[tcr] - ray.oz) * ray.rdz;
 
-            float tminr = fminf(t1r, t2r), tmaxr = fmaxf(t1r, t2r);
-            tminr = fmaxf(tminr, fminf(t3r, t4r)); tmaxr = fminf(tmaxr, fmaxf(t3r, t4r));
-            tminr = fmaxf(tminr, fminf(t5r, t6r)); tmaxr = fminf(tmaxr, fmaxf(t5r, t6r));
+            float tminr1 = fminf(t1r, t2r), tmaxr1 = fmaxf(t1r, t2r);
+            float tminr2 = fminf(t3r, t4r), tmaxr2 = fmaxf(t3r, t4r);
+            float tminr3 = fminf(t5r, t6r), tmaxr3 = fmaxf(t5r, t6r);
+
+            float tminr = fmaxf(fmaxf(tminr1, tminr2), tminr3);
+            float tmaxr = fminf(fminf(tmaxr1, tmaxr2), tmaxr3);
 
             bool rOut = ray.ox < mi_x[tcr] | ray.ox > mx_x[tcr] |
                         ray.oy < mi_y[tcr] | ray.oy > mx_y[tcr] |
                         ray.oz < mi_z[tcr] | ray.oz > mx_z[tcr];
-            float rdist = ((tmaxr < tminr | tminr < 0) ? -1 : tminr) * rOut;
+            bool rMiss = tmaxr < tminr | tminr < 0;
+            float rDist = (-rMiss + tminr * !rMiss) * rOut;
 
 
             // Child ordering for closer intersection and early exit
-            bool lcloser = ldist < rdist;
+            bool lcloser = lDist < rDist;
 
             nstack[ns_top] = tcr * lcloser + tcl * !lcloser;
-            ns_top += (rdist >= 0) * lcloser + (ldist >= 0) * !lcloser;
+            ns_top += (rDist >= 0) * lcloser + (lDist >= 0) * !lcloser;
 
             nstack[ns_top] = tcl * lcloser + tcr * !lcloser;
-            ns_top += (ldist >= 0) * lcloser + (rdist >= 0) * !lcloser;
+            ns_top += (lDist >= 0) * lcloser + (rDist >= 0) * !lcloser;
 
             continue;
         }
@@ -113,17 +122,13 @@ __global__ void raycastKernel(
 
             bool hit = true;
 
-            int f0 = fv0[gi];
-            int f1 = fv1[gi];
-            int f2 = fv2[gi];
+            float e1x = vx[fv1[gi]] - vx[fv0[gi]];
+            float e1y = vy[fv1[gi]] - vy[fv0[gi]];
+            float e1z = vz[fv1[gi]] - vz[fv0[gi]];
 
-            float e1x = vx[f1] - vx[f0];
-            float e1y = vy[f1] - vy[f0];
-            float e1z = vz[f1] - vz[f0];
-
-            float e2x = vx[f2] - vx[f0];
-            float e2y = vy[f2] - vy[f0];
-            float e2z = vz[f2] - vz[f0];
+            float e2x = vx[fv2[gi]] - vx[fv0[gi]];
+            float e2y = vy[fv2[gi]] - vy[fv0[gi]];
+            float e2z = vz[fv2[gi]] - vz[fv0[gi]];
 
             float hx = ray.dy * e2z - ray.dz * e2y;
             float hy = ray.dz * e2x - ray.dx * e2z;
@@ -134,11 +139,11 @@ __global__ void raycastKernel(
             hit &= a != 0.0f;
             a = !hit + a;
 
-            float f = 1.0f / a;
+            float sx = ray.ox - vx[fv0[gi]];
+            float sy = ray.oy - vy[fv0[gi]];
+            float sz = ray.oz - vz[fv0[gi]];
 
-            float sx = ray.ox - vx[f0];
-            float sy = ray.oy - vy[f0];
-            float sz = ray.oz - vz[f0];
+            float f = 1.0f / a;
 
             float u = f * (sx * hx + sy * hy + sz * hz);
 
@@ -149,7 +154,6 @@ __global__ void raycastKernel(
             float qz = sx * e1y - sy * e1x;
 
             float v = f * (ray.dx * qx + ray.dy * qy + ray.dz * qz);
-            
             float w = 1.0f - u - v;
 
             hit &= v >= 0.0f & w >= 0.0f;
