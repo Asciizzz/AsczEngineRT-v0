@@ -2,14 +2,20 @@
 
 __global__ void raycastKernel(
     AsczCam camera, float *frmx, float *frmy, float *frmz, int frmw, int frmh,
+
     float *MS_vx, float *MS_vy, float *MS_vz, float *MS_tx, float *MS_ty, float *MS_nx, float *MS_ny, float *MS_nz,
     int *MS_fv0, int *MS_fv1, int *MS_fv2, int *MS_ft0, int *MS_ft1, int *MS_ft2, int *MS_fn0, int *MS_fn1, int *MS_fn2, int *MS_fm,
+
     AzMtl *mats,
-    float *TX_r, float *TX_g, float *TX_b, float *TX_a, int *TX_w, int *TX_h, int *TX_off,
-    float *mi_x, float *mi_y, float *mi_z, float *mx_x, float *mx_y, float *mx_z, int *pl, int *pr, bool *lf, int *gIdx,
-    // Fake shading (for better feel since you can get lost in the scene)
+
+    float *TX_r, float *TX_g, float *TX_b, float *TX_a,
+    int *TX_w, int *TX_h, int *TX_off,
+
+    float *BV_min_x, float *BV_min_y, float *BV_min_z,
+    float *BV_max_x, float *BV_max_y, float *BV_max_z,
+    int *BV_pl, int *BV_pr, bool *BV_lf, int *BV_fi,
+
     bool fakeShading,
-    // Debugging
     float *frmdepth, int *frmmat
 ) {
     int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -32,12 +38,12 @@ __global__ void raycastKernel(
         int nidx = nstack[--ns_top];
 
         // Check if the ray is outside the bounding box
-        float t1n = (mi_x[nidx] - ray.ox) * ray.rdx;
-        float t2n = (mx_x[nidx] - ray.ox) * ray.rdx;
-        float t3n = (mi_y[nidx] - ray.oy) * ray.rdy;
-        float t4n = (mx_y[nidx] - ray.oy) * ray.rdy;
-        float t5n = (mi_z[nidx] - ray.oz) * ray.rdz;
-        float t6n = (mx_z[nidx] - ray.oz) * ray.rdz;
+        float t1n = (BV_min_x[nidx] - ray.ox) * ray.rdx;
+        float t2n = (BV_max_x[nidx] - ray.ox) * ray.rdx;
+        float t3n = (BV_min_y[nidx] - ray.oy) * ray.rdy;
+        float t4n = (BV_max_y[nidx] - ray.oy) * ray.rdy;
+        float t5n = (BV_min_z[nidx] - ray.oz) * ray.rdz;
+        float t6n = (BV_max_z[nidx] - ray.oz) * ray.rdz;
 
         float tminn1 = fminf(t1n, t2n), tmaxn1 = fmaxf(t1n, t2n);
         float tminn2 = fminf(t3n, t4n), tmaxn2 = fmaxf(t3n, t4n);
@@ -46,23 +52,23 @@ __global__ void raycastKernel(
         float tminn = fmaxf(fmaxf(tminn1, tminn2), tminn3);
         float tmaxn = fminf(fminf(tmaxn1, tmaxn2), tmaxn3);
 
-        bool nOut = ray.ox < mi_x[nidx] | ray.ox > mx_x[nidx] |
-                    ray.oy < mi_y[nidx] | ray.oy > mx_y[nidx] |
-                    ray.oz < mi_z[nidx] | ray.oz > mx_z[nidx];
+        bool nOut = ray.ox < BV_min_x[nidx] | ray.ox > BV_max_x[nidx] |
+                    ray.oy < BV_min_y[nidx] | ray.oy > BV_max_y[nidx] |
+                    ray.oz < BV_min_z[nidx] | ray.oz > BV_max_z[nidx];
         bool nMiss = tmaxn < tminn | (tminn < 0 & nOut) | tminn > H_t;
 
         if (nMiss) continue;
 
         // If node is not a leaf:
-        if (!lf[nidx]) {
+        if (!BV_lf[nidx]) {
             // Find the distance to the left child
-            int tcl = pl[nidx];
-            float t1l = (mi_x[tcl] - ray.ox) * ray.rdx;
-            float t2l = (mx_x[tcl] - ray.ox) * ray.rdx;
-            float t3l = (mi_y[tcl] - ray.oy) * ray.rdy;
-            float t4l = (mx_y[tcl] - ray.oy) * ray.rdy;
-            float t5l = (mi_z[tcl] - ray.oz) * ray.rdz;
-            float t6l = (mx_z[tcl] - ray.oz) * ray.rdz;
+            int tcl = BV_pl[nidx];
+            float t1l = (BV_min_x[tcl] - ray.ox) * ray.rdx;
+            float t2l = (BV_max_x[tcl] - ray.ox) * ray.rdx;
+            float t3l = (BV_min_y[tcl] - ray.oy) * ray.rdy;
+            float t4l = (BV_max_y[tcl] - ray.oy) * ray.rdy;
+            float t5l = (BV_min_z[tcl] - ray.oz) * ray.rdz;
+            float t6l = (BV_max_z[tcl] - ray.oz) * ray.rdz;
 
             float tminl1 = fminf(t1l, t2l), tmaxl1 = fmaxf(t1l, t2l);
             float tminl2 = fminf(t3l, t4l), tmaxl2 = fmaxf(t3l, t4l);
@@ -71,20 +77,20 @@ __global__ void raycastKernel(
             float tminl = fmaxf(fmaxf(tminl1, tminl2), tminl3);
             float tmaxl = fminf(fminf(tmaxl1, tmaxl2), tmaxl3);
 
-            bool lOut = ray.ox < mi_x[tcl] | ray.ox > mx_x[tcl] |
-                        ray.oy < mi_y[tcl] | ray.oy > mx_y[tcl] |
-                        ray.oz < mi_z[tcl] | ray.oz > mx_z[tcl];
+            bool lOut = ray.ox < BV_min_x[tcl] | ray.ox > BV_max_x[tcl] |
+                        ray.oy < BV_min_y[tcl] | ray.oy > BV_max_y[tcl] |
+                        ray.oz < BV_min_z[tcl] | ray.oz > BV_max_z[tcl];
             bool lMiss = tmaxl < tminl | tminl < 0;
             float lDist = (-lMiss + tminl * !lMiss) * lOut;
 
             // Find the distance to the right child
-            int tcr = pr[nidx];
-            float t1r = (mi_x[tcr] - ray.ox) * ray.rdx;
-            float t2r = (mx_x[tcr] - ray.ox) * ray.rdx;
-            float t3r = (mi_y[tcr] - ray.oy) * ray.rdy;
-            float t4r = (mx_y[tcr] - ray.oy) * ray.rdy;
-            float t5r = (mi_z[tcr] - ray.oz) * ray.rdz;
-            float t6r = (mx_z[tcr] - ray.oz) * ray.rdz;
+            int tcr = BV_pr[nidx];
+            float t1r = (BV_min_x[tcr] - ray.ox) * ray.rdx;
+            float t2r = (BV_max_x[tcr] - ray.ox) * ray.rdx;
+            float t3r = (BV_min_y[tcr] - ray.oy) * ray.rdy;
+            float t4r = (BV_max_y[tcr] - ray.oy) * ray.rdy;
+            float t5r = (BV_min_z[tcr] - ray.oz) * ray.rdz;
+            float t6r = (BV_max_z[tcr] - ray.oz) * ray.rdz;
 
             float tminr1 = fminf(t1r, t2r), tmaxr1 = fmaxf(t1r, t2r);
             float tminr2 = fminf(t3r, t4r), tmaxr2 = fmaxf(t3r, t4r);
@@ -93,9 +99,9 @@ __global__ void raycastKernel(
             float tminr = fmaxf(fmaxf(tminr1, tminr2), tminr3);
             float tmaxr = fminf(fminf(tmaxr1, tmaxr2), tmaxr3);
 
-            bool rOut = ray.ox < mi_x[tcr] | ray.ox > mx_x[tcr] |
-                        ray.oy < mi_y[tcr] | ray.oy > mx_y[tcr] |
-                        ray.oz < mi_z[tcr] | ray.oz > mx_z[tcr];
+            bool rOut = ray.ox < BV_min_x[tcr] | ray.ox > BV_max_x[tcr] |
+                        ray.oy < BV_min_y[tcr] | ray.oy > BV_max_y[tcr] |
+                        ray.oz < BV_min_z[tcr] | ray.oz > BV_max_z[tcr];
             bool rMiss = tmaxr < tminr | tminr < 0;
             float rDist = (-rMiss + tminr * !rMiss) * rOut;
 
@@ -112,8 +118,8 @@ __global__ void raycastKernel(
             continue;
         }
 
-        for (int i = pl[nidx]; i < pr[nidx]; ++i) {
-            int gi = gIdx[i];
+        for (int i = BV_pl[nidx]; i < BV_pr[nidx]; ++i) {
+            int gi = BV_fi[i];
 
             bool hit = true;
 

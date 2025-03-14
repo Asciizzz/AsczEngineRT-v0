@@ -342,7 +342,7 @@ int main() {
                 Mat.d_mtls,
                 Txtr.d_tr, Txtr.d_tg, Txtr.d_tb, Txtr.d_ta, Txtr.d_tw, Txtr.d_th, Txtr.d_toff,
 
-                Bvh.d_mi_x, Bvh.d_mi_y, Bvh.d_mi_z, Bvh.d_mx_x, Bvh.d_mx_y, Bvh.d_mx_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_gIdx,
+                Bvh.d_BV_min_x, Bvh.d_BV_min_y, Bvh.d_BV_min_z, Bvh.d_BV_max_x, Bvh.d_BV_max_y, Bvh.d_BV_max_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_gIdx,
 
                 altRender, // To add fake shading
 
@@ -360,7 +360,7 @@ int main() {
                 Mat.d_mtls, Mesh.d_lsrc, Mesh.lNum,
                 Txtr.d_tr, Txtr.d_tg, Txtr.d_tb, Txtr.d_ta, Txtr.d_tw, Txtr.d_th, Txtr.d_toff,
 
-                Bvh.d_mi_x, Bvh.d_mi_y, Bvh.d_mi_z, Bvh.d_mx_x, Bvh.d_mx_y, Bvh.d_mx_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_gIdx,
+                Bvh.d_BV_min_x, Bvh.d_BV_min_y, Bvh.d_BV_min_z, Bvh.d_BV_max_x, Bvh.d_BV_max_y, Bvh.d_BV_max_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_gIdx,
 
                 Frame.d_rand
             );
@@ -381,7 +381,7 @@ int main() {
                 Mat.d_mtls, Mesh.d_lsrc, Mesh.lNum,
                 Txtr.d_tr, Txtr.d_tg, Txtr.d_tb, Txtr.d_ta, Txtr.d_tw, Txtr.d_th, Txtr.d_toff,
 
-                Bvh.d_mi_x, Bvh.d_mi_y, Bvh.d_mi_z, Bvh.d_mx_x, Bvh.d_mx_y, Bvh.d_mx_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_gIdx,
+                Bvh.d_BV_min_x, Bvh.d_BV_min_y, Bvh.d_BV_min_z, Bvh.d_BV_max_x, Bvh.d_BV_max_y, Bvh.d_BV_max_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_gIdx,
 
                 Frame.d_rand
             );

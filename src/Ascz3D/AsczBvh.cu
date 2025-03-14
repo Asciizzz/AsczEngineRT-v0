@@ -6,21 +6,21 @@
 #include <omp.h>
 
 __global__ void toSoAKernel(
-    float *mi_x, float *mi_y, float *mi_z,
-    float *mx_x, float *mx_y, float *mx_z,
+    float *BV_min_x, float *BV_min_y, float *BV_min_z,
+    float *BV_max_x, float *BV_max_y, float *BV_max_z,
     int *pl, int *pr, bool *lf,
     DevNode *nodes, int nNum
 ) {
     int idx = threadIdx.x + blockIdx.x * blockDim.x;
     if (idx >= nNum) return;
 
-    mi_x[idx] = nodes[idx].ab.min.x;
-    mi_y[idx] = nodes[idx].ab.min.y;
-    mi_z[idx] = nodes[idx].ab.min.z;
+    BV_min_x[idx] = nodes[idx].ab.min.x;
+    BV_min_y[idx] = nodes[idx].ab.min.y;
+    BV_min_z[idx] = nodes[idx].ab.min.z;
 
-    mx_x[idx] = nodes[idx].ab.max.x;
-    mx_y[idx] = nodes[idx].ab.max.y;
-    mx_z[idx] = nodes[idx].ab.max.z;
+    BV_max_x[idx] = nodes[idx].ab.max.x;
+    BV_max_y[idx] = nodes[idx].ab.max.y;
+    BV_max_z[idx] = nodes[idx].ab.max.z;
 
     lf[idx] = nodes[idx].cl == -1;
 
@@ -30,12 +30,12 @@ __global__ void toSoAKernel(
 
 AsczBvh::~AsczBvh() {
     cudaFree(d_nodes);
-    cudaFree(d_mi_x);
-    cudaFree(d_mi_y);
-    cudaFree(d_mi_z);
-    cudaFree(d_mx_x);
-    cudaFree(d_mx_y);
-    cudaFree(d_mx_z);
+    cudaFree(d_BV_min_x);
+    cudaFree(d_BV_min_y);
+    cudaFree(d_BV_min_z);
+    cudaFree(d_BV_max_x);
+    cudaFree(d_BV_max_y);
+    cudaFree(d_BV_max_z);
     cudaFree(d_pl);
     cudaFree(d_pr);
     cudaFree(d_lf);
@@ -46,12 +46,12 @@ void AsczBvh::toDevice() {
     nNum = h_nodes.size();
 
     cudaMalloc(&d_nodes, nNum * sizeof(DevNode));
-    cudaMalloc(&d_mi_x, nNum * sizeof(float));
-    cudaMalloc(&d_mi_y, nNum * sizeof(float));
-    cudaMalloc(&d_mi_z, nNum * sizeof(float));
-    cudaMalloc(&d_mx_x, nNum * sizeof(float));
-    cudaMalloc(&d_mx_y, nNum * sizeof(float));
-    cudaMalloc(&d_mx_z, nNum * sizeof(float));
+    cudaMalloc(&d_BV_min_x, nNum * sizeof(float));
+    cudaMalloc(&d_BV_min_y, nNum * sizeof(float));
+    cudaMalloc(&d_BV_min_z, nNum * sizeof(float));
+    cudaMalloc(&d_BV_max_x, nNum * sizeof(float));
+    cudaMalloc(&d_BV_max_y, nNum * sizeof(float));
+    cudaMalloc(&d_BV_max_z, nNum * sizeof(float));
     cudaMalloc(&d_pl, nNum * sizeof(int));
     cudaMalloc(&d_pr, nNum * sizeof(int));
     cudaMalloc(&d_lf, nNum * sizeof(bool));
@@ -59,8 +59,8 @@ void AsczBvh::toDevice() {
     cudaMemcpy(d_nodes, h_nodes.data(), nNum * sizeof(DevNode), cudaMemcpyHostToDevice);
 
     toSoAKernel<<<nNum / 256 + 1, 256>>>(
-        d_mi_x, d_mi_y, d_mi_z,
-        d_mx_x, d_mx_y, d_mx_z,
+        d_BV_min_x, d_BV_min_y, d_BV_min_z,
+        d_BV_max_x, d_BV_max_y, d_BV_max_z,
         d_pl, d_pr, d_lf,
         d_nodes, nNum
     );
@@ -172,7 +172,7 @@ int AsczBvh::buildBvh(
 }
 
 void AsczBvh::designBVH(AsczMesh &meshMgr) {
-    const int &gNum = meshMgr.gNum;
+    int gNum = meshMgr.gNum;
     const AABB &GlbAB = meshMgr.GlbAB;
     // const std::vector<AABB> &O_AB = meshMgr.O_AB;
     // const std::vector<AABB> &SO_AB = meshMgr.SO_AB;

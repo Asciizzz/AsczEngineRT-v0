@@ -35,8 +35,8 @@ public:
     VecNode h_nodes;
     DevNode *d_nodes = nullptr;
 
-    float *d_mi_x, *d_mi_y, *d_mi_z; // AABB Min
-    float *d_mx_x, *d_mx_y, *d_mx_z; // AABB Max
+    float *d_BV_min_x, *d_BV_min_y, *d_BV_min_z; // AABB Min
+    float *d_BV_max_x, *d_BV_max_y, *d_BV_max_z; // AABB Max
     int *d_pl, *d_pr; // Dual Purpose pointer
     bool *d_lf; // Leaf flag
 
@@ -50,7 +50,7 @@ public:
 
     // Sub-object split faces
     static int buildBvh(
-        // std::vector<float> &mi_x, std::vector<float> &mi_y, std::vector<float> &mi_z, std::vector<float> &mx_x, std::vector<float> &mx_y, std::vector<float> &mx_z,
+        // std::vector<float> &BV_min_x, std::vector<float> &BV_min_y, std::vector<float> &BV_min_z, std::vector<float> &BV_max_x, std::vector<float> &BV_max_y, std::vector<float> &BV_max_z,
         // std::vector<int> &cl, std::vector<int> &cr, std::vector<int> &ll, std::vector<int> &lr,
         VecNode &allNodes, std::vector<int> &allGIdx, DevNode &node, const std::vector<AABB> &ABs,
         int depth, const int MAX_DEPTH, const int NODE_FACES, const int BIN_COUNT
