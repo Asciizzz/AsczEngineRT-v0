@@ -2,15 +2,10 @@
 
 __global__ void raycastKernel(
     AsczCam camera, float *frmx, float *frmy, float *frmz, int frmw, int frmh,
-    // Primitive data
-    float *vx, float *vy, float *vz, float *tx, float *ty, float *nx, float *ny, float *nz,
-    // Geometry data
-    int *fv0, int *fv1, int *fv2, int *ft0, int *ft1, int *ft2, int *fn0, int *fn1, int *fn2, int *fm,
-    // Materials
-    AzMtl *mats, 
-    // Textures
-    float *tr, float *tg, float *tb, float *ta, int *tw, int *th, int *toff,
-    // BVH data
+    float *MS_vx, float *MS_vy, float *MS_vz, float *MS_tx, float *MS_ty, float *MS_nx, float *MS_ny, float *MS_nz,
+    int *MS_fv0, int *MS_fv1, int *MS_fv2, int *MS_ft0, int *MS_ft1, int *MS_ft2, int *MS_fn0, int *MS_fn1, int *MS_fn2, int *MS_fm,
+    AzMtl *mats,
+    float *TX_r, float *TX_g, float *TX_b, float *TX_a, int *TX_w, int *TX_h, int *TX_off,
     float *mi_x, float *mi_y, float *mi_z, float *mx_x, float *mx_y, float *mx_z, int *pl, int *pr, bool *lf, int *gIdx,
     // Fake shading (for better feel since you can get lost in the scene)
     bool fakeShading,
@@ -20,9 +15,7 @@ __global__ void raycastKernel(
     int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
     if (tIdx >= frmw * frmh) return;
 
-    int x = tIdx % frmw;
-    int y = tIdx / frmw;
-    Ray ray = camera.castRay(x, y, frmw, frmh);
+    Ray ray = camera.castRay(tIdx % frmw, tIdx / frmw, frmw, frmh);
 
     // Hit info
     int H_Idx = -1;
@@ -31,7 +24,7 @@ __global__ void raycastKernel(
     float H_v = 0.0f;
     float H_w = 0.0f;
 
-    const int MAX_NODES = 64;
+    const int MAX_NODES = 32;
     int nstack[MAX_NODES] = { 0 };
     int ns_top = 1;
 
@@ -122,13 +115,17 @@ __global__ void raycastKernel(
 
             bool hit = true;
 
-            float e1x = vx[fv1[gi]] - vx[fv0[gi]];
-            float e1y = vy[fv1[gi]] - vy[fv0[gi]];
-            float e1z = vz[fv1[gi]] - vz[fv0[gi]];
+            int fv0 = MS_fv0[gi],
+                fv1 = MS_fv1[gi],
+                fv2 = MS_fv2[gi];
 
-            float e2x = vx[fv2[gi]] - vx[fv0[gi]];
-            float e2y = vy[fv2[gi]] - vy[fv0[gi]];
-            float e2z = vz[fv2[gi]] - vz[fv0[gi]];
+            float e1x = MS_vx[fv1] - MS_vx[fv0];
+            float e1y = MS_vy[fv1] - MS_vy[fv0];
+            float e1z = MS_vz[fv1] - MS_vz[fv0];
+
+            float e2x = MS_vx[fv2] - MS_vx[fv0];
+            float e2y = MS_vy[fv2] - MS_vy[fv0];
+            float e2z = MS_vz[fv2] - MS_vz[fv0];
 
             float hx = ray.dy * e2z - ray.dz * e2y;
             float hy = ray.dz * e2x - ray.dx * e2z;
@@ -137,11 +134,11 @@ __global__ void raycastKernel(
             float a = e1x * hx + e1y * hy + e1z * hz;
 
             hit &= a != 0.0f;
-            a = !hit + a;
+            a += !hit; // Avoid 0 division
 
-            float sx = ray.ox - vx[fv0[gi]];
-            float sy = ray.oy - vy[fv0[gi]];
-            float sz = ray.oz - vz[fv0[gi]];
+            float sx = ray.ox - MS_vx[fv0];
+            float sy = ray.oy - MS_vy[fv0];
+            float sz = ray.oz - MS_vz[fv0];
 
             float f = 1.0f / a;
 
@@ -219,33 +216,33 @@ __global__ void raycastKernel(
         return;
     }
 
-    const AzMtl &H_m = mats[fm[H_Idx]];
+    const AzMtl &H_m = mats[MS_fm[H_Idx]];
 
     // Texture interpolation (if available)
-    int ht0 = ft0[H_Idx], ht1 = ft1[H_Idx], ht2 = ft2[H_Idx];
-    float H_tu = tx[ht0] * H_w + tx[ht1] * H_u + tx[ht2] * H_v;
-    float H_tv = ty[ht0] * H_w + ty[ht1] * H_u + ty[ht2] * H_v;
+    int ht0 = MS_ft0[H_Idx], ht1 = MS_ft1[H_Idx], ht2 = MS_ft2[H_Idx];
+    float H_tu = MS_tx[ht0] * H_w + MS_tx[ht1] * H_u + MS_tx[ht2] * H_v;
+    float H_tv = MS_ty[ht0] * H_w + MS_ty[ht1] * H_u + MS_ty[ht2] * H_v;
     H_tu -= floor(H_tu); H_tv -= floor(H_tv);
 
-    int H_alb_map = H_m.AlbMap;
-    int H_tw = tw[H_alb_map];
-    int H_th = th[H_alb_map];
-    int H_toff = toff[H_alb_map];
+    int H_alb_map = H_m.AlbMap,
+        H_tw = TX_w[H_alb_map],
+        H_th = TX_h[H_alb_map],
+        H_toff = TX_off[H_alb_map];
 
-    int H_tx = (int)(H_tu * H_tw);
-    int H_ty = (int)(H_tv * H_th);
-    int H_tIdx = H_toff + H_ty * H_tw + H_tx;
+    int H_tx = (int)(H_tu * H_tw),
+        H_ty = (int)(H_tv * H_th),
+        H_tIdx = H_toff + H_ty * H_tw + H_tx;
 
     bool H_hasT = H_m.AlbMap > 0;
-    float H_alb_x = tr[H_tIdx] * H_hasT + H_m.Alb_r * !H_hasT;
-    float H_alb_y = tg[H_tIdx] * H_hasT + H_m.Alb_g * !H_hasT;
-    float H_alb_z = tb[H_tIdx] * H_hasT + H_m.Alb_b * !H_hasT;
+    float H_alb_x = TX_r[H_tIdx] * H_hasT + H_m.Alb_r * !H_hasT;
+    float H_alb_y = TX_g[H_tIdx] * H_hasT + H_m.Alb_g * !H_hasT;
+    float H_alb_z = TX_b[H_tIdx] * H_hasT + H_m.Alb_b * !H_hasT;
 
     // Normal interpolation
-    int hn0 = fn0[H_Idx], hn1 = fn1[H_Idx], hn2 = fn2[H_Idx];
-    float H_nx = nx[hn0] * H_w + nx[hn1] * H_u + nx[hn2] * H_v;
-    float H_ny = ny[hn0] * H_w + ny[hn1] * H_u + ny[hn2] * H_v;
-    float H_nz = nz[hn0] * H_w + nz[hn1] * H_u + nz[hn2] * H_v;
+    int hn0 = MS_fn0[H_Idx], hn1 = MS_fn1[H_Idx], hn2 = MS_fn2[H_Idx];
+    float H_nx = MS_nx[hn0] * H_w + MS_nx[hn1] * H_u + MS_nx[hn2] * H_v;
+    float H_ny = MS_ny[hn0] * H_w + MS_ny[hn1] * H_u + MS_ny[hn2] * H_v;
+    float H_nz = MS_nz[hn0] * H_w + MS_nz[hn1] * H_u + MS_nz[hn2] * H_v;
     bool H_hasN = hn0 > 0;
 
     // Fake shading
@@ -257,5 +254,5 @@ __global__ void raycastKernel(
     frmy[tIdx] = H_alb_y * H_NdotR_D;
     frmz[tIdx] = H_alb_z * H_NdotR_D;
     frmdepth[tIdx] = H_t;
-    frmmat[tIdx] = fm[H_Idx];
+    frmmat[tIdx] = MS_fm[H_Idx];
 };
