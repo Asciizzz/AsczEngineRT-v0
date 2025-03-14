@@ -51,8 +51,10 @@ __global__ void raycastKernel(
                     ray.oz < mi_z[nidx] | ray.oz > mx_z[nidx];
         bool nMiss = tmaxn < tminn | (tminn < 0 & nOut) | tminn > H_t;
 
+        if (nMiss) continue;
+
         // If node is not a leaf:
-        if (!lf[nidx] & !nMiss) {
+        if (!lf[nidx]) {
             // Find the distance to the left child
             int tcl = pl[nidx];
             float t1l = (mi_x[tcl] - ray.ox) * ray.rdx;

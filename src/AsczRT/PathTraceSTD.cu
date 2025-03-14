@@ -14,15 +14,12 @@ __global__ void pathtraceSTDKernel(
     if (tIdx >= frmw * frmh) return;
 
     const int MAX_BOUNCES = 2;
-    const int MAX_NODES = 64;
+    const int MAX_NODES = 32;
 
-    int tX = tIdx % frmw;
-    int tY = tIdx / frmw;
-
-    float R_rndA = curand_uniform(&rnd[tIdx]);
-    float R_rndB = curand_uniform(&rnd[tIdx]);
-
-    Ray R_cast = camera.castRay(tX, tY, frmw, frmh, R_rndA, R_rndB);
+    Ray R_cast = camera.castRay(
+        tIdx % frmw, tIdx / frmw, frmw, frmh,
+        curand_uniform(&rnd[tIdx]), curand_uniform(&rnd[tIdx])
+    );
 
     float R_ox  = R_cast.ox,  R_oy  = R_cast.oy,  R_oz  = R_cast.oz;  // Origin
     float R_dx  = R_cast.dx,  R_dy  = R_cast.dy,  R_dz  = R_cast.dz;  // Direction
