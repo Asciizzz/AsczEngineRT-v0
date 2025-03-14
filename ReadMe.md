@@ -172,7 +172,7 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 
 #### Third Iteration
 
-##### Standard Path Tracing vs. Next Event Estimation (NEE)
+**Standard Path Tracing vs. Next Event Estimation (NEE)**
 - Ever wondered why some renders look like a randomized TV static party while others actually resemble a scene? That’s the difference between standard path tracing and Next Event Estimation (NEE).
 
 ##### A. Standard Path Tracing
