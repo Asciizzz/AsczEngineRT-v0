@@ -10,8 +10,8 @@
 # .heavy/CitySciFi/CitySciFi.obj 2 0.1
 
 ## Fnaf
-# .heavy/Fnaf/Fnaf1.obj 3 1
-# .heavy/Fnaf/Light.obj 0 1
+.heavy/Fnaf/Fnaf1.obj 3 1
+.heavy/Fnaf/Light.obj 0 1
 
 ## LivingRoom
 # assets/Models/Structure/LivingRoom/LivingRoom.obj 2 1
@@ -21,9 +21,9 @@
 # .heavy/Street/Light.obj 0 1
 
 ## Bedroom
-assets/Models/Structure/Bedroom/Bedroom.obj 3 1
-assets/Models/Structure/Bedroom/Additional.obj 0 1
-assets/Models/Structure/Bedroom/Light.obj 0 1
+# assets/Models/Structure/Bedroom/Bedroom.obj 3 1
+# assets/Models/Structure/Bedroom/Additional.obj 0 1
+# assets/Models/Structure/Bedroom/Light.obj 0 1
 
 ## Bedroom2
 # assets/Models/Structure/Bedroom2/Bedroom.obj 3 1
