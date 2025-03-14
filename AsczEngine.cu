@@ -366,8 +366,7 @@ int main() {
             );
 
             if (altRender) {
-                Frame.biliFilter0();
-                Frame.toDraw1(true, hasCrosshair);
+                Frame.toDraw0(true, hasCrosshair);
             } else {
                 Frame.add0();
                 Frame.toDraw2(true);
@@ -389,7 +388,7 @@ int main() {
 
             if (altRender) {
                 Frame.biliFilter0();
-                Frame.toDraw1(true, hasCrosshair);
+                Frame.toDraw0(true, hasCrosshair);
             } else {
                 Frame.add0();
                 Frame.toDraw2(true);
