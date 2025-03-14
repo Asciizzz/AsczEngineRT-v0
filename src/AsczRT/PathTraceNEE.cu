@@ -194,6 +194,7 @@ __global__ void pathtraceNEEKernel(
         }
 
         if (H_Idx == -1) {
+            break;
             // Mess around with these values for fun
             // float3 ground = { 0.01f, 0.01f, 0.03f };
             // float3 skyHorizon = { 0.01f, 0.01f, 0.03f };
@@ -570,7 +571,7 @@ IL_: indirect light
 
         bool R_survived = curand_uniform(&rnd[tIdx]) < R_survival;
 
-        R_bounce += 1 + !R_survived * MAX_BOUNCES;
+        R_bounce += 1 + !R_survived * MAX_BOUNCES - (H_m.Tr > 0.0f);
 
         // Boost for the surviving ray
         THRU_x *= R_rsurvival;
