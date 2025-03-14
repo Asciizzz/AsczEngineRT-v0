@@ -104,9 +104,10 @@ __global__ void toDrawAccumulatedBuffer(float *fx, float *fy, float *fz, unsigne
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i >= size) return;
 
-    float rdiv = fx[i] / acc;
-    float gdiv = fy[i] / acc;
-    float bdiv = fz[i] / acc;
+    float _acc = 1.0f / acc;
+    float rdiv = fx[i] * _acc;
+    float gdiv = fy[i] * _acc;
+    float bdiv = fz[i] * _acc;
 
     float r = AzDevMath::ACESFilm(powf(rdiv, _GAMMA)) * toneMap + rdiv * !toneMap;
     float g = AzDevMath::ACESFilm(powf(gdiv, _GAMMA)) * toneMap + gdiv * !toneMap;
