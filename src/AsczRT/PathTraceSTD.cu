@@ -65,16 +65,19 @@ __global__ void pathtraceSTDKernel(
             float t5n = (mi_z[nidx] - R_oz) * R_rdz;
             float t6n = (mx_z[nidx] - R_oz) * R_rdz;
 
-            float tminn = fminf(t1n, t2n), tmaxn = fmaxf(t1n, t2n);
-            tminn = fmaxf(tminn, fminf(t3n, t4n)); tmaxn = fminf(tmaxn, fmaxf(t3n, t4n));
-            tminn = fmaxf(tminn, fminf(t5n, t6n)); tmaxn = fminf(tmaxn, fmaxf(t5n, t6n));
+            float tminn1 = fminf(t1n, t2n), tmaxn1 = fmaxf(t1n, t2n);
+            float tminn2 = fminf(t3n, t4n), tmaxn2 = fmaxf(t3n, t4n);
+            float tminn3 = fminf(t5n, t6n), tmaxn3 = fmaxf(t5n, t6n);
+    
+            float tminn = fmaxf(fmaxf(tminn1, tminn2), tminn3);
+            float tmaxn = fminf(fminf(tmaxn1, tmaxn2), tmaxn3);
 
             bool nOut = R_ox < mi_x[nidx] | R_ox > mx_x[nidx] |
                         R_oy < mi_y[nidx] | R_oy > mx_y[nidx] |
                         R_oz < mi_z[nidx] | R_oz > mx_z[nidx];
-            float nDist = ((tmaxn < tminn | tminn < 0) ? -1 : tminn) * nOut;
+            bool nMiss = tmaxn < tminn | (tminn < 0 & nOut) | tminn > H_t;
 
-            if (nDist < 0 | nDist > H_t) continue;
+            if (nMiss) continue;
 
             // If node is not a leaf:
             if (!lf[nidx]) {
@@ -87,9 +90,12 @@ __global__ void pathtraceSTDKernel(
                 float t5l = (mi_z[tcl] - R_oz) * R_rdz;
                 float t6l = (mx_z[tcl] - R_oz) * R_rdz;
 
-                float tminl = fminf(t1l, t2l), tmaxl = fmaxf(t1l, t2l);
-                tminl = fmaxf(tminl, fminf(t3l, t4l)); tmaxl = fminf(tmaxl, fmaxf(t3l, t4l));
-                tminl = fmaxf(tminl, fminf(t5l, t6l)); tmaxl = fminf(tmaxl, fmaxf(t5l, t6l));
+                float tminl1 = fminf(t1l, t2l), tmaxl1 = fmaxf(t1l, t2l);
+                float tminl2 = fminf(t3l, t4l), tmaxl2 = fmaxf(t3l, t4l);
+                float tminl3 = fminf(t5l, t6l), tmaxl3 = fmaxf(t5l, t6l);
+    
+                float tminl = fmaxf(fmaxf(tminl1, tminl2), tminl3);
+                float tmaxl = fminf(fminf(tmaxl1, tmaxl2), tmaxl3);
 
                 bool lOut = R_ox < mi_x[tcl] | R_ox > mx_x[tcl] |
                             R_oy < mi_y[tcl] | R_oy > mx_y[tcl] |
@@ -106,9 +112,12 @@ __global__ void pathtraceSTDKernel(
                 float t5r = (mi_z[tcr] - R_oz) * R_rdz;
                 float t6r = (mx_z[tcr] - R_oz) * R_rdz;
 
-                float tminr = fminf(t1r, t2r), tmaxr = fmaxf(t1r, t2r);
-                tminr = fmaxf(tminr, fminf(t3r, t4r)); tmaxr = fminf(tmaxr, fmaxf(t3r, t4r));
-                tminr = fmaxf(tminr, fminf(t5r, t6r)); tmaxr = fminf(tmaxr, fmaxf(t5r, t6r));
+                float tminr1 = fminf(t1r, t2r), tmaxr1 = fmaxf(t1r, t2r);
+                float tminr2 = fminf(t3r, t4r), tmaxr2 = fmaxf(t3r, t4r);
+                float tminr3 = fminf(t5r, t6r), tmaxr3 = fmaxf(t5r, t6r);
+    
+                float tminr = fmaxf(fmaxf(tminr1, tminr2), tminr3);
+                float tmaxr = fminf(fminf(tmaxr1, tmaxr2), tmaxr3);
 
                 bool rOut = R_ox < mi_x[tcr] | R_ox > mx_x[tcr] |
                             R_oy < mi_y[tcr] | R_oy > mx_y[tcr] |
@@ -155,8 +164,6 @@ __global__ void pathtraceSTDKernel(
                 float sy = R_oy - vy[fv0[gi]];
                 float sz = R_oz - vz[fv0[gi]];
 
-                // Since 1/a is used twice and division is expensive
-                // Store it in f = 1/a
                 float f = 1.0f / a;
 
                 float u = f * (sx * hx + sy * hy + sz * hz);
