@@ -14,7 +14,7 @@
 # .heavy/Fnaf/Light.obj 0 1
 
 ## LivingRoom
-assets/Models/Structure/LivingRoom/LivingRoom.obj 2 1
+# assets/Models/Structure/LivingRoom/LivingRoom.obj 2 1
 
 ## Street
 # .heavy/Street/Street.obj 2 0.1
@@ -42,7 +42,7 @@ assets/Models/Structure/LivingRoom/LivingRoom.obj 2 1
 ## City
 # assets/Models/Structure/City/City.obj 2 0.1
 
-# assets/Models/Cornell/Cornell.obj 2 1
+assets/Models/Cornell/Cornell.obj 2 1
 
 
 # assets/Models/Character/Shiroko/Shiroko.obj 2 1.6

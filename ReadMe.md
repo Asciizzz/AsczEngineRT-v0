@@ -170,6 +170,32 @@ Sorry for the bloated `assets/` folder, I'm too lazy to clean it up.
 
 - *Temporal Accumulation* also allows you to reduce the *`spp`* count down to `1` on every path tracing effects (Soft Shadows, Reflectance, Anti-Aliasing, Depth of Field, etc.) to further reduce render time.
 
+#### Third Iteration
+
+##### Standard Path Tracing vs. Next Event Estimation (NEE)
+- Ever wondered why some renders look like a randomized TV static party while others actually resemble a scene? That’s the difference between standard path tracing and Next Event Estimation (NEE).
+
+##### A. Standard Path Tracing
+
+- This method plays the lottery with light. It randomly bounces rays around, hoping to hit a light source. The result? A mess of noise, where shadows and lighting are barely recognizable.
+
+<p align="center"><img src="assets/Demos/PathTracingSTD.png" alt="Demo Image"/>
+  <small><i>Indistinguishable abomination.</i></small></p>
+
+##### B. NEE Path Tracing
+
+- NEE is smarter—it directly asks the light source for its opinion instead of aimlessly guessing. This makes shadows clearer, lighting more structured, and noise more tolerable.
+
+<p align="center"><img src="assets/Demos/PathTracingNEE.png" alt="Demo Image"/>
+  <small><i>Orderly structure amidst the noise chaos.</i></small></p>
+
+##### TL;DR
+
+- Standard Path Tracing: Wild guessing. Random noise. Bad time.
+- NEE: Smarter guessing. Visible shadows. Better time.
+
+###### Moral of the story? Don’t gamble with light, ask it directly!
+
 ---
 
 ## What's Next

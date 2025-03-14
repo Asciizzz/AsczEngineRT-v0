@@ -288,8 +288,8 @@ IL_: indirect light
         // Retrieve the light source and it's informations
 
         // Sample random light source
-        int DL_Idx = lNum ? lsrc[(int)(lNum * curand_uniform(&rnd[tIdx]))] : 0;
-        const AzMtl &DL_m = mats[MS_fm[DL_Idx]];
+        int DL_idx = lNum ? lsrc[(int)(lNum * curand_uniform(&rnd[tIdx]))] : 0;
+        const AzMtl &DL_m = mats[MS_fm[DL_idx]];
 
         // Sample random point on the light source
         float DL_u = curand_uniform(&rnd[tIdx]);
@@ -301,7 +301,7 @@ IL_: indirect light
         float DL_w = 1.0f - DL_u - DL_v;
 
         // Sample light's vertex
-        int DL_fv0 = MS_fv0[DL_Idx], DL_fv1 = MS_fv1[DL_Idx], DL_fv2 = MS_fv2[DL_Idx];
+        int DL_fv0 = MS_fv0[DL_idx], DL_fv1 = MS_fv1[DL_idx], DL_fv2 = MS_fv2[DL_idx];
         float DL_vx = MS_vx[DL_fv0] * DL_w + MS_vx[DL_fv1] * DL_u + MS_vx[DL_fv2] * DL_v;
         float DL_vy = MS_vy[DL_fv0] * DL_w + MS_vy[DL_fv1] * DL_u + MS_vy[DL_fv2] * DL_v;
         float DL_vz = MS_vz[DL_fv0] * DL_w + MS_vz[DL_fv1] * DL_u + MS_vz[DL_fv2] * DL_v;
@@ -332,7 +332,7 @@ IL_: indirect light
 
         // Check for occlusion
 
-        ns_top = DL_Idx > 0;
+        ns_top = DL_idx > 0;
         nstack[0] = 0;
 
         bool occluded = false;
@@ -357,7 +357,7 @@ IL_: indirect light
             bool nOut = DL_vx < BV_min_x[nidx] | DL_vx > BV_max_x[nidx] |
                         DL_vy < BV_min_y[nidx] | DL_vy > BV_max_y[nidx] |
                         DL_vz < BV_min_z[nidx] | DL_vz > BV_max_z[nidx];
-            bool nMiss = tmaxn < tminn | (tminn < 0 & nOut) | tminn > H_t;
+            bool nMiss = tmaxn < tminn | (tminn < 0 & nOut) | tminn > DL_dist;
 
             if (nMiss) continue;
 
