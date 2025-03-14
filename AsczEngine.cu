@@ -16,7 +16,7 @@
 int main() {
     // =================== Initialize FPS and Window ==============
     FpsHandler &FPS = FpsHandler::instance();
-    AsczWin Win(1600, 900, L"AsczEngineRT_v0");
+    AsczWin Win(1200, 800, L"AsczEngineRT_v0");
     AsczFrame Frame(Win.width, Win.height);
 
     // =============== Initialize Important Managers ================
