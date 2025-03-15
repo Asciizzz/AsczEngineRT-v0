@@ -64,8 +64,8 @@ Ior 1.450000
 newmtl Netflix
 Alb 0.000000 0.000000 0.000000
 Ior 1.450000
-AlbMap Seia.png
-#Ems 1.0 1.0 1.0
+AlbMap Wtf.png
+Ems 1.0 1.0 1.0
 
 newmtl None
 Alb 0.8 0.8 0.8
