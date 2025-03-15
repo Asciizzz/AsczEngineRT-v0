@@ -72,11 +72,7 @@ void AsczBvh::designBVH(AsczMesh &MS) {
     // Initialize h_fIdx
     h_fIdx.resize(MS.fNum);
     #pragma omp parallel
-    for (int i = 0; i < MS.fNum; ++i) {
-        h_fIdx[i] = i;
-
-        std::cout << "AABB | Min: " << MS.AB_min_x[i] << " " << MS.AB_min_y[i] << " " << MS.AB_min_z[i] << " | Max: " << MS.AB_max_x[i] << " " << MS.AB_max_y[i] << " " << MS.AB_max_z[i] << std::endl;
-    }
+    for (int i = 0; i < MS.fNum; ++i) h_fIdx[i] = i;
 
     h_nodes.push_back({
         MS.GLB_min_x, MS.GLB_min_y, MS.GLB_min_z,
@@ -88,6 +84,7 @@ void AsczBvh::designBVH(AsczMesh &MS) {
         h_nodes, h_fIdx,
         MS.AB_min_x, MS.AB_min_y, MS.AB_min_z,
         MS.AB_max_x, MS.AB_max_y, MS.AB_max_z,
+        MS.AB_cx, MS.AB_cy, MS.AB_cz,
         MAX_DEPTH, NODE_FACES, BIN_COUNT
     );
 }
@@ -96,8 +93,9 @@ void AsczBvh::designBVH(AsczMesh &MS) {
 
 int AsczBvh::buildBvh(
     VecNode &nodes, std::vector<int> &fIdxs,
-    std::vector<float> &min_x, std::vector<float> &min_y, std::vector<float> &min_z,
-    std::vector<float> &max_x, std::vector<float> &max_y, std::vector<float> &max_z,
+    const std::vector<float> &min_x, const std::vector<float> &min_y, const std::vector<float> &min_z,
+    const std::vector<float> &max_x, const std::vector<float> &max_y, const std::vector<float> &max_z,
+    const std::vector<float> &c_x, const std::vector<float> &c_y, const std::vector<float> &c_z,
     const int MAX_DEPTH, const int NODE_FACES, const int BIN_COUNT
 ) {
     std::queue<int> queue;
@@ -132,35 +130,26 @@ int AsczBvh::buildBvh(
         float bestCost = (nLn_x * nLn_x + nLn_y * nLn_y + nLn_z * nLn_z) * nF;
 
         for (int a = 0; a < 3; ++a) {
-            bool ax = a == 0;
-            bool ay = a == 1;
-            bool az = a == 2;
+            bool ax = (a == 0);
+            bool ay = (a == 1);
+            bool az = (a == 2);
 
-            std::sort(std::execution::par,
-            fIdxs.begin() + nd.ll, fIdxs.begin() + nd.lr,
+            std::sort(fIdxs.begin() + nd.ll, fIdxs.begin() + nd.lr,
             [&](int i1, int i2) {
-                // float c1 =  (min_x[i1] + max_x[i1]) * ax +
-                //             (min_y[i1] + max_y[i1]) * ay +
-                //             (min_z[i1] + max_z[i1]) * az;
-                // float c2 =  (min_x[i2] + max_x[i2]) * ax +
-                //             (min_y[i2] + max_y[i2]) * ay +
-                //             (min_z[i2] + max_z[i2]) * az;
-
-                // return c1 < c2;
-
-                return  (min_x[i1] + max_x[i1]) * ax +
-                        (min_y[i1] + max_y[i1]) * ay +
-                        (min_z[i1] + max_z[i1]) * az <
-                        (min_x[i2] + max_x[i2]) * ax +
-                        (min_y[i2] + max_y[i2]) * ay +
-                        (min_z[i2] + max_z[i2]) * az;
+                return  (c_x[i1] < c_x[i2]) * ax +
+                        (c_y[i1] < c_y[i2]) * ay +
+                        (c_z[i1] < c_z[i2]) * az;
             });
 
             for (int b = 0; b < BIN_COUNT; ++b) {
-                DevNode cl, cr;
+                float lmin_x =  INFINITY, lmin_y =  INFINITY, lmin_z =  INFINITY;
+                float lmax_x = -INFINITY, lmax_y = -INFINITY, lmax_z = -INFINITY;
+
+                float rmin_x =  INFINITY, rmin_y =  INFINITY, rmin_z =  INFINITY;
+                float rmax_x = -INFINITY, rmax_y = -INFINITY, rmax_z = -INFINITY;
 
                 float s1 = nd.min_x * ax + nd.min_y * ay + nd.min_z * az;
-                float s2 = nLn_x * ax + nLn_y * ay + nLn_z * az;
+                float s2 = nLn_x    * ax + nLn_y    * ay + nLn_z    * az;
                 float splitPoint = s1 + s2 * (b + 1) / BIN_COUNT;
 
                 int splitIdx = nd.ll;
@@ -168,35 +157,37 @@ int AsczBvh::buildBvh(
                 for (int g = nd.ll; g < nd.lr; ++g) {
                     int i = fIdxs[g];
 
-                    float cent= (min_x[i] + max_x[i]) * ax +
-                                (min_y[i] + max_y[i]) * ay +
-                                (min_z[i] + max_z[i]) * az;
-                    cent *= 0.5f;
+                    float cent = c_x[i] * ax + c_y[i] * ay + c_z[i] * az;
 
                     if (cent < splitPoint) {
-                        cl.min_x = fminf(cl.min_x, min_x[i]);
-                        cl.min_y = fminf(cl.min_y, min_y[i]);
-                        cl.min_z = fminf(cl.min_z, min_z[i]);
+                        lmin_x = lmin_x < min_x[i] ? lmin_x : min_x[i];
+                        lmin_y = lmin_y < min_y[i] ? lmin_y : min_y[i];
+                        lmin_z = lmin_z < min_z[i] ? lmin_z : min_z[i];
 
-                        cl.max_x = fmaxf(cl.max_x, max_x[i]);
-                        cl.max_y = fmaxf(cl.max_y, max_y[i]);
-                        cl.max_z = fmaxf(cl.max_z, max_z[i]);
+                        lmax_x = lmax_x > max_x[i] ? lmax_x : max_x[i];
+                        lmax_y = lmax_y > max_y[i] ? lmax_y : max_y[i];
+                        lmax_z = lmax_z > max_z[i] ? lmax_z : max_z[i];
 
                         splitIdx++;
                     }
                     else {
-                        cr.min_x = fminf(cr.min_x, min_x[i]);
-                        cr.min_y = fminf(cr.min_y, min_y[i]);
-                        cr.min_z = fminf(cr.min_z, min_z[i]);
+                        rmin_x = rmin_x < min_x[i] ? rmin_x : min_x[i];
+                        rmin_y = rmin_y < min_y[i] ? rmin_y : min_y[i];
+                        rmin_z = rmin_z < min_z[i] ? rmin_z : min_z[i];
 
-                        cr.max_x = fmaxf(cr.max_x, max_x[i]);
-                        cr.max_y = fmaxf(cr.max_y, max_y[i]);
-                        cr.max_z = fmaxf(cr.max_z, max_z[i]);
+                        rmax_x = rmax_x > max_x[i] ? rmax_x : max_x[i];
+                        rmax_y = rmax_y > max_y[i] ? rmax_y : max_y[i];
+                        rmax_z = rmax_z > max_z[i] ? rmax_z : max_z[i];
                     }
                 }
 
-                float lCost = (cl.max_x - cl.min_x) * (cl.max_y - cl.min_y) * (cl.max_z - cl.min_z) * (splitIdx - nd.ll);
-                float rCost = (cr.max_x - cr.min_x) * (cr.max_y - cr.min_y) * (cr.max_z - cr.min_z) * (nd.lr - splitIdx);
+                float lN_x = lmax_x - lmin_x, rN_x = rmax_x - rmin_x;
+                float lN_y = lmax_y - lmin_y, rN_y = rmax_y - rmin_y;
+                float lN_z = lmax_z - lmin_z, rN_z = rmax_z - rmin_z;
+
+                float lCost = (lN_x * lN_x + lN_y * lN_y + lN_z * lN_z) * (splitIdx - nd.ll);
+                float rCost = (rN_x * rN_x + rN_y * rN_y + rN_z * rN_z) * (nd.lr - splitIdx);
+
                 float cost = lCost + rCost;
 
                 if (cost < bestCost) {
@@ -204,40 +195,28 @@ int AsczBvh::buildBvh(
                     bestAxis = a;
                     bestSplit = splitIdx;
 
-                    bestLab_min_x = cl.min_x;
-                    bestLab_min_y = cl.min_y;
-                    bestLab_min_z = cl.min_z;
+                    bestLab_min_x = lmin_x; bestRab_min_x = rmin_x;
+                    bestLab_min_y = lmin_y; bestRab_min_y = rmin_y;
+                    bestLab_min_z = lmin_z; bestRab_min_z = rmin_z;
 
-                    bestLab_max_x = cl.max_x;
-                    bestLab_max_y = cl.max_y;
-                    bestLab_max_z = cl.max_z;
-
-                    bestRab_min_x = cr.min_x;
-                    bestRab_min_y = cr.min_y;
-                    bestRab_min_z = cr.min_z;
-
-                    bestRab_max_x = cr.max_x;
-                    bestRab_max_y = cr.max_y;
-                    bestRab_max_z = cr.max_z;
+                    bestLab_max_x = lmax_x; bestRab_max_x = rmax_x;
+                    bestLab_max_y = lmax_y; bestRab_max_y = rmax_y;
+                    bestLab_max_z = lmax_z; bestRab_max_z = rmax_z;
                 }
             }
         }
 
-        if (bestAxis == -1 || bestSplit == -1) {
+        if (bestAxis == -1) {
             nodes[nIdx].cl = -1;
             nodes[nIdx].cr = -1;
             continue;
         }
 
-        std::sort(std::execution::par,
-        fIdxs.begin() + nd.ll, fIdxs.begin() + nd.lr,
+        std::sort(fIdxs.begin() + nd.ll, fIdxs.begin() + nd.lr,
         [&](int i1, int i2) {
-            return  (min_x[i1] + max_x[i1]) * (bestAxis == 0) +
-                    (min_y[i1] + max_y[i1]) * (bestAxis == 1) +
-                    (min_z[i1] + max_z[i1]) * (bestAxis == 2) <
-                    (min_x[i2] + max_x[i2]) * (bestAxis == 0) +
-                    (min_y[i2] + max_y[i2]) * (bestAxis == 1) +
-                    (min_z[i2] + max_z[i2]) * (bestAxis == 2);
+            if (bestAxis == 0) return c_x[i1] < c_x[i2];
+            if (bestAxis == 1) return c_y[i1] < c_y[i2];
+            return c_z[i1] < c_z[i2];
         });
 
         // Create left and right node

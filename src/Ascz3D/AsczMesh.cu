@@ -25,12 +25,12 @@ AsczMesh::~AsczMesh() {
 }
 
 void AsczMesh::append(MeshStruct mesh) {
-    #pragma omp parallel for
-    for (int i = 0; i < mesh.SOrF.size(); ++i) {
-        SOrF.push_back(mesh.SOrF[i] + h_fv0.size());
-    }
-    OrSO.push_back(SOrF.size());
-    oNum++;
+    // #pragma omp parallel for
+    // for (int i = 0; i < mesh.SOrF.size(); ++i) {
+    //     SOrF.push_back(mesh.SOrF[i] + h_fv0.size());
+    // }
+    // OrSO.push_back(SOrF.size());
+    // oNum++;
 
     // Update global AABB
     GLB_min_x = fminf(GLB_min_x, mesh.O_AB_min_x);
@@ -90,6 +90,10 @@ void AsczMesh::append(MeshStruct mesh) {
         AB_max_x.push_back(fmaxf(h_vx[fv0], fmaxf(h_vx[fv1], h_vx[fv2])));
         AB_max_y.push_back(fmaxf(h_vy[fv0], fmaxf(h_vy[fv1], h_vy[fv2])));
         AB_max_z.push_back(fmaxf(h_vz[fv0], fmaxf(h_vz[fv1], h_vz[fv2])));
+
+        AB_cx.push_back((AB_min_x.back() + AB_max_x.back()) * 0.5f);
+        AB_cy.push_back((AB_min_y.back() + AB_max_y.back()) * 0.5f);
+        AB_cz.push_back((AB_min_z.back() + AB_max_z.back()) * 0.5f);
     }
 
     vNum = h_vx.size();
@@ -109,5 +113,5 @@ void AsczMesh::toDevice() {
     ToDevice::I(h_fn0, d_fn0); ToDevice::I(h_fn1, d_fn1); ToDevice::I(h_fn2, d_fn2);
     ToDevice::I(h_ft0, d_ft0); ToDevice::I(h_ft1, d_ft1); ToDevice::I(h_ft2, d_ft2);
     ToDevice::I(h_fm,  d_fm);
-    ToDevice::I(h_lsrc, d_lsrc);
+    ToDevice::I(h_lsrc,d_lsrc);
 }

@@ -113,12 +113,12 @@ void Utils::appendObj(
                 MS.O_AB_max_y = fmaxf(MS.O_AB_max_y, MS.vy[vs[i]]);
                 MS.O_AB_max_z = fmaxf(MS.O_AB_max_z, MS.vz[vs[i]]);
 
-                MS.SO_AB_min_x.back() = fminf(MS.SO_AB_min_x.back(), MS.vx[vs[i]]);
-                MS.SO_AB_min_y.back() = fminf(MS.SO_AB_min_y.back(), MS.vy[vs[i]]);
-                MS.SO_AB_min_z.back() = fminf(MS.SO_AB_min_z.back(), MS.vz[vs[i]]);
-                MS.SO_AB_max_x.back() = fmaxf(MS.SO_AB_max_x.back(), MS.vx[vs[i]]);
-                MS.SO_AB_max_y.back() = fmaxf(MS.SO_AB_max_y.back(), MS.vy[vs[i]]);
-                MS.SO_AB_max_z.back() = fmaxf(MS.SO_AB_max_z.back(), MS.vz[vs[i]]);
+                // MS.SO_AB_min_x.back() = fminf(MS.SO_AB_min_x.back(), MS.vx[vs[i]]);
+                // MS.SO_AB_min_y.back() = fminf(MS.SO_AB_min_y.back(), MS.vy[vs[i]]);
+                // MS.SO_AB_min_z.back() = fminf(MS.SO_AB_min_z.back(), MS.vz[vs[i]]);
+                // MS.SO_AB_max_x.back() = fmaxf(MS.SO_AB_max_x.back(), MS.vx[vs[i]]);
+                // MS.SO_AB_max_y.back() = fmaxf(MS.SO_AB_max_y.back(), MS.vy[vs[i]]);
+                // MS.SO_AB_max_z.back() = fmaxf(MS.SO_AB_max_z.back(), MS.vz[vs[i]]);
             }
             continue;
         }
@@ -146,16 +146,16 @@ void Utils::appendObj(
             continue;
         }
 
-        else if (type == "o" || type == "g") {
-            MS.SOrF.push_back(MS.fv0.size());
-            MS.SO_AB_min_x.push_back(INFINITY);
-            MS.SO_AB_min_y.push_back(INFINITY);
-            MS.SO_AB_min_z.push_back(INFINITY);
-            MS.SO_AB_max_x.push_back(-INFINITY);
-            MS.SO_AB_max_y.push_back(-INFINITY);
-            MS.SO_AB_max_z.push_back(-INFINITY);
-            continue;
-        }
+        // else if (type == "o" || type == "g") {
+        //     MS.SOrF.push_back(MS.fv0.size());
+        //     MS.SO_AB_min_x.push_back(INFINITY);
+        //     MS.SO_AB_min_y.push_back(INFINITY);
+        //     MS.SO_AB_min_z.push_back(INFINITY);
+        //     MS.SO_AB_max_x.push_back(-INFINITY);
+        //     MS.SO_AB_max_y.push_back(-INFINITY);
+        //     MS.SO_AB_max_z.push_back(-INFINITY);
+        //     continue;
+        // }
 
         else if (type == "usemtl" || type == "AzMtl") {
             std::string matName;
@@ -258,8 +258,8 @@ void Utils::appendObj(
         }
     }
 
-    MS.SOrF.push_back(MS.fv0.size());
-    MS.SOrF.erase(MS.SOrF.begin());
+    // MS.SOrF.push_back(MS.fv0.size());
+    // MS.SOrF.erase(MS.SOrF.begin());
 
     // ---------------------------------------------------------
 

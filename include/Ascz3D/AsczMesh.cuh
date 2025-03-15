@@ -88,15 +88,15 @@ struct MeshStruct {
 
     std::vector<int> fm; // Face materials
     std::vector<int> lsrc; // Light sources
-    std::vector<int> SOrF; // Sub-objects
+    // std::vector<int> SOrF; // Sub-objects
 
-    // Object AABB
+    // // Object AABB
     float O_AB_min_x = INFINITY, O_AB_min_y = INFINITY, O_AB_min_z = INFINITY;
     float O_AB_max_x = -INFINITY, O_AB_max_y = -INFINITY, O_AB_max_z = -INFINITY;
 
-    // Sub-objects AABB
-    std::vector<float> SO_AB_min_x, SO_AB_min_y, SO_AB_min_z;
-    std::vector<float> SO_AB_max_x, SO_AB_max_y, SO_AB_max_z;
+    // // Sub-objects AABB
+    // std::vector<float> SO_AB_min_x, SO_AB_min_y, SO_AB_min_z;
+    // std::vector<float> SO_AB_max_x, SO_AB_max_y, SO_AB_max_z;
 };
 
 class AsczMesh {
@@ -116,14 +116,15 @@ public:
     std::vector<int> h_fm; // Face materials index
     std::vector<int> h_lsrc; // Light sources index
 
-    int oNum = 0; // Number of objects
-    std::vector<int>  OrSO = {0}; // Object references sub-objects
-    std::vector<int>  SOrF = {0}; // Sub-object references faces
+    // int oNum = 0; // Number of objects
+    // std::vector<int>  OrSO = {0}; // Object references sub-objects
+    // std::vector<int>  SOrF = {0}; // Sub-object references faces
 
     float GLB_min_x =  INFINITY, GLB_min_y =  INFINITY, GLB_min_z =  INFINITY;
     float GLB_max_x = -INFINITY, GLB_max_y = -INFINITY, GLB_max_z = -INFINITY;
     std::vector<float> AB_min_x, AB_min_y, AB_min_z;
     std::vector<float> AB_max_x, AB_max_y, AB_max_z;
+    std::vector<float> AB_cx, AB_cy, AB_cz;
 
     void append(MeshStruct mesh);
 
