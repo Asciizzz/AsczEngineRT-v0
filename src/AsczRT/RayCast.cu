@@ -227,9 +227,9 @@ __global__ void raycastKernel(
     const AzMtl &H_m = mats[MS_fm[H_Idx]];
 
     // Texture interpolation (if available)
-    int ht0 = MS_ft0[H_Idx], ht1 = MS_ft1[H_Idx], ht2 = MS_ft2[H_Idx];
-    float H_tu = MS_tx[ht0] * H_w + MS_tx[ht1] * H_u + MS_tx[ht2] * H_v;
-    float H_tv = MS_ty[ht0] * H_w + MS_ty[ht1] * H_u + MS_ty[ht2] * H_v;
+    int H_ft0 = MS_ft0[H_Idx], H_ft1 = MS_ft1[H_Idx], H_ft2 = MS_ft2[H_Idx];
+    float H_tu = MS_tx[H_ft0] * H_w + MS_tx[H_ft1] * H_u + MS_tx[H_ft2] * H_v;
+    float H_tv = MS_ty[H_ft0] * H_w + MS_ty[H_ft1] * H_u + MS_ty[H_ft2] * H_v;
     H_tu -= floor(H_tu); H_tv -= floor(H_tv);
 
     int H_alb_map = H_m.AlbMap,
@@ -242,25 +242,25 @@ __global__ void raycastKernel(
         H_tIdx = H_toff + H_ty * H_tw + H_tx;
 
     bool H_hasT = H_m.AlbMap > 0;
-    float H_alb_x = TX_r[H_tIdx] * H_hasT + H_m.Alb_r * !H_hasT;
-    float H_alb_y = TX_g[H_tIdx] * H_hasT + H_m.Alb_g * !H_hasT;
-    float H_alb_z = TX_b[H_tIdx] * H_hasT + H_m.Alb_b * !H_hasT;
+    float H_alb_r = TX_r[H_tIdx] * H_hasT + H_m.Alb_r * !H_hasT;
+    float H_alb_g = TX_g[H_tIdx] * H_hasT + H_m.Alb_g * !H_hasT;
+    float H_alb_b = TX_b[H_tIdx] * H_hasT + H_m.Alb_b * !H_hasT;
 
     // Normal interpolation
-    int hn0 = MS_fn0[H_Idx], hn1 = MS_fn1[H_Idx], hn2 = MS_fn2[H_Idx];
-    float H_nx = MS_nx[hn0] * H_w + MS_nx[hn1] * H_u + MS_nx[hn2] * H_v;
-    float H_ny = MS_ny[hn0] * H_w + MS_ny[hn1] * H_u + MS_ny[hn2] * H_v;
-    float H_nz = MS_nz[hn0] * H_w + MS_nz[hn1] * H_u + MS_nz[hn2] * H_v;
-    bool H_hasN = hn0 > 0;
+    int H_fn0 = MS_fn0[H_Idx], H_fn1 = MS_fn1[H_Idx], H_fn2 = MS_fn2[H_Idx];
+    float H_nx = MS_nx[H_fn0] * H_w + MS_nx[H_fn1] * H_u + MS_nx[H_fn2] * H_v;
+    float H_ny = MS_ny[H_fn0] * H_w + MS_ny[H_fn1] * H_u + MS_ny[H_fn2] * H_v;
+    float H_nz = MS_nz[H_fn0] * H_w + MS_nz[H_fn1] * H_u + MS_nz[H_fn2] * H_v;
+    bool H_hasN = H_fn0 > 0;
 
     // Fake shading
-    bool fShade = fakeShading && H_hasN;
+    bool fShade = fakeShading & H_hasN;
     float H_NdotR_D = H_nx * ray.dx + H_ny * ray.dy + H_nz * ray.dz;
     H_NdotR_D = (0.4 + H_NdotR_D * H_NdotR_D * 0.6) * fShade + !fShade;
 
-    frmx[tIdx] = H_alb_x * H_NdotR_D;
-    frmy[tIdx] = H_alb_y * H_NdotR_D;
-    frmz[tIdx] = H_alb_z * H_NdotR_D;
+    frmx[tIdx] = H_alb_r * H_NdotR_D;
+    frmy[tIdx] = H_alb_g * H_NdotR_D;
+    frmz[tIdx] = H_alb_b * H_NdotR_D;
     frmdepth[tIdx] = H_t;
     frmmat[tIdx] = MS_fm[H_Idx];
 };

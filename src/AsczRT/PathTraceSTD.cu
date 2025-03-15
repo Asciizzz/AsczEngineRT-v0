@@ -264,9 +264,9 @@ __global__ void pathtraceSTDKernel(
             H_tIdx = H_toff + H_ty * H_tw + H_tx;
 
         bool H_hasT = H_m.AlbMap > 0;
-        float H_alb_x = TX_r[H_tIdx] * H_hasT + H_m.Alb_r * !H_hasT;
-        float H_alb_y = TX_g[H_tIdx] * H_hasT + H_m.Alb_g * !H_hasT;
-        float H_alb_z = TX_b[H_tIdx] * H_hasT + H_m.Alb_b * !H_hasT;
+        float H_alb_r = TX_r[H_tIdx] * H_hasT + H_m.Alb_r * !H_hasT;
+        float H_alb_g = TX_g[H_tIdx] * H_hasT + H_m.Alb_g * !H_hasT;
+        float H_alb_b = TX_b[H_tIdx] * H_hasT + H_m.Alb_b * !H_hasT;
 
         // Normal interpolation
         int hn0 = MS_fn0[H_Idx], hn1 = MS_fn1[H_Idx], hn2 = MS_fn2[H_Idx];
@@ -285,9 +285,9 @@ __global__ void pathtraceSTDKernel(
         RADI_y += THRU_y * H_m.Ems_g * RADI_i;
         RADI_z += THRU_z * H_m.Ems_b * RADI_i;
 
-        THRU_x *= H_alb_x * (1.0f - H_m.Tr) + H_m.Tr;
-        THRU_y *= H_alb_y * (1.0f - H_m.Tr) + H_m.Tr;
-        THRU_z *= H_alb_z * (1.0f - H_m.Tr) + H_m.Tr;
+        THRU_x *= H_alb_r * (1.0f - H_m.Tr) + H_m.Tr;
+        THRU_y *= H_alb_g * (1.0f - H_m.Tr) + H_m.Tr;
+        THRU_z *= H_alb_b * (1.0f - H_m.Tr) + H_m.Tr;
 
 // =================== Indirect lighting =========================
 

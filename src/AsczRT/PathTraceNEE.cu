@@ -258,9 +258,9 @@ IL_: indirect light
         float H_vz = R_oz + R_dz * H_t;
 
         // Texture interpolation (if available)
-        int ht0 = MS_ft0[H_Idx], ht1 = MS_ft1[H_Idx], ht2 = MS_ft2[H_Idx];
-        float H_tu = MS_tx[ht0] * H_w + MS_tx[ht1] * H_u + MS_tx[ht2] * H_v;
-        float H_tv = MS_ty[ht0] * H_w + MS_ty[ht1] * H_u + MS_ty[ht2] * H_v;
+        int H_ft0 = MS_ft0[H_Idx], H_ft1 = MS_ft1[H_Idx], H_ft2 = MS_ft2[H_Idx];
+        float H_tu = MS_tx[H_ft0] * H_w + MS_tx[H_ft1] * H_u + MS_tx[H_ft2] * H_v;
+        float H_tv = MS_ty[H_ft0] * H_w + MS_ty[H_ft1] * H_u + MS_ty[H_ft2] * H_v;
         H_tu -= floor(H_tu); H_tv -= floor(H_tv);
 
         int H_alb_map = H_m.AlbMap,
@@ -272,23 +272,21 @@ IL_: indirect light
             H_ty = (int)(H_tv * H_th),
             H_tIdx = H_toff + H_ty * H_tw + H_tx;
 
-        bool H_hasT = H_m.AlbMap > 0;
-        float H_alb_x = TX_r[H_tIdx] * H_hasT + H_m.Alb_r * !H_hasT;
-        float H_alb_y = TX_g[H_tIdx] * H_hasT + H_m.Alb_g * !H_hasT;
-        float H_alb_z = TX_b[H_tIdx] * H_hasT + H_m.Alb_b * !H_hasT;
+        bool H_hasT = H_alb_map > 0;
+        float H_alb_r = TX_r[H_tIdx] * H_hasT + H_m.Alb_r * !H_hasT;
+        float H_alb_g = TX_g[H_tIdx] * H_hasT + H_m.Alb_g * !H_hasT;
+        float H_alb_b = TX_b[H_tIdx] * H_hasT + H_m.Alb_b * !H_hasT;
 
         // Normal interpolation
-        int hn0 = MS_fn0[H_Idx], hn1 = MS_fn1[H_Idx], hn2 = MS_fn2[H_Idx];
-        float H_nx = MS_nx[hn0] * H_w + MS_nx[hn1] * H_u + MS_nx[hn2] * H_v;
-        float H_ny = MS_ny[hn0] * H_w + MS_ny[hn1] * H_u + MS_ny[hn2] * H_v;
-        float H_nz = MS_nz[hn0] * H_w + MS_nz[hn1] * H_u + MS_nz[hn2] * H_v;
-        bool H_hasN = hn0 > 0;
+        int H_fn0 = MS_fn0[H_Idx], H_fn1 = MS_fn1[H_Idx], H_fn2 = MS_fn2[H_Idx];
+        float H_nx = MS_nx[H_fn0] * H_w + MS_nx[H_fn1] * H_u + MS_nx[H_fn2] * H_v;
+        float H_ny = MS_ny[H_fn0] * H_w + MS_ny[H_fn1] * H_u + MS_ny[H_fn2] * H_v;
+        float H_nz = MS_nz[H_fn0] * H_w + MS_nz[H_fn1] * H_u + MS_nz[H_fn2] * H_v;
+        bool H_hasN = H_fn0 > 0;
 
 // =================== Direct lighting =========================
 
-        // Retrieve the light source and it's informations
-
-        // Sample random light source
+    // Sample random light source
         int DL_idx = lNum ? lsrc[(int)(lNum * curand_uniform(&rnd[tIdx]))] : 0;
         const AzMtl &DL_m = mats[MS_fm[DL_idx]];
 
@@ -301,18 +299,37 @@ IL_: indirect light
         DL_v = DL_v * DL_uv_valid + (1.0f - DL_v) * !DL_uv_valid;
         float DL_w = 1.0f - DL_u - DL_v;
 
-        // Sample light's vertex
+    // Sample light's vertex
         int DL_fv0 = MS_fv0[DL_idx], DL_fv1 = MS_fv1[DL_idx], DL_fv2 = MS_fv2[DL_idx];
         float DL_vx = MS_vx[DL_fv0] * DL_w + MS_vx[DL_fv1] * DL_u + MS_vx[DL_fv2] * DL_v;
         float DL_vy = MS_vy[DL_fv0] * DL_w + MS_vy[DL_fv1] * DL_u + MS_vy[DL_fv2] * DL_v;
         float DL_vz = MS_vz[DL_fv0] * DL_w + MS_vz[DL_fv1] * DL_u + MS_vz[DL_fv2] * DL_v;
 
-        // Sample light's direction (not normalized)
+    // Sample light's albedo
+        int DL_ft0 = MS_ft0[DL_idx], DL_ft1 = MS_ft1[DL_idx], DL_ft2 = MS_ft2[DL_idx];
+        float DL_tu = MS_tx[DL_ft0] * DL_w + MS_tx[DL_ft1] * DL_u + MS_tx[DL_ft2] * DL_v;
+        float DL_tv = MS_ty[DL_ft0] * DL_w + MS_ty[DL_ft1] * DL_u + MS_ty[DL_ft2] * DL_v;
+
+        int DL_alb_map = DL_m.AlbMap,
+            DL_tw = TX_w[DL_alb_map],
+            DL_th = TX_h[DL_alb_map],
+            DL_toff = TX_off[DL_alb_map];
+
+        int DL_tx = (int)(DL_tu * DL_tw),
+            DL_ty = (int)(DL_tv * DL_th),
+            DL_tIdx = DL_toff + DL_ty * DL_tw + DL_tx;
+
+        bool DL_hasT = DL_alb_map > 0;
+        float DL_alb_r = TX_r[DL_tIdx] * DL_hasT + DL_m.Alb_r * !DL_hasT;
+        float DL_alb_g = TX_g[DL_tIdx] * DL_hasT + DL_m.Alb_g * !DL_hasT;
+        float DL_alb_b = TX_b[DL_tIdx] * DL_hasT + DL_m.Alb_b * !DL_hasT;
+
+    // Sample light's direction (not normalized)
         float DL_dx = H_vx - DL_vx;
         float DL_dy = H_vy - DL_vy;
         float DL_dz = H_vz - DL_vz;
 
-        // Sample light's distance
+    // Sample light's distance
         float DL_distSqr = DL_dx * DL_dx + DL_dy * DL_dy + DL_dz * DL_dz;
         float DL_distRsqrt = AzDevMath::rsqrt(DL_distSqr + !DL_distSqr); // Avoid zero division
         float DL_dist = DL_distSqr * DL_distRsqrt;
@@ -327,12 +344,11 @@ IL_: indirect light
         float DL_rdy = 1.0f / DL_dy;
         float DL_rdz = 1.0f / DL_dz;
 
-        // Get relevant data
+    // Get relevant data
         float DL_NdotH_N = DL_dx * H_nx + DL_dy * H_ny + DL_dz * H_nz;
         DL_NdotH_N = -DL_NdotH_N * (DL_NdotH_N < 0.0f) + !H_hasN;
 
-        // Check for occlusion
-
+    // Check for occlusion
         ns_top = DL_idx > 0;
         nstack[0] = 0;
 
@@ -471,14 +487,15 @@ IL_: indirect light
             }
         }
 
+    // Add direct lighting
         float RADI_i = DL_NdotH_N * DL_m.Ems_i * !occluded;
-        RADI_x += THRU_x * DL_m.Ems_r * H_alb_x * RADI_i + THRU_x * H_m.Ems_r * H_m.Ems_i;
-        RADI_y += THRU_y * DL_m.Ems_g * H_alb_y * RADI_i + THRU_x * H_m.Ems_g * H_m.Ems_i;
-        RADI_z += THRU_z * DL_m.Ems_b * H_alb_z * RADI_i + THRU_x * H_m.Ems_b * H_m.Ems_i;
+        RADI_x += THRU_x * DL_m.Ems_r * DL_alb_r * H_alb_r * RADI_i + THRU_x * H_m.Ems_r * H_m.Ems_i * H_alb_r;
+        RADI_y += THRU_y * DL_m.Ems_g * DL_alb_g * H_alb_g * RADI_i + THRU_y * H_m.Ems_g * H_m.Ems_i * H_alb_g;
+        RADI_z += THRU_z * DL_m.Ems_b * DL_alb_b * H_alb_b * RADI_i + THRU_z * H_m.Ems_b * H_m.Ems_i * H_alb_b;
 
-        THRU_x *= H_alb_x * (1.0f - H_m.Tr) + H_m.Tr;
-        THRU_y *= H_alb_y * (1.0f - H_m.Tr) + H_m.Tr;
-        THRU_z *= H_alb_z * (1.0f - H_m.Tr) + H_m.Tr;
+        THRU_x *= H_alb_r * (1.0f - H_m.Tr) + H_m.Tr;
+        THRU_y *= H_alb_g * (1.0f - H_m.Tr) + H_m.Tr;
+        THRU_z *= H_alb_b * (1.0f - H_m.Tr) + H_m.Tr;
 
 
 // =================== Indirect lighting =========================
@@ -532,7 +549,7 @@ IL_: indirect light
         float IL_spec_y = R_dy - H_ny * 2.0f * (H_ny * R_dy);
         float IL_spec_z = R_dz - H_nz * 2.0f * (H_nz * R_dz);
 
-    // Lerp diffuse and specular from roughness/smoothness
+    // Lerp diffuse and specular from roughness
         float IL_smooth = 1.0f - H_m.Rough;
         float IL_r_dx = IL_diff_x * H_m.Rough + IL_spec_x * IL_smooth;
         float IL_r_dy = IL_diff_y * H_m.Rough + IL_spec_y * IL_smooth;

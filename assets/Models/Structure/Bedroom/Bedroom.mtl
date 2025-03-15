@@ -36,7 +36,8 @@ Rough 0.03
 
 AzMtl Screen
 Alb 0.253053 0.249155 0.249155
-Rough 0.1
+AlbMap Seia.png
+#Rough 0.1
 
 AzMtl Wall
 Alb 0.274673 0.437046 1.000000
