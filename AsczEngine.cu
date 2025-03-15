@@ -16,7 +16,7 @@
 int main() {
     // =================== Initialize FPS and Window ==============
     FpsHandler &FPS = FpsHandler::instance();
-    AsczWin Win(1200, 800, L"AsczEngineRT_v0");
+    AsczWin Win(1600, 900, L"AsczEngineRT_v0");
     AsczFrame Frame(Win.width, Win.height);
 
     // =============== Initialize Important Managers ================
@@ -342,7 +342,7 @@ int main() {
                 Mat.d_mtls,
                 Txtr.d_tr, Txtr.d_tg, Txtr.d_tb, Txtr.d_ta, Txtr.d_tw, Txtr.d_th, Txtr.d_toff,
 
-                Bvh.d_BV_min_x, Bvh.d_BV_min_y, Bvh.d_BV_min_z, Bvh.d_BV_max_x, Bvh.d_BV_max_y, Bvh.d_BV_max_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_gIdx,
+                Bvh.d_min_x, Bvh.d_min_y, Bvh.d_min_z, Bvh.d_max_x, Bvh.d_max_y, Bvh.d_max_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_fIdx,
 
                 altRender, // To add fake shading
 
@@ -360,7 +360,7 @@ int main() {
                 Mat.d_mtls, Mesh.d_lsrc, Mesh.lNum,
                 Txtr.d_tr, Txtr.d_tg, Txtr.d_tb, Txtr.d_ta, Txtr.d_tw, Txtr.d_th, Txtr.d_toff,
 
-                Bvh.d_BV_min_x, Bvh.d_BV_min_y, Bvh.d_BV_min_z, Bvh.d_BV_max_x, Bvh.d_BV_max_y, Bvh.d_BV_max_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_gIdx,
+                Bvh.d_min_x, Bvh.d_min_y, Bvh.d_min_z, Bvh.d_max_x, Bvh.d_max_y, Bvh.d_max_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_fIdx,
 
                 Frame.d_rand
             );
@@ -381,7 +381,7 @@ int main() {
                 Mat.d_mtls, Mesh.d_lsrc, Mesh.lNum,
                 Txtr.d_tr, Txtr.d_tg, Txtr.d_tb, Txtr.d_ta, Txtr.d_tw, Txtr.d_th, Txtr.d_toff,
 
-                Bvh.d_BV_min_x, Bvh.d_BV_min_y, Bvh.d_BV_min_z, Bvh.d_BV_max_x, Bvh.d_BV_max_y, Bvh.d_BV_max_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_gIdx,
+                Bvh.d_min_x, Bvh.d_min_y, Bvh.d_min_z, Bvh.d_max_x, Bvh.d_max_y, Bvh.d_max_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_fIdx,
 
                 Frame.d_rand
             );

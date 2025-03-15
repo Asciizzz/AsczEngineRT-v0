@@ -14,7 +14,7 @@
 # .heavy/Fnaf/Light.obj 0 1
 
 ## LivingRoom
-# assets/Models/Structure/LivingRoom/LivingRoom.obj 2 1
+assets/Models/Structure/LivingRoom/LivingRoom.obj 2 1
 
 ## Street
 # .heavy/Street/Street.obj 2 0.1
@@ -65,7 +65,7 @@
 # assets/Models/Structure/Garden/Garden.obj 3 0.2
 
 
-
+~
 
 
 assets/Models/Structure/Buildings/Building001.obj 2 1  50 0 40

@@ -16,29 +16,30 @@ Refer to AsczMesh.cuh for detail regarding object and sub-object
 #define VecNode std::vector<DevNode>
 
 struct DevNode { // Flattened structure friendly for shader code
-    AABB ab; // AABB
+    float min_x=INFINITY, min_y=INFINITY, min_z=INFINITY;
+    float max_x=-INFINITY, max_y=-INFINITY, max_z=-INFINITY;
 
-    int cl, cr; // Children
-    int ll, lr; // Primitive range (not necessarily faces)
+    int cl=-1, cr=-1; // Children
+    int ll=-1, lr=-1; // Primitive
+
+    int depth = 0;
 };
-
 
 
 class AsczBvh {
 public:
-
     ~AsczBvh();
 
-    std::vector<int> h_gIdx; // Geom's index
-    int *d_gIdx = nullptr;
+    std::vector<int> h_fIdx;
+    int *d_fIdx = nullptr;
 
     VecNode h_nodes;
     DevNode *d_nodes = nullptr;
 
-    float *d_BV_min_x, *d_BV_min_y, *d_BV_min_z; // AABB Min
-    float *d_BV_max_x, *d_BV_max_y, *d_BV_max_z; // AABB Max
-    int *d_pl, *d_pr; // Dual Purpose pointer
-    bool *d_lf; // Leaf flag
+    float *d_min_x, *d_min_y, *d_min_z; // AABB Min
+    float *d_max_x, *d_max_y, *d_max_z; // AABB Max
+    int   *d_pl, *d_pr;     // Dual Purpose pointer
+    bool  *d_lf;                       // Leaf flag
 
     int nNum;
 
@@ -48,13 +49,13 @@ public:
 
     void toDevice();
 
-    // Sub-object split faces
-    static int buildBvh(
-        // std::vector<float> &BV_min_x, std::vector<float> &BV_min_y, std::vector<float> &BV_min_z, std::vector<float> &BV_max_x, std::vector<float> &BV_max_y, std::vector<float> &BV_max_z,
-        // std::vector<int> &cl, std::vector<int> &cr, std::vector<int> &ll, std::vector<int> &lr,
-        VecNode &allNodes, std::vector<int> &allGIdx, DevNode &node, const std::vector<AABB> &ABs,
-        int depth, const int MAX_DEPTH, const int NODE_FACES, const int BIN_COUNT
+    static int buildBvhTest(
+        VecNode &allNodes,
+        const AABB &rootAB, std::vector<int> &fIdxs, const std::vector<AABB> &fABs,
+        const int MAX_DEPTH, const int NODE_FACES, const int BIN_COUNT
     );
+
+
     void designBVH(AsczMesh &meshMgr);
 };
 
