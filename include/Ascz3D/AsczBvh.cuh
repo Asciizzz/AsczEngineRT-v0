@@ -41,7 +41,7 @@ public:
     int   *d_pl, *d_pr;     // Dual Purpose pointer
     bool  *d_lf;                       // Leaf flag
 
-    int nNum;
+    int nNum = 0;
 
     int MAX_DEPTH = 32;
     int NODE_FACES = 1;
@@ -50,8 +50,7 @@ public:
     void toDevice();
 
     static int buildBvhTest(
-        VecNode &allNodes,
-        const AABB &rootAB, std::vector<int> &fIdxs, const std::vector<AABB> &fABs,
+        VecNode &nodes, std::vector<int> &fIdxs, const std::vector<AABB> &fABs,
         const int MAX_DEPTH, const int NODE_FACES, const int BIN_COUNT
     );
 

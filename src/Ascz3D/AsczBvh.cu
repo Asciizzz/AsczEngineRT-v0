@@ -80,27 +80,23 @@ void AsczBvh::designBVH(AsczMesh &meshMgr) {
     #pragma omp parallel
     for (int i = 0; i < gNum; ++i) h_fIdx[i] = i;
 
+    h_nodes.push_back({
+        GlbAB.min.x, GlbAB.min.y, GlbAB.min.z,
+        GlbAB.max.x, GlbAB.max.y, GlbAB.max.z,
+        -1, -1, 0, gNum, 0
+    });
+
     buildBvhTest(
-        h_nodes,
-        GlbAB, h_fIdx, G_AB, MAX_DEPTH, NODE_FACES, BIN_COUNT
+        h_nodes, h_fIdx, G_AB, MAX_DEPTH, NODE_FACES, BIN_COUNT
     );
 }
 
 
 
 int AsczBvh::buildBvhTest(
-    VecNode &nodes,
-    const AABB &rootAB, std::vector<int> &fIdxs, const std::vector<AABB> &fABs,
+    VecNode &nodes, std::vector<int> &fIdxs, const std::vector<AABB> &fABs,
     const int MAX_DEPTH, const int NODE_FACES, const int BIN_COUNT
 ) {
-    // std::vector<int> fIdxs = fIdx; // TODO: Remove this when the code is ready
-
-    nodes.push_back({
-        rootAB.min.x, rootAB.min.y, rootAB.min.z,
-        rootAB.max.x, rootAB.max.y, rootAB.max.z,
-        -1, -1, 0, (int)fIdxs.size()
-    });
-
     std::queue<int> queue;
     queue.push(0);
 
