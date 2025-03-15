@@ -1,7 +1,5 @@
 #include <AsczCam.cuh>
-
-#include <string>
-#include <iostream>
+#include <AzDevMath.cuh>
 
 // ================================ Ray ================================
 
