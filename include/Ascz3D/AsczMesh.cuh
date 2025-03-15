@@ -86,9 +86,9 @@ struct MeshStruct {
     std::vector<int> fn0, fn1, fn2; // Face normals
     std::vector<int> ft0, ft1, ft2; // Face textures
 
-    std::vector<int>  fm; // Face materials
-    std::vector<int>  lsrc; // Light sources
-    std::vector<int>  SOrF; // Sub-objects
+    std::vector<int> fm; // Face materials
+    std::vector<int> lsrc; // Light sources
+    std::vector<int> SOrF; // Sub-objects
 
     // Object AABB
     float O_AB_min_x = INFINITY, O_AB_min_y = INFINITY, O_AB_min_z = INFINITY;
@@ -120,7 +120,7 @@ public:
     std::vector<int>  OrSO = {0}; // Object references sub-objects
     std::vector<int>  SOrF = {0}; // Sub-object references faces
 
-    float GLB_min_x = INFINITY, GLB_min_y = INFINITY, GLB_min_z = INFINITY;
+    float GLB_min_x =  INFINITY, GLB_min_y =  INFINITY, GLB_min_z =  INFINITY;
     float GLB_max_x = -INFINITY, GLB_max_y = -INFINITY, GLB_max_z = -INFINITY;
     std::vector<float> AB_min_x, AB_min_y, AB_min_z;
     std::vector<float> AB_max_x, AB_max_y, AB_max_z;

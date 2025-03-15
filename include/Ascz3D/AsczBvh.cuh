@@ -51,8 +51,8 @@ public:
 
     static int buildBvh(
         VecNode &nodes, std::vector<int> &fIdxs,
-        const std::vector<float> &min_x, const std::vector<float> &min_y, const std::vector<float> &min_z,
-        const std::vector<float> &max_x, const std::vector<float> &max_y, const std::vector<float> &max_z,
+        std::vector<float> &min_x, std::vector<float> &min_y, std::vector<float> &min_z,
+        std::vector<float> &max_x, std::vector<float> &max_y, std::vector<float> &max_z,
         const int MAX_DEPTH, const int NODE_FACES, const int BIN_COUNT
     );
 

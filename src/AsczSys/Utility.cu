@@ -104,7 +104,7 @@ void Utils::appendObj(
                 MS.fm.push_back(matIdx);
             }
 
-            // Expand the AABB  
+            // Expand the AABB
             for (int i = 0; i < vs.size(); ++i) {
                 MS.O_AB_min_x = fminf(MS.O_AB_min_x, MS.vx[vs[i]]);
                 MS.O_AB_min_y = fminf(MS.O_AB_min_y, MS.vy[vs[i]]);
