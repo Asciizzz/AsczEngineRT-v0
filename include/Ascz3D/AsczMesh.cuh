@@ -122,9 +122,13 @@ public:
 
     float GLB_min_x =  INFINITY, GLB_min_y =  INFINITY, GLB_min_z =  INFINITY;
     float GLB_max_x = -INFINITY, GLB_max_y = -INFINITY, GLB_max_z = -INFINITY;
-    std::vector<float> AB_min_x, AB_min_y, AB_min_z;
-    std::vector<float> AB_max_x, AB_max_y, AB_max_z;
-    std::vector<float> AB_cx, AB_cy, AB_cz;
+    
+    float *d_AB_min_x = nullptr, *d_AB_min_y = nullptr, *d_AB_min_z = nullptr;
+    float *d_AB_max_x = nullptr, *d_AB_max_y = nullptr, *d_AB_max_z = nullptr;
+    float *d_AB_cx = nullptr, *d_AB_cy = nullptr, *d_AB_cz = nullptr;
+    float *AB_min_x, *AB_min_y, *AB_min_z;
+    float *AB_max_x, *AB_max_y, *AB_max_z;
+    float *AB_cx,    *AB_cy,    *AB_cz;
 
     void append(MeshStruct mesh);
 

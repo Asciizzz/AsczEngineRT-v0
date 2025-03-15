@@ -80,20 +80,21 @@ void AsczMesh::append(MeshStruct mesh) {
 
         h_fm .push_back(mesh.fm[i]);
 
-        int fv0 = h_fv0.back();
-        int fv1 = h_fv1.back();
-        int fv2 = h_fv2.back();
+        // int fv0 = h_fv0.back();
+        // int fv1 = h_fv1.back();
+        // int fv2 = h_fv2.back();
 
-        AB_min_x.push_back(fminf(h_vx[fv0], fminf(h_vx[fv1], h_vx[fv2])));
-        AB_min_y.push_back(fminf(h_vy[fv0], fminf(h_vy[fv1], h_vy[fv2])));
-        AB_min_z.push_back(fminf(h_vz[fv0], fminf(h_vz[fv1], h_vz[fv2])));
-        AB_max_x.push_back(fmaxf(h_vx[fv0], fmaxf(h_vx[fv1], h_vx[fv2])));
-        AB_max_y.push_back(fmaxf(h_vy[fv0], fmaxf(h_vy[fv1], h_vy[fv2])));
-        AB_max_z.push_back(fmaxf(h_vz[fv0], fmaxf(h_vz[fv1], h_vz[fv2])));
+        // AB_min_x.push_back(fminf(h_vx[fv0], fminf(h_vx[fv1], h_vx[fv2])));
+        // AB_min_y.push_back(fminf(h_vy[fv0], fminf(h_vy[fv1], h_vy[fv2])));
+        // AB_min_z.push_back(fminf(h_vz[fv0], fminf(h_vz[fv1], h_vz[fv2])));
 
-        AB_cx.push_back((AB_min_x.back() + AB_max_x.back()) * 0.5f);
-        AB_cy.push_back((AB_min_y.back() + AB_max_y.back()) * 0.5f);
-        AB_cz.push_back((AB_min_z.back() + AB_max_z.back()) * 0.5f);
+        // AB_max_x.push_back(fmaxf(h_vx[fv0], fmaxf(h_vx[fv1], h_vx[fv2])));
+        // AB_max_y.push_back(fmaxf(h_vy[fv0], fmaxf(h_vy[fv1], h_vy[fv2])));
+        // AB_max_z.push_back(fmaxf(h_vz[fv0], fmaxf(h_vz[fv1], h_vz[fv2])));
+
+        // AB_cx.push_back((AB_min_x.back() + AB_max_x.back()) * 0.5f);
+        // AB_cy.push_back((AB_min_y.back() + AB_max_y.back()) * 0.5f);
+        // AB_cz.push_back((AB_min_z.back() + AB_max_z.back()) * 0.5f);
     }
 
     vNum = h_vx.size();
@@ -102,6 +103,43 @@ void AsczMesh::append(MeshStruct mesh) {
 
     fNum = h_fv0.size();
     lNum = h_lsrc.size();
+}
+
+
+__global__ void computeAABB(
+    float *min_x, float *min_y, float *min_z,
+    float *max_x, float *max_y, float *max_z,
+    float *cx, float *cy, float *cz,
+    float *vx, float *vy, float *vz,
+    int *fv0, int *fv1, int *fv2,
+    int fNum
+) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= fNum) return;
+
+    int fv0_idx = fv0[idx];
+    int fv1_idx = fv1[idx];
+    int fv2_idx = fv2[idx];
+
+    float minx = fminf(vx[fv0_idx], fminf(vx[fv1_idx], vx[fv2_idx]));
+    float miny = fminf(vy[fv0_idx], fminf(vy[fv1_idx], vy[fv2_idx]));
+    float minz = fminf(vz[fv0_idx], fminf(vz[fv1_idx], vz[fv2_idx]));
+
+    float maxx = fmaxf(vx[fv0_idx], fmaxf(vx[fv1_idx], vx[fv2_idx]));
+    float maxy = fmaxf(vy[fv0_idx], fmaxf(vy[fv1_idx], vy[fv2_idx]));
+    float maxz = fmaxf(vz[fv0_idx], fmaxf(vz[fv1_idx], vz[fv2_idx]));
+
+    min_x[idx] = minx;
+    min_y[idx] = miny;
+    min_z[idx] = minz;
+
+    max_x[idx] = maxx;
+    max_y[idx] = maxy;
+    max_z[idx] = maxz;
+
+    cx[idx] = (minx + maxx) * 0.5f;
+    cy[idx] = (miny + maxy) * 0.5f;
+    cz[idx] = (minz + maxz) * 0.5f;
 }
 
 void AsczMesh::toDevice() {
@@ -114,4 +152,39 @@ void AsczMesh::toDevice() {
     ToDevice::I(h_ft0, d_ft0); ToDevice::I(h_ft1, d_ft1); ToDevice::I(h_ft2, d_ft2);
     ToDevice::I(h_fm,  d_fm);
     ToDevice::I(h_lsrc,d_lsrc);
+
+    // Compute AABB
+    cudaMalloc(&d_AB_min_x, fNum * sizeof(float));
+    cudaMalloc(&d_AB_min_y, fNum * sizeof(float));
+    cudaMalloc(&d_AB_min_z, fNum * sizeof(float));
+    cudaMalloc(&d_AB_max_x, fNum * sizeof(float));
+    cudaMalloc(&d_AB_max_y, fNum * sizeof(float));
+    cudaMalloc(&d_AB_max_z, fNum * sizeof(float));
+    cudaMalloc(&d_AB_cx, fNum * sizeof(float));
+    cudaMalloc(&d_AB_cy, fNum * sizeof(float));
+    cudaMalloc(&d_AB_cz, fNum * sizeof(float));
+
+    computeAABB<<<fNum / 256 + 1, 256>>>(
+        d_AB_min_x, d_AB_min_y, d_AB_min_z,
+        d_AB_max_x, d_AB_max_y, d_AB_max_z,
+        d_AB_cx, d_AB_cy, d_AB_cz,
+        d_vx, d_vy, d_vz,
+        d_fv0, d_fv1, d_fv2,
+        fNum
+    );
+
+    // Copy back to host
+    AB_min_x = new float[fNum]; AB_max_x = new float[fNum]; AB_cx = new float[fNum];
+    AB_min_y = new float[fNum]; AB_max_y = new float[fNum]; AB_cy = new float[fNum];
+    AB_min_z = new float[fNum]; AB_max_z = new float[fNum]; AB_cz = new float[fNum];
+
+    cudaMemcpy(AB_min_x, d_AB_min_x, fNum * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(AB_min_y, d_AB_min_y, fNum * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(AB_min_z, d_AB_min_z, fNum * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(AB_max_x, d_AB_max_x, fNum * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(AB_max_y, d_AB_max_y, fNum * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(AB_max_z, d_AB_max_z, fNum * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(AB_cx, d_AB_cx, fNum * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(AB_cy, d_AB_cy, fNum * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(AB_cz, d_AB_cz, fNum * sizeof(float), cudaMemcpyDeviceToHost);
 }

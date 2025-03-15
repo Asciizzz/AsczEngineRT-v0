@@ -5,7 +5,7 @@
 # .heavy/Office/Office.obj 3 0.01
 # .heavy/Industry/Industry.obj 2 1
 # .heavy/Kitchen/Kitchen.obj 2 1
-# .heavy/Stronghold/Stronghold.obj 2 0.05
+.heavy/Stronghold/Stronghold.obj 2 0.05
 
 # .heavy/CitySciFi/CitySciFi.obj 2 0.1
 
@@ -14,7 +14,7 @@
 # .heavy/Fnaf/Light.obj 0 1
 
 ## LivingRoom
-assets/Models/Structure/LivingRoom/LivingRoom.obj 2 1
+# assets/Models/Structure/LivingRoom/LivingRoom.obj 2 1
 
 ## Street
 # .heavy/Street/Street.obj 2 0.1

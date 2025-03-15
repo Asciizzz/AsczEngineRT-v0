@@ -93,9 +93,9 @@ void AsczBvh::designBVH(AsczMesh &MS) {
 
 int AsczBvh::buildBvh(
     VecNode &nodes, std::vector<int> &fIdxs,
-    const std::vector<float> &min_x, const std::vector<float> &min_y, const std::vector<float> &min_z,
-    const std::vector<float> &max_x, const std::vector<float> &max_y, const std::vector<float> &max_z,
-    const std::vector<float> &c_x, const std::vector<float> &c_y, const std::vector<float> &c_z,
+    const float *min_x, const float *min_y, const float *min_z,
+    const float *max_x, const float *max_y, const float *max_z,
+    const float *c_x, const float *c_y, const float *c_z,
     const int MAX_DEPTH, const int NODE_FACES, const int BIN_COUNT
 ) {
     std::queue<int> queue;
