@@ -141,7 +141,7 @@ int AsczBvh::buildBvh(
                         (c_z[i1] < c_z[i2]) * az;
             });
 
-            for (int b = 0; b < BIN_COUNT; ++b) {
+            for (int b = 0; b < BIN_COUNT - 1; ++b) {
                 float lmin_x =  INFINITY, lmin_y =  INFINITY, lmin_z =  INFINITY;
                 float lmax_x = -INFINITY, lmax_y = -INFINITY, lmax_z = -INFINITY;
 

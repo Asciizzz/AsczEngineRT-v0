@@ -16,14 +16,16 @@
 #include <fstream>
 #include <sstream>
 
+#define WAVE_HEIGHT 0.14f
+
 float fXZ(float x, float z) {
-    return sin(x) * cos(z);
+    return sin(x) * cos(z) * WAVE_HEIGHT;
 }
 float fXZdx(float x, float z) {
-    return -cos(x) * cos(z);
+    return -cos(x) * cos(z) * WAVE_HEIGHT;
 }
 float fXZdz(float x, float z) {
-    return sin(x) * sin(z);
+    return sin(x) * sin(z) * WAVE_HEIGHT;
 }
 
 // float frsqrt(float x) {
@@ -110,14 +112,13 @@ int main() {
 
 // ========================== PLAYGROUND ==================================
 
-//*
+/*
     // Wave generation
     MeshStruct wave;
-    float wave_start_x = -10.0f;
-    float wave_start_z = -10.0f;
-    float wave_start_y = 0.14f;
-    float wave_move_x = 0.1f;
-    float wave_move_z = 0.1f;
+    float wave_start_x = -20.0f;
+    float wave_start_z = -20.0f;
+    float wave_move_x = 0.05f;
+    float wave_move_z = 0.05f;
     int wave_step_x = 200;
     int wave_step_z = 200;
 
@@ -142,8 +143,6 @@ int main() {
     int wMat = Mat.append(waveMat, L"Wave", L"AsczEngine");
 
     // Append faces
-    float wave_min_x = INFINITY, wave_min_y = INFINITY, wave_min_z = INFINITY;
-    float wave_max_x = -INFINITY, wave_max_y = -INFINITY, wave_max_z = -INFINITY;
     for (int z = 0; z < wave_step_z - 1; z++) {
         for (int x = 0; x < wave_step_x - 1; x++) {
             int v0idx = z * wave_step_x + x;
@@ -175,7 +174,7 @@ int main() {
             wave.nx.push_back(n1x * n1_rmag);
             wave.ny.push_back(n1_rmag);
             wave.nz.push_back(n1z * n1_rmag);
-            
+
             float n2x = fXZdx(v2x, v2z);
             float n2z = fXZdz(v2x, v2z);
             float n2_rmag = rsqrt(n2x * n2x + n2z * n2z + 1);
@@ -221,7 +220,7 @@ int main() {
 
     // Append to mesh
     Mesh.append(wave);
-//
+*/
 
     // ======================= Copy to device memory ==========================
 
