@@ -229,7 +229,7 @@ void Utils::appendObj(
                 else if (mtlType == "Ke" || mtlType == "Ems") {
                     float Ems_r, Ems_g, Ems_b, Ems_i;
                     mtlSS >> Ems_r >> Ems_g >> Ems_b >> Ems_i;
-                    Ems_i = Ems_i + !Ems_i; // In case the intensity is 0
+                    Ems_i = Ems_i > 0 ? Ems_i : 1.0f;
                     MT.h_mtls[matIdx].Ems_r = Ems_r;
                     MT.h_mtls[matIdx].Ems_g = Ems_g;
                     MT.h_mtls[matIdx].Ems_b = Ems_b;

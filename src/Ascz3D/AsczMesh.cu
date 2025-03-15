@@ -104,7 +104,7 @@ void AsczMesh::append(MeshStruct mesh) {
     lNum = h_lsrc.size();
 }
 
-
+__device__ float _3 = 1.0f / 3.0f;
 __global__ void computeAABB(
     float *min_x, float *min_y, float *min_z,
     float *max_x, float *max_y, float *max_z,
@@ -120,25 +120,21 @@ __global__ void computeAABB(
     int fv1_idx = fv1[idx];
     int fv2_idx = fv2[idx];
 
-    float minx = fminf(vx[fv0_idx], fminf(vx[fv1_idx], vx[fv2_idx]));
-    float miny = fminf(vy[fv0_idx], fminf(vy[fv1_idx], vy[fv2_idx]));
-    float minz = fminf(vz[fv0_idx], fminf(vz[fv1_idx], vz[fv2_idx]));
+    float v0x = vx[fv0_idx], v0y = vy[fv0_idx], v0z = vz[fv0_idx];
+    float v1x = vx[fv1_idx], v1y = vy[fv1_idx], v1z = vz[fv1_idx];
+    float v2x = vx[fv2_idx], v2y = vy[fv2_idx], v2z = vz[fv2_idx];
 
-    float maxx = fmaxf(vx[fv0_idx], fmaxf(vx[fv1_idx], vx[fv2_idx]));
-    float maxy = fmaxf(vy[fv0_idx], fmaxf(vy[fv1_idx], vy[fv2_idx]));
-    float maxz = fmaxf(vz[fv0_idx], fmaxf(vz[fv1_idx], vz[fv2_idx]));
+    min_x[idx] = fminf(v0x, fminf(v1x, v2x));
+    min_y[idx] = fminf(v0y, fminf(v1y, v2y));
+    min_z[idx] = fminf(v0z, fminf(v1z, v2z));
 
-    min_x[idx] = minx;
-    min_y[idx] = miny;
-    min_z[idx] = minz;
+    max_x[idx] = fmaxf(v0x, fmaxf(v1x, v2x));
+    max_y[idx] = fmaxf(v0y, fmaxf(v1y, v2y));
+    max_z[idx] = fmaxf(v0z, fmaxf(v1z, v2z));
 
-    max_x[idx] = maxx;
-    max_y[idx] = maxy;
-    max_z[idx] = maxz;
-
-    cx[idx] = (minx + maxx) * 0.5f;
-    cy[idx] = (miny + maxy) * 0.5f;
-    cz[idx] = (minz + maxz) * 0.5f;
+    cx[idx] = (v0x + v1x + v2x) * _3;
+    cy[idx] = (v0y + v1y + v2y) * _3;
+    cz[idx] = (v0z + v1z + v2z) * _3;
 }
 
 void AsczMesh::toDevice() {

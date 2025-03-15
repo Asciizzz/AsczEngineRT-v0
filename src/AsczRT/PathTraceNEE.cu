@@ -336,7 +336,7 @@ IL_: indirect light
         ns_top = DL_idx > 0;
         nstack[0] = 0;
 
-        bool occluded = false;
+        bool occluded = !DL_idx;
         while (ns_top > 0) {
             int nidx = nstack[--ns_top];
 

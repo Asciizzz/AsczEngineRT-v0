@@ -1,6 +1,6 @@
 # .heavy/Fnaf/Fnaf1.obj 2 1
 # .heavy/Room/Room.obj 2 1
-# .heavy/Town/Town.obj 2 1
+.heavy/Town/Town.obj 2 1
 # .heavy/Home/Home.obj 2 1
 # .heavy/Office/Office.obj 3 0.01
 # .heavy/Industry/Industry.obj 2 1
@@ -9,6 +9,8 @@
 # .heavy/AbandonedHouse/AbandonedHouse.obj 2 1
 
 # .heavy/CitySciFi/CitySciFi.obj 2 0.1
+
+# .heavy/Stanford/Dragon.obj 2 1
 
 ## Fnaf
 # .heavy/Fnaf/Fnaf1.obj 3 1
@@ -31,8 +33,8 @@
 # assets/Models/Structure/Bedroom2/Additional.obj 0 1
 
 ## Dust2 + Short Dust (wingman)
-assets/Models/Structure/de_dust2/de_dust2.obj 3 1
-assets/Models/Structure/de_dust2/Light.obj 0 1
+# assets/Models/Structure/de_dust2/de_dust2.obj 3 1
+# assets/Models/Structure/de_dust2/Light.obj 0 1
 
 ## Island
 # assets/Models/Structure/Island/Island.obj 3 1
@@ -65,10 +67,11 @@ assets/Models/Structure/de_dust2/Light.obj 0 1
 
 # assets/Models/Structure/Garden/Garden.obj 3 0.2
 
-
 ~
 
-assets/Models/Structure/Buildings/Ground.obj 3 60
+assets/Models/Structure/Buildings/Ground.obj 3 4
+
+
 
 assets/Models/Structure/Buildings/Building001.obj 2 1  50 0 40
 

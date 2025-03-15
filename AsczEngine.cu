@@ -15,6 +15,7 @@
 
 #include <fstream>
 #include <sstream>
+#include <iostream>
 
 #define WAVE_HEIGHT 0.14f
 
@@ -28,14 +29,6 @@ float fXZdz(float x, float z) {
     return sin(x) * sin(z) * WAVE_HEIGHT;
 }
 
-// float frsqrt(float x) {
-//     float xhalf = 0.5f * x;
-//     int i = *(int*)&x;
-//     i = 0x5f3759df - (i >> 1);
-//     x = *(float*)&i;
-//     x = x * (1.5f - xhalf * x * x);
-//     return x;
-// }
 
 int main() {
     // =================== Initialize FPS and Window ==============
