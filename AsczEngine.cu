@@ -419,7 +419,7 @@ int main() {
 
             Win.appendDebug(L"Mesh", 100, 255, 100);
             Win.appendDebug(L"Vertices: " + std::to_wstring(Mesh.vNum), 255, 255, 255, 20);
-            Win.appendDebug(L"Faces: " + std::to_wstring(Mesh.gNum), 255, 255, 255, 20);
+            Win.appendDebug(L"Faces: " + std::to_wstring(Mesh.fNum), 255, 255, 255, 20);
             Win.appendDebug(L"Materials: " + std::to_wstring(Mat.mtlsNum), 255, 255, 255, 20);
 
             Win.appendDebug(L"Fragments", 100, 100, 255);

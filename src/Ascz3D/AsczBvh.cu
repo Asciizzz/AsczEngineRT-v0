@@ -68,33 +68,33 @@ void AsczBvh::toDevice() {
     ToDevice::I(h_fIdx, d_fIdx);
 }
 
-void AsczBvh::designBVH(AsczMesh &meshMgr) {
-    int gNum = meshMgr.gNum;
-    const AABB &GlbAB = meshMgr.GlbAB;
-    // const std::vector<AABB> &O_AB = meshMgr.O_AB;
-    // const std::vector<AABB> &SO_AB = meshMgr.SO_AB;
-    const std::vector<AABB> &G_AB = meshMgr.G_AB;
-
+void AsczBvh::designBVH(AsczMesh &MS) {
     // Initialize h_fIdx
-    h_fIdx.resize(gNum);
+    h_fIdx.resize(MS.fNum);
     #pragma omp parallel
-    for (int i = 0; i < gNum; ++i) h_fIdx[i] = i;
+    for (int i = 0; i < MS.fNum; ++i) h_fIdx[i] = i;
 
     h_nodes.push_back({
-        GlbAB.min.x, GlbAB.min.y, GlbAB.min.z,
-        GlbAB.max.x, GlbAB.max.y, GlbAB.max.z,
-        -1, -1, 0, gNum, 0
+        MS.GLB_min_x, MS.GLB_min_y, MS.GLB_min_z,
+        MS.GLB_max_x, MS.GLB_max_y, MS.GLB_max_z,
+        -1, -1, 0, MS.fNum, 0
     });
 
-    buildBvhTest(
-        h_nodes, h_fIdx, G_AB, MAX_DEPTH, NODE_FACES, BIN_COUNT
+    buildBvh(
+        // h_nodes, h_fIdx, G_AB, MAX_DEPTH, NODE_FACES, BIN_COUNT
+        h_nodes, h_fIdx,
+        MS.AB_min_x, MS.AB_min_y, MS.AB_min_z,
+        MS.AB_max_x, MS.AB_max_y, MS.AB_max_z,
+        MAX_DEPTH, NODE_FACES, BIN_COUNT
     );
 }
 
 
 
-int AsczBvh::buildBvhTest(
-    VecNode &nodes, std::vector<int> &fIdxs, const std::vector<AABB> &fABs,
+int AsczBvh::buildBvh(
+    VecNode &nodes, std::vector<int> &fIdxs,
+    const std::vector<float> &min_x, const std::vector<float> &min_y, const std::vector<float> &min_z,
+    const std::vector<float> &max_x, const std::vector<float> &max_y, const std::vector<float> &max_z,
     const int MAX_DEPTH, const int NODE_FACES, const int BIN_COUNT
 ) {
     std::queue<int> queue;
@@ -127,17 +127,23 @@ int AsczBvh::buildBvhTest(
         float bestCost = (nLn_x * nLn_x + nLn_y * nLn_y + nLn_z * nLn_z) * nF;
 
         for (int a = 0; a < 3; ++a) {
+            bool ax = a == 0;
+            bool ay = a == 1;
+            bool az = a == 2;
+
             std::sort(std::execution::par,
             fIdxs.begin() + nd.ll, fIdxs.begin() + nd.lr,
             [&](int i1, int i2) {
-                return fABs[i1].cent()[a] < fABs[i2].cent()[a];
+                return  (min_x[i1] < min_x[i2]) * ax +
+                        (min_y[i1] < min_y[i2]) * ay +
+                        (min_z[i1] < min_z[i2]) * az;
             });
 
             for (int b = 0; b < BIN_COUNT; ++b) {
                 DevNode cl, cr;
 
-                float s1 = nd.min_x * (a == 0) + nd.min_y * (a == 1) + nd.min_z * (a == 2);
-                float s2 = nLn_x * (a == 0) + nLn_y * (a == 1) + nLn_z * (a == 2);
+                float s1 = nd.min_x * ax + nd.min_y * ay + nd.min_z * az;
+                float s2 = nLn_x * ax + nLn_y * ay + nLn_z * az;
                 float splitPoint = s1 + s2 * (b + 1) / BIN_COUNT;
 
                 int splitIdx = nd.ll;
@@ -145,27 +151,28 @@ int AsczBvh::buildBvhTest(
                 for (int g = nd.ll; g < nd.lr; ++g) {
                     int i = fIdxs[g];
 
-                    float cent = fABs[i].cent()[a];
+                    float cent = (min_x[i] + max_x[i]) * ax + (min_y[i] + max_y[i]) * ay + (min_z[i] + max_z[i]) * az;
+                    cent *= 0.5f;
 
                     if (cent < splitPoint) {
-                        cl.min_x = fminf(cl.min_x, fABs[i].min.x);
-                        cl.min_y = fminf(cl.min_y, fABs[i].min.y);
-                        cl.min_z = fminf(cl.min_z, fABs[i].min.z);
+                        cl.min_x = fminf(cl.min_x, min_x[i]);
+                        cl.min_y = fminf(cl.min_y, min_y[i]);
+                        cl.min_z = fminf(cl.min_z, min_z[i]);
 
-                        cl.max_x = fmaxf(cl.max_x, fABs[i].max.x);
-                        cl.max_y = fmaxf(cl.max_y, fABs[i].max.y);
-                        cl.max_z = fmaxf(cl.max_z, fABs[i].max.z);
+                        cl.max_x = fmaxf(cl.max_x, max_x[i]);
+                        cl.max_y = fmaxf(cl.max_y, max_y[i]);
+                        cl.max_z = fmaxf(cl.max_z, max_z[i]);
 
                         splitIdx++;
                     }
                     else {
-                        cr.min_x = fminf(cr.min_x, fABs[i].min.x);
-                        cr.min_y = fminf(cr.min_y, fABs[i].min.y);
-                        cr.min_z = fminf(cr.min_z, fABs[i].min.z);
+                        cr.min_x = fminf(cr.min_x, min_x[i]);
+                        cr.min_y = fminf(cr.min_y, min_y[i]);
+                        cr.min_z = fminf(cr.min_z, min_z[i]);
 
-                        cr.max_x = fmaxf(cr.max_x, fABs[i].max.x);
-                        cr.max_y = fmaxf(cr.max_y, fABs[i].max.y);
-                        cr.max_z = fmaxf(cr.max_z, fABs[i].max.z);
+                        cr.max_x = fmaxf(cr.max_x, max_x[i]);
+                        cr.max_y = fmaxf(cr.max_y, max_y[i]);
+                        cr.max_z = fmaxf(cr.max_z, max_z[i]);
                     }
                 }
 
@@ -204,7 +211,17 @@ int AsczBvh::buildBvhTest(
         std::sort(std::execution::par,
         fIdxs.begin() + nd.ll, fIdxs.begin() + nd.lr,
         [&](int i1, int i2) {
-            return fABs[i1].cent()[bestAxis] < fABs[i2].cent()[bestAxis];
+            // return fABs[i1].cent()[bestAxis] < fABs[i2].cent()[bestAxis];
+
+            float c1 =  (min_x[i1] + max_x[i1]) * (bestAxis == 0) +
+                        (min_y[i1] + max_y[i1]) * (bestAxis == 1) +
+                        (min_z[i1] + max_z[i1]) * (bestAxis == 2);
+
+            float c2 =  (min_x[i2] + max_x[i2]) * (bestAxis == 0) +
+                        (min_y[i2] + max_y[i2]) * (bestAxis == 1) +
+                        (min_z[i2] + max_z[i2]) * (bestAxis == 2);
+
+            return c1 < c2;
         });
 
         // Create left and right node

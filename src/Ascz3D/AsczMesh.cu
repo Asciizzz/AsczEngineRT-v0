@@ -32,32 +32,26 @@ void AsczMesh::append(MeshStruct mesh) {
     OrSO.push_back(SOrF.size());
     oNum++;
 
-    GlbAB.expand(mesh.O_AB);
-    O_AB.push_back(mesh.O_AB);
-    SO_AB.insert(SO_AB.end(), mesh.SO_AB.begin(), mesh.SO_AB.end());
+    // Update global AABB
+    GLB_min_x = fminf(GLB_min_x, mesh.O_AB_min_x);
+    GLB_min_y = fminf(GLB_min_y, mesh.O_AB_min_y);
+    GLB_min_z = fminf(GLB_min_z, mesh.O_AB_min_z);
+    GLB_max_x = fmaxf(GLB_max_x, mesh.O_AB_max_x);
+    GLB_max_y = fmaxf(GLB_max_y, mesh.O_AB_max_y);
+    GLB_max_z = fmaxf(GLB_max_z, mesh.O_AB_max_z);
 
     int vPrev = h_vx.size();
     int nPrev = h_nx.size();
     int tPrev = h_tx.size();
 
-    // Appending vertices, normals, and textures
-    #pragma omp parallel
-    for (int i = 0; i < mesh.v.size(); ++i) {
-        h_vx.push_back(mesh.v[i].x);
-        h_vy.push_back(mesh.v[i].y);
-        h_vz.push_back(mesh.v[i].z);
-    }
-    #pragma omp parallel
-    for (int i = 0; i < mesh.n.size(); ++i) {
-        h_nx.push_back(mesh.n[i].x);
-        h_ny.push_back(mesh.n[i].y);
-        h_nz.push_back(mesh.n[i].z);
-    }
-    #pragma omp parallel
-    for (int i = 0; i < mesh.t.size(); ++i) {
-        h_tx.push_back(mesh.t[i].x);
-        h_ty.push_back(mesh.t[i].y);
-    }
+    h_vx.insert(h_vx.end(), mesh.vx.begin(), mesh.vx.end());
+    h_vy.insert(h_vy.end(), mesh.vy.begin(), mesh.vy.end());
+    h_vz.insert(h_vz.end(), mesh.vz.begin(), mesh.vz.end());
+    h_nx.insert(h_nx.end(), mesh.nx.begin(), mesh.nx.end());
+    h_ny.insert(h_ny.end(), mesh.ny.begin(), mesh.ny.end());
+    h_nz.insert(h_nz.end(), mesh.nz.begin(), mesh.nz.end());
+    h_tx.insert(h_tx.end(), mesh.tx.begin(), mesh.tx.end());
+    h_ty.insert(h_ty.end(), mesh.ty.begin(), mesh.ty.end());
 
     // Append light sources and offset
     #pragma omp parallel
@@ -66,40 +60,43 @@ void AsczMesh::append(MeshStruct mesh) {
     }
 
     #pragma omp parallel for
-    for (int i = 0; i < mesh.fv.size(); ++i) {
+    for (int i = 0; i < mesh.fv0.size(); ++i) {
         // Offset the indices and append
-        h_fv0.push_back(mesh.fv[i].x + vPrev);
-        h_fv1.push_back(mesh.fv[i].y + vPrev);
-        h_fv2.push_back(mesh.fv[i].z + vPrev);
+        h_fv0.push_back(mesh.fv0[i] + vPrev);
+        h_fv1.push_back(mesh.fv1[i] + vPrev);
+        h_fv2.push_back(mesh.fv2[i] + vPrev);
 
-        bool hasN = mesh.fn[i].x != -1;
+        bool hasN = mesh.fn0[i] != -1;
         int offsetN = nPrev * hasN + !hasN;
-        h_fn0.push_back(mesh.fn[i].x + offsetN);
-        h_fn1.push_back(mesh.fn[i].y + offsetN);
-        h_fn2.push_back(mesh.fn[i].z + offsetN);
+        h_fn0.push_back(mesh.fn0[i] + offsetN);
+        h_fn1.push_back(mesh.fn1[i] + offsetN);
+        h_fn2.push_back(mesh.fn2[i] + offsetN);
 
-        bool hasT = mesh.ft[i].x != -1;
+        bool hasT = mesh.ft0[i] != -1;
         int offsetT = tPrev * hasT + !hasT;
-        h_ft0.push_back(mesh.ft[i].x + offsetT);
-        h_ft1.push_back(mesh.ft[i].y + offsetT);
-        h_ft2.push_back(mesh.ft[i].z + offsetT);
+        h_ft0.push_back(mesh.ft0[i] + offsetT);
+        h_ft1.push_back(mesh.ft1[i] + offsetT);
+        h_ft2.push_back(mesh.ft2[i] + offsetT);
 
         h_fm .push_back(mesh.fm[i]);
 
-        // Get the geometry AABB
-        AABB ab;
-        ab.expand({ h_vx[h_fv0.back()], h_vy[h_fv0.back()], h_vz[h_fv0.back()] }); 
-        ab.expand({ h_vx[h_fv1.back()], h_vy[h_fv1.back()], h_vz[h_fv1.back()] });
-        ab.expand({ h_vx[h_fv2.back()], h_vy[h_fv2.back()], h_vz[h_fv2.back()] });
+        int fv0 = h_fv0.back();
+        int fv1 = h_fv1.back();
+        int fv2 = h_fv2.back();
 
-        G_AB.push_back(ab);
+        AB_min_x.push_back(fminf(h_vx[fv0], fminf(h_vx[fv1], h_vx[fv2])));
+        AB_min_y.push_back(fminf(h_vy[fv0], fminf(h_vy[fv1], h_vy[fv2])));
+        AB_min_z.push_back(fminf(h_vz[fv0], fminf(h_vz[fv1], h_vz[fv2])));
+        AB_max_x.push_back(fmaxf(h_vx[fv0], fmaxf(h_vx[fv1], h_vx[fv2])));
+        AB_max_y.push_back(fmaxf(h_vy[fv0], fmaxf(h_vy[fv1], h_vy[fv2])));
+        AB_max_z.push_back(fmaxf(h_vz[fv0], fmaxf(h_vz[fv1], h_vz[fv2])));
     }
 
     vNum = h_vx.size();
     tNum = h_tx.size();
     nNum = h_nx.size();
 
-    gNum = h_fv0.size();
+    fNum = h_fv0.size();
     lNum = h_lsrc.size();
 }
 

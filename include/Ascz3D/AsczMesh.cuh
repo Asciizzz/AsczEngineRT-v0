@@ -78,20 +78,25 @@ struct AABB {
 };
 
 struct MeshStruct {
-    std::vector<Flt3> v;
-    std::vector<Flt3> n;
-    std::vector<Flt2> t;
+    std::vector<float> vx, vy, vz;
+    std::vector<float> nx, ny, nz;
+    std::vector<float> tx, ty;
 
-    std::vector<Int3> fv;
-    std::vector<Int3> fn;
-    std::vector<Int3> ft;
+    std::vector<int> fv0, fv1, fv2; // Face vertices
+    std::vector<int> fn0, fn1, fn2; // Face normals
+    std::vector<int> ft0, ft1, ft2; // Face textures
 
     std::vector<int>  fm; // Face materials
     std::vector<int>  lsrc; // Light sources
     std::vector<int>  SOrF; // Sub-objects
 
-    AABB O_AB; // Object AABB
-    std::vector<AABB> SO_AB; // Sub-objects AABB
+    // Object AABB
+    float O_AB_min_x = INFINITY, O_AB_min_y = INFINITY, O_AB_min_z = INFINITY;
+    float O_AB_max_x = -INFINITY, O_AB_max_y = -INFINITY, O_AB_max_z = -INFINITY;
+
+    // Sub-objects AABB
+    std::vector<float> SO_AB_min_x, SO_AB_min_y, SO_AB_min_z;
+    std::vector<float> SO_AB_max_x, SO_AB_max_y, SO_AB_max_z;
 };
 
 class AsczMesh {
@@ -115,10 +120,10 @@ public:
     std::vector<int>  OrSO = {0}; // Object references sub-objects
     std::vector<int>  SOrF = {0}; // Sub-object references faces
 
-    AABB GlbAB; // Global AABB
-    std::vector<AABB> O_AB; // Objects AABB
-    std::vector<AABB> SO_AB; // Sub-objects AABB
-    std::vector<AABB> G_AB; // Geoms AABB
+    float GLB_min_x = INFINITY, GLB_min_y = INFINITY, GLB_min_z = INFINITY;
+    float GLB_max_x = -INFINITY, GLB_max_y = -INFINITY, GLB_max_z = -INFINITY;
+    std::vector<float> AB_min_x, AB_min_y, AB_min_z;
+    std::vector<float> AB_max_x, AB_max_y, AB_max_z;
 
     void append(MeshStruct mesh);
 
@@ -130,7 +135,7 @@ public:
     int *d_fv0 = nullptr, *d_fv1 = nullptr, *d_fv2 = nullptr;
     int *d_fn0 = nullptr, *d_fn1 = nullptr, *d_fn2 = nullptr;
     int *d_ft0 = nullptr, *d_ft1 = nullptr, *d_ft2 = nullptr;
-    int *d_fm  = nullptr;                       int gNum = 0;
+    int *d_fm  = nullptr;                       int fNum = 0;
 
     // For multiple importance sampling
     int *d_lsrc = nullptr;                      int lNum = 0;

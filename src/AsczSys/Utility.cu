@@ -7,20 +7,19 @@ void Utils::appendObj(
     std::ifstream file(objPath);
     if (!file.is_open()) return;
 
-    std::vector<Flt3> mv;
-    std::vector<Flt2> mt;
-    std::vector<Flt3> mn;
+    // std::vector<float> mvx, mvy, mvz;
+    // std::vector<float> mnx, mny, mnz;
+    // std::vector<float> mtx, mty;
 
-    std::vector<Int3> mfv;
-    std::vector<Int3> mft;
-    std::vector<Int3> mfn;
-    std::vector<int> mfm;
-    std::vector<int> mlsrc;
+    // std::vector<int> mfv0, mfv1, mfv2;
+    // std::vector<int> mfn0, mfn1, mfn2;
+    // std::vector<int> mft0, mft1, mft2;
+    // std::vector<int> mfm;
+    // std::vector<int> mlsrc;
 
-    std::vector<int> mSOrF;
+    // std::vector<int> mSOrF;
 
-    AABB mO_AB; // Object AABB
-    std::vector<AABB> mSO_AB; // Sub-objects AABB
+    MeshStruct MS;
 
     int matIdx = 0;
     bool matIsLight = false;
@@ -47,17 +46,17 @@ void Utils::appendObj(
         */
 
         if (type == "v") {
-            Flt3 v; ss >> v.x >> v.y >> v.z;
-            v.scale(0, scale);
+            float vx, vy, vz; ss >> vx >> vy >> vz;
+            vx *= scale; vy *= scale; vz *= scale;
 
-            // Rotate the vertex
-            float x = v.x, z = v.z;
-            v.x = x * cos(yaw) - z * sin(yaw);
-            v.z = x * sin(yaw) + z * cos(yaw);
+            float x = vx, z = vz;
+            vx = x * cos(yaw) - z * sin(yaw);
+            vz = x * sin(yaw) + z * cos(yaw);
 
-            v += trans;
+            MS.vx.push_back(vx + trans.x);
+            MS.vy.push_back(vy + trans.y);
+            MS.vz.push_back(vz + trans.z);
 
-            mv.push_back(v);
             continue;
         }
         else if (type == "f") {
@@ -81,49 +80,81 @@ void Utils::appendObj(
                     ss2.ignore(1); ss2 >> n; // Read normal index
                 } else n = 0;
 
-                vs.push_back(v < 0 ? mv.size() + v : v - 1);
-                ts.push_back(t < 0 ? mt.size() + t : t - 1);
-                ns.push_back(n < 0 ? mn.size() + n : n - 1);
+                vs.push_back(v < 0 ? MS.vx.size() + v : v - 1);
+                ts.push_back(t < 0 ? MS.tx.size() + t : t - 1);
+                ns.push_back(n < 0 ? MS.nx.size() + n : n - 1);
             }
 
             // Triangulate the face
             for (int i = 1; i < vs.size() - 1; ++i) {
-                if (matIsLight) mlsrc.push_back(mfv.size());
+                if (matIsLight) MS.lsrc.push_back(MS.fv0.size());
 
-                mfv.push_back(Int3(vs[0], vs[i], vs[i + 1]));
-                mft.push_back(Int3(ts[0], ts[i], ts[i + 1]));
-                mfn.push_back(Int3(ns[0], ns[i], ns[i + 1]));
+                MS.fv0.push_back(vs[0]);
+                MS.fv1.push_back(vs[i]);
+                MS.fv2.push_back(vs[i + 1]);
 
-                mfm.push_back(matIdx);
+                MS.ft0.push_back(ts[0]);
+                MS.ft1.push_back(ts[i]);
+                MS.ft2.push_back(ts[i + 1]);
+
+                MS.fn0.push_back(ns[0]);
+                MS.fn1.push_back(ns[i]);
+                MS.fn2.push_back(ns[i + 1]);
+
+                MS.fm.push_back(matIdx);
             }
 
             // Expand the AABB  
             for (int i = 0; i < vs.size(); ++i) {
-                mO_AB.expand(mv[vs[i]]);
-                mSO_AB.back().expand(mv[vs[i]]);
+                MS.O_AB_min_x = fminf(MS.O_AB_min_x, MS.vx[vs[i]]);
+                MS.O_AB_min_y = fminf(MS.O_AB_min_y, MS.vy[vs[i]]);
+                MS.O_AB_min_z = fminf(MS.O_AB_min_z, MS.vz[vs[i]]);
+                MS.O_AB_max_x = fmaxf(MS.O_AB_max_x, MS.vx[vs[i]]);
+                MS.O_AB_max_y = fmaxf(MS.O_AB_max_y, MS.vy[vs[i]]);
+                MS.O_AB_max_z = fmaxf(MS.O_AB_max_z, MS.vz[vs[i]]);
+
+                MS.SO_AB_min_x.back() = fminf(MS.SO_AB_min_x.back(), MS.vx[vs[i]]);
+                MS.SO_AB_min_y.back() = fminf(MS.SO_AB_min_y.back(), MS.vy[vs[i]]);
+                MS.SO_AB_min_z.back() = fminf(MS.SO_AB_min_z.back(), MS.vz[vs[i]]);
+                MS.SO_AB_max_x.back() = fmaxf(MS.SO_AB_max_x.back(), MS.vx[vs[i]]);
+                MS.SO_AB_max_y.back() = fmaxf(MS.SO_AB_max_y.back(), MS.vy[vs[i]]);
+                MS.SO_AB_max_z.back() = fmaxf(MS.SO_AB_max_z.back(), MS.vz[vs[i]]);
             }
             continue;
         }
 
         else if (type == "vt") {
-            Flt2 t; ss >> t.x >> t.y;
-            mt.push_back(t);continue;
+            float tx, ty; ss >> tx >> ty;
+            MS.tx.push_back(tx);
+            MS.ty.push_back(ty);
+            continue;
         }
 
         else if (type == "vn") {
-            Flt3 n; ss >> n.x >> n.y >> n.z;
+            float nx, ny, nz; ss >> nx >> ny >> nz;
 
             // Rotate the normal
-            float x = n.x, z = n.z;
-            n.x = x * cos(yaw) - z * sin(yaw);
-            n.z = x * sin(yaw) + z * cos(yaw);
+            float x = nx, z = nz;
+            nx = x * cos(yaw) - z * sin(yaw);
+            nz = x * sin(yaw) + z * cos(yaw);
 
-            mn.push_back(n.norm());continue;
+            float nm = sqrtf(nx * nx + ny * ny + nz * nz);
+
+            MS.nx.push_back(nx / nm);
+            MS.ny.push_back(ny / nm);
+            MS.nz.push_back(nz / nm);
+            continue;
         }
 
         else if (type == "o" || type == "g") {
-            mSOrF.push_back(mfv.size());
-            mSO_AB.push_back(AABB());continue;
+            MS.SOrF.push_back(MS.fv0.size());
+            MS.SO_AB_min_x.push_back(INFINITY);
+            MS.SO_AB_min_y.push_back(INFINITY);
+            MS.SO_AB_min_z.push_back(INFINITY);
+            MS.SO_AB_max_x.push_back(-INFINITY);
+            MS.SO_AB_max_y.push_back(-INFINITY);
+            MS.SO_AB_max_z.push_back(-INFINITY);
+            continue;
         }
 
         else if (type == "usemtl" || type == "AzMtl") {
@@ -226,55 +257,47 @@ void Utils::appendObj(
             continue;
         }
     }
-    mSOrF.push_back(mfv.size());
-    mSOrF.erase(mSOrF.begin());
+
+    MS.SOrF.push_back(MS.fv0.size());
+    MS.SOrF.erase(MS.SOrF.begin());
 
     // ---------------------------------------------------------
 
-    Flt3 shift;
+    float shift_x = 0, shift_y = 0, shift_z = 0;
     // In the middle of the y-axis
     if (placement == 1) {
-        shift.y = (mO_AB.min.y + mO_AB.max.y) / 2;
+        shift_y = (MS.O_AB_min_y + MS.O_AB_max_y) / 2;
     }
     // On the floor
     else if (placement == 2) {
-        shift.y = mO_AB.min.y;
+        shift_y = MS.O_AB_min_y;
     }
     // On the floor and in the dead center
     else if (placement == 3) {
-        shift.y = mO_AB.min.y;
-        shift.x = (mO_AB.min.x + mO_AB.max.x) / 2;
-        shift.z = (mO_AB.min.z + mO_AB.max.z) / 2;
+        shift_y = MS.O_AB_min_y;
+        shift_x = (MS.O_AB_min_x + MS.O_AB_max_x) / 2;
+        shift_z = (MS.O_AB_min_z + MS.O_AB_max_z) / 2;
     }
 
     #pragma omp parallel for
-    for (size_t i = 0; i < mv.size(); ++i) {
-        mv[i] -= shift;
+    for (size_t i = 0; i < MS.vx.size(); ++i) {
+        MS.vx[i] -= shift_x;
+        MS.vy[i] -= shift_y;
+        MS.vz[i] -= shift_z;
     }
 
-    // Shift the AABBs
-    mO_AB.min -= shift;
-    mO_AB.max -= shift;
+    // // Shift the AABBs
 
-    for (AABB &ab : mSO_AB) {
-        ab.min -= shift;
-        ab.max -= shift;
-    }
+    MS.O_AB_min_x -= shift_x;
+    MS.O_AB_min_y -= shift_y;
+    MS.O_AB_min_z -= shift_z;
+    MS.O_AB_max_x -= shift_x;
+    MS.O_AB_max_y -= shift_y;
+    MS.O_AB_max_z -= shift_z;
+
+    std::cout << "Successfully loaded " << objPath << std::endl;
 
     // ---------------------------------------------------------
 
-    MeshStruct mesh;
-    mesh.v = mv;
-    mesh.t = mt;
-    mesh.n = mn;
-    mesh.fv = mfv;
-    mesh.ft = mft;
-    mesh.fn = mfn;
-    mesh.fm = mfm;
-    mesh.lsrc = mlsrc;
-    mesh.SOrF = mSOrF;
-    mesh.O_AB = mO_AB;
-    mesh.SO_AB = mSO_AB;
-
-    MeshMgr.append(mesh);
+    MeshMgr.append(MS);
 }
