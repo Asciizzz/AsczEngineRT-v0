@@ -13,6 +13,9 @@
 #include <PathTraceSTD.cuh>
 #include <PathTraceNEE.cuh>
 
+#include <fstream>
+#include <sstream>
+
 int main() {
     // =================== Initialize FPS and Window ==============
     FpsHandler &FPS = FpsHandler::instance();
@@ -82,7 +85,7 @@ int main() {
         Utils::appendObj(
             Mesh, Mat, Txtr,
             objPath.c_str(), objPlacement,
-            objScl, objYaw, Flt3(objTx, objTy, objTz)
+            objScl, objYaw, objTx, objTy, objTz
         );
     }
 

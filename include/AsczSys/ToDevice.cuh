@@ -1,7 +1,8 @@
 #ifndef TODEVICE_CUH
 #define TODEVICE_CUH
 
-#include <Vector.cuh>
+#include <vector.cuh>
+#include <omp.h>
 
 class ToDevice {
 public:
@@ -23,16 +24,6 @@ public:
         if (size == -1) size = h.size();
         cudaMalloc(&d, size * sizeof(int));
         cudaMemcpy(d, h.data(), size * sizeof(int), cudaMemcpyHostToDevice);
-    }
-
-    static void F3(Flt3 *d, const Flt3 *h, int n) {
-        cudaMalloc(&d, n * sizeof(Flt3));
-        cudaMemcpy(d, h, n * sizeof(Flt3), cudaMemcpyHostToDevice);
-    }
-    static void F3(std::vector<Flt3> &h, Flt3 *&d, int size=-1) {
-        if (size == -1) size = h.size();
-        cudaMalloc(&d, size * sizeof(Flt3));
-        cudaMemcpy(d, h.data(), size * sizeof(Flt3), cudaMemcpyHostToDevice);
     }
 };
 

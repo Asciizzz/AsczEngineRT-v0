@@ -1,7 +1,7 @@
 #ifndef ASCZMESH_CUH
 #define ASCZMESH_CUH
 
-#include <Vector.cuh>
+#include <vector>
 
 /* OrSO and SOrF explanation:
 
@@ -41,41 +41,6 @@ To handle this, I have came up with a way to handle objects as well as their sub
     => OrSO = {0, 3, 5}
     => SOrF = Human{0, 2, 5, 9} + Animal{11, 14} = {0, 2, 5, 9, 11, 14}
 */
-
-struct AABB {
-    Flt3 min, max;
-
-    __host__ AABB(
-        Flt3 min = Flt3(INFINITY), Flt3 max = Flt3(-INFINITY)
-    ) : min(min), max(max) {}
-
-    __host__ void expandMin(const Flt3 &v) {
-        min.x = fminf(min.x, v.x);
-        min.y = fminf(min.y, v.y);
-        min.z = fminf(min.z, v.z);
-    }
-    __host__ void expandMax(const Flt3 &v) {
-        max.x = fmaxf(max.x, v.x);
-        max.y = fmaxf(max.y, v.y);
-        max.z = fmaxf(max.z, v.z);
-    }
-    __host__ void expand(const Flt3 &v) {
-        expandMin(v);
-        expandMax(v);
-    }
-    __host__ void expand(const AABB &ab) {
-        expandMin(ab.min);
-        expandMax(ab.max);
-    }
-    __host__ float getSA() const {
-        Flt3 size = max - min;
-        return size.x * size.y + size.y * size.z + size.z * size.x;
-    }
-
-    __host__ Flt3 cent() const {
-        return (min + max) * 0.5f;
-    }
-};
 
 struct MeshStruct {
     std::vector<float> vx, vy, vz;

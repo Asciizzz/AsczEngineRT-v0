@@ -194,7 +194,7 @@ __global__ void pathtraceNEEKernel(
         }
 
         if (H_Idx == -1) {
-            break;
+            // break;
             // Mess around with these values for fun
             // float3 ground = { 0.01f, 0.01f, 0.03f };
             // float3 skyHorizon = { 0.01f, 0.01f, 0.03f };

@@ -1,6 +1,5 @@
 #include <AsczMesh.cuh>
 #include <ToDevice.cuh>
-#include <omp.h>
 
 AsczMesh::~AsczMesh() {
     if (d_vx) { cudaFree(d_vx); d_vx = nullptr; }
