@@ -295,8 +295,6 @@ void Utils::appendObj(
     MS.O_AB_max_y -= shift_y;
     MS.O_AB_max_z -= shift_z;
 
-    std::cout << "Successfully loaded " << objPath << std::endl;
-
     // ---------------------------------------------------------
 
     MeshMgr.append(MS);

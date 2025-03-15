@@ -16,11 +16,11 @@ Refer to AsczMesh.cuh for detail regarding object and sub-object
 #define VecNode std::vector<DevNode>
 
 struct DevNode { // Flattened structure friendly for shader code
-    float min_x=INFINITY, min_y=INFINITY, min_z=INFINITY;
+    float min_x= INFINITY, min_y= INFINITY, min_z= INFINITY;
     float max_x=-INFINITY, max_y=-INFINITY, max_z=-INFINITY;
 
-    int cl=-1, cr=-1; // Children
-    int ll=-1, lr=-1; // Primitive
+    int cl = -1, cr = -1; // Children
+    int ll = -1, lr = -1; // Primitive
 
     int depth = 0;
 };

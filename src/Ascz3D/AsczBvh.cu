@@ -81,7 +81,6 @@ void AsczBvh::designBVH(AsczMesh &MS) {
     });
 
     buildBvh(
-        // h_nodes, h_fIdx, G_AB, MAX_DEPTH, NODE_FACES, BIN_COUNT
         h_nodes, h_fIdx,
         MS.AB_min_x, MS.AB_min_y, MS.AB_min_z,
         MS.AB_max_x, MS.AB_max_y, MS.AB_max_z,
@@ -108,6 +107,8 @@ int AsczBvh::buildBvh(
 
         int nF = nd.lr - nd.ll;
         if (nF <= NODE_FACES || nd.depth >= MAX_DEPTH) {
+            nodes[nIdx].cl = -1;
+            nodes[nIdx].cr = -1;
             continue;
         }
 
@@ -134,9 +135,14 @@ int AsczBvh::buildBvh(
             std::sort(std::execution::par,
             fIdxs.begin() + nd.ll, fIdxs.begin() + nd.lr,
             [&](int i1, int i2) {
-                return  (min_x[i1] < min_x[i2]) * ax +
-                        (min_y[i1] < min_y[i2]) * ay +
-                        (min_z[i1] < min_z[i2]) * az;
+                float c1 =  (min_x[i1] + max_x[i1]) * ax +
+                            (min_y[i1] + max_y[i1]) * ay +
+                            (min_z[i1] + max_z[i1]) * az;
+                float c2 =  (min_x[i2] + max_x[i2]) * ax +
+                            (min_y[i2] + max_y[i2]) * ay +
+                            (min_z[i2] + max_z[i2]) * az;
+
+                return c1 < c2;
             });
 
             for (int b = 0; b < BIN_COUNT; ++b) {
@@ -205,14 +211,14 @@ int AsczBvh::buildBvh(
         }
 
         if (bestAxis == -1) {
+            nodes[nIdx].cl = -1;
+            nodes[nIdx].cr = -1;
             continue;
         }
 
         std::sort(std::execution::par,
         fIdxs.begin() + nd.ll, fIdxs.begin() + nd.lr,
         [&](int i1, int i2) {
-            // return fABs[i1].cent()[bestAxis] < fABs[i2].cent()[bestAxis];
-
             float c1 =  (min_x[i1] + max_x[i1]) * (bestAxis == 0) +
                         (min_y[i1] + max_y[i1]) * (bestAxis == 1) +
                         (min_z[i1] + max_z[i1]) * (bestAxis == 2);
@@ -243,9 +249,8 @@ int AsczBvh::buildBvh(
         int rIdx = nodes.size();
         nodes.push_back(nr);
 
-        nd.cl = lIdx;
-        nd.cr = rIdx;
-        nodes[nIdx] = nd;
+        nodes[nIdx].cl = lIdx;
+        nodes[nIdx].cr = rIdx;
 
         queue.push(lIdx);
         queue.push(rIdx);
