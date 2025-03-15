@@ -222,8 +222,13 @@ int main() {
     Mat.toDevice();
     Mesh.toDevice();
 
+    auto start = std::chrono::high_resolution_clock::now();
     Bvh.designBVH(Mesh);
     Bvh.toDevice();
+    auto end = std::chrono::high_resolution_clock::now();
+    std::cout << "BVH Construction Time: " <<
+        std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
+    << "ms\n";
 
     // ========================================================================
     // ========================================================================

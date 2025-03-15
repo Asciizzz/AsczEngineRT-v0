@@ -4,6 +4,8 @@
 #include <sstream>
 #include <string>
 #include <unordered_map>
+#include <iostream>
+#include <chrono>
 
 void Utils::appendObj(
     AsczMesh &MS, AsczMat &MT, AsczTxtr &TX,
@@ -14,6 +16,11 @@ void Utils::appendObj(
     if (!file.is_open()) return;
 
     MeshStruct ms;
+
+    std::cout << "Obj " << objPath << " ... ";
+
+    // Calculate time taken to load the obj
+    auto start = std::chrono::high_resolution_clock::now();
 
     int matIdx = 0;
     bool matIsLight = false;
@@ -285,4 +292,10 @@ void Utils::appendObj(
     // ---------------------------------------------------------
 
     MS.append(ms);
+
+    // Calculate time taken to load the obj
+    auto end = std::chrono::high_resolution_clock::now();
+    std::cout << "Loaded in " <<
+        std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
+    << "ms\n";
 }

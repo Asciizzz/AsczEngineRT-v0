@@ -1,0 +1,322 @@
+Wavefront OBJ material file
+
+AzMtl Stone
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Grass_Block
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Cobblestone
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Oak_Pla
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Oak_Sapling
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Sand
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Gravel
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Oak_Log
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Oak_Leaves
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Block_of_Lapis_Lazuli
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Sandstone
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Note_Block
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Short_Grass
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Dead_Bush
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Piston
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Piston_Head
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Wool
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Poppy
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Block_of_Iron
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Double_Stone_Slab
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Stone_Slab
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl TNT
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Obsidian
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Torch
+Ke 0.901686 0.901686 0.901686
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Oak_Stairs
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Chest
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Redstone_Wire
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Crafting_Table
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Furnace
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Ladder
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Cobblestone_Stairs
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Wall_Sign
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Lever
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Iron_Door
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Oak_Pressure_Plate
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Stone_Button
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Fence
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Glowstone
+Ems 1.0 1.0 1.0 1.0
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Stained_Glass
+AlbMap Mineways2Skfb-RGBA.png
+Tr 0.7
+
+AzMtl Oak_Trapdoor
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Stone_Bri
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Iron_Bars
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Vines
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Stone_Brick_Stairs
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Nether_Brick_Stairs
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Cauldron
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Redstone_Lamp_(inactive)
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Double_Oak_Slab
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Oak_Slab
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Sandstone_Stairs
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Tripwire_Hook
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Spruce_Stairs
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Birch_Stairs
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Jungle_Stairs
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Cobblestone_Wall
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Flower_Pot
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Oak_Button
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Anvil
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Trapped_Chest
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Block_of_Redstone
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Block_of_Quartz
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Quartz_Stairs
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Colored_Terracotta
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Stained_Glass_Pane
+AlbMap Mineways2Skfb-RGBA.png
+Tr 0.7
+
+AzMtl Acacia_Stairs
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Dark_Oak_Stairs
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Iron_Trapdoor
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Sea_Lantern
+Ems 1.0 1.0 1.0 1.0
+AlbMap Mineways2Skfb-RGBA.png
+
+
+AzMtl Carpet
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Block_of_Coal
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Wall_Banner
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Spruce_Fence_Gate
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Birch_Fence_Gate
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Dark_Oak_Fence_Gate
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Spruce_Fence
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Birch_Fence
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Jungle_Fence
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Dark_Oak_Fence
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Spruce_Door
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Birch_Door
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Acacia_Door
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Dark_Oak_Door
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl End_Stone_Bri
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Bone_Block
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Yellow_Shulker_Box
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Light_Grey_Shulker_Box
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Orange_Glazed_Terracotta
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Yellow_Glazed_Terracotta
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Lime_Glazed_Terracotta
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Gray_Glazed_Terracotta
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Green_Glazed_Terracotta
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Red_Glazed_Terracotta
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Concrete
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Concrete_Powder
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Orange_Wall_Banner
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Light_Blue_Wall_Banner
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Yellow_Wall_Banner
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Lime_Wall_Banner
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Gray_Wall_Banner
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Light_Gray_Wall_Banner
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Blue_Wall_Banner
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Brown_Wall_Banner
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Green_Wall_Banner
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Red_Wall_Banner
+AlbMap Mineways2Skfb-RGBA.png
+
+AzMtl Smooth_Stone
+AlbMap Mineways2Skfb-RGBA.png
