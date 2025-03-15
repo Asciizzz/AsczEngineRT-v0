@@ -193,7 +193,6 @@ void Utils::appendObj(
                 }
                 // Albedo
                 else if (mtlType == "Kd" || mtlType == "Alb") {
-                    // Flt3 Kd; mtlSS >> Kd.x >> Kd.y >> Kd.z;
                     float alb_r, alb_g, alb_b;
                     mtlSS >> alb_r >> alb_g >> alb_b;
 
@@ -239,7 +238,6 @@ void Utils::appendObj(
                 }
                 // Emission
                 else if (mtlType == "Ke" || mtlType == "Ems") {
-                    // Flt4 Ems; mtlSS >> Ems.x >> Ems.y >> Ems.z >> Ems.w;
                     float Ems_r, Ems_g, Ems_b, Ems_i;
                     mtlSS >> Ems_r >> Ems_g >> Ems_b >> Ems_i;
                     Ems_i = Ems_i + !Ems_i; // In case the intensity is 0
@@ -286,7 +284,7 @@ void Utils::appendObj(
         MS.vz[i] -= shift_z;
     }
 
-    // // Shift the AABBs
+    // Shift the AABBs
 
     MS.O_AB_min_x -= shift_x;
     MS.O_AB_min_y -= shift_y;
