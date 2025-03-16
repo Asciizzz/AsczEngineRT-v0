@@ -32,7 +32,7 @@ __global__ void pathtraceNEEKernel(
     float R_ox  = R_cast.ox,  R_oy  = R_cast.oy,  R_oz  = R_cast.oz;  // Origin
     float R_dx  = R_cast.dx,  R_dy  = R_cast.dy,  R_dz  = R_cast.dz;  // Direction
     float R_rdx = R_cast.rdx, R_rdy = R_cast.rdy, R_rdz = R_cast.rdz; // Inverse direction
-    int RIgnore = R_cast.ignore; // Ignore face index
+    int RIgnore = -1; // Ignore face index
     // float RIor = R_cast.Ior;     // Index of refraction
 
     int nstack[MAX_NODES];
