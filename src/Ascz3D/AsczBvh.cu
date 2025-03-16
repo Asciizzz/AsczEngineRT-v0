@@ -205,12 +205,11 @@ int AsczBvh::build_q(
             continue;
         }
 
-        std::sort(std::execution::par_unseq,
-            fIdxs.begin() + nd.ll, fIdxs.begin() + nd.lr,
+        std::sort(fIdxs.begin() + nd.ll, fIdxs.begin() + nd.lr,
         [&](int i1, int i2) {
-            if (bestAxis == 0) return c_x[i1] < c_x[i2];
-            if (bestAxis == 1) return c_y[i1] < c_y[i2];
-            return c_z[i1] < c_z[i2];
+            return (c_x[i1] < c_x[i2]) * (bestAxis == 0) +
+                   (c_y[i1] < c_y[i2]) * (bestAxis == 1) +
+                   (c_z[i1] < c_z[i2]) * (bestAxis == 2);
         });
 
         // Create left and right node

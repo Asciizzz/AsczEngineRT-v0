@@ -447,13 +447,6 @@ int main() {
 
             Win.appendDebug(L"Fragments", 100, 100, 255);
 
-            // Retrieve the middle pixel color
-            unsigned int color = Frame.h_draw[Win.width * Win.height / 2 + Win.width / 2];
-            int r = (color & 0x00FF0000) >> 16;
-            int g = (color & 0x0000FF00) >> 8;
-            int b = (color & 0x000000FF);
-            Win.appendDebug(L"Color: " + std::to_wstring(r) + L", " + std::to_wstring(g) + L", " + std::to_wstring(b), 255, 255, 255, 20);
-
             if (renderMode == 0) {
                 int center = Frame.width * Frame.height / 2 + Frame.width / 2;
 
