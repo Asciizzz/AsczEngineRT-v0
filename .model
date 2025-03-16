@@ -9,6 +9,8 @@
 # .heavy/AbandonedHouse/AbandonedHouse.obj 2 1
 # .heavy/LivingRoom3/LivingRoom.obj 2 1
 
+.heavy/untitled.obj 3 1
+
 # .heavy/CitySciFi/CitySciFi.obj 2 0.1
 
 # .heavy/Road/Road.obj 2 1
@@ -46,7 +48,7 @@
 ## Abandoned Factory (or warehouse i don't really know)
 # assets/Models/Structure/Aband/Aband.obj 2 0.01
 
-# assets/Models/Cornell/Cornell.obj 2 1
+assets/Models/Cornell/Cornell.obj 2 1
 
 
 # assets/Models/Character/Shiroko/Shiroko.obj 2 1.6
