@@ -19,9 +19,9 @@ Alb 0.725 0.71 0.68
 
 
 AzMtl backWall
-Alb 0.1 0.1 0.1
-Rough 0.0
+Alb 0.8 0.8 0.8
+#Rough 0.0
 
 AzMtl light
 Alb 1 1 1
-Ems 1.0 1.0 1.0 1.0
+#Ems 1.0 1.0 1.0 1.0
