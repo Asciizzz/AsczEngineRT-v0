@@ -105,13 +105,13 @@ int main() {
 
 // ========================== PLAYGROUND ==================================
 
-/*
+//*
     // Wave generation
     MeshStruct wave;
-    float wave_start_x = -20.0f;
-    float wave_start_z = -20.0f;
-    float wave_move_x = 0.05f;
-    float wave_move_z = 0.05f;
+    float wave_start_x = -10.0f;
+    float wave_start_z = -10.0f;
+    float wave_move_x = 0.01f;
+    float wave_move_z = 0.01f;
     int wave_step_x = 200;
     int wave_step_z = 200;
 
@@ -213,7 +213,7 @@ int main() {
 
     // Append to mesh
     Mesh.append(wave);
-*/
+//*/
 
     // ======================= Copy to device memory ==========================
 
@@ -222,11 +222,12 @@ int main() {
     Mat.toDevice();
     Mesh.toDevice();
 
+    std::cout << "BVH Construction ... ";
     auto start = std::chrono::high_resolution_clock::now();
     Bvh.designBVH(Mesh);
     Bvh.toDevice();
     auto end = std::chrono::high_resolution_clock::now();
-    std::cout << "BVH Construction Time: " <<
+    std::cout << "Done in " <<
         std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
     << "ms\n";
 
