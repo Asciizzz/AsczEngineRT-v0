@@ -49,7 +49,7 @@ public:
 
     void toDevice();
 
-    static int buildBvh(
+    static int build_q(
         VecNode &nodes, std::vector<int> &fIdxs,
         const float *min_x, const float *min_y, const float *min_z,
         const float *max_x, const float *max_y, const float *max_z,

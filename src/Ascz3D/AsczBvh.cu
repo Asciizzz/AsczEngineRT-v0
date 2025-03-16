@@ -80,7 +80,7 @@ void AsczBvh::designBVH(AsczMesh &MS) {
         -1, -1, 0, MS.fNum, 0
     });
 
-    buildBvh(
+    build_q(
         h_nodes, h_fIdx,
         MS.AB_min_x, MS.AB_min_y, MS.AB_min_z,
         MS.AB_max_x, MS.AB_max_y, MS.AB_max_z,
@@ -91,7 +91,7 @@ void AsczBvh::designBVH(AsczMesh &MS) {
 
 
 
-int AsczBvh::buildBvh(
+int AsczBvh::build_q(
     VecNode &nodes, std::vector<int> &fIdxs,
     const float *min_x, const float *min_y, const float *min_z,
     const float *max_x, const float *max_y, const float *max_z,
@@ -133,13 +133,6 @@ int AsczBvh::buildBvh(
             bool ax = (a == 0);
             bool ay = (a == 1);
             bool az = (a == 2);
-
-            std::sort(fIdxs.begin() + nd.ll, fIdxs.begin() + nd.lr,
-            [&](int i1, int i2) {
-                return  (c_x[i1] < c_x[i2]) * ax +
-                        (c_y[i1] < c_y[i2]) * ay +
-                        (c_z[i1] < c_z[i2]) * az;
-            });
 
             for (int b = 0; b < BIN_COUNT - 1; ++b) {
                 float lmin_x =  INFINITY, lmin_y =  INFINITY, lmin_z =  INFINITY;
@@ -212,7 +205,8 @@ int AsczBvh::buildBvh(
             continue;
         }
 
-        std::sort(fIdxs.begin() + nd.ll, fIdxs.begin() + nd.lr,
+        std::sort(std::execution::par_unseq,
+            fIdxs.begin() + nd.ll, fIdxs.begin() + nd.lr,
         [&](int i1, int i2) {
             if (bestAxis == 0) return c_x[i1] < c_x[i2];
             if (bestAxis == 1) return c_y[i1] < c_y[i2];

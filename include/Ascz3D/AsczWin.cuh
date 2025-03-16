@@ -36,6 +36,8 @@ public:
     // Scroll state
     int scroll = 0;
 
+    // Destructor
+    ~AsczWin();
     // Constructor
     AsczWin(int w, int h, std::wstring t);
     void InitWindow();
@@ -49,9 +51,6 @@ public:
 
     // Draw
     void Draw(unsigned int *draw, bool debug=true);
-
-    // Destroy Window
-    void Terminate();
 
     // 📦 Static Window Procedure
     static LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);

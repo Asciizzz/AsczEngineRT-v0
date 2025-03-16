@@ -4,6 +4,13 @@
 
 #include <string>
 
+// Destructor
+AsczWin::~AsczWin() {
+    ReleaseDC(hwnd, hdc);
+    DestroyWindow(hwnd);
+    UnregisterClass(L"Win32App", GetModuleHandle(nullptr));
+}
+
 // Constructor
 AsczWin::AsczWin(int w, int h, std::wstring t) : width(w), height(h), title(t) {
     InitWindow();
@@ -65,14 +72,6 @@ void AsczWin::Draw(unsigned int *draw, bool debug) {
         DrawTxt(hdc, 10, 10 + i * 20, debugs[i]);
     }
     debugs.clear();
-}
-
-
-// Clear everything
-void AsczWin::Terminate() {
-    ReleaseDC(hwnd, hdc);
-    DestroyWindow(hwnd);
-    UnregisterClass(L"Win32App", GetModuleHandle(nullptr));
 }
 
 

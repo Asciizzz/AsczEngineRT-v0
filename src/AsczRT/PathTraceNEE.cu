@@ -349,7 +349,7 @@ IL_: indirect light
         DL_NdotH_N = -DL_NdotH_N * (DL_NdotH_N < 0.0f) + !H_hasN;
 
     // Check for occlusion
-        ns_top = lNum > 1;
+        ns_top = lNum > 0;
         nstack[0] = 0;
 
         bool occluded = !DL_idx;
