@@ -110,8 +110,8 @@ int main() {
     MeshStruct wave;
     float wave_start_x = -10.0f;
     float wave_start_z = -10.0f;
-    float wave_move_x = 0.01f;
-    float wave_move_z = 0.01f;
+    float wave_move_x = 0.1f;
+    float wave_move_z = 0.1f;
     int wave_step_x = 200;
     int wave_step_z = 200;
 
