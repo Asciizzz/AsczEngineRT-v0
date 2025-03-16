@@ -433,7 +433,7 @@ IL_: indirect light
                 continue;
             }
 
-            for (int i = BV_pl[nidx]; i < BV_pr[nidx]; ++i) {
+            for (int i = BV_pl[nidx]; i < BV_pr[nidx] & !occluded; ++i) {
                 int fi = BV_fi[i];
 
                 bool hit = fi != RIgnore & fi != H_Idx;

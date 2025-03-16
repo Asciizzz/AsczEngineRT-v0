@@ -167,6 +167,9 @@ __global__ void raycastKernel(
 
             hit &= t > 0.0f & t < H_t;
 
+            // Remove this: a little trick used to get wireframe
+            // hit &= v < 0.01f | w < 0.01f | u < 0.01f;
+
             H_t = t * hit + H_t * !hit;
             H_u = u * hit + H_u * !hit;
             H_v = v * hit + H_v * !hit;

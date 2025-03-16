@@ -105,7 +105,7 @@ int main() {
 
 // ========================== PLAYGROUND ==================================
 
-//*
+/*
     // Wave generation
     MeshStruct wave;
     float wave_start_x = -10.0f;
