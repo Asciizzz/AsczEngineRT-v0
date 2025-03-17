@@ -219,7 +219,7 @@ void Utils::appendObj(
                     }
 
                     auto txtrStart = std::chrono::high_resolution_clock::now();
-                    std::cout << "| | Txtr " << txtrPath << " ...\n";
+                    std::cout << "| | Txtr " << txtrPath << " ... ";
 
                     MT.h_mtls[matIdx].AlbMap = TX.appendTexture(
                         (mtlDir + txtrPath).c_str()
@@ -227,7 +227,7 @@ void Utils::appendObj(
                     txtrMap[txtrPath] = MT.h_mtls[matIdx].AlbMap;
 
                     auto txtrEnd = std::chrono::high_resolution_clock::now();
-                    std::cout << "| | Loaded in " << timeHelper(txtrStart, txtrEnd) << "\n";
+                    std::cout << "Loaded in " << timeHelper(txtrStart, txtrEnd) << "\n";
                 }
                 // Roughness
                 else if (mtlType == "Rough") {
@@ -319,5 +319,5 @@ void Utils::appendObj(
 
     // Calculate time taken to load the obj
     auto objEnd = std::chrono::high_resolution_clock::now();
-    std::cout << "Loaded in " << timeHelper(objStart, objEnd) << "\n";
+    std::cout << "Loaded in " << timeHelper(objStart, objEnd) << "\n\n";
 }
