@@ -1,7 +1,7 @@
 #ifndef ASCZMESH_CUH
 #define ASCZMESH_CUH
 
-#include <vector>
+#include <AzStruct.cuh>
 
 /* OrSO and SOrF explanation:
 
@@ -42,28 +42,6 @@ To handle this, I have came up with a way to handle objects as well as their sub
     => SOrF = Human{0, 2, 5, 9} + Animal{11, 14} = {0, 2, 5, 9, 11, 14}
 */
 
-struct MeshStruct {
-    std::vector<float> vx, vy, vz;
-    std::vector<float> nx, ny, nz;
-    std::vector<float> tx, ty;
-
-    std::vector<int> fv0, fv1, fv2; // Face vertices
-    std::vector<int> fn0, fn1, fn2; // Face normals
-    std::vector<int> ft0, ft1, ft2; // Face textures
-
-    std::vector<int> fm; // Face materials
-    std::vector<int> lsrc; // Light sources
-    // std::vector<int> SOrF; // Sub-objects
-
-    // // Object AABB
-    float O_AB_min_x = INFINITY, O_AB_min_y = INFINITY, O_AB_min_z = INFINITY;
-    float O_AB_max_x = -INFINITY, O_AB_max_y = -INFINITY, O_AB_max_z = -INFINITY;
-
-    // // Sub-objects AABB
-    // std::vector<float> SO_AB_min_x, SO_AB_min_y, SO_AB_min_z;
-    // std::vector<float> SO_AB_max_x, SO_AB_max_y, SO_AB_max_z;
-};
-
 class AsczMesh {
 public:
     ~AsczMesh();
@@ -95,7 +73,7 @@ public:
     float *AB_max_x, *AB_max_y, *AB_max_z;
     float *AB_cx,    *AB_cy,    *AB_cz;
 
-    void append(MeshStruct mesh);
+    void append(AzMesh mesh);
 
     // Device memory
     float *d_vx = nullptr, *d_vy = nullptr, *d_vz = nullptr; int vNum = 0;

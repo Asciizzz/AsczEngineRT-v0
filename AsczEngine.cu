@@ -107,7 +107,7 @@ int main() {
 
 /*
     // Wave generation
-    MeshStruct wave;
+    AzMesh wave;
     float wave_start_x = -10.0f;
     float wave_start_z = -10.0f;
     float wave_move_x = 0.1f;

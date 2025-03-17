@@ -1,13 +1,12 @@
 # .heavy/Fnaf/Fnaf1.obj 2 1
 # .heavy/Room/Room.obj 2 1
-# .heavy/Town/Town.obj 2 1
+# .heavy/Town/Town.obj 3 1
 # .heavy/Home/Home.obj 2 1
 # .heavy/Office/Office.obj 3 0.01
 # .heavy/Industry/Industry.obj 2 1
 # .heavy/Kitchen/Kitchen.obj 2 1
 # .heavy/Stronghold/Stronghold.obj 2 0.05
 # .heavy/AbandonedHouse/AbandonedHouse.obj 2 1
-# .heavy/LivingRoom3/LivingRoom.obj 2 1
 
 # .heavy/untitled.obj 3 1
 
@@ -18,7 +17,7 @@
 # .heavy/Fnaf/Light.obj 0 1
 
 ## LivingRooms
-# assets/Models/Structure/LivingRoom/LivingRoom.obj 3 1
+assets/Models/Structure/LivingRoom/LivingRoom.obj 3 1
 # assets/Models/Structure/LivingRoom/LivingRoom2.obj 3 0.4
 
 ## Street
@@ -26,9 +25,9 @@
 # .heavy/Street/Light.obj 0 1
 
 ## Bedroom
-assets/Models/Structure/Bedroom/Bedroom.obj 3 1
-assets/Models/Structure/Bedroom/Additional.obj 0 1
-assets/Models/Structure/Bedroom/Light.obj 0 1
+# assets/Models/Structure/Bedroom/Bedroom.obj 3 1
+# assets/Models/Structure/Bedroom/Additional.obj 0 1
+# assets/Models/Structure/Bedroom/Light.obj 0 1
 
 ## Bedroom2
 # assets/Models/Structure/Bedroom2/Bedroom.obj 3 1

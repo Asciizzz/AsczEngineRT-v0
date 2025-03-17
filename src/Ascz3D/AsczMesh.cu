@@ -23,7 +23,7 @@ AsczMesh::~AsczMesh() {
     if (d_fm)  { cudaFree(d_fm);  d_fm  = nullptr; }
 }
 
-void AsczMesh::append(MeshStruct mesh) {
+void AsczMesh::append(AzMesh mesh) {
     // #pragma omp parallel for
     // for (int i = 0; i < mesh.SOrF.size(); ++i) {
     //     SOrF.push_back(mesh.SOrF[i] + h_fv0.size());

@@ -1,32 +1,7 @@
 #ifndef AsczMat_CUH
 #define AsczMat_CUH
 
-#include <vector>
-#include <string>
-
-struct AzMtl {
-    float Alb_r = 1.0f;
-    float Alb_g = 1.0f;
-    float Alb_b = 1.0f;
-    int AlbMap = -1;
-
-    float Rough = 1.0f;
-    float Metal = 0.0f;
-    // 0 < metal < 1 is physically impossible but AsczEngine allow it
-    // for "dusty metal" or painted metal surfaces
-
-    float Tr = 0.0f;
-    float Ior = 1.0f;
-
-    // Emission color and intensity
-    float Ems_r = 0.0f;
-    float Ems_g = 0.0f;
-    float Ems_b = 0.0f;
-    float Ems_i = 0.0f;
-
-    // Debug values
-    bool NoShade = false;
-};
+#include <AzStruct.cuh>
 
 /* Ior lookup table
 Air: 1.000

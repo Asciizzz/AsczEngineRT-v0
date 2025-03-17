@@ -22,7 +22,7 @@ void Utils::appendObj(
     std::ifstream file(objPath);
     if (!file.is_open()) return;
 
-    MeshStruct ms;
+    AzMesh ms;
 
     std::cout << "Obj " << objPath << " ...\n";
 
