@@ -9,7 +9,7 @@ __global__ void toSoAKernel(
     float *BV_min_x, float *BV_min_y, float *BV_min_z,
     float *BV_max_x, float *BV_max_y, float *BV_max_z,
     int *pl, int *pr, bool *lf,
-    DevNode *nodes, int nNum
+    AzNode *nodes, int nNum
 ) {
     int idx = threadIdx.x + blockIdx.x * blockDim.x;
     if (idx >= nNum) return;
@@ -45,7 +45,7 @@ AsczBvh::~AsczBvh() {
 void AsczBvh::toDevice() {
     nNum = h_nodes.size();
 
-    cudaMalloc(&d_nodes, nNum * sizeof(DevNode));
+    cudaMalloc(&d_nodes, nNum * sizeof(AzNode));
     cudaMalloc(&d_min_x, nNum * sizeof(float));
     cudaMalloc(&d_min_y, nNum * sizeof(float));
     cudaMalloc(&d_min_z, nNum * sizeof(float));
@@ -56,7 +56,7 @@ void AsczBvh::toDevice() {
     cudaMalloc(&d_pr, nNum * sizeof(int));
     cudaMalloc(&d_lf, nNum * sizeof(bool));
 
-    cudaMemcpy(d_nodes, h_nodes.data(), nNum * sizeof(DevNode), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_nodes, h_nodes.data(), nNum * sizeof(AzNode), cudaMemcpyHostToDevice);
 
     toSoAKernel<<<nNum / 256 + 1, 256>>>(
         d_min_x, d_min_y, d_min_z,
@@ -92,7 +92,7 @@ void AsczBvh::designBVH(AsczMesh &MS) {
 
 
 int AsczBvh::build_q(
-    VecNode &nodes, std::vector<int> &fIdxs,
+    std::vector<AzNode> &nodes, std::vector<int> &fIdxs,
     const float *min_x, const float *min_y, const float *min_z,
     const float *max_x, const float *max_y, const float *max_z,
     const float *c_x, const float *c_y, const float *c_z,
@@ -105,7 +105,7 @@ int AsczBvh::build_q(
         int nIdx = queue.front();
         queue.pop();
 
-        DevNode nd = nodes[nIdx];
+        AzNode &nd = nodes[nIdx];
 
         int nF = nd.lr - nd.ll;
         if (nF <= NODE_FACES || nd.depth >= MAX_DEPTH) {
@@ -213,13 +213,13 @@ int AsczBvh::build_q(
         });
 
         // Create left and right node
-        DevNode nl = {
+        AzNode nl = {
             bestLab_min_x, bestLab_min_y, bestLab_min_z,
             bestLab_max_x, bestLab_max_y, bestLab_max_z,
             -1, -1, nd.ll, bestSplit, nd.depth + 1
         };
 
-        DevNode nr = {
+        AzNode nr = {
             bestRab_min_x, bestRab_min_y, bestRab_min_z,
             bestRab_max_x, bestRab_max_y, bestRab_max_z,
             -1, -1, bestSplit, nd.lr, nd.depth + 1

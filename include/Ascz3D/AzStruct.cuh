@@ -100,16 +100,6 @@ struct AzMesh {
 
         inFile.close();
     }
-
-    void print() {
-        std::cout << "vx: "; for (auto v : vx) std::cout << v << " "; std::cout << "\n";
-        std::cout << "vy: "; for (auto v : vy) std::cout << v << " "; std::cout << "\n";
-        std::cout << "vz: "; for (auto v : vz) std::cout << v << " "; std::cout << "\n";
-        std::cout << "Face Materials: "; for (auto v : fm) std::cout << v << " "; std::cout << "\n";
-        std::cout << "Light Sources: "; for (auto v : lsrc) std::cout << v << " "; std::cout << "\n";
-        std::cout << "AABB Min: (" << O_AB_min_x << ", " << O_AB_min_y << ", " << O_AB_min_z << ")\n";
-        std::cout << "AABB Max: (" << O_AB_max_x << ", " << O_AB_max_y << ", " << O_AB_max_z << ")\n";
-    }
 };
 
 struct AzMtl {
