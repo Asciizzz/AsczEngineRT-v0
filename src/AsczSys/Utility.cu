@@ -7,6 +7,13 @@
 #include <iostream>
 #include <chrono>
 
+std::string timeHelper( std::chrono::high_resolution_clock::time_point start,
+                        std::chrono::high_resolution_clock::time_point end) {
+    return std::to_string(
+        std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
+    ) + "ms";
+}
+
 void Utils::appendObj(
     AsczMesh &MS, AsczMat &MT, AsczTxtr &TX,
     const char *objPath, short placement,
@@ -17,14 +24,15 @@ void Utils::appendObj(
 
     MeshStruct ms;
 
-    std::cout << "Obj " << objPath << " ... ";
+    std::cout << "Obj " << objPath << " ...\n";
 
     // Calculate time taken to load the obj
-    auto start = std::chrono::high_resolution_clock::now();
+    auto objStart = std::chrono::high_resolution_clock::now();
 
     int matIdx = 0;
     bool matIsLight = false;
-    std::unordered_map<std::string, int> matMap;
+    std::unordered_map<std::string, int> matMap; // For reusing materials
+    std::unordered_map<std::string, int> txtrMap; // For reusing textures
 
     std::string path(objPath);
 
@@ -159,8 +167,7 @@ void Utils::appendObj(
         // }
 
         else if (type == "usemtl" || type == "AzMtl") {
-            std::string matName;
-            ss >> matName;
+            std::string matName; ss >> matName;
 
             matIdx = matMap[matName];
             matIsLight = MT.h_mtls[matIdx].Ems_i > 0;
@@ -168,8 +175,10 @@ void Utils::appendObj(
         }
 
         else if (type == "mtllib" || type == "AzmLib") {
-            std::string mtlPath;
-            ss >> mtlPath;
+            std::string mtlPath; ss >> mtlPath;
+
+            auto mtlStart = std::chrono::high_resolution_clock::now();
+            std::cout << "| Mtl " << mtlPath << " ...\n";
 
             std::string mtlDir = path.substr(0, path.find_last_of("/\\") + 1);
             std::ifstream mtlFile(mtlDir + mtlPath);
@@ -204,10 +213,21 @@ void Utils::appendObj(
                 // Albedo map
                 else if (mtlType == "map_Kd" || mtlType == "AlbMap") {
                     std::string txtrPath; mtlSS >> txtrPath;
+                    if (txtrMap.find(txtrPath) != txtrMap.end()) {
+                        MT.h_mtls[matIdx].AlbMap = txtrMap[txtrPath];
+                        continue;
+                    }
+
+                    auto txtrStart = std::chrono::high_resolution_clock::now();
+                    std::cout << "| | Txtr " << txtrPath << " ...\n";
 
                     MT.h_mtls[matIdx].AlbMap = TX.appendTexture(
                         (mtlDir + txtrPath).c_str()
                     );
+                    txtrMap[txtrPath] = MT.h_mtls[matIdx].AlbMap;
+
+                    auto txtrEnd = std::chrono::high_resolution_clock::now();
+                    std::cout << "| | Loaded in " << timeHelper(txtrStart, txtrEnd) << "\n";
                 }
                 // Roughness
                 else if (mtlType == "Rough") {
@@ -248,6 +268,10 @@ void Utils::appendObj(
                     MT.h_mtls[matIdx].NoShade = true;
                 }
             }
+
+            auto mtlEnd = std::chrono::high_resolution_clock::now();
+            std::cout << "| Loaded in " << timeHelper(mtlStart, mtlEnd) << "\n";
+
             continue;
         }
     }
@@ -294,8 +318,6 @@ void Utils::appendObj(
     MS.append(ms);
 
     // Calculate time taken to load the obj
-    auto end = std::chrono::high_resolution_clock::now();
-    std::cout << "Loaded in " <<
-        std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
-    << "ms\n";
+    auto objEnd = std::chrono::high_resolution_clock::now();
+    std::cout << "Loaded in " << timeHelper(objStart, objEnd) << "\n";
 }
