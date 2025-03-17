@@ -3,7 +3,6 @@
 #include <ToDevice.cuh>
 #include <algorithm>
 #include <execution>
-#include <omp.h>
 
 __global__ void toSoAKernel(
     float *BV_min_x, float *BV_min_y, float *BV_min_z,

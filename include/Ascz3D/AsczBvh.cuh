@@ -13,7 +13,6 @@ Refer to AsczMesh.cuh for detail regarding object and sub-object
 
 */
 
-
 class AsczBvh {
 public:
     ~AsczBvh();
