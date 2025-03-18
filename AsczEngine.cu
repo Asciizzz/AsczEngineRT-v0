@@ -95,11 +95,12 @@ int main() {
         // Convert to radians
         objYaw *= M_PI / 180.0f;
 
-        if (objType == "Create")
+        if (objType == "Create") {
             Utils::createAzb(
                 objPath.c_str(), objPlacement,
                 objScl, objYaw, objTx, objTy, objTz
             );
+        }
 
         if (objType == "Load") {
             AzObj obj = AzObj::load(objPath.c_str());

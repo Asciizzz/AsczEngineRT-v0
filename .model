@@ -1,8 +1,8 @@
 # .heavy/Fnaf/Fnaf1.obj 2 1
 # .heavy/Room/Room.obj 2 1
 
-# PREV
-# .heavy/Town/Town.obj 3 1
+# Create .heavy/Town/Town.obj 3 1
+# Load .heavy/Town/Town.azb
 
 # .heavy/Home/Home.obj 2 1
 # .heavy/Office/Office.obj 3 0.01
@@ -16,12 +16,12 @@
 # .heavy/CitySciFi/CitySciFi.obj 2 0.1
 
 ## Fnaf
-# .heavy/Fnaf/Fnaf1.obj 3 1
-# .heavy/Fnaf/Light.obj 0 1
+# Create .heavy/Fnaf/Fnaf1.obj 3 1
+Load .heavy/Fnaf/Fnaf1.azb
 
 ## LivingRooms
-# assets/Models/Structure/LivingRoom/LivingRoom.obj 3 1
-# assets/Models/Structure/LivingRoom/LivingRoom2.obj 3 0.4
+# Create assets/Models/Structure/LivingRoom/LivingRoom.obj 3 1
+# Load assets/Models/Structure/LivingRoom/LivingRoom.azb
 
 ## Street
 # .heavy/Street/Street.obj 2 0.1
@@ -50,7 +50,7 @@
 # assets/Models/Structure/Aband/Aband.obj 2 0.01
 
 # Create assets/Models/Cornell/Cornell.obj 2 1
-Load assets/Models/Cornell/Cornell.azb
+# Load assets/Models/Cornell/Cornell.azb
 
 # assets/Models/Character/Shiroko/Shiroko.obj 2 1.6
 # assets/Models/Structure/CornellBox/CornellBox.obj 2 1

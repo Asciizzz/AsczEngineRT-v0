@@ -229,6 +229,7 @@ AzObj AzObj::load(const char *path) {
     read_vec(obj.TX.w); read_vec(obj.TX.h); read_vec(obj.TX.off);
 
     file.read(reinterpret_cast<char *>(&obj.TX.size), sizeof(obj.TX.size));
+    file.read(reinterpret_cast<char *>(&obj.TX.num), sizeof(obj.TX.num));
 
     file.close();
 

@@ -32,8 +32,6 @@ AzObj Utils::createAzb(
 
     std::cout << dir << " " << name << " " << ext << "\n";
 
-
-
     AzObj OBJ;
 
     std::cout << "Obj " << objPath << " ...\n";
@@ -155,8 +153,7 @@ AzObj Utils::createAzb(
             auto mtlStart = std::chrono::high_resolution_clock::now();
             std::cout << "| Mtl " << mtlPath << " ...\n";
 
-            std::string mtlDir = path.substr(0, path.find_last_of("/\\") + 1);
-            std::ifstream mtlFile(mtlDir + mtlPath);
+            std::ifstream mtlFile(dir + mtlPath);
             if (!mtlFile.is_open()) continue;
 
             std::string mtlLine;
@@ -197,7 +194,7 @@ AzObj Utils::createAzb(
                     auto txtrStart = std::chrono::high_resolution_clock::now();
                     std::cout << "| | Txtr " << TX_name << " ... ";
 
-                    OBJ.MT.AlbMap[matIdx] = OBJ.TX.append((mtlDir + TX_name).c_str());
+                    OBJ.MT.AlbMap[matIdx] = OBJ.TX.append((dir + TX_name).c_str());
 
                     // Add to map
                     TX_map[TX_name] = OBJ.MT.AlbMap[matIdx];
