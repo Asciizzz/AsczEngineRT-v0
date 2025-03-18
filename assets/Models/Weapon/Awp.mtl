@@ -1,9 +1,0 @@
-newmtl GreenAwp
-Kd .2 .6 .2
-#refl 0.2
-
-newmtl BlackAwp
-Kd 0.2 0.2 0.2
-
-newmtl SilverAwp
-Kd 0.7 0.7 0.7
