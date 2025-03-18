@@ -11,13 +11,14 @@ __global__ void pathtraceSTDKernel(
 
     float *TX_r, float *TX_g, float *TX_b, float *TX_a,
     int *TX_w, int *TX_h, int *TX_off,
-    
+
     float *BV_min_x, float *BV_min_y, float *BV_min_z,
     float *BV_max_x, float *BV_max_y, float *BV_max_z,
     int *BV_pl, int *BV_pr, bool *BV_lf, int *BV_fi,
 
     curandState *rnd
 ) {
+/*
     int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
     if (tIdx >= frmw * frmh) return;
 
@@ -384,4 +385,5 @@ __global__ void pathtraceSTDKernel(
     frmx[tIdx] = RADI_x;
     frmy[tIdx] = RADI_y;
     frmz[tIdx] = RADI_z;
+*/
 }

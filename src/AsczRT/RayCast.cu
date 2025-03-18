@@ -6,7 +6,7 @@ __global__ void raycastKernel(
     float *MS_vx, float *MS_vy, float *MS_vz, float *MS_tx, float *MS_ty, float *MS_nx, float *MS_ny, float *MS_nz,
     int *MS_fv0, int *MS_fv1, int *MS_fv2, int *MS_ft0, int *MS_ft1, int *MS_ft2, int *MS_fn0, int *MS_fn1, int *MS_fn2, int *MS_fm,
 
-    AzMtl *mats,
+    float *MT_Alb_r, float *MT_Alb_g, float *MT_Alb_b, int *MT_AlbMap,
 
     float *TX_r, float *TX_g, float *TX_b, float *TX_a,
     int *TX_w, int *TX_h, int *TX_off,
@@ -227,7 +227,7 @@ __global__ void raycastKernel(
         return;
     }
 
-    const AzMtl &H_m = mats[MS_fm[H_Idx]];
+    int H_fm = MS_fm[H_Idx];
 
     // Texture interpolation (if available)
     int H_ft0 = MS_ft0[H_Idx], H_ft1 = MS_ft1[H_Idx], H_ft2 = MS_ft2[H_Idx];
@@ -235,7 +235,7 @@ __global__ void raycastKernel(
     float H_tv = MS_ty[H_ft0] * H_w + MS_ty[H_ft1] * H_u + MS_ty[H_ft2] * H_v;
     H_tu -= floor(H_tu); H_tv -= floor(H_tv);
 
-    int H_alb_map = H_m.AlbMap,
+    int H_alb_map = MT_AlbMap[H_fm],
         H_tw = TX_w[H_alb_map],
         H_th = TX_h[H_alb_map],
         H_toff = TX_off[H_alb_map];
@@ -244,10 +244,10 @@ __global__ void raycastKernel(
         H_ty = (int)(H_tv * H_th),
         H_tIdx = H_toff + H_ty * H_tw + H_tx;
 
-    bool H_hasT = H_m.AlbMap > 0;
-    float H_alb_r = TX_r[H_tIdx] * H_hasT + H_m.Alb_r * !H_hasT;
-    float H_alb_g = TX_g[H_tIdx] * H_hasT + H_m.Alb_g * !H_hasT;
-    float H_alb_b = TX_b[H_tIdx] * H_hasT + H_m.Alb_b * !H_hasT;
+    bool H_hasT = H_alb_map > 0;
+    float H_alb_r = TX_r[H_tIdx] * H_hasT + MT_Alb_r[H_fm] * !H_hasT;
+    float H_alb_g = TX_g[H_tIdx] * H_hasT + MT_Alb_g[H_fm] * !H_hasT;
+    float H_alb_b = TX_b[H_tIdx] * H_hasT + MT_Alb_b[H_fm] * !H_hasT;
 
     // Normal interpolation
     int H_fn0 = MS_fn0[H_Idx], H_fn1 = MS_fn1[H_Idx], H_fn2 = MS_fn2[H_Idx];
@@ -260,6 +260,10 @@ __global__ void raycastKernel(
     bool fShade = fakeShading & H_hasN;
     float H_NdotR_D = H_nx * ray.dx + H_ny * ray.dy + H_nz * ray.dz;
     H_NdotR_D = (0.4 + H_NdotR_D * H_NdotR_D * 0.6) * fShade + !fShade;
+
+    // float H_alb_r = MT_Alb_r[H_fm];
+    // float H_alb_g = MT_Alb_g[H_fm];
+    // float H_alb_b = MT_Alb_b[H_fm];
 
     frmx[tIdx] = H_alb_r * H_NdotR_D;
     frmy[tIdx] = H_alb_g * H_NdotR_D;

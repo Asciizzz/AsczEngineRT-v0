@@ -38,10 +38,6 @@ int main() {
 
     // =============== Initialize Important Managers ================
 
-    // All managers
-    AsczTxtr Txtr;
-    AsczMat Mat;
-    AsczMesh Mesh;
     AsczBvh Bvh;
     AsczCam Cam;
 
@@ -75,6 +71,8 @@ int main() {
     std::ifstream objsFile(".model");
     std::string objLine;
 
+    AzGlobal GLB;
+
     bool objStop = false;
     while (std::getline(objsFile, objLine)) {
         if (objLine.size() == 0 || objLine[0] == '#') continue;
@@ -91,17 +89,45 @@ int main() {
                 objTz = 0.0f;
         float   objYaw = 0.0f;
 
-        ss >> objPath >> objPlacement >> objScl >> objTx >> objTy >> objTz >> objYaw;
+        ss>>objPath >> objPlacement >>
+            objScl >> objTx >> objTy >> objTz >> objYaw;
 
         // Convert to radians
         objYaw *= M_PI / 180.0f;
 
-        Utils::appendObj(
-            Mesh, Mat, Txtr,
+        AzObj obj = Utils::createAzObj(
             objPath.c_str(), objPlacement,
             objScl, objYaw, objTx, objTy, objTz
         );
+
+        GLB.gulp(obj);
+
+        // Mesh.append(obj.MS);
     }
+
+    std::cout << "\nGLB:\n";
+    std::cout << "| Vertex: " << GLB.MS.v_num << "\n";
+    std::cout << "| Normal: " << GLB.MS.n_num << "\n";
+    std::cout << "| Texture: " << GLB.MS.t_num << "\n";
+    std::cout << "| Face: " << GLB.MS.f_num << "\n";
+    std::cout << "| Material: " << GLB.MT.num << "\n";
+    std::cout << "| Texture:\n";
+    std::cout << "  | Count: " << GLB.TX.num << "\n";
+    std::cout << "  | Size: " << GLB.TX.size << "\n";
+
+    std::cout << "\n";
+
+    // D_AzMesh MS;
+    // MS.copy(GLB.MS);
+
+    // D_AzMtl MT;
+    // MT.copy(GLB.MT);
+
+    // D_AzTxtr TX;
+    // TX.copy(GLB.TX);
+
+    GLB.copy();
+    GLB.computeAB();
 
 // ========================== PLAYGROUND ==================================
 
@@ -217,15 +243,13 @@ int main() {
 
     // ======================= Copy to device memory ==========================
 
-    // Copy to device memory
-    Txtr.toDevice();
-    Mat.toDevice();
-    Mesh.toDevice();
 
     std::cout << "BVH Construction ... ";
     auto start = std::chrono::high_resolution_clock::now();
-    Bvh.designBVH(Mesh);
+
+    Bvh.designBVH(GLB.MS);
     Bvh.toDevice();
+
     auto end = std::chrono::high_resolution_clock::now();
     std::cout << "Done in " <<
         std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
@@ -361,10 +385,14 @@ int main() {
             raycastKernel<<<Frame.blockCount, Frame.blockSize>>>(
                 Cam, Frame.d_fx0, Frame.d_fy0, Frame.d_fz0, Frame.width, Frame.height,
 
-                Mesh.d_vx, Mesh.d_vy, Mesh.d_vz, Mesh.d_tx, Mesh.d_ty, Mesh.d_nx, Mesh.d_ny, Mesh.d_nz,
-                Mesh.d_fv0, Mesh.d_fv1, Mesh.d_fv2, Mesh.d_ft0, Mesh.d_ft1, Mesh.d_ft2, Mesh.d_fn0, Mesh.d_fn1, Mesh.d_fn2, Mesh.d_fm,
-                Mat.d_mtls,
-                Txtr.d_tr, Txtr.d_tg, Txtr.d_tb, Txtr.d_ta, Txtr.d_tw, Txtr.d_th, Txtr.d_toff,
+                GLB.d_MS.vx, GLB.d_MS.vy, GLB.d_MS.vz, GLB.d_MS.tx, GLB.d_MS.ty, GLB.d_MS.nx, GLB.d_MS.ny, GLB.d_MS.nz,
+                GLB.d_MS.fv0, GLB.d_MS.fv1, GLB.d_MS.fv2, GLB.d_MS.ft0, GLB.d_MS.ft1, GLB.d_MS.ft2, GLB.d_MS.fn0, GLB.d_MS.fn1, GLB.d_MS.fn2, GLB.d_MS.fm,
+
+                // MT.Alb_r, MT.Alb_g, MT.Alb_b, MT.AlbMap,
+                GLB.d_MT.Alb_r, GLB.d_MT.Alb_g, GLB.d_MT.Alb_b, GLB.d_MT.AlbMap,
+
+                // TX.r, TX.g, TX.b, TX.a, TX.w, TX.h, TX.off,
+                GLB.d_TX.r, GLB.d_TX.g, GLB.d_TX.b, GLB.d_TX.a, GLB.d_TX.w, GLB.d_TX.h, GLB.d_TX.off,
 
                 Bvh.d_min_x, Bvh.d_min_y, Bvh.d_min_z, Bvh.d_max_x, Bvh.d_max_y, Bvh.d_max_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_fIdx,
 
@@ -375,49 +403,49 @@ int main() {
 
             Frame.toDraw0(false, hasCrosshair);
         } 
-        else if (renderMode == 1) {
-            pathtraceSTDKernel<<<Frame.blockCount, Frame.blockSize>>>(
-                Cam, Frame.d_fx0, Frame.d_fy0, Frame.d_fz0, Frame.width, Frame.height,
+        // else if (renderMode == 1) {
+        //     pathtraceSTDKernel<<<Frame.blockCount, Frame.blockSize>>>(
+        //         Cam, Frame.d_fx0, Frame.d_fy0, Frame.d_fz0, Frame.width, Frame.height,
 
-                Mesh.d_vx, Mesh.d_vy, Mesh.d_vz, Mesh.d_tx, Mesh.d_ty, Mesh.d_nx, Mesh.d_ny, Mesh.d_nz,
-                Mesh.d_fv0, Mesh.d_fv1, Mesh.d_fv2, Mesh.d_ft0, Mesh.d_ft1, Mesh.d_ft2, Mesh.d_fn0, Mesh.d_fn1, Mesh.d_fn2, Mesh.d_fm,
-                Mat.d_mtls, Mesh.d_lsrc, Mesh.lNum,
-                Txtr.d_tr, Txtr.d_tg, Txtr.d_tb, Txtr.d_ta, Txtr.d_tw, Txtr.d_th, Txtr.d_toff,
+        //         Mesh.d_vx, Mesh.d_vy, Mesh.d_vz, Mesh.d_tx, Mesh.d_ty, Mesh.d_nx, Mesh.d_ny, Mesh.d_nz,
+        //         Mesh.d_fv0, Mesh.d_fv1, Mesh.d_fv2, Mesh.d_ft0, Mesh.d_ft1, Mesh.d_ft2, Mesh.d_fn0, Mesh.d_fn1, Mesh.d_fn2, Mesh.d_fm,
+        //         Mat.d_mtls, Mesh.d_lsrc, Mesh.lNum,
+        //         Txtr.d_tr, Txtr.d_tg, Txtr.d_tb, Txtr.d_ta, Txtr.d_tw, Txtr.d_th, Txtr.d_toff,
 
-                Bvh.d_min_x, Bvh.d_min_y, Bvh.d_min_z, Bvh.d_max_x, Bvh.d_max_y, Bvh.d_max_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_fIdx,
+        //         Bvh.d_min_x, Bvh.d_min_y, Bvh.d_min_z, Bvh.d_max_x, Bvh.d_max_y, Bvh.d_max_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_fIdx,
 
-                Frame.d_rand
-            );
+        //         Frame.d_rand
+        //     );
 
-            if (altRender) {
-                Frame.toDraw0(true, hasCrosshair);
-            } else {
-                Frame.add0();
-                Frame.toDraw2(true);
-            }
-        }
-        else if (renderMode == 2) {
-            pathtraceNEEKernel<<<Frame.blockCount, Frame.blockSize>>>(
-                Cam, Frame.d_fx0, Frame.d_fy0, Frame.d_fz0, Frame.width, Frame.height,
+        //     if (altRender) {
+        //         Frame.toDraw0(true, hasCrosshair);
+        //     } else {
+        //         Frame.add0();
+        //         Frame.toDraw2(true);
+        //     }
+        // }
+        // else if (renderMode == 2) {
+        //     pathtraceNEEKernel<<<Frame.blockCount, Frame.blockSize>>>(
+        //         Cam, Frame.d_fx0, Frame.d_fy0, Frame.d_fz0, Frame.width, Frame.height,
 
-                Mesh.d_vx, Mesh.d_vy, Mesh.d_vz, Mesh.d_tx, Mesh.d_ty, Mesh.d_nx, Mesh.d_ny, Mesh.d_nz,
-                Mesh.d_fv0, Mesh.d_fv1, Mesh.d_fv2, Mesh.d_ft0, Mesh.d_ft1, Mesh.d_ft2, Mesh.d_fn0, Mesh.d_fn1, Mesh.d_fn2, Mesh.d_fm,
-                Mat.d_mtls, Mesh.d_lsrc, Mesh.lNum,
-                Txtr.d_tr, Txtr.d_tg, Txtr.d_tb, Txtr.d_ta, Txtr.d_tw, Txtr.d_th, Txtr.d_toff,
+        //         Mesh.d_vx, Mesh.d_vy, Mesh.d_vz, Mesh.d_tx, Mesh.d_ty, Mesh.d_nx, Mesh.d_ny, Mesh.d_nz,
+        //         Mesh.d_fv0, Mesh.d_fv1, Mesh.d_fv2, Mesh.d_ft0, Mesh.d_ft1, Mesh.d_ft2, Mesh.d_fn0, Mesh.d_fn1, Mesh.d_fn2, Mesh.d_fm,
+        //         Mat.d_mtls, Mesh.d_lsrc, Mesh.lNum,
+        //         Txtr.d_tr, Txtr.d_tg, Txtr.d_tb, Txtr.d_ta, Txtr.d_tw, Txtr.d_th, Txtr.d_toff,
 
-                Bvh.d_min_x, Bvh.d_min_y, Bvh.d_min_z, Bvh.d_max_x, Bvh.d_max_y, Bvh.d_max_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_fIdx,
+        //         Bvh.d_min_x, Bvh.d_min_y, Bvh.d_min_z, Bvh.d_max_x, Bvh.d_max_y, Bvh.d_max_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_fIdx,
 
-                Frame.d_rand
-            );
+        //         Frame.d_rand
+        //     );
 
-            if (altRender) {
-                Frame.biliFilter0();
-                Frame.toDraw0(true, hasCrosshair);
-            } else {
-                Frame.add0();
-                Frame.toDraw2(true);
-            }
-        }
+        //     if (altRender) {
+        //         Frame.biliFilter0();
+        //         Frame.toDraw0(true, hasCrosshair);
+        //     } else {
+        //         Frame.add0();
+        //         Frame.toDraw2(true);
+        //     }
+        // }
 
         if (hasDebug) {
             Win.appendDebug(L"AsczEngineRT_v0", 155, 255, 155);
@@ -440,38 +468,6 @@ int main() {
             Win.appendDebug(L"Fov: " + std::to_wstring(Cam.fov * 180 / M_PI), 255, 255, 255, 20);
             Win.appendDebug(L"Aperature: " + std::to_wstring(Cam.aperture), 255, 255, 255, 20);
             Win.appendDebug(L"FocalDist: " + std::to_wstring(Cam.focalDist), 255, 255, 255, 20);
-
-            Win.appendDebug(L"Mesh", 100, 255, 100);
-            Win.appendDebug(L"Vertices: " + std::to_wstring(Mesh.vNum), 255, 255, 255, 20);
-            Win.appendDebug(L"Faces: " + std::to_wstring(Mesh.fNum), 255, 255, 255, 20);
-            Win.appendDebug(L"Materials: " + std::to_wstring(Mat.mtlsNum), 255, 255, 255, 20);
-
-            Win.appendDebug(L"Fragments", 100, 100, 255);
-
-            if (renderMode == 0) {
-                int center = Frame.width * Frame.height / 2 + Frame.width / 2;
-
-                float depth= -1.0f;
-                int mat = -1;
-                cudaMemcpy(&depth, Frame.d_depth + center, sizeof(float), cudaMemcpyDeviceToHost);
-                cudaMemcpy(&mat, Frame.d_mat + center, sizeof(int), cudaMemcpyDeviceToHost);
-
-                if (mat > -1) {
-                    std::wstring matName = Mat.names[mat];
-                    std::wstring matPath = Mat.paths[mat];
-
-                    Win.appendDebug(L"Depth: " + std::to_wstring(depth), 255, 255, 255, 20);
-                    Win.appendDebug(L"Material:", 255, 255, 255, 20);
-                    Win.appendDebug(L"Name: " + matName, 255, 255, 255, 40);
-                    Win.appendDebug(L"Path: " + matPath, 255, 255, 255, 40);
-
-                    const AzMtl &mtl = Mat.h_mtls[mat];
-                    Win.appendDebug(L"Alb: " + std::to_wstring(mtl.Alb_r) + L", " + std::to_wstring(mtl.Alb_g) + L", " + std::to_wstring(mtl.Alb_b), 255, 255, 255, 40);
-
-                    Win.appendDebug(L"Ems: " + std::to_wstring(mtl.Ems_r) + L", " + std::to_wstring(mtl.Ems_g) + L", " + std::to_wstring(mtl.Ems_b) + L", " + std::to_wstring(mtl.Ems_i), 255, 255, 255, 40);
-                    Win.appendDebug(L"Rough: " + std::to_wstring(mtl.Rough), 255, 255, 255, 40);
-                }
-            }
         }
 
         Win.Draw(Frame.h_draw, hasDebug);

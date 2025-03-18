@@ -11,6 +11,8 @@ Glass: 1.52
 Diamond: 2.42
 */
 
+#include <string>
+
 class AsczMat {
 public:
     ~AsczMat();

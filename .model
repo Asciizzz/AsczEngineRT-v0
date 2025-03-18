@@ -25,9 +25,9 @@
 # .heavy/Street/Light.obj 0 1
 
 ## Bedroom
-assets/Models/Structure/Bedroom/Bedroom.obj 3 1
-assets/Models/Structure/Bedroom/Additional.obj 0 1
-assets/Models/Structure/Bedroom/Light.obj 0 1
+# assets/Models/Structure/Bedroom/Bedroom.obj 3 1
+# assets/Models/Structure/Bedroom/Additional.obj 0 1
+# assets/Models/Structure/Bedroom/Light.obj 0 1
 
 ## Bedroom2
 # assets/Models/Structure/Bedroom2/Bedroom.obj 3 1
@@ -45,6 +45,7 @@ assets/Models/Structure/Bedroom/Light.obj 0 1
 ## Abandoned Factory (or warehouse i don't really know)
 # assets/Models/Structure/Aband/Aband.obj 2 0.01
 
+# assets/Models/Cornell/Cornell.obj 2 1
 # assets/Models/Cornell/Cornell.obj 2 1
 
 # assets/Models/Character/Shiroko/Shiroko.obj 2 1.6
@@ -69,10 +70,12 @@ assets/Models/Structure/Bedroom/Light.obj 0 1
 # assets/Models/Structure/Other/Liminal.obj 3 1
 # assets/Models/Structure/Buildings/Ground.obj 0 50 0 2.031 0
 
-~
+
+
 
 assets/Models/Structure/Buildings/Building001.obj 2 1  50 0 40
 
+~
 assets/Models/Structure/Buildings/Building001.obj 2 1  0 0 0  -180
 assets/Models/Structure/Buildings/Building001.obj 2 1  25 0 25  90
 

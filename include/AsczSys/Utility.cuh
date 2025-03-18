@@ -13,6 +13,12 @@ public:
         float scale=1.0f, float yaw=0.0f,
         float tX=0.0f, float tY=0.0f, float tZ=0.0f
     );
+
+    // BETA
+    static AzObj createAzObj(
+        const char *objPath, short placement,
+        float scl, float yaw, float tX, float tY, float tZ
+    );
 };
 
 #endif

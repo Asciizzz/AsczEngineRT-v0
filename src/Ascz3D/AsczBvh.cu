@@ -67,23 +67,40 @@ void AsczBvh::toDevice() {
     ToDevice::I(h_fIdx, d_fIdx);
 }
 
-void AsczBvh::designBVH(AsczMesh &MS) {
+void AsczBvh::designBVH(AzMesh &MS) {
     // Initialize h_fIdx
-    h_fIdx.resize(MS.fNum);
-    #pragma omp parallel
-    for (int i = 0; i < MS.fNum; ++i) h_fIdx[i] = i;
+    h_fIdx.resize(MS.f_num);
 
-    h_nodes.push_back({
-        MS.GLB_min_x, MS.GLB_min_y, MS.GLB_min_z,
-        MS.GLB_max_x, MS.GLB_max_y, MS.GLB_max_z,
-        -1, -1, 0, MS.fNum, 0
-    });
+    AzNode root = {
+        INFINITY, INFINITY, INFINITY,
+        -INFINITY, -INFINITY, -INFINITY,
+        -1, -1, 0, MS.f_num, 0
+    };
+
+    #pragma omp parallel
+    for (int i = 0; i < MS.f_num; ++i) {
+        h_fIdx[i] = i;
+
+        // Compute AABB
+        float min_x = MS.min_x[i], min_y = MS.min_y[i], min_z = MS.min_z[i];
+        float max_x = MS.max_x[i], max_y = MS.max_y[i], max_z = MS.max_z[i];
+
+        root.min_x = fminf(root.min_x, min_x);
+        root.min_y = fminf(root.min_y, min_y);
+        root.min_z = fminf(root.min_z, min_z);
+
+        root.max_x = fmaxf(root.max_x, max_x);
+        root.max_y = fmaxf(root.max_y, max_y);
+        root.max_z = fmaxf(root.max_z, max_z);
+    }
+
+    h_nodes.push_back(root);
 
     build_q(
         h_nodes, h_fIdx,
-        MS.AB_min_x, MS.AB_min_y, MS.AB_min_z,
-        MS.AB_max_x, MS.AB_max_y, MS.AB_max_z,
-        MS.AB_cx, MS.AB_cy, MS.AB_cz,
+        MS.min_x, MS.min_y, MS.min_z,
+        MS.max_x, MS.max_y, MS.max_z,
+        MS.fcx, MS.fcy, MS.fcz,
         MAX_DEPTH, NODE_FACES, BIN_COUNT
     );
 }

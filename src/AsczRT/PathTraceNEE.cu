@@ -18,6 +18,7 @@ __global__ void pathtraceNEEKernel(
 
     curandState *rnd
 ) {
+/*
     int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
     if (tIdx >= frmw * frmh) return;
 
@@ -240,14 +241,6 @@ __global__ void pathtraceNEEKernel(
 
             break;
         }
-
-/* Guide:
-
-H_: hit point
-DL_: direct light
-IL_: indirect light
-
-*/
 
         // Get the face material
         const AzMtl &H_m = mats[MS_fm[H_Idx]];
@@ -599,4 +592,5 @@ IL_: indirect light
     frmx[tIdx] = RADI_x;
     frmy[tIdx] = RADI_y;
     frmz[tIdx] = RADI_z;
+*/
 }

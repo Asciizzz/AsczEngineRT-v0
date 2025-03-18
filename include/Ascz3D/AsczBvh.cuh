@@ -1,7 +1,7 @@
 #ifndef ASCZBVH_CUH
 #define ASCZBVH_CUH
 
-#include <AsczMesh.cuh>
+#include <AzStruct.cuh>
 
 /* 3 Level of BVH construction
 
@@ -12,6 +12,16 @@ Lvl 3: Sub-objectwise BVH, split faces
 Refer to AsczMesh.cuh for detail regarding object and sub-object
 
 */
+
+struct AzNode { // Flattened structure friendly for shader code
+    float min_x= INFINITY, min_y= INFINITY, min_z= INFINITY;
+    float max_x=-INFINITY, max_y=-INFINITY, max_z=-INFINITY;
+
+    int cl = -1, cr = -1; // Children
+    int ll = -1, lr = -1; // Primitive
+
+    int depth = 0;
+};
 
 class AsczBvh {
 public:
@@ -45,7 +55,7 @@ public:
     );
 
 
-    void designBVH(AsczMesh &meshMgr);
+    void designBVH(AzMesh &MS);
 };
 
 #endif

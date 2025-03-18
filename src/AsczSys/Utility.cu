@@ -19,55 +19,54 @@ void Utils::appendObj(
     const char *objPath, short placement,
     float scale, float yaw, float tX, float tY, float tZ
 ) {
-    std::ifstream file(objPath);
-    if (!file.is_open()) return;
+    // Do nothing for the time being
+}
 
-    AzMesh ms;
+AzObj Utils::createAzObj(
+    const char *objPath, short placement,
+    float scl, float yaw, float tX, float tY, float tZ
+) {
+    std::ifstream file(objPath);
+    if (!file.is_open()) return AzObj();
+
+    AzObj OBJ;
 
     std::cout << "Obj " << objPath << " ...\n";
-
-    // Calculate time taken to load the obj
     auto objStart = std::chrono::high_resolution_clock::now();
 
-    int matIdx = 0;
-    bool matIsLight = false;
-    std::unordered_map<std::string, int> matMap; // For reusing materials
-    std::unordered_map<std::string, int> txtrMap; // For reusing textures
+    int matIdx = -1;
+    bool matLight = false;
+
+    // To avoid duplicate textures and materials
+    // as well as to keep track of their indices
+    std::unordered_map<std::string, int> TX_map;
+    std::unordered_map<std::string, int> MT_map;
 
     std::string path(objPath);
 
     std::string line;
+
     while (std::getline(file, line)) {
         if (line.size() == 0 || line[0] == '#') continue;
 
         std::stringstream ss(line);
         std::string type; ss >> type;
 
-        // The datatype has been sorted by their frequency
-        /* Ranking:
-            * v: 1 - most frequent
-            * f: 2 - very frequent
-            * vt: 3 - quite frequent
-            * vn: 4 - quite frequent
-            * o: 5 - not so frequent
-            * usemtl: 6 - not so frequent
-            * mtllib: 7 - only once
-        */
-
         if (type == "v") {
             float vx, vy, vz; ss >> vx >> vy >> vz;
-            vx *= scale; vy *= scale; vz *= scale;
+            vx *= scl; vy *= scl; vz *= scl;
 
             float x = vx, z = vz;
             vx = x * cos(yaw) - z * sin(yaw);
             vz = x * sin(yaw) + z * cos(yaw);
 
-            ms.vx.push_back(vx + tX);
-            ms.vy.push_back(vy + tY);
-            ms.vz.push_back(vz + tZ);
+            OBJ.MS.vx.push_back(vx + tX);
+            OBJ.MS.vy.push_back(vy + tY);
+            OBJ.MS.vz.push_back(vz + tZ);
 
             continue;
         }
+
         else if (type == "f") {
             std::vector<int> vs, ts, ns;
             while (ss.good()) {
@@ -89,53 +88,37 @@ void Utils::appendObj(
                     ss2.ignore(1); ss2 >> n; // Read normal index
                 } else n = 0;
 
-                vs.push_back(v < 0 ? ms.vx.size() + v : v - 1);
-                ts.push_back(t < 0 ? ms.tx.size() + t : t - 1);
-                ns.push_back(n < 0 ? ms.nx.size() + n : n - 1);
+                vs.push_back(v < 0 ? OBJ.MS.vx.size() + v : v - 1);
+                ts.push_back(t < 0 ? OBJ.MS.tx.size() + t : t - 1);
+                ns.push_back(n < 0 ? OBJ.MS.nx.size() + n : n - 1);
             }
 
             // Triangulate the face
             for (int i = 1; i < vs.size() - 1; ++i) {
-                if (matIsLight) ms.lsrc.push_back(ms.fv0.size());
+                if (matLight) OBJ.MS.lsrc.push_back(OBJ.MS.fv0.size());
 
-                ms.fv0.push_back(vs[0]);
-                ms.fv1.push_back(vs[i]);
-                ms.fv2.push_back(vs[i + 1]);
+                OBJ.MS.fv0.push_back(vs[0]);
+                OBJ.MS.fv1.push_back(vs[i]);
+                OBJ.MS.fv2.push_back(vs[i + 1]);
 
-                ms.ft0.push_back(ts[0]);
-                ms.ft1.push_back(ts[i]);
-                ms.ft2.push_back(ts[i + 1]);
+                OBJ.MS.ft0.push_back(ts[0]);
+                OBJ.MS.ft1.push_back(ts[i]);
+                OBJ.MS.ft2.push_back(ts[i + 1]);
 
-                ms.fn0.push_back(ns[0]);
-                ms.fn1.push_back(ns[i]);
-                ms.fn2.push_back(ns[i + 1]);
+                OBJ.MS.fn0.push_back(ns[0]);
+                OBJ.MS.fn1.push_back(ns[i]);
+                OBJ.MS.fn2.push_back(ns[i + 1]);
 
-                ms.fm.push_back(matIdx);
+                OBJ.MS.fm.push_back(matIdx);
             }
 
-            // Expand the AABB
-            for (int i = 0; i < vs.size(); ++i) {
-                ms.O_AB_min_x = fminf(ms.O_AB_min_x, ms.vx[vs[i]]);
-                ms.O_AB_min_y = fminf(ms.O_AB_min_y, ms.vy[vs[i]]);
-                ms.O_AB_min_z = fminf(ms.O_AB_min_z, ms.vz[vs[i]]);
-                ms.O_AB_max_x = fmaxf(ms.O_AB_max_x, ms.vx[vs[i]]);
-                ms.O_AB_max_y = fmaxf(ms.O_AB_max_y, ms.vy[vs[i]]);
-                ms.O_AB_max_z = fmaxf(ms.O_AB_max_z, ms.vz[vs[i]]);
-
-                // ms.SO_AB_min_x.back() = fminf(ms.SO_AB_min_x.back(), ms.vx[vs[i]]);
-                // ms.SO_AB_min_y.back() = fminf(ms.SO_AB_min_y.back(), ms.vy[vs[i]]);
-                // ms.SO_AB_min_z.back() = fminf(ms.SO_AB_min_z.back(), ms.vz[vs[i]]);
-                // ms.SO_AB_max_x.back() = fmaxf(ms.SO_AB_max_x.back(), ms.vx[vs[i]]);
-                // ms.SO_AB_max_y.back() = fmaxf(ms.SO_AB_max_y.back(), ms.vy[vs[i]]);
-                // ms.SO_AB_max_z.back() = fmaxf(ms.SO_AB_max_z.back(), ms.vz[vs[i]]);
-            }
             continue;
         }
 
         else if (type == "vt") {
             float tx, ty; ss >> tx >> ty;
-            ms.tx.push_back(tx);
-            ms.ty.push_back(ty);
+            OBJ.MS.tx.push_back(tx);
+            OBJ.MS.ty.push_back(ty);
             continue;
         }
 
@@ -147,30 +130,19 @@ void Utils::appendObj(
             nx = x * cos(yaw) - z * sin(yaw);
             nz = x * sin(yaw) + z * cos(yaw);
 
-            float nm = sqrtf(nx * nx + ny * ny + nz * nz);
+            float r_nm = 1 / sqrtf(nx * nx + ny * ny + nz * nz);
 
-            ms.nx.push_back(nx / nm);
-            ms.ny.push_back(ny / nm);
-            ms.nz.push_back(nz / nm);
+            OBJ.MS.nx.push_back(nx * r_nm);
+            OBJ.MS.ny.push_back(ny * r_nm);
+            OBJ.MS.nz.push_back(nz * r_nm);
             continue;
         }
-
-        // else if (type == "o" || type == "g") {
-        //     ms.SOrF.push_back(ms.fv0.size());
-        //     ms.SO_AB_min_x.push_back(INFINITY);
-        //     ms.SO_AB_min_y.push_back(INFINITY);
-        //     ms.SO_AB_min_z.push_back(INFINITY);
-        //     ms.SO_AB_max_x.push_back(-INFINITY);
-        //     ms.SO_AB_max_y.push_back(-INFINITY);
-        //     ms.SO_AB_max_z.push_back(-INFINITY);
-        //     continue;
-        // }
 
         else if (type == "usemtl" || type == "AzMtl") {
             std::string matName; ss >> matName;
 
-            matIdx = matMap[matName];
-            matIsLight = MT.h_mtls[matIdx].Ems_i > 0;
+            matIdx = MT_map[matName];
+            matLight = OBJ.MT.Ems_i[matIdx] > 0;
             continue;
         }
 
@@ -188,84 +160,72 @@ void Utils::appendObj(
             while (std::getline(mtlFile, mtlLine)) {
                 if (mtlLine.size() == 0 || mtlLine[0] == '#') continue;
 
-                std::stringstream mtlSS(mtlLine);
+                std::stringstream MTss(mtlLine);
                 std::string mtlType;
-                mtlSS >> mtlType;
+                MTss >> mtlType;
 
                 if (mtlType == "newmtl" || mtlType == "AzMtl") {
-                    std::string matName; mtlSS >> matName;
-                    std::string matPath = mtlDir;
-                    matIdx = MT.append(AzMtl(),
-                        std::wstring(matName.begin(), matName.end()), 
-                        std::wstring(mtlDir.begin(), mtlDir.end())
-                    );
-                    matMap[matName] = matIdx;
+                    std::string matName; MTss >> matName;
+
+                    if (MT_map.find(matName) != MT_map.end()) {
+                        matIdx = MT_map[matName];
+                        continue;
+                    }
+
+                    matIdx = OBJ.MT.push();
+                    MT_map[matName] = matIdx;
                 }
                 // Albedo
                 else if (mtlType == "Kd" || mtlType == "Alb") {
-                    float alb_r, alb_g, alb_b;
-                    mtlSS >> alb_r >> alb_g >> alb_b;
-
-                    MT.h_mtls[matIdx].Alb_r = alb_r;
-                    MT.h_mtls[matIdx].Alb_g = alb_g;
-                    MT.h_mtls[matIdx].Alb_b = alb_b;
+                    MTss >> OBJ.MT.Alb_r[matIdx] >>
+                            OBJ.MT.Alb_g[matIdx] >>
+                            OBJ.MT.Alb_b[matIdx];
                 }
                 // Albedo map
                 else if (mtlType == "map_Kd" || mtlType == "AlbMap") {
-                    std::string txtrPath; mtlSS >> txtrPath;
-                    if (txtrMap.find(txtrPath) != txtrMap.end()) {
-                        MT.h_mtls[matIdx].AlbMap = txtrMap[txtrPath];
+                    std::string TX_name; MTss >> TX_name;
+
+                    // Search for existing texture
+                    if (TX_map.find(TX_name) != TX_map.end()) {
+                        OBJ.MT.AlbMap[matIdx] = TX_map[TX_name];
                         continue;
                     }
 
                     auto txtrStart = std::chrono::high_resolution_clock::now();
-                    std::cout << "| | Txtr " << txtrPath << " ... ";
+                    std::cout << "| | Txtr " << TX_name << " ... ";
 
-                    MT.h_mtls[matIdx].AlbMap = TX.appendTexture(
-                        (mtlDir + txtrPath).c_str()
-                    );
-                    txtrMap[txtrPath] = MT.h_mtls[matIdx].AlbMap;
+                    OBJ.MT.AlbMap[matIdx] = OBJ.TX.append((mtlDir + TX_name).c_str());
+
+                    // Add to map
+                    TX_map[TX_name] = OBJ.MT.AlbMap[matIdx];
 
                     auto txtrEnd = std::chrono::high_resolution_clock::now();
                     std::cout << "Loaded in " << timeHelper(txtrStart, txtrEnd) << "\n";
+
+                    continue;
                 }
                 // Roughness
                 else if (mtlType == "Rough") {
-                    float Rough; mtlSS >> Rough;
-                    MT.h_mtls[matIdx].Rough = Rough;
-                }
-                else if (mtlType == "Ns") { // Outdated
-                    float Ns; mtlSS >> Ns;
-                    MT.h_mtls[matIdx].Rough = 1.0f - Ns / 1000.0f;
+                    MTss >> OBJ.MT.Rough[matIdx];
                 }
                 // Transmission
                 else if (mtlType == "Tr") {
-                    float Tr; mtlSS >> Tr;
-                    MT.h_mtls[matIdx].Tr = Tr;
+                    MTss >> OBJ.MT.Tr[matIdx];
                 }
                 else if (mtlType == "d") { // The opposite of Tr
-                    float Tr; mtlSS >> Tr;
-                    MT.h_mtls[matIdx].Tr = 1 - Tr;
+                    MTss >> OBJ.MT.Tr[matIdx];
+                    OBJ.MT.Tr[matIdx] = 1.0f - OBJ.MT.Tr[matIdx];
                 }
                 // Index of refraction
                 else if (mtlType == "Ni" || mtlType == "Ior") {
-                    float Ior; mtlSS >> Ior;
-                    MT.h_mtls[matIdx].Ior = Ior;
+                    MTss >> OBJ.MT.Ior[matIdx];
                 }
                 // Emission
                 else if (mtlType == "Ke" || mtlType == "Ems") {
-                    float Ems_r, Ems_g, Ems_b, Ems_i;
-                    mtlSS >> Ems_r >> Ems_g >> Ems_b >> Ems_i;
-                    Ems_i = Ems_i > 0 ? Ems_i : 1.0f;
-                    MT.h_mtls[matIdx].Ems_r = Ems_r;
-                    MT.h_mtls[matIdx].Ems_g = Ems_g;
-                    MT.h_mtls[matIdx].Ems_b = Ems_b;
-                    MT.h_mtls[matIdx].Ems_i = Ems_i;
-                }
-
-                // DEBUG VALUES
-                else if (mtlType == "NoShade") {
-                    MT.h_mtls[matIdx].NoShade = true;
+                    MTss >> OBJ.MT.Ems_r[matIdx] >>
+                            OBJ.MT.Ems_g[matIdx] >>
+                            OBJ.MT.Ems_b[matIdx] >>
+                            OBJ.MT.Ems_i[matIdx];
                 }
             }
 
@@ -276,48 +236,25 @@ void Utils::appendObj(
         }
     }
 
-    // ms.SOrF.push_back(ms.fv0.size());
-    // ms.SOrF.erase(ms.SOrF.begin());
+    OBJ.MS.v_num = OBJ.MS.vx.size();
+    OBJ.MS.n_num = OBJ.MS.nx.size();
+    OBJ.MS.t_num = OBJ.MS.tx.size();
+    OBJ.MS.f_num = OBJ.MS.fv0.size();
 
-    // ---------------------------------------------------------
-
-    float shift_x = 0, shift_y = 0, shift_z = 0;
-    // In the middle of the y-axis
-    if (placement == 1) {
-        shift_y = (ms.O_AB_min_y + ms.O_AB_max_y) / 2;
-    }
-    // On the floor
-    else if (placement == 2) {
-        shift_y = ms.O_AB_min_y;
-    }
-    // On the floor and in the dead center
-    else if (placement == 3) {
-        shift_y = ms.O_AB_min_y;
-        shift_x = (ms.O_AB_min_x + ms.O_AB_max_x) / 2;
-        shift_z = (ms.O_AB_min_z + ms.O_AB_max_z) / 2;
-    }
-
-    #pragma omp parallel for
-    for (size_t i = 0; i < ms.vx.size(); ++i) {
-        ms.vx[i] -= shift_x;
-        ms.vy[i] -= shift_y;
-        ms.vz[i] -= shift_z;
-    }
-
-    // Shift the AABBs
-
-    ms.O_AB_min_x -= shift_x;
-    ms.O_AB_min_y -= shift_y;
-    ms.O_AB_min_z -= shift_z;
-    ms.O_AB_max_x -= shift_x;
-    ms.O_AB_max_y -= shift_y;
-    ms.O_AB_max_z -= shift_z;
-
-    // ---------------------------------------------------------
-
-    MS.append(ms);
-
-    // Calculate time taken to load the obj
     auto objEnd = std::chrono::high_resolution_clock::now();
-    std::cout << "Loaded in " << timeHelper(objStart, objEnd) << "\n\n";
+    std::cout << "Loaded in " << timeHelper(objStart, objEnd) << "\n";
+
+    // Debug:
+    std::cout << "| Vertex: " << OBJ.MS.v_num << "\n";
+    std::cout << "| Normal: " << OBJ.MS.n_num << "\n";
+    std::cout << "| Texture: " << OBJ.MS.t_num << "\n";
+    std::cout << "| Face: " << OBJ.MS.f_num << "\n";
+    std::cout << "| Material: " << OBJ.MT.num << "\n";
+    std::cout << "| Texture:\n";
+    std::cout << "  | Count: " << OBJ.TX.num << "\n";
+    std::cout << "  | Size: " << OBJ.TX.size << "\n";
+
+    std::cout << "\n";
+
+    return OBJ;
 }
