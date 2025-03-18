@@ -17,11 +17,6 @@ struct AzMesh {
     std::vector<int> fm;
     std::vector<int> lsrc;
 
-    // Faces' AABB and faces' centroid
-    float *min_x, *min_y, *min_z;
-    float *max_x, *max_y, *max_z;
-    float *fcx, *fcy, *fcz; // Not the AABB's centroid
-
     int v_num = 0, n_num = 0, t_num = 0, f_num = 0, l_num = 0;
 };
 
@@ -109,6 +104,11 @@ struct AzGlobal {
     D_AzMesh d_MS;
     D_AzMtl d_MT;
     D_AzTxtr d_TX;
+
+    // Faces' AABB and faces' centroid
+    float *min_x, *min_y, *min_z;
+    float *max_x, *max_y, *max_z;
+    float *fcx, *fcy, *fcz; // Not the AABB's centroid
 
     AzGlobal();
     void gulp(AzObj &obj);

@@ -1,6 +1,7 @@
 #include <Utility.cuh>
 
 #include <fstream>
+#include <ostream>
 #include <sstream>
 #include <string>
 #include <unordered_map>
@@ -248,4 +249,10 @@ AzObj Utils::createAzObj(
     std::cout << "\n";
 
     return OBJ;
+}
+
+
+
+static void saveAzObj(const char *dir, const char *name, AzObj OBJ) {
+
 }

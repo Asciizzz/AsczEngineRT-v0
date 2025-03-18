@@ -10,6 +10,8 @@ public:
         const char *objPath, short placement,
         float scl, float yaw, float tX, float tY, float tZ
     );
+
+    static void saveAzObj(const char *dir, const char *name, AzObj OBJ);
 };
 
 #endif

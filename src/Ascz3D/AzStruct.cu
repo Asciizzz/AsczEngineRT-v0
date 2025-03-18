@@ -321,23 +321,23 @@ void AzGlobal::computeAB() {
     );
 
     // Copy back to host
-    MS.min_x = new float[MS.f_num];
-    MS.min_y = new float[MS.f_num];
-    MS.min_z = new float[MS.f_num];
-    MS.max_x = new float[MS.f_num];
-    MS.max_y = new float[MS.f_num];
-    MS.max_z = new float[MS.f_num];
-    MS.fcx = new float[MS.f_num];
-    MS.fcy = new float[MS.f_num];
-    MS.fcz = new float[MS.f_num];
+    min_x = new float[MS.f_num];
+    min_y = new float[MS.f_num];
+    min_z = new float[MS.f_num];
+    max_x = new float[MS.f_num];
+    max_y = new float[MS.f_num];
+    max_z = new float[MS.f_num];
+    fcx = new float[MS.f_num];
+    fcy = new float[MS.f_num];
+    fcz = new float[MS.f_num];
 
-    cudaMemcpy(MS.min_x, d_MS.min_x, MS.f_num * sizeof(float), cudaMemcpyDeviceToHost);
-    cudaMemcpy(MS.min_y, d_MS.min_y, MS.f_num * sizeof(float), cudaMemcpyDeviceToHost);
-    cudaMemcpy(MS.min_z, d_MS.min_z, MS.f_num * sizeof(float), cudaMemcpyDeviceToHost);
-    cudaMemcpy(MS.max_x, d_MS.max_x, MS.f_num * sizeof(float), cudaMemcpyDeviceToHost);
-    cudaMemcpy(MS.max_y, d_MS.max_y, MS.f_num * sizeof(float), cudaMemcpyDeviceToHost);
-    cudaMemcpy(MS.max_z, d_MS.max_z, MS.f_num * sizeof(float), cudaMemcpyDeviceToHost);
-    cudaMemcpy(MS.fcx, d_MS.fcx, MS.f_num * sizeof(float), cudaMemcpyDeviceToHost);
-    cudaMemcpy(MS.fcy, d_MS.fcy, MS.f_num * sizeof(float), cudaMemcpyDeviceToHost);
-    cudaMemcpy(MS.fcz, d_MS.fcz, MS.f_num * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(min_x, d_MS.min_x, MS.f_num * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(min_y, d_MS.min_y, MS.f_num * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(min_z, d_MS.min_z, MS.f_num * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(max_x, d_MS.max_x, MS.f_num * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(max_y, d_MS.max_y, MS.f_num * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(max_z, d_MS.max_z, MS.f_num * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(fcx, d_MS.fcx, MS.f_num * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(fcy, d_MS.fcy, MS.f_num * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(fcz, d_MS.fcz, MS.f_num * sizeof(float), cudaMemcpyDeviceToHost);
 }

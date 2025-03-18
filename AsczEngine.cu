@@ -242,7 +242,7 @@ int main() {
     std::cout << "BVH Construction ... ";
     auto start = std::chrono::high_resolution_clock::now();
 
-    Bvh.designBVH(GLB.MS);
+    Bvh.designBVH(GLB);
     Bvh.toDevice();
 
     auto end = std::chrono::high_resolution_clock::now();

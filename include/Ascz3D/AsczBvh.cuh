@@ -55,7 +55,7 @@ public:
     );
 
 
-    void designBVH(AzMesh &MS);
+    void designBVH(AzGlobal &Glb);
 };
 
 #endif
