@@ -79,6 +79,8 @@ int main() {
 
     bool objStop = false;
 
+    AzObj objs;
+    bool createMany = false;
     while (std::getline(objsFile, objLine)) {
         if (objLine.size() == 0 || objLine[0] == '#') continue;
         if (objLine[0] == '~') objStop = !objStop;
@@ -110,6 +112,27 @@ int main() {
 
             GLB.gulp(obj);
         }
+
+        if (objType == "CreateMany") {
+            createMany = true;
+            objs = AzObj();
+        }
+        if (objType == "Add" && createMany) {
+            AzObj obj = Utils::createAzb(
+                objPath.c_str(), objPlacement, false,
+                objScl, objYaw, objTx, objTy, objTz
+            );
+            objs.combine(obj);
+        }
+        if (objType == "Combine" && createMany) {
+            createMany = false;
+
+            GLB.gulp(objs);
+            AzObj::save(objs, (objPath + "combined.azb").c_str());
+
+            objs = AzObj();
+        }
+
 
         if (objType == "Load") {
             AzObj obj = AzObj::load(objPath.c_str());

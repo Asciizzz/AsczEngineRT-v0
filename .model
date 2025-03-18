@@ -10,7 +10,7 @@
 # Create .heavy/Stronghold/Stronghold.obj 2 0.05
 # Load .heavy/Stronghold/Stronghold.azb
 
-Create .heavy/AbandonedHouse/AbandonedHouse.obj 2 1
+# Create .heavy/AbandonedHouse/AbandonedHouse.obj 2 1
 # Load .heavy/AbandonedHouse/AbandonedHouse.azb
 
 # .heavy/untitled.obj 3 1
@@ -57,8 +57,12 @@ Create .heavy/AbandonedHouse/AbandonedHouse.obj 2 1
 # Create assets/Models/Cornell/Cornell.obj 2 1
 # Load assets/Models/Cornell/Cornell.azb
 
-# assets/Models/Character/Shiroko/Shiroko.obj 2 1.6
-# assets/Models/Structure/CornellBox/CornellBox.obj 2 1
+# CreateMany
+# Add assets/Models/Character/Shiroko/Shiroko.obj 2 1.6
+# Add assets/Models/Structure/CornellBox/CornellBox.obj 2 1
+# Combine assets/Combine/
+
+# Load combined.azb
 
 # assets/Models/Stanford/Bunny.obj 3 7
 # assets/Models/Structure/CornellBox/CornellBox.obj 3 1
@@ -76,7 +80,7 @@ Create .heavy/AbandonedHouse/AbandonedHouse.obj 2 1
 # assets/Models/Structure/Garden/Garden.obj 3 0.2
 
 
-# assets/Models/Structure/Other/Liminal.obj 3 1
+# Instance assets/Models/Structure/Other/Liminal.obj 3 1
 # assets/Models/Structure/Buildings/Ground.obj 0 50 0 2.031 0
 
 ~

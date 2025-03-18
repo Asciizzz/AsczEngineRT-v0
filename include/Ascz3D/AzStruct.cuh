@@ -104,6 +104,8 @@ struct AzObj {
     // Save/Load .azb file
     static void save(AzObj &Obj, const char *path);
     static AzObj load(const char *path);
+
+    void combine(AzObj &obj);
 };
 
 struct AzGlobal {

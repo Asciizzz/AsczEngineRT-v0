@@ -264,6 +264,104 @@ AzObj AzObj::load(const char *path) {
     return obj;
 }
 
+void AzObj::combine(AzObj &obj) {
+    // GET OLD COUNTS
+    int MS_v_num = MS.v_num;
+    int MS_n_num = MS.n_num;
+    int MS_t_num = MS.t_num;
+
+    int TX_size = TX.size;
+    int TX_num = TX.num;
+
+    int MT_num = MT.num;
+
+// COMBINE TEXTURES
+    TX.r.insert(TX.r.end(), obj.TX.r.begin(), obj.TX.r.end());
+    TX.g.insert(TX.g.end(), obj.TX.g.begin(), obj.TX.g.end());
+    TX.b.insert(TX.b.end(), obj.TX.b.begin(), obj.TX.b.end());
+    TX.a.insert(TX.a.end(), obj.TX.a.begin(), obj.TX.a.end());
+
+    TX.w.insert(TX.w.end(), obj.TX.w.begin(), obj.TX.w.end());
+    TX.h.insert(TX.h.end(), obj.TX.h.begin(), obj.TX.h.end());
+
+    // Offset the texture based on existing textures size
+    for (int i = 0; i < obj.TX.num; ++i) {
+        TX.off.push_back(obj.TX.off[i] + TX_size);
+    }
+
+// COMBINE MATERIALS
+    MT.Alb_r.insert(MT.Alb_r.end(), obj.MT.Alb_r.begin(), obj.MT.Alb_r.end());
+    MT.Alb_g.insert(MT.Alb_g.end(), obj.MT.Alb_g.begin(), obj.MT.Alb_g.end());
+    MT.Alb_b.insert(MT.Alb_b.end(), obj.MT.Alb_b.begin(), obj.MT.Alb_b.end());
+
+    // Offset albedo map based on existing textures size
+    for (int i = 0; i < obj.MT.num; ++i) {
+        int am = obj.MT.AlbMap[i];
+        MT.AlbMap.push_back(am > -1 ? am + TX_num : -1);
+    }
+
+    MT.Rough.insert(MT.Rough.end(), obj.MT.Rough.begin(), obj.MT.Rough.end());
+    MT.Metal.insert(MT.Metal.end(), obj.MT.Metal.begin(), obj.MT.Metal.end());
+
+    MT.Tr.insert(MT.Tr.end(), obj.MT.Tr.begin(), obj.MT.Tr.end());
+    MT.Ior.insert(MT.Ior.end(), obj.MT.Ior.begin(), obj.MT.Ior.end());
+
+    MT.Ems_r.insert(MT.Ems_r.end(), obj.MT.Ems_r.begin(), obj.MT.Ems_r.end());
+    MT.Ems_g.insert(MT.Ems_g.end(), obj.MT.Ems_g.begin(), obj.MT.Ems_g.end());
+    MT.Ems_b.insert(MT.Ems_b.end(), obj.MT.Ems_b.begin(), obj.MT.Ems_b.end());
+    MT.Ems_i.insert(MT.Ems_i.end(), obj.MT.Ems_i.begin(), obj.MT.Ems_i.end());
+
+// COMBINE MESHES
+    MS.vx.insert(MS.vx.end(), obj.MS.vx.begin(), obj.MS.vx.end());
+    MS.vy.insert(MS.vy.end(), obj.MS.vy.begin(), obj.MS.vy.end());
+    MS.vz.insert(MS.vz.end(), obj.MS.vz.begin(), obj.MS.vz.end());
+    MS.nx.insert(MS.nx.end(), obj.MS.nx.begin(), obj.MS.nx.end());
+    MS.ny.insert(MS.ny.end(), obj.MS.ny.begin(), obj.MS.ny.end());
+    MS.nz.insert(MS.nz.end(), obj.MS.nz.begin(), obj.MS.nz.end());
+    MS.tx.insert(MS.tx.end(), obj.MS.tx.begin(), obj.MS.tx.end());
+    MS.ty.insert(MS.ty.end(), obj.MS.ty.begin(), obj.MS.ty.end());
+
+    // Append light sources and offset
+    #pragma omp parallel for
+    for (int lsrc : obj.MS.lsrc) {
+        MS.lsrc.push_back(lsrc + MS.f_num);
+    }
+
+    // Append other faces data and offset
+    #pragma omp parallel for
+    for (int i = 0; i < obj.MS.f_num; ++i) {
+        MS.fv0.push_back(obj.MS.fv0[i] + MS_v_num);
+        MS.fv1.push_back(obj.MS.fv1[i] + MS_v_num);
+        MS.fv2.push_back(obj.MS.fv2[i] + MS_v_num);
+
+        bool hasN = obj.MS.fn0[i] > -1;
+        MS.fn0.push_back(hasN ? obj.MS.fn0[i] + MS_n_num : -1);
+        MS.fn1.push_back(hasN ? obj.MS.fn1[i] + MS_n_num : -1);
+        MS.fn2.push_back(hasN ? obj.MS.fn2[i] + MS_n_num : -1);
+
+        bool hasT = obj.MS.ft0[i] > -1;
+        MS.ft0.push_back(hasT ? obj.MS.ft0[i] + MS_t_num : -1);
+        MS.ft1.push_back(hasT ? obj.MS.ft1[i] + MS_t_num : -1);
+        MS.ft2.push_back(hasT ? obj.MS.ft2[i] + MS_t_num : -1);
+
+        bool hasM = obj.MS.fm[i] > -1;
+        MS.fm.push_back(hasM ? obj.MS.fm[i] + MT_num : -1);
+    }
+
+    // Update counts
+    MS.v_num = MS.vx.size();
+    MS.n_num = MS.nx.size();
+    MS.t_num = MS.tx.size();
+    MS.f_num = MS.fv0.size();
+    MS.l_num = MS.lsrc.size();
+
+    MT.num = MT.Alb_r.size();
+    TX.num = TX.w.size();
+    TX.size = TX.r.size();
+}
+
+
+
 AzGlobal::AzGlobal() {
     // Default vertex
     MS.vx.push_back(0.0f); MS.vy.push_back(0.0f); MS.vz.push_back(0.0f);
