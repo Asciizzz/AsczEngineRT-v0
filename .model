@@ -79,9 +79,11 @@
 # assets/Models/Structure/Other/Liminal.obj 3 1
 # assets/Models/Structure/Buildings/Ground.obj 0 50 0 2.031 0
 
-~
 
-assets/Models/Structure/Buildings/Building001.obj 2 1  50 0 40
+
+Create assets/Models/Structure/Buildings/Building001.obj 2 1  
+
+~
 
 assets/Models/Structure/Buildings/Building001.obj 2 1  0 0 0  -180
 assets/Models/Structure/Buildings/Building001.obj 2 1  25 0 25  90

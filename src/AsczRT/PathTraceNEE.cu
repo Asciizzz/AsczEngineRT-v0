@@ -6,9 +6,13 @@ __global__ void pathtraceNEEKernel(
 
     float *MS_vx, float *MS_vy, float *MS_vz, float *MS_tx, float *MS_ty, float *MS_nx, float *MS_ny, float *MS_nz,
     int *MS_fv0, int *MS_fv1, int *MS_fv2, int *MS_ft0, int *MS_ft1, int *MS_ft2, int *MS_fn0, int *MS_fn1, int *MS_fn2, int *MS_fm,
+    int *MS_lsrc, int MS_lnum,
 
     // AzMtl *mats, int *lsrc, int lNum,
-    
+    float *MT_alb_r, float *MT_alb_g, float *MT_alb_b, int *MT_alb_map,
+    float *MT_rough, float *MT_metal, float *MT_tr, float *MT_ior,
+    float *MT_ems_r, float *MT_ems_g, float *MT_ems_b, float *MT_ems_i,
+
     float *TX_r, float *TX_g, float *TX_b, float *TX_a,
     int *TX_w, int *TX_h, int *TX_off,
 
@@ -18,7 +22,6 @@ __global__ void pathtraceNEEKernel(
 
     curandState *rnd
 ) {
-/*
     int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
     if (tIdx >= frmw * frmh) return;
 
@@ -195,7 +198,7 @@ __global__ void pathtraceNEEKernel(
         }
 
         if (H_Idx == -1) {
-            // break;
+            break;
             // Mess around with these values for fun
             // float3 ground = { 0.01f, 0.01f, 0.03f };
             // float3 skyHorizon = { 0.01f, 0.01f, 0.03f };
@@ -242,8 +245,7 @@ __global__ void pathtraceNEEKernel(
             break;
         }
 
-        // Get the face material
-        const AzMtl &H_m = mats[MS_fm[H_Idx]];
+        int H_fm = MS_fm[H_Idx];
 
         // Vertex linear interpolation
         float H_vx = R_ox + R_dx * H_t;
@@ -256,7 +258,7 @@ __global__ void pathtraceNEEKernel(
         float H_tv = MS_ty[H_ft0] * H_w + MS_ty[H_ft1] * H_u + MS_ty[H_ft2] * H_v;
         H_tu -= floor(H_tu); H_tv -= floor(H_tv);
 
-        int H_alb_map = H_m.AlbMap,
+        int H_alb_map = MT_alb_map[H_fm],
             H_tw = TX_w[H_alb_map],
             H_th = TX_h[H_alb_map],
             H_toff = TX_off[H_alb_map];
@@ -266,9 +268,9 @@ __global__ void pathtraceNEEKernel(
             H_tIdx = H_toff + H_ty * H_tw + H_tx;
 
         bool H_hasT = H_alb_map > 0;
-        float H_alb_r = TX_r[H_tIdx] * H_hasT + H_m.Alb_r * !H_hasT;
-        float H_alb_g = TX_g[H_tIdx] * H_hasT + H_m.Alb_g * !H_hasT;
-        float H_alb_b = TX_b[H_tIdx] * H_hasT + H_m.Alb_b * !H_hasT;
+        float H_alb_r = TX_r[H_tIdx] * H_hasT + MT_alb_r[H_fm] * !H_hasT;
+        float H_alb_g = TX_g[H_tIdx] * H_hasT + MT_alb_g[H_fm] * !H_hasT;
+        float H_alb_b = TX_b[H_tIdx] * H_hasT + MT_alb_b[H_fm] * !H_hasT;
 
         // Normal interpolation
         int H_fn0 = MS_fn0[H_Idx], H_fn1 = MS_fn1[H_Idx], H_fn2 = MS_fn2[H_Idx];
@@ -280,8 +282,8 @@ __global__ void pathtraceNEEKernel(
 // =================== Direct lighting =========================
 
     // Sample random light source
-        int DL_idx = lNum ? lsrc[(int)(lNum * curand_uniform(&rnd[tIdx]))] : 0;
-        const AzMtl &DL_m = mats[MS_fm[DL_idx]];
+        int DL_idx = MS_lnum ? MS_lsrc[(int)(MS_lnum * curand_uniform(&rnd[tIdx]))] : 0;
+        int DL_fm = MS_fm[DL_idx];
 
         // Sample random point on the light source
         float DL_u = curand_uniform(&rnd[tIdx]);
@@ -303,7 +305,7 @@ __global__ void pathtraceNEEKernel(
         float DL_tu = MS_tx[DL_ft0] * DL_w + MS_tx[DL_ft1] * DL_u + MS_tx[DL_ft2] * DL_v;
         float DL_tv = MS_ty[DL_ft0] * DL_w + MS_ty[DL_ft1] * DL_u + MS_ty[DL_ft2] * DL_v;
 
-        int DL_alb_map = DL_m.AlbMap,
+        int DL_alb_map = MT_alb_map[DL_fm],
             DL_tw = TX_w[DL_alb_map],
             DL_th = TX_h[DL_alb_map],
             DL_toff = TX_off[DL_alb_map];
@@ -313,9 +315,9 @@ __global__ void pathtraceNEEKernel(
             DL_tIdx = DL_toff + DL_ty * DL_tw + DL_tx;
 
         bool DL_hasT = DL_alb_map > 0;
-        float DL_alb_r = TX_r[DL_tIdx] * DL_hasT + DL_m.Alb_r * !DL_hasT;
-        float DL_alb_g = TX_g[DL_tIdx] * DL_hasT + DL_m.Alb_g * !DL_hasT;
-        float DL_alb_b = TX_b[DL_tIdx] * DL_hasT + DL_m.Alb_b * !DL_hasT;
+        float DL_alb_r = TX_r[DL_tIdx] * DL_hasT + MT_alb_r[DL_fm] * !DL_hasT;
+        float DL_alb_g = TX_g[DL_tIdx] * DL_hasT + MT_alb_g[DL_fm] * !DL_hasT;
+        float DL_alb_b = TX_b[DL_tIdx] * DL_hasT + MT_alb_b[DL_fm] * !DL_hasT;
 
     // Sample light's direction (not normalized)
         float DL_dx = H_vx - DL_vx;
@@ -342,11 +344,11 @@ __global__ void pathtraceNEEKernel(
         DL_NdotH_N = -DL_NdotH_N * (DL_NdotH_N < 0.0f) + !H_hasN;
 
     // Check for occlusion
-        ns_top = lNum > 0;
+        ns_top = 1;
         nstack[0] = 0;
 
         bool occluded = !DL_idx;
-        while (ns_top > 0) {
+        while (ns_top > 0 && !occluded) {
             int nidx = nstack[--ns_top];
 
             // Check if the ray is outside the bounding box
@@ -481,14 +483,15 @@ __global__ void pathtraceNEEKernel(
         }
 
     // Add direct lighting
-        float RADI_i = DL_NdotH_N * DL_m.Ems_i * !occluded;
-        RADI_x += THRU_x * DL_m.Ems_r * DL_alb_r * H_alb_r * RADI_i + THRU_x * H_m.Ems_r * H_m.Ems_i * H_alb_r;
-        RADI_y += THRU_y * DL_m.Ems_g * DL_alb_g * H_alb_g * RADI_i + THRU_y * H_m.Ems_g * H_m.Ems_i * H_alb_g;
-        RADI_z += THRU_z * DL_m.Ems_b * DL_alb_b * H_alb_b * RADI_i + THRU_z * H_m.Ems_b * H_m.Ems_i * H_alb_b;
+        float RADI_i = DL_NdotH_N * MT_ems_i[DL_fm] * !occluded;
+        RADI_x += THRU_x * MT_ems_r[DL_fm] * DL_alb_r * H_alb_r * RADI_i + THRU_x * MT_ems_r[H_fm] * MT_ems_i[H_fm] * H_alb_r;
+        RADI_y += THRU_y * MT_ems_g[DL_fm] * DL_alb_g * H_alb_g * RADI_i + THRU_y * MT_ems_g[H_fm] * MT_ems_i[H_fm] * H_alb_g;
+        RADI_z += THRU_z * MT_ems_b[DL_fm] * DL_alb_b * H_alb_b * RADI_i + THRU_z * MT_ems_b[H_fm] * MT_ems_i[H_fm] * H_alb_b;
 
-        THRU_x *= H_alb_r * (1.0f - H_m.Tr) + H_m.Tr;
-        THRU_y *= H_alb_g * (1.0f - H_m.Tr) + H_m.Tr;
-        THRU_z *= H_alb_b * (1.0f - H_m.Tr) + H_m.Tr;
+        float H_Tr = MT_tr[H_fm];
+        THRU_x *= H_alb_r * (1.0f - H_Tr) + H_Tr;
+        THRU_y *= H_alb_g * (1.0f - H_Tr) + H_Tr;
+        THRU_z *= H_alb_b * (1.0f - H_Tr) + H_Tr;
 
 
 // =================== Indirect lighting =========================
@@ -543,12 +546,13 @@ __global__ void pathtraceNEEKernel(
         float IL_spec_z = R_dz - H_nz * 2.0f * (H_nz * R_dz);
 
     // Lerp diffuse and specular from roughness
-        float IL_smooth = 1.0f - H_m.Rough;
-        float IL_r_dx = IL_diff_x * H_m.Rough + IL_spec_x * IL_smooth;
-        float IL_r_dy = IL_diff_y * H_m.Rough + IL_spec_y * IL_smooth;
-        float IL_r_dz = IL_diff_z * H_m.Rough + IL_spec_z * IL_smooth;
+        float IL_rough = MT_rough[H_fm];
+        float IL_smooth = 1.0f - IL_rough;
+        float IL_r_dx = IL_diff_x * IL_rough + IL_spec_x * IL_smooth;
+        float IL_r_dy = IL_diff_y * IL_rough + IL_spec_y * IL_smooth;
+        float IL_r_dz = IL_diff_z * IL_rough + IL_spec_z * IL_smooth;
 
-        bool IL_hasTr = IL_rndA < H_m.Tr;
+        bool IL_hasTr = IL_rndA < H_Tr;
         IL_r_dx = IL_r_dx * !IL_hasTr + R_dx * IL_hasTr;
         IL_r_dy = IL_r_dy * !IL_hasTr + R_dy * IL_hasTr;
         IL_r_dz = IL_r_dz * !IL_hasTr + R_dz * IL_hasTr;
@@ -573,24 +577,25 @@ __global__ void pathtraceNEEKernel(
 
 // =================== RUSSIAN ROULETTE TERMINATION =========================
 
-        float R_survival = fminf(1.0f, // Luminance
-            0.2126f * THRU_x + 0.7152f * THRU_y + 0.0722f * THRU_z
-        );
+        R_bounce += (H_Tr == 0.0f);
 
-        float R_rsurvival = 1.0f / R_survival;
+        // float R_survival = fminf(1.0f, // Luminance
+        //     0.2126f * THRU_x + 0.7152f * THRU_y + 0.0722f * THRU_z
+        // );
 
-        bool R_survived = curand_uniform(&rnd[tIdx]) < R_survival;
+        // float R_rsurvival = 1.0f / R_survival;
 
-        R_bounce += 1 + !R_survived * MAX_BOUNCES - (H_m.Tr > 0.0f);
+        // bool R_survived = curand_uniform(&rnd[tIdx]) < R_survival;
 
-        // Boost for the surviving ray
-        THRU_x *= R_rsurvival;
-        THRU_y *= R_rsurvival;
-        THRU_z *= R_rsurvival;
+        // R_bounce += 1 + !R_survived * MAX_BOUNCES - (H_Tr > 0.0f);
+
+        // // Boost for the surviving ray
+        // THRU_x *= R_rsurvival;
+        // THRU_y *= R_rsurvival;
+        // THRU_z *= R_rsurvival;
     }
 
     frmx[tIdx] = RADI_x;
     frmy[tIdx] = RADI_y;
     frmz[tIdx] = RADI_z;
-*/
 }

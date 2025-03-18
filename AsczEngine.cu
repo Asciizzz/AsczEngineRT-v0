@@ -130,6 +130,11 @@ int main() {
     GLB.copy();
     GLB.computeAB();
 
+
+    D_AzMesh &dMS = GLB.d_MS;
+    D_AzMtl &dMT = GLB.d_MT;
+    D_AzTxtr &dTX = GLB.d_TX;
+
 // ========================== PLAYGROUND ==================================
 
 /*
@@ -386,14 +391,11 @@ int main() {
             raycastKernel<<<Frame.blockCount, Frame.blockSize>>>(
                 Cam, Frame.d_fx0, Frame.d_fy0, Frame.d_fz0, Frame.width, Frame.height,
 
-                GLB.d_MS.vx, GLB.d_MS.vy, GLB.d_MS.vz, GLB.d_MS.tx, GLB.d_MS.ty, GLB.d_MS.nx, GLB.d_MS.ny, GLB.d_MS.nz,
-                GLB.d_MS.fv0, GLB.d_MS.fv1, GLB.d_MS.fv2, GLB.d_MS.ft0, GLB.d_MS.ft1, GLB.d_MS.ft2, GLB.d_MS.fn0, GLB.d_MS.fn1, GLB.d_MS.fn2, GLB.d_MS.fm,
+                dMS.vx, dMS.vy, dMS.vz, dMS.tx, dMS.ty, dMS.nx, dMS.ny, dMS.nz,
+                dMS.fv0, dMS.fv1, dMS.fv2, dMS.ft0, dMS.ft1, dMS.ft2, dMS.fn0, dMS.fn1, dMS.fn2, dMS.fm,
 
-                // MT.Alb_r, MT.Alb_g, MT.Alb_b, MT.AlbMap,
-                GLB.d_MT.Alb_r, GLB.d_MT.Alb_g, GLB.d_MT.Alb_b, GLB.d_MT.AlbMap,
-
-                // TX.r, TX.g, TX.b, TX.a, TX.w, TX.h, TX.off,
-                GLB.d_TX.r, GLB.d_TX.g, GLB.d_TX.b, GLB.d_TX.a, GLB.d_TX.w, GLB.d_TX.h, GLB.d_TX.off,
+                dMT.Alb_r, dMT.Alb_g, dMT.Alb_b, dMT.AlbMap,
+                dTX.r, dTX.g, dTX.b, dTX.a, dTX.w, dTX.h, dTX.off,
 
                 Bvh.d_min_x, Bvh.d_min_y, Bvh.d_min_z, Bvh.d_max_x, Bvh.d_max_y, Bvh.d_max_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_fIdx,
 
@@ -425,28 +427,33 @@ int main() {
         //         Frame.toDraw2(true);
         //     }
         // }
-        // else if (renderMode == 2) {
-        //     pathtraceNEEKernel<<<Frame.blockCount, Frame.blockSize>>>(
-        //         Cam, Frame.d_fx0, Frame.d_fy0, Frame.d_fz0, Frame.width, Frame.height,
+        else if (renderMode == 2) {
+            pathtraceNEEKernel<<<Frame.blockCount, Frame.blockSize>>>(
+                Cam, Frame.d_fx0, Frame.d_fy0, Frame.d_fz0, Frame.width, Frame.height,
 
-        //         Mesh.d_vx, Mesh.d_vy, Mesh.d_vz, Mesh.d_tx, Mesh.d_ty, Mesh.d_nx, Mesh.d_ny, Mesh.d_nz,
-        //         Mesh.d_fv0, Mesh.d_fv1, Mesh.d_fv2, Mesh.d_ft0, Mesh.d_ft1, Mesh.d_ft2, Mesh.d_fn0, Mesh.d_fn1, Mesh.d_fn2, Mesh.d_fm,
-        //         Mat.d_mtls, Mesh.d_lsrc, Mesh.lNum,
-        //         Txtr.d_tr, Txtr.d_tg, Txtr.d_tb, Txtr.d_ta, Txtr.d_tw, Txtr.d_th, Txtr.d_toff,
+                dMS.vx, dMS.vy, dMS.vz, dMS.tx, dMS.ty, dMS.nx, dMS.ny, dMS.nz,
+                dMS.fv0, dMS.fv1, dMS.fv2, dMS.ft0, dMS.ft1, dMS.ft2, dMS.fn0, dMS.fn1, dMS.fn2, dMS.fm,
+                dMS.lsrc, dMS.l_num,
 
-        //         Bvh.d_min_x, Bvh.d_min_y, Bvh.d_min_z, Bvh.d_max_x, Bvh.d_max_y, Bvh.d_max_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_fIdx,
+                dMT.Alb_r, dMT.Alb_g, dMT.Alb_b, dMT.AlbMap,
+                dMT.Rough, dMT.Metal, dMT.Tr, dMT.Ior,
+                dMT.Ems_r, dMT.Ems_g, dMT.Ems_b, dMT.Ems_i,
 
-        //         Frame.d_rand
-        //     );
+                dTX.r, dTX.g, dTX.b, dTX.a, dTX.w, dTX.h, dTX.off,
 
-        //     if (altRender) {
-        //         Frame.biliFilter0();
-        //         Frame.toDraw0(true, hasCrosshair);
-        //     } else {
-        //         Frame.add0();
-        //         Frame.toDraw2(true);
-        //     }
-        // }
+                Bvh.d_min_x, Bvh.d_min_y, Bvh.d_min_z, Bvh.d_max_x, Bvh.d_max_y, Bvh.d_max_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_fIdx,
+
+                Frame.d_rand
+            );
+
+            if (altRender) {
+                Frame.biliFilter0();
+                Frame.toDraw0(true, hasCrosshair);
+            } else {
+                Frame.add0();
+                Frame.toDraw2(true);
+            }
+        }
 
         if (hasDebug) {
             Win.appendDebug(L"AsczEngineRT_v0", 155, 255, 155);

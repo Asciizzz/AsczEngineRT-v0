@@ -252,6 +252,7 @@ AzObj Utils::createAzb(
     OBJ.MS.n_num = OBJ.MS.nx.size();
     OBJ.MS.t_num = OBJ.MS.tx.size();
     OBJ.MS.f_num = OBJ.MS.fv0.size();
+    OBJ.MS.l_num = OBJ.MS.lsrc.size();
 
     // Debug:
     std::cout << "Result:\n";
@@ -259,6 +260,7 @@ AzObj Utils::createAzb(
     std::cout << "| Normal: " << OBJ.MS.n_num << "\n";
     std::cout << "| Texture: " << OBJ.MS.t_num << "\n";
     std::cout << "| Face: " << OBJ.MS.f_num << "\n";
+    std::cout << "| Light: " << OBJ.MS.l_num << "\n";
     std::cout << "| Material: " << OBJ.MT.num << "\n";
     std::cout << "| Texture | Num: " << OBJ.TX.num <<
                 " | Size: " << OBJ.TX.size << "\n";
