@@ -287,8 +287,6 @@ void AzGlobal::copy() {
 }
 
 void AzGlobal::gulp(AzObj &obj) {
-// Important: This does not include the AABB and centroid data
-
 // GET OLD COUNTS
     int MS_v_num = MS.v_num;
     int MS_n_num = MS.n_num;

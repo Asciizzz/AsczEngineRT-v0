@@ -46,7 +46,7 @@
 # Load assets/Models/Structure/de_dust2/de_dust2.azb
 
 # Create assets/Models/Structure/de_mirage/de_mirage.obj 3 1
-# Load assets/Models/Structure/de_mirage/de_mirage.azb
+Load assets/Models/Structure/de_mirage/de_mirage.azb
 
 ## Island
 # assets/Models/Structure/Island/Island.obj 3 1
@@ -79,7 +79,7 @@
 # assets/Models/Structure/Other/Liminal.obj 3 1
 # assets/Models/Structure/Buildings/Ground.obj 0 50 0 2.031 0
 
-
+~
 
 Instance assets/Models/Structure/Buildings/Building001.obj 2 1  50 0 40
 
