@@ -111,7 +111,7 @@ int AzTxtr::append(const char *path) {
         }
     }
 
-    std::cout << num << " | " << tw << "x" << th << " = " << tw * th << " | " << off.back() << " - ";
+    std::cout << tw << "x" << th << " ... ";
 
     return num++;
 }

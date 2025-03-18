@@ -262,7 +262,6 @@ AzObj Utils::createAzb(
     std::cout << "| Material: " << OBJ.MT.num << "\n";
     std::cout << "| Texture | Num: " << OBJ.TX.num <<
                 " | Size: " << OBJ.TX.size << "\n";
-    std::cout << "\n";
 
     auto objEnd = std::chrono::high_resolution_clock::now();
     std::cout << "Loaded in " << timeHelper(objStart, objEnd) << "\n";

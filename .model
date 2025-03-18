@@ -32,7 +32,7 @@
 
 ## Bedroom
 # Create assets/Models/Structure/Bedroom/Bedroom.obj 3 1
-Load assets/Models/Structure/Bedroom/Bedroom.azb
+# Load assets/Models/Structure/Bedroom/Bedroom.azb
 
 # assets/Models/Structure/Bedroom/Additional.obj 0 1
 # assets/Models/Structure/Bedroom/Light.obj 0 1
@@ -42,8 +42,8 @@ Load assets/Models/Structure/Bedroom/Bedroom.azb
 # assets/Models/Structure/Bedroom2/Additional.obj 0 1
 
 ## Dust2 + Short Dust (wingman)
-# assets/Models/Structure/de_dust2/de_dust2.obj 3 1
-# assets/Models/Structure/de_dust2/Light.obj 0 1
+# Create assets/Models/Structure/de_dust2/de_dust2.obj 3 1
+Load assets/Models/Structure/de_dust2/de_dust2.azb
 
 # Create assets/Models/Structure/de_mirage/de_mirage.obj 3 1
 # Load assets/Models/Structure/de_mirage/de_mirage.azb
