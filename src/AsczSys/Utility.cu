@@ -200,7 +200,7 @@ AzObj Utils::createAzb(
                     TX_map[TX_name] = OBJ.MT.AlbMap[matIdx];
 
                     auto txtrEnd = std::chrono::high_resolution_clock::now();
-                    std::cout << "Loaded in " << timeHelper(txtrStart, txtrEnd) << "\n";
+                    std::cout << "loaded in " << timeHelper(txtrStart, txtrEnd) << "\n";
 
                     continue;
                 }

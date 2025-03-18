@@ -104,9 +104,23 @@ int main() {
 
         if (objType == "Load") {
             AzObj obj = AzObj::load(objPath.c_str());
-            GLB.gulp(obj);
+            // GLB.gulp(obj);
+
+            GLB.MS = obj.MS;
+            GLB.MT = obj.MT;
+            GLB.TX = obj.TX;
         }
     }
+
+    std::cout << "\nGLB:\n";
+    std::cout << "| Vertex: " << GLB.MS.v_num << "\n";
+    std::cout << "| Normal: " << GLB.MS.n_num << "\n";
+    std::cout << "| Texture: " << GLB.MS.t_num << "\n";
+    std::cout << "| Face: " << GLB.MS.f_num << "\n";
+    std::cout << "| Material: " << GLB.MT.num << "\n";
+    std::cout << "| Texture | Num: " << GLB.TX.num << " | Size: " << GLB.TX.size << "\n";
+
+    std::cout << "\n";
 
     GLB.copy();
     GLB.computeAB();
