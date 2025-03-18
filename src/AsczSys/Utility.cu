@@ -15,12 +15,24 @@ std::string timeHelper( std::chrono::high_resolution_clock::time_point start,
     ) + "ms";
 }
 
-AzObj Utils::createAzObj(
+AzObj Utils::createAzb(
     const char *objPath, short placement,
     float scl, float yaw, float tX, float tY, float tZ
 ) {
     std::ifstream file(objPath);
     if (!file.is_open()) return AzObj();
+
+    // Seperate the directory, the file name and the extension
+    std::string path(objPath);
+    std::string dir = path.substr(0, path.find_last_of("/\\") + 1);
+    std::string name = path.substr(path.find_last_of("/\\") + 1);
+    name = name.substr(0, name.find_last_of("."));
+
+    std::string ext = path.substr(path.find_last_of(".") + 1);
+
+    std::cout << dir << " " << name << " " << ext << "\n";
+
+
 
     AzObj OBJ;
 
@@ -34,8 +46,6 @@ AzObj Utils::createAzObj(
     // as well as to keep track of their indices
     std::unordered_map<std::string, int> TX_map;
     std::unordered_map<std::string, int> MT_map;
-
-    std::string path(objPath);
 
     std::string line;
 
@@ -245,14 +255,9 @@ AzObj Utils::createAzObj(
     std::cout << "| Material: " << OBJ.MT.num << "\n";
     std::cout << "| Texture | Num: " << OBJ.TX.num <<
                 " | Size: " << OBJ.TX.size << "\n";
-
     std::cout << "\n";
 
+    AzObj::save(OBJ, (dir + name + ".azb").c_str());
+
     return OBJ;
-}
-
-
-
-static void saveAzObj(const char *dir, const char *name, AzObj OBJ) {
-
 }

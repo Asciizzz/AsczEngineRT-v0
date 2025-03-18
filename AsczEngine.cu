@@ -71,6 +71,7 @@ int main() {
     AzGlobal GLB;
 
     bool objStop = false;
+
     while (std::getline(objsFile, objLine)) {
         if (objLine.size() == 0 || objLine[0] == '#') continue;
         if (objLine[0] == '~') objStop = !objStop;
@@ -78,6 +79,7 @@ int main() {
 
         std::stringstream ss(objLine);
 
+        std::string objType;
         std::string objPath;
         short   objPlacement = 0;
         float   objScl = 1.0f;
@@ -86,40 +88,24 @@ int main() {
                 objTz = 0.0f;
         float   objYaw = 0.0f;
 
-        ss>>objPath >> objPlacement >>
+        ss >>
+            objType >> objPath >> objPlacement >>
             objScl >> objTx >> objTy >> objTz >> objYaw;
 
         // Convert to radians
         objYaw *= M_PI / 180.0f;
 
-        AzObj obj = Utils::createAzObj(
-            objPath.c_str(), objPlacement,
-            objScl, objYaw, objTx, objTy, objTz
-        );
+        if (objType == "Create")
+            Utils::createAzb(
+                objPath.c_str(), objPlacement,
+                objScl, objYaw, objTx, objTy, objTz
+            );
 
-        GLB.gulp(obj);
-
-        // Mesh.append(obj.MS);
+        if (objType == "Load") {
+            AzObj obj = AzObj::load(objPath.c_str());
+            GLB.gulp(obj);
+        }
     }
-
-    std::cout << "\nGLB:\n";
-    std::cout << "| Vertex: " << GLB.MS.v_num << "\n";
-    std::cout << "| Normal: " << GLB.MS.n_num << "\n";
-    std::cout << "| Texture: " << GLB.MS.t_num << "\n";
-    std::cout << "| Face: " << GLB.MS.f_num << "\n";
-    std::cout << "| Material: " << GLB.MT.num << "\n";
-    std::cout << "| Texture | Num: " << GLB.TX.num << " | Size: " << GLB.TX.size << "\n";
-
-    std::cout << "\n";
-
-    // D_AzMesh MS;
-    // MS.copy(GLB.MS);
-
-    // D_AzMtl MT;
-    // MT.copy(GLB.MT);
-
-    // D_AzTxtr TX;
-    // TX.copy(GLB.TX);
 
     GLB.copy();
     GLB.computeAB();

@@ -5,6 +5,7 @@
 
 #include <ostream>
 #include <iostream>
+#include <fstream>
 
 #include <ToDevice.cuh>
 
@@ -129,6 +130,110 @@ void D_AzTxtr::copy(AzTxtr &tx) {
 }
 
 
+void AzObj::save(AzObj &Obj, const char *path) {
+    std::ofstream file(path, std::ios::binary);
+
+    auto write_vec = [&](auto& vec) {
+        size_t size = vec.size();
+        file.write(reinterpret_cast<const char*>(&size), sizeof(size));
+        file.write(reinterpret_cast<const char*>(vec.data()), size * sizeof(typename std::decay_t<decltype(vec)>::value_type));
+    };
+
+    // Write mesh data
+    write_vec(Obj.MS.vx); write_vec(Obj.MS.vy); write_vec(Obj.MS.vz);
+    write_vec(Obj.MS.nx); write_vec(Obj.MS.ny); write_vec(Obj.MS.nz);
+    write_vec(Obj.MS.tx); write_vec(Obj.MS.ty);
+
+    write_vec(Obj.MS.fv0); write_vec(Obj.MS.fv1); write_vec(Obj.MS.fv2);
+    write_vec(Obj.MS.fn0); write_vec(Obj.MS.fn1); write_vec(Obj.MS.fn2);
+    write_vec(Obj.MS.ft0); write_vec(Obj.MS.ft1); write_vec(Obj.MS.ft2);
+
+    write_vec(Obj.MS.fm);
+    write_vec(Obj.MS.lsrc);
+
+    file.write(reinterpret_cast<const char *>(&Obj.MS.v_num), sizeof(Obj.MS.v_num));
+    file.write(reinterpret_cast<const char *>(&Obj.MS.n_num), sizeof(Obj.MS.n_num));
+    file.write(reinterpret_cast<const char *>(&Obj.MS.t_num), sizeof(Obj.MS.t_num));
+    file.write(reinterpret_cast<const char *>(&Obj.MS.f_num), sizeof(Obj.MS.f_num));
+    file.write(reinterpret_cast<const char *>(&Obj.MS.l_num), sizeof(Obj.MS.l_num));
+
+    // Write material data
+    write_vec(Obj.MT.Alb_r); write_vec(Obj.MT.Alb_g); write_vec(Obj.MT.Alb_b);
+    write_vec(Obj.MT.AlbMap);
+    
+    write_vec(Obj.MT.Rough); write_vec(Obj.MT.Metal);
+    write_vec(Obj.MT.Tr); write_vec(Obj.MT.Ior);
+
+    write_vec(Obj.MT.Ems_r); write_vec(Obj.MT.Ems_g); write_vec(Obj.MT.Ems_b); write_vec(Obj.MT.Ems_i);
+
+    file.write(reinterpret_cast<const char *>(&Obj.MT.num), sizeof(Obj.MT.num));
+
+    // Write texture data
+    write_vec(Obj.TX.r); write_vec(Obj.TX.g); write_vec(Obj.TX.b); write_vec(Obj.TX.a);
+    write_vec(Obj.TX.w); write_vec(Obj.TX.h); write_vec(Obj.TX.off);
+
+    file.write(reinterpret_cast<const char *>(&Obj.TX.size), sizeof(Obj.TX.size));
+    file.write(reinterpret_cast<const char *>(&Obj.TX.num), sizeof(Obj.TX.num));
+
+    file.close();
+}
+
+AzObj AzObj::load(const char *path) {
+    std::ifstream file(path, std::ios::binary);
+
+    if (!file) {
+        std::cerr << "Error opening file for reading: " << path << std::endl;
+        return AzObj();
+    }
+
+    auto read_vec = [&](auto& vec) {
+        size_t size;
+        file.read(reinterpret_cast<char*>(&size), sizeof(size));
+        vec.resize(size);
+        file.read(reinterpret_cast<char*>(vec.data()), size * sizeof(typename std::decay_t<decltype(vec)>::value_type));
+    };
+
+    AzObj obj;
+
+    // Load mesh data
+    read_vec(obj.MS.vx); read_vec(obj.MS.vy); read_vec(obj.MS.vz);
+    read_vec(obj.MS.nx); read_vec(obj.MS.ny); read_vec(obj.MS.nz);
+    read_vec(obj.MS.tx); read_vec(obj.MS.ty);
+
+    read_vec(obj.MS.fv0); read_vec(obj.MS.fv1); read_vec(obj.MS.fv2);
+    read_vec(obj.MS.fn0); read_vec(obj.MS.fn1); read_vec(obj.MS.fn2);
+    read_vec(obj.MS.ft0); read_vec(obj.MS.ft1); read_vec(obj.MS.ft2);
+
+    read_vec(obj.MS.fm);
+    read_vec(obj.MS.lsrc);
+
+    file.read(reinterpret_cast<char *>(&obj.MS.v_num), sizeof(obj.MS.v_num));
+    file.read(reinterpret_cast<char *>(&obj.MS.n_num), sizeof(obj.MS.n_num));
+    file.read(reinterpret_cast<char *>(&obj.MS.t_num), sizeof(obj.MS.t_num));
+    file.read(reinterpret_cast<char *>(&obj.MS.f_num), sizeof(obj.MS.f_num));
+    file.read(reinterpret_cast<char *>(&obj.MS.l_num), sizeof(obj.MS.l_num));
+
+    // Load material data
+    read_vec(obj.MT.Alb_r); read_vec(obj.MT.Alb_g); read_vec(obj.MT.Alb_b);
+    read_vec(obj.MT.AlbMap);
+
+    read_vec(obj.MT.Rough); read_vec(obj.MT.Metal);
+    read_vec(obj.MT.Tr); read_vec(obj.MT.Ior);
+
+    read_vec(obj.MT.Ems_r); read_vec(obj.MT.Ems_g); read_vec(obj.MT.Ems_b); read_vec(obj.MT.Ems_i);
+
+    file.read(reinterpret_cast<char *>(&obj.MT.num), sizeof(obj.MT.num));
+
+    // Load texture data
+    read_vec(obj.TX.r); read_vec(obj.TX.g); read_vec(obj.TX.b); read_vec(obj.TX.a);
+    read_vec(obj.TX.w); read_vec(obj.TX.h); read_vec(obj.TX.off);
+
+    file.read(reinterpret_cast<char *>(&obj.TX.size), sizeof(obj.TX.size));
+
+    file.close();
+
+    return obj;
+}
 
 AzGlobal::AzGlobal() {
     // Default vertex

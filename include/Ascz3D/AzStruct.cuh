@@ -94,6 +94,10 @@ struct AzObj {
     AzMesh MS;
     AzMtl MT;
     AzTxtr TX;
+
+    // Save/Load .azb file
+    static void save(AzObj &Obj, const char *path);
+    static AzObj load(const char *path);
 };
 
 struct AzGlobal {
