@@ -117,20 +117,8 @@ int main() {
         }
     }
 
-
-    std::cout << "\nGLB:\n";
-    std::cout << "| Vertex: " << GLB.MS.v_num << "\n";
-    std::cout << "| Normal: " << GLB.MS.n_num << "\n";
-    std::cout << "| Texture: " << GLB.MS.t_num << "\n";
-    std::cout << "| Face: " << GLB.MS.f_num << "\n";
-    std::cout << "| Material: " << GLB.MT.num << "\n";
-    std::cout << "| Texture | Num: " << GLB.TX.num << " | Size: " << GLB.TX.size << "\n";
-
-    std::cout << "\n";
-
     GLB.copy();
     GLB.computeAB();
-
 
     D_AzMesh &dMS = GLB.d_MS;
     D_AzMtl &dMT = GLB.d_MT;
@@ -467,6 +455,12 @@ int main() {
                                 L"Unknown";
             Win.appendDebug(L"RENDER MODE: ", 0, 255, 255);
             Win.appendDebug(rMod, 255, 255, 255, 20);
+
+            Win.appendDebug(L"WORLD", 100, 255, 100);
+            Win.appendDebug(L"Vertex: " + std::to_wstring(GLB.MS.v_num), 255, 255, 255, 20);
+            Win.appendDebug(L"Faces: " + std::to_wstring(GLB.MS.f_num), 255, 255, 255, 20);
+            Win.appendDebug(L"Mtls: " + std::to_wstring(GLB.MT.num), 255, 255, 255, 20);
+            Win.appendDebug(L"Textures: " + std::to_wstring(GLB.TX.num), 255, 255, 255, 20);
 
             Win.appendDebug(L"CAMERA", 255, 100, 100);
             Win.appendDebug(L"Pos: " + std::to_wstring(Cam.px) + L", " + std::to_wstring(Cam.py) + L", " + std::to_wstring(Cam.pz), 255, 255, 255, 20);    
