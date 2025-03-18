@@ -22,7 +22,7 @@
 # Load .heavy/Fnaf/Fnaf1.azb
 
 ## LivingRooms
-# Create assets/Models/Structure/LivingRoom/LivingRoom.obj 3 1
+Create assets/Models/Structure/LivingRoom/LivingRoom.obj 3 1
 # Load assets/Models/Structure/LivingRoom/LivingRoom.azb
 
 ## Street
@@ -81,7 +81,7 @@
 
 
 
-Create assets/Models/Structure/Buildings/Building001.obj 2 1  
+# Create assets/Models/Structure/Buildings/Building001.obj 2 1  
 
 ~
 
