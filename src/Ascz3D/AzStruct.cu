@@ -10,37 +10,33 @@
 #include <ToDevice.cuh>
 
 void D_AzMesh::copy(AzMesh &ms) {
-    ToDevice::F(ms.vx, vx);
-    ToDevice::F(ms.vy, vy);
-    ToDevice::F(ms.vz, vz);
+    ToDevice::F(ms.vx, vx); ToDevice::F(ms.vy, vy); ToDevice::F(ms.vz, vz);
+    ToDevice::F(ms.nx, nx); ToDevice::F(ms.ny, ny); ToDevice::F(ms.nz, nz);
+    ToDevice::F(ms.tx, tx); ToDevice::F(ms.ty, ty);
 
-    ToDevice::F(ms.nx, nx);
-    ToDevice::F(ms.ny, ny);
-    ToDevice::F(ms.nz, nz);
+    ToDevice::I(ms.fv0, fv0); ToDevice::I(ms.fv1, fv1); ToDevice::I(ms.fv2, fv2);
+    ToDevice::I(ms.fn0, fn0); ToDevice::I(ms.fn1, fn1); ToDevice::I(ms.fn2, fn2);
+    ToDevice::I(ms.ft0, ft0); ToDevice::I(ms.ft1, ft1); ToDevice::I(ms.ft2, ft2);
 
-    ToDevice::F(ms.tx, tx);
-    ToDevice::F(ms.ty, ty);
-
-    ToDevice::I(ms.fv0, fv0);
-    ToDevice::I(ms.fv1, fv1);
-    ToDevice::I(ms.fv2, fv2);
-
-    ToDevice::I(ms.fn0, fn0);
-    ToDevice::I(ms.fn1, fn1);
-    ToDevice::I(ms.fn2, fn2);
-
-    ToDevice::I(ms.ft0, ft0);
-    ToDevice::I(ms.ft1, ft1);
-    ToDevice::I(ms.ft2, ft2);
-
-    ToDevice::I(ms.fm, fm);
-    ToDevice::I(ms.lsrc, lsrc);
+    ToDevice::I(ms.fm, fm); ToDevice::I(ms.lsrc, lsrc);
 
     v_num = ms.v_num;
     n_num = ms.n_num;
     t_num = ms.t_num;
     f_num = ms.f_num;
     l_num = ms.l_num;
+}
+
+void D_AzMesh::free() {
+    cudaFree(vx); cudaFree(vy); cudaFree(vz);
+    cudaFree(nx); cudaFree(ny); cudaFree(nz);
+    cudaFree(tx); cudaFree(ty);
+
+    cudaFree(fv0); cudaFree(fv1); cudaFree(fv2);
+    cudaFree(fn0); cudaFree(fn1); cudaFree(fn2);
+    cudaFree(ft0); cudaFree(ft1); cudaFree(ft2);
+
+    cudaFree(fm); cudaFree(lsrc);
 }
 
 
@@ -83,6 +79,16 @@ void D_AzMtl::copy(AzMtl &mt) {
     ToDevice::F(mt.Ems_i, Ems_i);
 
     num = mt.num;
+}
+
+void D_AzMtl::free() {
+    cudaFree(Alb_r); cudaFree(Alb_g); cudaFree(Alb_b);
+    cudaFree(AlbMap);
+
+    cudaFree(Rough); cudaFree(Metal);
+    cudaFree(Tr); cudaFree(Ior);
+
+    cudaFree(Ems_r); cudaFree(Ems_g); cudaFree(Ems_b); cudaFree(Ems_i);
 }
 
 
@@ -128,6 +134,11 @@ void D_AzTxtr::copy(AzTxtr &tx) {
 
     size = tx.size;
     num = tx.num;
+}
+
+void D_AzTxtr::free() {
+    cudaFree(r); cudaFree(g); cudaFree(b); cudaFree(a);
+    cudaFree(w); cudaFree(h); cudaFree(off);
 }
 
 
@@ -279,8 +290,17 @@ AzGlobal::AzGlobal() {
     MS.f_num = 1; MS.l_num = 1;
     MT.num = 1; TX.num = 1; TX.size = 1;
 }
+AzGlobal::~AzGlobal() {
+    d_MS.free();
+    d_MT.free();
+    d_TX.free();
 
-void AzGlobal::copy() {
+    delete[] min_x; delete[] min_y; delete[] min_z;
+    delete[] max_x; delete[] max_y; delete[] max_z;
+    delete[] fcx;   delete[] fcy;   delete[] fcz;
+}
+
+void AzGlobal::toDevice() {
     d_MS.copy(MS);
     d_MT.copy(MT);
     d_TX.copy(TX);

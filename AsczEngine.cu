@@ -117,7 +117,7 @@ int main() {
         }
     }
 
-    GLB.copy();
+    GLB.toDevice();
     GLB.computeAB();
 
     D_AzMesh &dMS = GLB.d_MS;

@@ -39,6 +39,7 @@ struct D_AzMesh {
     int v_num = 0, n_num = 0, t_num = 0, f_num = 0, l_num = 0;
 
     void copy(AzMesh &ms);
+    void free();
 };
 
 
@@ -69,6 +70,7 @@ struct D_AzMtl {
     int num = 0;
 
     void copy(AzMtl &mt);
+    void free();
 };
 
 
@@ -88,6 +90,7 @@ struct D_AzTxtr {
     int size = 0, num = 0;
 
     void copy(AzTxtr &tx);
+    void free();
 };
 
 struct AzObj {
@@ -118,9 +121,10 @@ struct AzGlobal {
     float *fcx, *fcy, *fcz; // Not the AABB's centroid
 
     AzGlobal();
+    ~AzGlobal();
     void gulp(AzObj &obj);
 
-    void copy();
+    void toDevice();
     void computeAB();
 };
 
