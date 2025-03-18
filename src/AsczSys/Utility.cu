@@ -242,9 +242,8 @@ AzObj Utils::createAzObj(
     std::cout << "| Texture: " << OBJ.MS.t_num << "\n";
     std::cout << "| Face: " << OBJ.MS.f_num << "\n";
     std::cout << "| Material: " << OBJ.MT.num << "\n";
-    std::cout << "| Texture:\n";
-    std::cout << "  | Count: " << OBJ.TX.num << "\n";
-    std::cout << "  | Size: " << OBJ.TX.size << "\n";
+    std::cout << "| Texture | Num: " << OBJ.TX.num <<
+                " | Size: " << OBJ.TX.size << "\n";
 
     std::cout << "\n";
 

@@ -108,9 +108,7 @@ int main() {
     std::cout << "| Texture: " << GLB.MS.t_num << "\n";
     std::cout << "| Face: " << GLB.MS.f_num << "\n";
     std::cout << "| Material: " << GLB.MT.num << "\n";
-    std::cout << "| Texture:\n";
-    std::cout << "  | Count: " << GLB.TX.num << "\n";
-    std::cout << "  | Size: " << GLB.TX.size << "\n";
+    std::cout << "| Texture | Num: " << GLB.TX.num << " | Size: " << GLB.TX.size << "\n";
 
     std::cout << "\n";
 
