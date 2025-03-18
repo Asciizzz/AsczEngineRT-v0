@@ -91,11 +91,12 @@ int AzTxtr::append(const char *path) {
     int tw, th, tn;
     unsigned char *data = stbi_load(path, &tw, &th, &tn, 4);
 
-    if (data == nullptr) return 0;
+    if (data == nullptr) return -1;
 
     w.push_back(tw);
     h.push_back(th);
     off.push_back(size);
+    size += tw * th;
 
     float _255 = 1.0f / 255.0f; // Division is expensive
 
@@ -110,7 +111,7 @@ int AzTxtr::append(const char *path) {
         }
     }
 
-    size += tw * th;
+    std::cout << num << " | " << tw << "x" << th << " = " << tw * th << " | " << off.back() << " - ";
 
     return num++;
 }
@@ -292,7 +293,7 @@ void AzGlobal::gulp(AzObj &obj) {
     TX.h.insert(TX.h.end(), obj.TX.h.begin(), obj.TX.h.end());
 
     // Offset the texture based on existing textures size
-    for (int i = 0; i < obj.TX.num; ++i) {
+    for (int i = 0; i < obj.TX.off.size(); ++i) {
         TX.off.push_back(obj.TX.off[i] + TX_size);
     }
 
@@ -302,9 +303,9 @@ void AzGlobal::gulp(AzObj &obj) {
     MT.Alb_b.insert(MT.Alb_b.end(), obj.MT.Alb_b.begin(), obj.MT.Alb_b.end());
 
     // Offset albedo map based on existing textures size
-    for (int i = 0; i < obj.MT.num; ++i) {
+    for (int i = 0; i < obj.MT.AlbMap.size(); ++i) {
         int am = obj.MT.AlbMap[i];
-        MT.AlbMap.push_back((am > -1) * (am + TX_num));
+        MT.AlbMap.push_back(am > -1 ? am + TX_num : 0);
     }
 
     MT.Rough.insert(MT.Rough.end(), obj.MT.Rough.begin(), obj.MT.Rough.end());
@@ -341,34 +342,30 @@ void AzGlobal::gulp(AzObj &obj) {
         MS.fv1.push_back(obj.MS.fv1[i] + MS_v_num);
         MS.fv2.push_back(obj.MS.fv2[i] + MS_v_num);
 
-        bool hasN = obj.MS.fn0[i] != -1;
-        int offsetN = MS_n_num * hasN + !hasN;
-        MS.fn0.push_back(obj.MS.fn0[i] + offsetN);
-        MS.fn1.push_back(obj.MS.fn1[i] + offsetN);
-        MS.fn2.push_back(obj.MS.fn2[i] + offsetN);
+        bool hasN = obj.MS.fn0[i] > -1;
+        MS.fn0.push_back(hasN ? obj.MS.fn0[i] + MS_n_num : 0);
+        MS.fn1.push_back(hasN ? obj.MS.fn1[i] + MS_n_num : 0);
+        MS.fn2.push_back(hasN ? obj.MS.fn2[i] + MS_n_num : 0);
 
-        bool hasT = obj.MS.ft0[i] != -1;
-        int offsetT = MS_t_num * hasT + !hasT;
-        MS.ft0.push_back(obj.MS.ft0[i] + offsetT);
-        MS.ft1.push_back(obj.MS.ft1[i] + offsetT);
-        MS.ft2.push_back(obj.MS.ft2[i] + offsetT);
+        bool hasT = obj.MS.ft0[i] > -1;
+        MS.ft0.push_back(hasT ? obj.MS.ft0[i] + MS_t_num : 0);
+        MS.ft1.push_back(hasT ? obj.MS.ft1[i] + MS_t_num : 0);
+        MS.ft2.push_back(hasT ? obj.MS.ft2[i] + MS_t_num : 0);
 
-        bool hasM = obj.MS.fm[i] != -1;
-        int offsetM = MT_num * hasM + !hasM;
-        MS.fm.push_back(obj.MS.fm[i] + offsetM);
+        bool hasM = obj.MS.fm[i] > -1;
+        MS.fm.push_back(hasM ? obj.MS.fm[i] + MT_num : 0);
     }
 
     // Update counts
-    MS.v_num += obj.MS.v_num;
-    MS.n_num += obj.MS.n_num;
-    MS.t_num += obj.MS.t_num;
-    MS.f_num += obj.MS.f_num;
-    MS.l_num += obj.MS.l_num;
+    MS.v_num = MS.vx.size();
+    MS.n_num = MS.nx.size();
+    MS.t_num = MS.tx.size();
+    MS.f_num = MS.fv0.size();
+    MS.l_num = MS.lsrc.size();
 
-    TX.num += obj.TX.num;
-    TX.size += obj.TX.size;
-
-    MT.num += obj.MT.num;
+    MT.num = MT.Alb_r.size();
+    TX.num = TX.w.size();
+    TX.size = TX.r.size();
 }
 
 

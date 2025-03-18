@@ -195,12 +195,13 @@ AzObj Utils::createAzb(
                     std::cout << "| | Txtr " << TX_name << " ... ";
 
                     OBJ.MT.AlbMap[matIdx] = OBJ.TX.append((dir + TX_name).c_str());
+                    auto txtrEnd = std::chrono::high_resolution_clock::now();
 
                     // Add to map
-                    TX_map[TX_name] = OBJ.MT.AlbMap[matIdx];
-
-                    auto txtrEnd = std::chrono::high_resolution_clock::now();
-                    std::cout << "loaded in " << timeHelper(txtrStart, txtrEnd) << "\n";
+                    if (OBJ.MT.AlbMap[matIdx] != -1) {
+                        TX_map[TX_name] = OBJ.MT.AlbMap[matIdx];
+                        std::cout << "loaded in " << timeHelper(txtrStart, txtrEnd) << "\n";
+                    } else std::cout << "failed\n";
 
                     continue;
                 }

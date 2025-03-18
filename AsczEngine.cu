@@ -33,6 +33,13 @@ int main() {
     AsczWin Win(1600, 900, L"AsczEngineRT_v0");
     AsczFrame Frame(Win.width, Win.height);
 
+    // Paint the window black upon load
+    unsigned int *black = new unsigned int[Win.width * Win.height];
+    #pragma omp parallel
+    for (int i = 0; i < Win.width * Win.height; i++) black[i] = 0xFF000000;
+    
+    Win.Draw(black);
+
     // =============== Initialize Important Managers ================
 
     AsczBvh Bvh;
@@ -96,19 +103,17 @@ int main() {
         objYaw *= M_PI / 180.0f;
 
         if (objType == "Create") {
-            Utils::createAzb(
+            AzObj obj = Utils::createAzb(
                 objPath.c_str(), objPlacement,
                 objScl, objYaw, objTx, objTy, objTz
             );
+
+            GLB.gulp(obj);
         }
 
         if (objType == "Load") {
             AzObj obj = AzObj::load(objPath.c_str());
-            // GLB.gulp(obj);
-
-            GLB.MS = obj.MS;
-            GLB.MT = obj.MT;
-            GLB.TX = obj.TX;
+            GLB.gulp(obj);
         }
     }
 
