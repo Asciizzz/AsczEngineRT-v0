@@ -72,8 +72,8 @@ void AsczBvh::designBVH(AzGlobal &Glb) {
     h_fIdx.resize(Glb.MS.f_num);
 
     AzNode root = {
-        INFINITY, INFINITY, INFINITY,
-        -INFINITY, -INFINITY, -INFINITY,
+        Glb.AB_x, Glb.AB_y, Glb.AB_z,
+        Glb.AB_X, Glb.AB_Y, Glb.AB_Z,
         -1, -1, 0, Glb.MS.f_num, 0
     };
 
@@ -81,17 +81,16 @@ void AsczBvh::designBVH(AzGlobal &Glb) {
     for (int i = 0; i < Glb.MS.f_num; ++i) {
         h_fIdx[i] = i;
 
-        // Compute AABB
-        float min_x = Glb.min_x[i], min_y = Glb.min_y[i], min_z = Glb.min_z[i];
-        float max_x = Glb.max_x[i], max_y = Glb.max_y[i], max_z = Glb.max_z[i];
+        // float min_x = Glb.min_x[i], min_y = Glb.min_y[i], min_z = Glb.min_z[i];
+        // float max_x = Glb.max_x[i], max_y = Glb.max_y[i], max_z = Glb.max_z[i];
 
-        root.min_x = fminf(root.min_x, min_x);
-        root.min_y = fminf(root.min_y, min_y);
-        root.min_z = fminf(root.min_z, min_z);
+        // root.min_x = fminf(root.min_x, min_x);
+        // root.min_y = fminf(root.min_y, min_y);
+        // root.min_z = fminf(root.min_z, min_z);
 
-        root.max_x = fmaxf(root.max_x, max_x);
-        root.max_y = fmaxf(root.max_y, max_y);
-        root.max_z = fmaxf(root.max_z, max_z);
+        // root.max_x = fmaxf(root.max_x, max_x);
+        // root.max_y = fmaxf(root.max_y, max_y);
+        // root.max_z = fmaxf(root.max_z, max_z);
     }
 
     h_nodes.push_back(root);

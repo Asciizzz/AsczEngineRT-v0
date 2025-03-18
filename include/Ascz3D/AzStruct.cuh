@@ -95,6 +95,9 @@ struct AzObj {
     AzMtl MT;
     AzTxtr TX;
 
+    float AB_x =  INFINITY, AB_y =  INFINITY, AB_z =  INFINITY; // AABB min
+    float AB_X = -INFINITY, AB_Y = -INFINITY, AB_Z = -INFINITY; // AABB max
+
     // Save/Load .azb file
     static void save(AzObj &Obj, const char *path);
     static AzObj load(const char *path);
@@ -108,6 +111,9 @@ struct AzGlobal {
     D_AzMesh d_MS;
     D_AzMtl d_MT;
     D_AzTxtr d_TX;
+
+    float AB_x =  INFINITY, AB_y =  INFINITY, AB_z =  INFINITY; // AABB min
+    float AB_X = -INFINITY, AB_Y = -INFINITY, AB_Z = -INFINITY; // AABB max
 
     // Faces' AABB and faces' centroid
     float *min_x, *min_y, *min_z;

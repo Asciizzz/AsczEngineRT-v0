@@ -113,6 +113,17 @@ AzObj Utils::createAzb(
                 OBJ.MS.fm.push_back(matIdx);
             }
 
+            // Calculate the AABB
+            for (int i = 0; i < vs.size(); ++i) {
+                OBJ.AB_x = fminf(OBJ.AB_x, OBJ.MS.vx[vs[i]]);
+                OBJ.AB_y = fminf(OBJ.AB_y, OBJ.MS.vy[vs[i]]);
+                OBJ.AB_z = fminf(OBJ.AB_z, OBJ.MS.vz[vs[i]]);
+
+                OBJ.AB_X = fmaxf(OBJ.AB_X, OBJ.MS.vx[vs[i]]);
+                OBJ.AB_Y = fmaxf(OBJ.AB_Y, OBJ.MS.vy[vs[i]]);
+                OBJ.AB_Z = fmaxf(OBJ.AB_Z, OBJ.MS.vz[vs[i]]);
+            }
+
             continue;
         }
 
@@ -242,10 +253,8 @@ AzObj Utils::createAzb(
     OBJ.MS.t_num = OBJ.MS.tx.size();
     OBJ.MS.f_num = OBJ.MS.fv0.size();
 
-    auto objEnd = std::chrono::high_resolution_clock::now();
-    std::cout << "Loaded in " << timeHelper(objStart, objEnd) << "\n";
-
     // Debug:
+    std::cout << "Result:\n";
     std::cout << "| Vertex: " << OBJ.MS.v_num << "\n";
     std::cout << "| Normal: " << OBJ.MS.n_num << "\n";
     std::cout << "| Texture: " << OBJ.MS.t_num << "\n";
@@ -254,6 +263,9 @@ AzObj Utils::createAzb(
     std::cout << "| Texture | Num: " << OBJ.TX.num <<
                 " | Size: " << OBJ.TX.size << "\n";
     std::cout << "\n";
+
+    auto objEnd = std::chrono::high_resolution_clock::now();
+    std::cout << "Loaded in " << timeHelper(objStart, objEnd) << "\n";
 
     AzObj::save(OBJ, (dir + name + ".azb").c_str());
 

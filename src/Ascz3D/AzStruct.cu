@@ -176,6 +176,14 @@ void AzObj::save(AzObj &Obj, const char *path) {
     file.write(reinterpret_cast<const char *>(&Obj.TX.size), sizeof(Obj.TX.size));
     file.write(reinterpret_cast<const char *>(&Obj.TX.num), sizeof(Obj.TX.num));
 
+    // Write AABB data
+    file.write(reinterpret_cast<const char *>(&Obj.AB_x), sizeof(float));
+    file.write(reinterpret_cast<const char *>(&Obj.AB_y), sizeof(float));
+    file.write(reinterpret_cast<const char *>(&Obj.AB_z), sizeof(float));
+    file.write(reinterpret_cast<const char *>(&Obj.AB_X), sizeof(float));
+    file.write(reinterpret_cast<const char *>(&Obj.AB_Y), sizeof(float));
+    file.write(reinterpret_cast<const char *>(&Obj.AB_Z), sizeof(float));
+
     file.close();
 }
 
@@ -232,6 +240,14 @@ AzObj AzObj::load(const char *path) {
     file.read(reinterpret_cast<char *>(&obj.TX.size), sizeof(obj.TX.size));
     file.read(reinterpret_cast<char *>(&obj.TX.num), sizeof(obj.TX.num));
 
+    // Load AABB data
+    file.read(reinterpret_cast<char *>(&obj.AB_x), sizeof(float));
+    file.read(reinterpret_cast<char *>(&obj.AB_y), sizeof(float));
+    file.read(reinterpret_cast<char *>(&obj.AB_z), sizeof(float));
+    file.read(reinterpret_cast<char *>(&obj.AB_X), sizeof(float));
+    file.read(reinterpret_cast<char *>(&obj.AB_Y), sizeof(float));
+    file.read(reinterpret_cast<char *>(&obj.AB_Z), sizeof(float));
+
     file.close();
 
     return obj;
@@ -283,6 +299,15 @@ void AzGlobal::gulp(AzObj &obj) {
 
     int MT_num = MT.num;
 
+// UPDATE AABB
+    AB_x = fminf(AB_x, obj.AB_x);
+    AB_y = fminf(AB_y, obj.AB_y);
+    AB_z = fminf(AB_z, obj.AB_z);
+
+    AB_X = fmaxf(AB_X, obj.AB_X);
+    AB_Y = fmaxf(AB_Y, obj.AB_Y);
+    AB_Z = fmaxf(AB_Z, obj.AB_Z);
+
 // COMBINE TEXTURES
     TX.r.insert(TX.r.end(), obj.TX.r.begin(), obj.TX.r.end());
     TX.g.insert(TX.g.end(), obj.TX.g.begin(), obj.TX.g.end());
@@ -293,7 +318,7 @@ void AzGlobal::gulp(AzObj &obj) {
     TX.h.insert(TX.h.end(), obj.TX.h.begin(), obj.TX.h.end());
 
     // Offset the texture based on existing textures size
-    for (int i = 0; i < obj.TX.off.size(); ++i) {
+    for (int i = 0; i < obj.TX.num; ++i) {
         TX.off.push_back(obj.TX.off[i] + TX_size);
     }
 
@@ -303,7 +328,7 @@ void AzGlobal::gulp(AzObj &obj) {
     MT.Alb_b.insert(MT.Alb_b.end(), obj.MT.Alb_b.begin(), obj.MT.Alb_b.end());
 
     // Offset albedo map based on existing textures size
-    for (int i = 0; i < obj.MT.AlbMap.size(); ++i) {
+    for (int i = 0; i < obj.MT.num; ++i) {
         int am = obj.MT.AlbMap[i];
         MT.AlbMap.push_back(am > -1 ? am + TX_num : 0);
     }
