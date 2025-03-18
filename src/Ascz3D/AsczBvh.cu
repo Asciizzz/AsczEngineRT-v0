@@ -1,8 +1,9 @@
 #include <AsczBvh.cuh>
 
 #include <ToDevice.cuh>
-#include <algorithm>
 #include <execution>
+#include <omp.h>
+#include <queue>
 
 __global__ void toSoAKernel(
     float *BV_min_x, float *BV_min_y, float *BV_min_z,
@@ -141,73 +142,73 @@ int AsczBvh::build_q(
 
         float bestCost = (nLn_x * nLn_x + nLn_y * nLn_y + nLn_z * nLn_z) * nF;
 
-        for (int a = 0; a < 3; ++a) {
-            bool ax = (a == 0);
-            bool ay = (a == 1);
-            bool az = (a == 2);
+        #pragma omp parallel
+        for (int i = 0; i < (BIN_COUNT - 1) * 3; ++i) {
+            float lmin_x =  INFINITY, lmin_y =  INFINITY, lmin_z =  INFINITY;
+            float lmax_x = -INFINITY, lmax_y = -INFINITY, lmax_z = -INFINITY;
 
-            for (int b = 0; b < BIN_COUNT - 1; ++b) {
-                float lmin_x =  INFINITY, lmin_y =  INFINITY, lmin_z =  INFINITY;
-                float lmax_x = -INFINITY, lmax_y = -INFINITY, lmax_z = -INFINITY;
+            float rmin_x =  INFINITY, rmin_y =  INFINITY, rmin_z =  INFINITY;
+            float rmax_x = -INFINITY, rmax_y = -INFINITY, rmax_z = -INFINITY;
 
-                float rmin_x =  INFINITY, rmin_y =  INFINITY, rmin_z =  INFINITY;
-                float rmax_x = -INFINITY, rmax_y = -INFINITY, rmax_z = -INFINITY;
+            bool ax = i % 3 == 0, ay = i % 3 == 1, az = i % 3 == 2;
+            int a = i % 3;
+            int b = i / 3;
 
-                float s1 = nd.min_x * ax + nd.min_y * ay + nd.min_z * az;
-                float s2 = nLn_x    * ax + nLn_y    * ay + nLn_z    * az;
-                float splitPoint = s1 + s2 * (b + 1) / BIN_COUNT;
+            float s1 = nd.min_x * ax + nd.min_y * ay + nd.min_z * az;
+            float s2 = nLn_x    * ax + nLn_y    * ay + nLn_z    * az;
+            float splitPoint = s1 + s2 * (b + 1) / BIN_COUNT;
 
-                int splitIdx = nd.ll;
+            int splitIdx = nd.ll;
 
-                for (int g = nd.ll; g < nd.lr; ++g) {
-                    int i = fIdxs[g];
+            for (int g = nd.ll; g < nd.lr; ++g) {
+                int i = fIdxs[g];
 
-                    float cent = c_x[i] * ax + c_y[i] * ay + c_z[i] * az;
+                float cent = c_x[i] * ax + c_y[i] * ay + c_z[i] * az;
 
-                    if (cent < splitPoint) {
-                        lmin_x = lmin_x < min_x[i] ? lmin_x : min_x[i];
-                        lmin_y = lmin_y < min_y[i] ? lmin_y : min_y[i];
-                        lmin_z = lmin_z < min_z[i] ? lmin_z : min_z[i];
+                if (cent < splitPoint) {
+                    lmin_x = lmin_x < min_x[i] ? lmin_x : min_x[i];
+                    lmin_y = lmin_y < min_y[i] ? lmin_y : min_y[i];
+                    lmin_z = lmin_z < min_z[i] ? lmin_z : min_z[i];
 
-                        lmax_x = lmax_x > max_x[i] ? lmax_x : max_x[i];
-                        lmax_y = lmax_y > max_y[i] ? lmax_y : max_y[i];
-                        lmax_z = lmax_z > max_z[i] ? lmax_z : max_z[i];
+                    lmax_x = lmax_x > max_x[i] ? lmax_x : max_x[i];
+                    lmax_y = lmax_y > max_y[i] ? lmax_y : max_y[i];
+                    lmax_z = lmax_z > max_z[i] ? lmax_z : max_z[i];
 
-                        splitIdx++;
-                    }
-                    else {
-                        rmin_x = rmin_x < min_x[i] ? rmin_x : min_x[i];
-                        rmin_y = rmin_y < min_y[i] ? rmin_y : min_y[i];
-                        rmin_z = rmin_z < min_z[i] ? rmin_z : min_z[i];
-
-                        rmax_x = rmax_x > max_x[i] ? rmax_x : max_x[i];
-                        rmax_y = rmax_y > max_y[i] ? rmax_y : max_y[i];
-                        rmax_z = rmax_z > max_z[i] ? rmax_z : max_z[i];
-                    }
+                    splitIdx++;
                 }
+                else {
+                    rmin_x = rmin_x < min_x[i] ? rmin_x : min_x[i];
+                    rmin_y = rmin_y < min_y[i] ? rmin_y : min_y[i];
+                    rmin_z = rmin_z < min_z[i] ? rmin_z : min_z[i];
 
-                float lN_x = lmax_x - lmin_x, rN_x = rmax_x - rmin_x;
-                float lN_y = lmax_y - lmin_y, rN_y = rmax_y - rmin_y;
-                float lN_z = lmax_z - lmin_z, rN_z = rmax_z - rmin_z;
-
-                float lCost = (lN_x * lN_x + lN_y * lN_y + lN_z * lN_z) * (splitIdx - nd.ll);
-                float rCost = (rN_x * rN_x + rN_y * rN_y + rN_z * rN_z) * (nd.lr - splitIdx);
-
-                float cost = lCost + rCost;
-
-                if (cost < bestCost) {
-                    bestCost = cost;
-                    bestAxis = a;
-                    bestSplit = splitIdx;
-
-                    bestLab_min_x = lmin_x; bestRab_min_x = rmin_x;
-                    bestLab_min_y = lmin_y; bestRab_min_y = rmin_y;
-                    bestLab_min_z = lmin_z; bestRab_min_z = rmin_z;
-
-                    bestLab_max_x = lmax_x; bestRab_max_x = rmax_x;
-                    bestLab_max_y = lmax_y; bestRab_max_y = rmax_y;
-                    bestLab_max_z = lmax_z; bestRab_max_z = rmax_z;
+                    rmax_x = rmax_x > max_x[i] ? rmax_x : max_x[i];
+                    rmax_y = rmax_y > max_y[i] ? rmax_y : max_y[i];
+                    rmax_z = rmax_z > max_z[i] ? rmax_z : max_z[i];
                 }
+            }
+
+            float lN_x = lmax_x - lmin_x, rN_x = rmax_x - rmin_x;
+            float lN_y = lmax_y - lmin_y, rN_y = rmax_y - rmin_y;
+            float lN_z = lmax_z - lmin_z, rN_z = rmax_z - rmin_z;
+
+            float lCost = (lN_x * lN_x + lN_y * lN_y + lN_z * lN_z) * (splitIdx - nd.ll);
+            float rCost = (rN_x * rN_x + rN_y * rN_y + rN_z * rN_z) * (nd.lr - splitIdx);
+
+            float cost = lCost + rCost;
+
+            #pragma omp critical
+            if (cost < bestCost) {
+                bestCost = cost;
+                bestAxis = a;
+                bestSplit = splitIdx;
+
+                bestLab_min_x = lmin_x; bestRab_min_x = rmin_x;
+                bestLab_min_y = lmin_y; bestRab_min_y = rmin_y;
+                bestLab_min_z = lmin_z; bestRab_min_z = rmin_z;
+
+                bestLab_max_x = lmax_x; bestRab_max_x = rmax_x;
+                bestLab_max_y = lmax_y; bestRab_max_y = rmax_y;
+                bestLab_max_z = lmax_z; bestRab_max_z = rmax_z;
             }
         }
 

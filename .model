@@ -1,2 +1,4 @@
 # Load assets/Models/LivingRoom.azb
-Load assets/Models/combined.azb
+# Load assets/Models/combined.azb
+
+Load .heavy/Town/Town.azb

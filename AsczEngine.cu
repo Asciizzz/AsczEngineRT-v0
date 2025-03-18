@@ -151,13 +151,13 @@ int main() {
 
 /*
     // Wave generation
-    AzMesh wave;
-    float wave_start_x = -10.0f;
-    float wave_start_z = -10.0f;
+    AzObj wave;
+    float wave_start_x = -100.0f;
+    float wave_start_z = -100.0f;
     float wave_move_x = 0.1f;
     float wave_move_z = 0.1f;
-    int wave_step_x = 200;
-    int wave_step_z = 200;
+    int wave_step_x = 2000;
+    int wave_step_z = 2000;
 
     for (float z = 0; z < wave_step_z; z++) {
         for (float x = 0; x < wave_step_x; x++) {
@@ -165,19 +165,17 @@ int main() {
             float pz = wave_start_z + z * wave_move_z;
 
             float py = fXZ(px, pz);
-            wave.vx.push_back(px);
-            wave.vy.push_back(py);
-            wave.vz.push_back(pz);
+            wave.MS.vx.push_back(px);
+            wave.MS.vy.push_back(py);
+            wave.MS.vz.push_back(pz);
         }
     }
 
-    AzMtl waveMat;
-    waveMat.Rough = 0.05f;
-    waveMat.Alb_r = 0.2;
-    waveMat.Alb_g = 0.3;
-    waveMat.Alb_b = 0.8;
-
-    int wMat = Mat.append(waveMat, L"Wave", L"AsczEngine");
+    int waveMtl = wave.MT.push();
+    wave.MT.Alb_r.back() = 0.2;
+    wave.MT.Alb_g.back() = 0.3;
+    wave.MT.Alb_b.back() = 0.6;
+    wave.MT.Rough.back() = 0.5;
 
     // Append faces
     for (int z = 0; z < wave_step_z - 1; z++) {
@@ -187,10 +185,10 @@ int main() {
             int v2idx = (z + 1) * wave_step_x + x;
             int v3idx = (z + 1) * wave_step_x + x + 1;
 
-            float v0x = wave.vx[v0idx], v0y = wave.vy[v0idx], v0z = wave.vz[v0idx];
-            float v1x = wave.vx[v1idx], v1y = wave.vy[v1idx], v1z = wave.vz[v1idx];
-            float v2x = wave.vx[v2idx], v2y = wave.vy[v2idx], v2z = wave.vz[v2idx];
-            float v3x = wave.vx[v3idx], v3y = wave.vy[v3idx], v3z = wave.vz[v3idx];
+            float v0x = wave.MS.vx[v0idx], v0y = wave.MS.vy[v0idx], v0z = wave.MS.vz[v0idx];
+            float v1x = wave.MS.vx[v1idx], v1y = wave.MS.vy[v1idx], v1z = wave.MS.vz[v1idx];
+            float v2x = wave.MS.vx[v2idx], v2y = wave.MS.vy[v2idx], v2z = wave.MS.vz[v2idx];
+            float v3x = wave.MS.vx[v3idx], v3y = wave.MS.vy[v3idx], v3z = wave.MS.vz[v3idx];
 
             // Calculate normal by finding the gradient vector
 
@@ -198,65 +196,66 @@ int main() {
             float n0z = fXZdz(v0x, v0z);
             float n0_rmag = rsqrt(n0x * n0x + n0z * n0z + 1);
 
-            int n0idx = wave.nx.size();
-            wave.nx.push_back(n0x * n0_rmag);
-            wave.ny.push_back(n0_rmag);
-            wave.nz.push_back(n0z * n0_rmag);
+            int n0idx = wave.MS.nx.size();
+            wave.MS.nx.push_back(n0x * n0_rmag);
+            wave.MS.ny.push_back(n0_rmag);
+            wave.MS.nz.push_back(n0z * n0_rmag);
 
             float n1x = fXZdx(v1x, v1z);
             float n1z = fXZdz(v1x, v1z);
             float n1_rmag = rsqrt(n1x * n1x + n1z * n1z + 1);
 
-            int n1idx = wave.nx.size();
-            wave.nx.push_back(n1x * n1_rmag);
-            wave.ny.push_back(n1_rmag);
-            wave.nz.push_back(n1z * n1_rmag);
+            int n1idx = wave.MS.nx.size();
+            wave.MS.nx.push_back(n1x * n1_rmag);
+            wave.MS.ny.push_back(n1_rmag);
+            wave.MS.nz.push_back(n1z * n1_rmag);
 
             float n2x = fXZdx(v2x, v2z);
             float n2z = fXZdz(v2x, v2z);
             float n2_rmag = rsqrt(n2x * n2x + n2z * n2z + 1);
 
-            int n2idx = wave.nx.size();
-            wave.nx.push_back(n2x * n2_rmag);
-            wave.ny.push_back(n2_rmag);
-            wave.nz.push_back(n2z * n2_rmag);
+            int n2idx = wave.MS.nx.size();
+            wave.MS.nx.push_back(n2x * n2_rmag);
+            wave.MS.ny.push_back(n2_rmag);
+            wave.MS.nz.push_back(n2z * n2_rmag);
 
             float n3x = fXZdx(v3x, v3z);
             float n3z = fXZdz(v3x, v3z);
             float n3_rmag = rsqrt(n3x * n3x + n3z * n3z + 1);
 
-            int n3idx = wave.nx.size();
-            wave.nx.push_back(n3x * n3_rmag);
-            wave.ny.push_back(n3_rmag);
-            wave.nz.push_back(n3z * n3_rmag);
+            int n3idx = wave.MS.nx.size();
+            wave.MS.nx.push_back(n3x * n3_rmag);
+            wave.MS.ny.push_back(n3_rmag);
+            wave.MS.nz.push_back(n3z * n3_rmag);
 
             // Expand AABB
-            wave.O_AB_min_x = fminf(wave.O_AB_min_x, fminf(v0x, fminf(v1x, fminf(v2x, v3x))));
-            wave.O_AB_min_y = fminf(wave.O_AB_min_y, fminf(v0y, fminf(v1y, fminf(v2y, v3y))));
-            wave.O_AB_min_z = fminf(wave.O_AB_min_z, fminf(v0z, fminf(v1z, fminf(v2z, v3z))));
-            wave.O_AB_max_x = fmaxf(wave.O_AB_max_x, fmaxf(v0x, fmaxf(v1x, fmaxf(v2x, v3x))));
-            wave.O_AB_max_y = fmaxf(wave.O_AB_max_y, fmaxf(v0y, fmaxf(v1y, fmaxf(v2y, v3y))));
-            wave.O_AB_max_z = fmaxf(wave.O_AB_max_z, fmaxf(v0z, fmaxf(v1z, fmaxf(v2z, v3z))));
+            wave.AB_x = fminf(wave.AB_x, fminf(v0x, fminf(v1x, fminf(v2x, v3x))));
+            wave.AB_y = fminf(wave.AB_y, fminf(v0y, fminf(v1y, fminf(v2y, v3y))));
+            wave.AB_z = fminf(wave.AB_z, fminf(v0z, fminf(v1z, fminf(v2z, v3z))));
+            wave.AB_X = fmaxf(wave.AB_X, fmaxf(v0x, fmaxf(v1x, fmaxf(v2x, v3x))));
+            wave.AB_Y = fmaxf(wave.AB_Y, fmaxf(v0y, fmaxf(v1y, fmaxf(v2y, v3y))));
+            wave.AB_Z = fmaxf(wave.AB_Z, fmaxf(v0z, fmaxf(v1z, fmaxf(v2z, v3z))));
 
 
-            wave.fv0.push_back(v0idx); wave.fv0.push_back(v1idx);
-            wave.fv1.push_back(v1idx); wave.fv1.push_back(v3idx);
-            wave.fv2.push_back(v2idx); wave.fv2.push_back(v2idx);
+            wave.MS.fv0.push_back(v0idx); wave.MS.fv0.push_back(v1idx);
+            wave.MS.fv1.push_back(v1idx); wave.MS.fv1.push_back(v3idx);
+            wave.MS.fv2.push_back(v2idx); wave.MS.fv2.push_back(v2idx);
 
-            wave.ft0.push_back(-1); wave.ft0.push_back(-1);
-            wave.ft1.push_back(-1); wave.ft1.push_back(-1);
-            wave.ft2.push_back(-1); wave.ft2.push_back(-1);
+            wave.MS.ft0.push_back(-1); wave.MS.ft0.push_back(-1);
+            wave.MS.ft1.push_back(-1); wave.MS.ft1.push_back(-1);
+            wave.MS.ft2.push_back(-1); wave.MS.ft2.push_back(-1);
 
-            wave.fn0.push_back(n0idx); wave.fn0.push_back(n1idx);
-            wave.fn1.push_back(n1idx); wave.fn1.push_back(n3idx);
-            wave.fn2.push_back(n2idx); wave.fn2.push_back(n2idx);
+            wave.MS.fn0.push_back(n0idx); wave.MS.fn0.push_back(n1idx);
+            wave.MS.fn1.push_back(n1idx); wave.MS.fn1.push_back(n3idx);
+            wave.MS.fn2.push_back(n2idx); wave.MS.fn2.push_back(n2idx);
 
-            wave.fm.push_back(wMat); wave.fm.push_back(wMat);
+            wave.MS.fm.push_back(waveMtl); wave.MS.fm.push_back(waveMtl);
         }
     }
+    wave.updateNumbers();
 
-    // Append to mesh
-    Mesh.append(wave);
+    AzObj::save(wave, "wave.azb");
+
 //*/
 
     // ======================= Copy to device memory ==========================
@@ -427,7 +426,7 @@ int main() {
         //         Mat.d_mtls, Mesh.d_lsrc, Mesh.lNum,
         //         Txtr.d_tr, Txtr.d_tg, Txtr.d_tb, Txtr.d_ta, Txtr.d_tw, Txtr.d_th, Txtr.d_toff,
 
-        //         Bvh.d_min_x, Bvh.d_min_y, Bvh.d_min_z, Bvh.d_max_x, Bvh.d_max_y, Bvh.d_max_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_fIdx,
+        //         Bvh.d_min_x, Bvh.d_min_y, Bvh.d_min_z, Bvh.d_x, Bvh.d_y, Bvh.d_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_fIdx,
 
         //         Frame.d_rand
         //     );
