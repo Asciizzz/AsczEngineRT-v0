@@ -8,7 +8,7 @@
 
 
 # Create .heavy/Stronghold/Stronghold.obj 2 0.05
-Load .heavy/Stronghold/Stronghold.azb
+# Load .heavy/Stronghold/Stronghold.azb
 
 # Create .heavy/AbandonedHouse/AbandonedHouse.obj 2 1
 # Load .heavy/AbandonedHouse/AbandonedHouse.azb
@@ -32,7 +32,7 @@ Load .heavy/Stronghold/Stronghold.azb
 
 ## Bedroom
 # Create assets/Models/Structure/Bedroom/Bedroom.obj 3 1
-# Load assets/Models/Structure/Bedroom/Bedroom.azb
+Load assets/Models/Structure/Bedroom/Bedroom.azb
 
 # assets/Models/Structure/Bedroom/Additional.obj 0 1
 # assets/Models/Structure/Bedroom/Light.obj 0 1

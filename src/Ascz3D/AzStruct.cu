@@ -177,12 +177,12 @@ void AzObj::save(AzObj &Obj, const char *path) {
     file.write(reinterpret_cast<const char *>(&Obj.TX.num), sizeof(Obj.TX.num));
 
     // Write AABB data
-    file.write(reinterpret_cast<const char *>(&Obj.AB_x), sizeof(float));
-    file.write(reinterpret_cast<const char *>(&Obj.AB_y), sizeof(float));
-    file.write(reinterpret_cast<const char *>(&Obj.AB_z), sizeof(float));
-    file.write(reinterpret_cast<const char *>(&Obj.AB_X), sizeof(float));
-    file.write(reinterpret_cast<const char *>(&Obj.AB_Y), sizeof(float));
-    file.write(reinterpret_cast<const char *>(&Obj.AB_Z), sizeof(float));
+    file.write(reinterpret_cast<const char *>(&Obj.AB_x), sizeof(Obj.AB_x));
+    file.write(reinterpret_cast<const char *>(&Obj.AB_y), sizeof(Obj.AB_y));
+    file.write(reinterpret_cast<const char *>(&Obj.AB_z), sizeof(Obj.AB_z));
+    file.write(reinterpret_cast<const char *>(&Obj.AB_X), sizeof(Obj.AB_X));
+    file.write(reinterpret_cast<const char *>(&Obj.AB_Y), sizeof(Obj.AB_Y));
+    file.write(reinterpret_cast<const char *>(&Obj.AB_Z), sizeof(Obj.AB_Z));
 
     file.close();
 }
@@ -241,12 +241,12 @@ AzObj AzObj::load(const char *path) {
     file.read(reinterpret_cast<char *>(&obj.TX.num), sizeof(obj.TX.num));
 
     // Load AABB data
-    file.read(reinterpret_cast<char *>(&obj.AB_x), sizeof(float));
-    file.read(reinterpret_cast<char *>(&obj.AB_y), sizeof(float));
-    file.read(reinterpret_cast<char *>(&obj.AB_z), sizeof(float));
-    file.read(reinterpret_cast<char *>(&obj.AB_X), sizeof(float));
-    file.read(reinterpret_cast<char *>(&obj.AB_Y), sizeof(float));
-    file.read(reinterpret_cast<char *>(&obj.AB_Z), sizeof(float));
+    file.read(reinterpret_cast<char *>(&obj.AB_x), sizeof(obj.AB_x));
+    file.read(reinterpret_cast<char *>(&obj.AB_y), sizeof(obj.AB_y));
+    file.read(reinterpret_cast<char *>(&obj.AB_z), sizeof(obj.AB_z));
+    file.read(reinterpret_cast<char *>(&obj.AB_X), sizeof(obj.AB_X));
+    file.read(reinterpret_cast<char *>(&obj.AB_Y), sizeof(obj.AB_Y));
+    file.read(reinterpret_cast<char *>(&obj.AB_Z), sizeof(obj.AB_Z));
 
     file.close();
 
