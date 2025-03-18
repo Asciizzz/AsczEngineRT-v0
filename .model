@@ -60,9 +60,7 @@
 # CreateMany
 # Add assets/Models/Character/Shiroko/Shiroko.obj 2 1.6
 # Add assets/Models/Structure/CornellBox/CornellBox.obj 2 1
-# Combine assets/Combine/
-
-# Load combined.azb
+# Combine .combine/
 
 # assets/Models/Stanford/Bunny.obj 3 7
 # assets/Models/Structure/CornellBox/CornellBox.obj 3 1

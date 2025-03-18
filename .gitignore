@@ -4,6 +4,9 @@
 .heavy/
 build/
 .build/
+.combine/
+
+*.azb
 
 AsczEngine.exp
 AsczEngine.lib
