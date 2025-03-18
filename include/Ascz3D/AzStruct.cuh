@@ -3,6 +3,8 @@
 
 #include <vector>
 
+#include <stb_image.h>
+
 struct AzMesh {
     std::vector<float> vx, vy, vz;
     std::vector<float> nx, ny, nz;

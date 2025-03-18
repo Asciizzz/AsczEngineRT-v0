@@ -14,14 +14,6 @@ std::string timeHelper( std::chrono::high_resolution_clock::time_point start,
     ) + "ms";
 }
 
-void Utils::appendObj(
-    AsczMesh &MS, AsczMat &MT, AsczTxtr &TX,
-    const char *objPath, short placement,
-    float scale, float yaw, float tX, float tY, float tZ
-) {
-    // Do nothing for the time being
-}
-
 AzObj Utils::createAzObj(
     const char *objPath, short placement,
     float scl, float yaw, float tX, float tY, float tZ

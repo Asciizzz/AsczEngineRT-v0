@@ -2,9 +2,6 @@
 #include <Utility.cuh>
 
 #include <AsczWin.cuh>
-#include <AsczTxtr.cuh>
-#include <AsczMat.cuh>
-#include <AsczMesh.cuh>
 #include <AsczBvh.cuh>
 #include <AsczCam.cuh>
 #include <AsczFrame.cuh>

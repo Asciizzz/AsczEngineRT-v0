@@ -1,6 +1,7 @@
 #ifndef TODEVICE_CUH
 #define TODEVICE_CUH
 
+#include <cuda_runtime.h>
 #include <vector.cuh>
 #include <omp.h>
 

@@ -1,13 +1,10 @@
-#include <AzStruct.cuh>
+#define STB_IMAGE_IMPLEMENTATION
 
+#include <AzStruct.cuh>
 #include <omp.h>
 
-#include <fstream>
+#include <ostream>
 #include <iostream>
-#include <unordered_map>
-
-#include <stb_image.h>
-#include <cuda_runtime.h>
 
 #include <ToDevice.cuh>
 

@@ -38,9 +38,6 @@ endforeach()
 # Source files
 add_executable(AsczEngine
     src/Ascz3D/AsczFrame.cu
-    src/Ascz3D/AsczMat.cu
-    src/Ascz3D/AsczTxtr.cu
-    src/Ascz3D/AsczMesh.cu
     src/Ascz3D/AsczBvh.cu
     src/Ascz3D/AsczWin.cu
     src/Ascz3D/AsczCam.cu

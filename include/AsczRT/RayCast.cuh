@@ -1,7 +1,6 @@
 #ifndef RAYCAST_CUH
 #define RAYCAST_CUH
 
-#include <AsczMat.cuh>
 #include <AsczCam.cuh>
 
 __global__ void raycastKernel(
