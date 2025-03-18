@@ -198,13 +198,7 @@ __global__ void pathtraceNEEKernel(
         }
 
         if (H_Idx == -1) {
-            break;
-            // Mess around with these values for fun
-            // float3 ground = { 0.01f, 0.01f, 0.03f };
-            // float3 skyHorizon = { 0.01f, 0.01f, 0.03f };
-            // float3 skyZenith = { 0.00f, 0.00f, 0.00f };
-            // float3 sunDir = { -1, -1, 1 };
-            // float sunFocus = 169.0f, sunIntensity = 0.6f;
+            // break;
 
             float3 ground = { 1.00f, 1.00f, 1.00f };
             float3 skyHorizon = { 1.00f, 1.00f, 1.00f };
