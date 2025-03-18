@@ -299,15 +299,6 @@ void AzGlobal::gulp(AzObj &obj) {
 
     int MT_num = MT.num;
 
-// UPDATE AABB
-    AB_x = fminf(AB_x, obj.AB_x);
-    AB_y = fminf(AB_y, obj.AB_y);
-    AB_z = fminf(AB_z, obj.AB_z);
-
-    AB_X = fmaxf(AB_X, obj.AB_X);
-    AB_Y = fmaxf(AB_Y, obj.AB_Y);
-    AB_Z = fmaxf(AB_Z, obj.AB_Z);
-
 // COMBINE TEXTURES
     TX.r.insert(TX.r.end(), obj.TX.r.begin(), obj.TX.r.end());
     TX.g.insert(TX.g.end(), obj.TX.g.begin(), obj.TX.g.end());

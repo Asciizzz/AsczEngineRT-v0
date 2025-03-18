@@ -102,9 +102,9 @@ int main() {
         // Convert to radians
         objYaw *= M_PI / 180.0f;
 
-        if (objType == "Create") {
+        if (objType == "Create" || objType == "Instance") {
             AzObj obj = Utils::createAzb(
-                objPath.c_str(), objPlacement,
+                objPath.c_str(), objPlacement, (objType == "Create"),
                 objScl, objYaw, objTx, objTy, objTz
             );
 
@@ -116,6 +116,7 @@ int main() {
             GLB.gulp(obj);
         }
     }
+
 
     std::cout << "\nGLB:\n";
     std::cout << "| Vertex: " << GLB.MS.v_num << "\n";

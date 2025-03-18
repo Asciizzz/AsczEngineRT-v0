@@ -7,7 +7,7 @@ class Utils {
 public:
     // Turn obj into .azb file
     static AzObj createAzb(
-        const char *objPath, short placement,
+        const char *objPath, short placement, bool save,
         float scl, float yaw, float tX, float tY, float tZ
     );
 };

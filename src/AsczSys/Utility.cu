@@ -16,7 +16,7 @@ std::string timeHelper( std::chrono::high_resolution_clock::time_point start,
 }
 
 AzObj Utils::createAzb(
-    const char *objPath, short placement,
+    const char *objPath, short placement, bool save,
     float scl, float yaw, float tX, float tY, float tZ
 ) {
     std::ifstream file(objPath);
@@ -115,13 +115,15 @@ AzObj Utils::createAzb(
 
             // Calculate the AABB
             for (int i = 0; i < vs.size(); ++i) {
-                OBJ.AB_x = fminf(OBJ.AB_x, OBJ.MS.vx[vs[i]]);
-                OBJ.AB_y = fminf(OBJ.AB_y, OBJ.MS.vy[vs[i]]);
-                OBJ.AB_z = fminf(OBJ.AB_z, OBJ.MS.vz[vs[i]]);
+                int v = vs[i]; 
 
-                OBJ.AB_X = fmaxf(OBJ.AB_X, OBJ.MS.vx[vs[i]]);
-                OBJ.AB_Y = fmaxf(OBJ.AB_Y, OBJ.MS.vy[vs[i]]);
-                OBJ.AB_Z = fmaxf(OBJ.AB_Z, OBJ.MS.vz[vs[i]]);
+                OBJ.AB_x = fminf(OBJ.AB_x, OBJ.MS.vx[v]);
+                OBJ.AB_y = fminf(OBJ.AB_y, OBJ.MS.vy[v]);
+                OBJ.AB_z = fminf(OBJ.AB_z, OBJ.MS.vz[v]);
+
+                OBJ.AB_X = fmaxf(OBJ.AB_X, OBJ.MS.vx[v]);
+                OBJ.AB_Y = fmaxf(OBJ.AB_Y, OBJ.MS.vy[v]);
+                OBJ.AB_Z = fmaxf(OBJ.AB_Z, OBJ.MS.vz[v]);
             }
 
             continue;
@@ -254,6 +256,31 @@ AzObj Utils::createAzb(
     OBJ.MS.f_num = OBJ.MS.fv0.size();
     OBJ.MS.l_num = OBJ.MS.lsrc.size();
 
+    float shift_x = 0, shift_y = 0, shift_z = 0;
+
+    if (placement == 1) {
+        shift_y = (OBJ.AB_y + OBJ.AB_Y) * 0.5f;
+    }
+    else if (placement == 2) {
+        shift_y = OBJ.AB_y;
+    }
+    else if (placement == 3) {
+        shift_y = OBJ.AB_y;
+        shift_x = (OBJ.AB_x + OBJ.AB_X) * 0.5f;
+        shift_z = (OBJ.AB_z + OBJ.AB_Z) * 0.5f;
+    }
+
+    #pragma omp parallel for
+    for (size_t i = 0; i < OBJ.MS.vx.size(); ++i) {
+        OBJ.MS.vx[i] -= shift_x;
+        OBJ.MS.vy[i] -= shift_y;
+        OBJ.MS.vz[i] -= shift_z;
+    }
+
+    OBJ.AB_x -= shift_x; OBJ.AB_y -= shift_y; OBJ.AB_z -= shift_z;
+    OBJ.AB_X -= shift_x; OBJ.AB_Y -= shift_y; OBJ.AB_Z -= shift_z;
+
+
     // Debug:
     std::cout << "Result:\n";
     std::cout << "| Vertex: " << OBJ.MS.v_num << "\n";
@@ -268,7 +295,7 @@ AzObj Utils::createAzb(
     auto objEnd = std::chrono::high_resolution_clock::now();
     std::cout << "Loaded in " << timeHelper(objStart, objEnd) << "\n";
 
-    AzObj::save(OBJ, (dir + name + ".azb").c_str());
+    if (save) AzObj::save(OBJ, (dir + name + ".azb").c_str());
 
     return OBJ;
 }

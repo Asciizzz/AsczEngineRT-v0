@@ -112,9 +112,6 @@ struct AzGlobal {
     D_AzMtl d_MT;
     D_AzTxtr d_TX;
 
-    float AB_x =  INFINITY, AB_y =  INFINITY, AB_z =  INFINITY; // AABB min
-    float AB_X = -INFINITY, AB_Y = -INFINITY, AB_Z = -INFINITY; // AABB max
-
     // Faces' AABB and faces' centroid
     float *min_x, *min_y, *min_z;
     float *max_x, *max_y, *max_z;
