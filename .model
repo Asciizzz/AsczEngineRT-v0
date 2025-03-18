@@ -43,7 +43,7 @@
 
 ## Dust2 + Short Dust (wingman)
 # Create assets/Models/Structure/de_dust2/de_dust2.obj 3 1
-Load assets/Models/Structure/de_dust2/de_dust2.azb
+# Load assets/Models/Structure/de_dust2/de_dust2.azb
 
 # Create assets/Models/Structure/de_mirage/de_mirage.obj 3 1
 # Load assets/Models/Structure/de_mirage/de_mirage.azb
