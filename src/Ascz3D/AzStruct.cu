@@ -349,15 +349,7 @@ void AzObj::combine(AzObj &obj) {
     }
 
     // Update counts
-    MS.v_num = MS.vx.size();
-    MS.n_num = MS.nx.size();
-    MS.t_num = MS.tx.size();
-    MS.f_num = MS.fv0.size();
-    MS.l_num = MS.lsrc.size();
-
-    MT.num = MT.Alb_r.size();
-    TX.num = TX.w.size();
-    TX.size = TX.r.size();
+    updateNumbers();
 }
 
 
