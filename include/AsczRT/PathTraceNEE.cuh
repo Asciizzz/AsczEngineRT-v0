@@ -23,7 +23,8 @@ __global__ void pathtraceNEEKernel(
     float *BV_max_x, float *BV_max_y, float *BV_max_z,
     int *BV_pl, int *BV_pr, bool *BV_lf, int *BV_fi,
 
-    curandState *rnd
+    // curandState *rnd
+    uint32_t seed
 );
 
 #endif

@@ -1,6 +1,16 @@
 #include <PathTraceNEE.cuh>
 #include <AzDevMath.cuh>
 
+__device__ inline float rnd(uint32_t& seed) {
+    seed ^= seed << 13;
+    seed ^= seed >> 17;
+    seed ^= seed << 5;
+    
+    return (seed * 2.3283064365386963e-10f); // 1 / (2^32)
+}
+
+
+
 __global__ void pathtraceNEEKernel(
     AsczCam camera, float *frmx, float *frmy, float *frmz, int frmw, int frmh,
 
@@ -20,7 +30,7 @@ __global__ void pathtraceNEEKernel(
     float *BV_max_x, float *BV_max_y, float *BV_max_z,
     int *BV_pl, int *BV_pr, bool *BV_lf, int *BV_fi,
 
-    curandState *rnd
+    uint32_t seed
 ) {
     int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
     if (tIdx >= frmw * frmh) return;
@@ -28,9 +38,12 @@ __global__ void pathtraceNEEKernel(
     const int MAX_BOUNCES = 2;
     const int MAX_NODES = 32;
 
+    float R_rndA = rnd(seed);
+    float R_rndB = rnd(seed);
+
     Ray R_cast = camera.castRay(
         tIdx % frmw, tIdx / frmw, frmw, frmh,
-        curand_uniform(&rnd[tIdx]), curand_uniform(&rnd[tIdx])
+        R_rndA, R_rndB
     );
 
     float R_ox  = R_cast.ox,  R_oy  = R_cast.oy,  R_oz  = R_cast.oz;  // Origin
@@ -281,12 +294,12 @@ __global__ void pathtraceNEEKernel(
 // =================== Direct lighting =========================
 
     // Sample random light source
-        int DL_idx = MS_lnum ? MS_lsrc[(int)(MS_lnum * curand_uniform(&rnd[tIdx]))] : 0;
+        int DL_idx = MS_lnum ? MS_lsrc[(int)(MS_lnum * rnd(seed))] : 0;
         int DL_fm = MS_fm[DL_idx];
 
         // Sample random point on the light source
-        float DL_u = curand_uniform(&rnd[tIdx]);
-        float DL_v = curand_uniform(&rnd[tIdx]);
+        float DL_u = rnd(seed);
+        float DL_v = rnd(seed);
         bool DL_uv_valid = DL_u + DL_v < 1.0f;
 
         DL_u = DL_u * DL_uv_valid + (1.0f - DL_u) * !DL_uv_valid;
@@ -496,8 +509,8 @@ __global__ void pathtraceNEEKernel(
 // =================== Indirect lighting =========================
 
         // Random diffuse lighting
-        float IL_rndA = curand_uniform(&rnd[tIdx]);
-        float IL_rndB = curand_uniform(&rnd[tIdx]);
+        float IL_rndA = rnd(seed);
+        float IL_rndB = rnd(seed);
 
         float IL_theta1 = acosf(sqrtf(1.0f - IL_rndA));
         float IL_sinTheta1 = sinf(IL_theta1);
