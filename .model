@@ -1,7 +1,7 @@
-Load assets/Models/LivingRoom.azb
+# Load assets/Models/LivingRoom.azb
 # Load assets/Models/combined.azb
 
-# Load .heavy/Town/Town.azb
+Load .heavy/Town/Town.azb
 
 # Load wave.azb
 
