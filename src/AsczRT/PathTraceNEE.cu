@@ -1,11 +1,11 @@
 #include <PathTraceNEE.cuh>
 #include <AzDevMath.cuh>
 
-__device__ inline float rnd(uint32_t& seed) {
+__device__ inline float rnd(uint32_t &seed) {
     seed ^= seed << 13;
     seed ^= seed >> 17;
     seed ^= seed << 5;
-    
+
     return (seed * 2.3283064365386963e-10f); // 1 / (2^32)
 }
 

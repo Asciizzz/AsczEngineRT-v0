@@ -49,6 +49,9 @@ public:
     void biliFilter0();
     void biliFilter1();
 
+    void bloom0();
+    void bloom1();
+
     void add0();
     void add1();
     void reset2();

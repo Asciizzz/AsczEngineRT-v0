@@ -454,9 +454,7 @@ int main() {
 
                 Bvh.d_min_x, Bvh.d_min_y, Bvh.d_min_z, Bvh.d_max_x, Bvh.d_max_y, Bvh.d_max_z, Bvh.d_pl, Bvh.d_pr, Bvh.d_lf, Bvh.d_fIdx,
 
-                // Frame.f_acc
-                rand() * 1000
-                // Frame.d_rand
+                rand() % 1000000
             );
 
             if (altRender) {

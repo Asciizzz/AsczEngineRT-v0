@@ -227,3 +227,80 @@ void AsczFrame::biliFilter1() {
         1.0f, 0.1f, 3
     );
 }
+
+__global__ void bloomFilter(
+    float *fx0, float *fy0, float *fz0,  // Input frame (HDR color)
+    float *fx1, float *fy1, float *fz1,  // Output frame (Final result with bloom)
+    int width, int height,                // Image dimensions
+    float threshold,                      // Bloom threshold
+    int radius,                            // Bloom radius
+    float intensity                        // Bloom intensity
+) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= width * height) return;
+
+    // Extract 2D coordinates from 1D index
+    int x = idx % width;
+    int y = idx / width;
+
+    // Get original color
+    float r = fx0[idx], g = fy0[idx], b = fz0[idx];
+    
+    // Compute brightness (luminance approximation)
+    float brightness = (r + g + b) / 3.0f;
+    
+    // Bloom extraction (only bright areas contribute)
+    float3 bloomColor = make_float3(0, 0, 0);
+    float totalWeight = 0.0f;
+
+    for (int dy = -radius; dy <= radius; dy++) {
+        for (int dx = -radius; dx <= radius; dx++) {
+            int nx = min(max(x + dx, 0), width - 1);
+            int ny = min(max(y + dy, 0), height - 1);
+            int nidx = ny * width + nx;
+
+            float nr = fx0[nidx], ng = fy0[nidx], nb = fz0[nidx];
+            float nBrightness = (nr + ng + nb) / 3.0f;
+
+            // If it's above the threshold, contribute to bloom
+            if (nBrightness >= threshold) {
+                float weight = expf(-(dx * dx + dy * dy) / (2.0f * radius * radius));
+                bloomColor.x += nr * weight;
+                bloomColor.y += ng * weight;
+                bloomColor.z += nb * weight;
+                totalWeight += weight;
+            }
+        }
+    }
+
+    // Normalize bloom contribution
+    if (totalWeight > 0.0f) {
+        bloomColor.x /= totalWeight;
+        bloomColor.y /= totalWeight;
+        bloomColor.z /= totalWeight;
+    }
+
+    // Blend bloom with the original image
+    fx1[idx] = r + bloomColor.x * intensity;
+    fy1[idx] = g + bloomColor.y * intensity;
+    fz1[idx] = b + bloomColor.z * intensity;
+}
+
+
+void AsczFrame::bloom0() {
+    bloomFilter<<<blockCount, blockSize>>>(
+        d_fx0, d_fy0, d_fz0,
+        d_fx1, d_fy1, d_fz1,
+        width, height,
+        1.0f, 10, 0.6f
+    );
+}
+
+void AsczFrame::bloom1() {
+    bloomFilter<<<blockCount, blockSize>>>(
+        d_fx1, d_fy1, d_fz1,
+        d_fx0, d_fy0, d_fz0,
+        width, height,
+        1.0f, 10, 0.6f
+    );
+}
