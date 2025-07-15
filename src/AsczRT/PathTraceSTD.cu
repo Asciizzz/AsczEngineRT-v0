@@ -44,7 +44,7 @@ __global__ void pathtraceSTDKernel(
 
     int R_bounce = 0;
     while (R_bounce < MAX_BOUNCES) {
-        int H_Idx = -1;
+        int H_idx = -1;
         float H_t = 1e9f;
         float H_u = 0.0f;
         float H_v = 0.0f;
@@ -193,11 +193,11 @@ __global__ void pathtraceSTDKernel(
                 H_u = u * hit + H_u * !hit;
                 H_v = v * hit + H_v * !hit;
                 H_w = w * hit + H_w * !hit;
-                H_Idx = fi * hit + H_Idx * !hit;
+                H_idx = fi * hit + H_idx * !hit;
             }
         }
 
-        if (H_Idx == -1) {
+        if (H_idx == -1) {
             // Mess around with these values for fun
             // float3 ground = { 0.01f, 0.01f, 0.03f };
             // float3 skyHorizon = { 0.01f, 0.01f, 0.03f };
@@ -242,7 +242,7 @@ __global__ void pathtraceSTDKernel(
         }
 
         // Get the face material
-        const AzMtl &H_m = mats[MS_fm[H_Idx]];
+        const AzMtl &H_m = mats[MS_fm[H_idx]];
 
         // Vertex linear interpolation
         float H_vx = R_ox + R_dx * H_t;
@@ -250,7 +250,7 @@ __global__ void pathtraceSTDKernel(
         float H_vz = R_oz + R_dz * H_t;
 
         // Texture interpolation (if available)
-        int ht0 = MS_ft0[H_Idx], ht1 = MS_ft1[H_Idx], ht2 = MS_ft2[H_Idx];
+        int ht0 = MS_ft0[H_idx], ht1 = MS_ft1[H_idx], ht2 = MS_ft2[H_idx];
         float H_tu = MS_tx[ht0] * H_w + MS_tx[ht1] * H_u + MS_tx[ht2] * H_v;
         float H_tv = MS_ty[ht0] * H_w + MS_ty[ht1] * H_u + MS_ty[ht2] * H_v;
         H_tu -= floor(H_tu); H_tv -= floor(H_tv);
@@ -270,7 +270,7 @@ __global__ void pathtraceSTDKernel(
         float H_alb_b = TX_b[H_tIdx] * H_hasT + H_m.Alb_b * !H_hasT;
 
         // Normal interpolation
-        int hn0 = MS_fn0[H_Idx], hn1 = MS_fn1[H_Idx], hn2 = MS_fn2[H_Idx];
+        int hn0 = MS_fn0[H_idx], hn1 = MS_fn1[H_idx], hn2 = MS_fn2[H_idx];
         float H_nx = MS_nx[hn0] * H_w + MS_nx[hn1] * H_u + MS_nx[hn2] * H_v;
         float H_ny = MS_ny[hn0] * H_w + MS_ny[hn1] * H_u + MS_ny[hn2] * H_v;
         float H_nz = MS_nz[hn0] * H_w + MS_nz[hn1] * H_u + MS_nz[hn2] * H_v;
@@ -362,7 +362,7 @@ __global__ void pathtraceSTDKernel(
         R_rdy = 1.0f / R_dy;
         R_rdz = 1.0f / R_dz;
         // Other ray properties
-        RIgnore = H_Idx;
+        RIgnore = H_idx;
         // RIor = H_m.Ior;
 
 // =================== RUSSIAN ROULETTE TERMINATION =========================

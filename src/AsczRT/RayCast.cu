@@ -24,7 +24,7 @@ __global__ void raycastKernel(
     Ray ray = camera.castRay(tIdx % frmw, tIdx / frmw, frmw, frmh);
 
     // Hit info
-    int H_Idx = -1;
+    int H_idx = -1;
     float H_t = 1e9f;
     float H_u = 0.0f;
     float H_v = 0.0f;
@@ -174,11 +174,11 @@ __global__ void raycastKernel(
             H_u = u * hit + H_u * !hit;
             H_v = v * hit + H_v * !hit;
             H_w = w * hit + H_w * !hit;
-            H_Idx = gi * hit + H_Idx * !hit;
+            H_idx = gi * hit + H_idx * !hit;
         }
     }
 
-    if (H_Idx == -1) {
+    if (H_idx == -1) {
         // Mess around with these values for fun
         // float3 ground = { 0.01f, 0.01f, 0.03f };
         // float3 skyHorizon = { 0.01f, 0.01f, 0.03f };
@@ -227,10 +227,10 @@ __global__ void raycastKernel(
         return;
     }
 
-    int H_fm = MS_fm[H_Idx];
+    int H_fm = MS_fm[H_idx];
 
     // Texture interpolation (if available)
-    int H_ft0 = MS_ft0[H_Idx], H_ft1 = MS_ft1[H_Idx], H_ft2 = MS_ft2[H_Idx];
+    int H_ft0 = MS_ft0[H_idx], H_ft1 = MS_ft1[H_idx], H_ft2 = MS_ft2[H_idx];
     float H_tu = MS_tx[H_ft0] * H_w + MS_tx[H_ft1] * H_u + MS_tx[H_ft2] * H_v;
     float H_tv = MS_ty[H_ft0] * H_w + MS_ty[H_ft1] * H_u + MS_ty[H_ft2] * H_v;
     H_tu -= floor(H_tu); H_tv -= floor(H_tv);
@@ -250,7 +250,7 @@ __global__ void raycastKernel(
     float H_alb_b = TX_b[H_tIdx] * H_hasT + MT_Alb_b[H_fm] * !H_hasT;
 
     // Normal interpolation
-    int H_fn0 = MS_fn0[H_Idx], H_fn1 = MS_fn1[H_Idx], H_fn2 = MS_fn2[H_Idx];
+    int H_fn0 = MS_fn0[H_idx], H_fn1 = MS_fn1[H_idx], H_fn2 = MS_fn2[H_idx];
     float H_nx = MS_nx[H_fn0] * H_w + MS_nx[H_fn1] * H_u + MS_nx[H_fn2] * H_v;
     float H_ny = MS_ny[H_fn0] * H_w + MS_ny[H_fn1] * H_u + MS_ny[H_fn2] * H_v;
     float H_nz = MS_nz[H_fn0] * H_w + MS_nz[H_fn1] * H_u + MS_nz[H_fn2] * H_v;
@@ -269,5 +269,5 @@ __global__ void raycastKernel(
     frmy[tIdx] = H_alb_g * H_NdotR_D;
     frmz[tIdx] = H_alb_b * H_NdotR_D;
     frmdepth[tIdx] = H_t;
-    frmmat[tIdx] = MS_fm[H_Idx];
+    frmmat[tIdx] = MS_fm[H_idx];
 };

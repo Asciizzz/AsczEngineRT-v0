@@ -12,7 +12,7 @@ struct Ray {
     int ignore = -1; // Index of the object to ignore
 
     __device__ Ray();
-    __device__ Ray(
+    __host__ __device__ Ray(
         float ox, float oy, float oz,
         float dx, float dy, float dz,
         float w=1.0f, float Ior=1.0f, int ignore=-1

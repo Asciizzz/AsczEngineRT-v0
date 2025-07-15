@@ -4,12 +4,11 @@ project(AsczEngine LANGUAGES CUDA CXX)
 # Enable CUDA as a language
 enable_language(CUDA)
 
-# Set CUDA Compilation Flags (similar to your Makefile)
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -rdc=true --expt-relaxed-constexpr --extended-lambda -Xlinker -lgdiplus")
 
 set(CMAKE_CUDA_SEPARABLE_COMPILATION ON)
 set(CMAKE_CUDA_RESOLVE_DEVICE_SYMBOLS ON)
-set(CMAKE_VERBOSE_MAKEFILE OFF)  # Suppress long compiler command output
+set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 
 # Include directories
@@ -20,7 +19,6 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/include/AsczSys
 )
 
-# Set CUDA architectures (modify based on GPU, 75 = Turing, 86 = Ampere)
 set(CMAKE_CUDA_ARCHITECTURES 75)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
@@ -54,5 +52,4 @@ add_executable(AsczEngine
     AsczEngine.cu
 )
 
-# Set C++ Standard
 set_property(TARGET AsczEngine PROPERTY CXX_STANDARD 17)

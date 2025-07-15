@@ -35,7 +35,7 @@ __global__ void pathtraceNEEKernel(
     int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
     if (tIdx >= frmw * frmh) return;
 
-    const int MAX_BOUNCES = 2;
+    const int MAX_BOUNCES = 4;
     const int MAX_NODES = 32;
 
     float R_rndA = rnd(seed);
@@ -60,7 +60,7 @@ __global__ void pathtraceNEEKernel(
 
     int R_bounce = 0;
     while (R_bounce < MAX_BOUNCES) {
-        int H_Idx = -1;
+        int H_idx = -1;
         float H_t = 1e9f;
         float H_u = 0.0f;
         float H_v = 0.0f;
@@ -206,18 +206,19 @@ __global__ void pathtraceNEEKernel(
                 H_u = u * hit + H_u * !hit;
                 H_v = v * hit + H_v * !hit;
                 H_w = w * hit + H_w * !hit;
-                H_Idx = fi * hit + H_Idx * !hit;
+                H_idx = fi * hit + H_idx * !hit;
             }
         }
 
-        if (H_Idx == -1) {
+        if (H_idx == -1) {
             // break;
 
             float3 sunDir = { -1, -1, 1 };
             float3 ground = { 0.00f, 0.00f, 0.00f };
 
             float3 skyHorizon = { 1.00f, 1.00f, 1.00f };
-            float3 skyZenith = { 0.20f, 0.30f, 1.00f };
+            float3 skyZenith = { 0.10f, 0.20f, 0.90f };
+            // float3 skyZenith = { 0.20f, 1.00f, 0.30f };
             float sunFocus = 100.0f, sunIntensity = 10.0f;
 
             // float3 skyHorizon = { 0.00f, 0.00f, 0.00f };
@@ -257,7 +258,7 @@ __global__ void pathtraceNEEKernel(
             break;
         }
 
-        int H_fm = MS_fm[H_Idx];
+        int H_fm = MS_fm[H_idx];
 
         // Vertex linear interpolation
         float H_vx = R_ox + R_dx * H_t;
@@ -265,7 +266,7 @@ __global__ void pathtraceNEEKernel(
         float H_vz = R_oz + R_dz * H_t;
 
         // Texture interpolation (if available)
-        int H_ft0 = MS_ft0[H_Idx], H_ft1 = MS_ft1[H_Idx], H_ft2 = MS_ft2[H_Idx];
+        int H_ft0 = MS_ft0[H_idx], H_ft1 = MS_ft1[H_idx], H_ft2 = MS_ft2[H_idx];
         float H_tu = MS_tx[H_ft0] * H_w + MS_tx[H_ft1] * H_u + MS_tx[H_ft2] * H_v;
         float H_tv = MS_ty[H_ft0] * H_w + MS_ty[H_ft1] * H_u + MS_ty[H_ft2] * H_v;
         H_tu -= floor(H_tu); H_tv -= floor(H_tv);
@@ -285,7 +286,7 @@ __global__ void pathtraceNEEKernel(
         float H_alb_b = TX_b[H_tIdx] * H_hasT + MT_alb_b[H_fm] * !H_hasT;
 
         // Normal interpolation
-        int H_fn0 = MS_fn0[H_Idx], H_fn1 = MS_fn1[H_Idx], H_fn2 = MS_fn2[H_Idx];
+        int H_fn0 = MS_fn0[H_idx], H_fn1 = MS_fn1[H_idx], H_fn2 = MS_fn2[H_idx];
         float H_nx = MS_nx[H_fn0] * H_w + MS_nx[H_fn1] * H_u + MS_nx[H_fn2] * H_v;
         float H_ny = MS_ny[H_fn0] * H_w + MS_ny[H_fn1] * H_u + MS_ny[H_fn2] * H_v;
         float H_nz = MS_nz[H_fn0] * H_w + MS_nz[H_fn1] * H_u + MS_nz[H_fn2] * H_v;
@@ -443,7 +444,7 @@ __global__ void pathtraceNEEKernel(
             for (int i = BV_pl[nidx]; i < BV_pr[nidx] & !occluded; ++i) {
                 int fi = BV_fi[i];
 
-                bool hit = fi != RIgnore & fi != H_Idx;
+                bool hit = fi != RIgnore & fi != H_idx;
 
                 int fv0 = MS_fv0[fi],
                     fv1 = MS_fv1[fi],
@@ -584,7 +585,7 @@ __global__ void pathtraceNEEKernel(
         R_rdy = 1.0f / R_dy;
         R_rdz = 1.0f / R_dz;
         // Other ray properties
-        RIgnore = H_Idx;
+        RIgnore = H_idx;
         // RIor = H_m.Ior;
 
 // =================== RUSSIAN ROULETTE TERMINATION =========================

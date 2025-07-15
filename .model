@@ -1,12 +1,14 @@
 # Load assets/Models/LivingRoom.azb
 # Load assets/Models/combined.azb
 
-Load .heavy/Town/Town.azb
+# Load .heavy/Town/Town.azb
 
 # Load wave.azb
 
-# Load .assets/Models/Structure/de_dust2/de_dust2.azb
+Load .assets/Models/Structure/de_dust2/de_dust2.azb
 # Load .assets/Models/Structure/de_mirage/de_mirage.azb
 
 
 # Load .assets/Models/Structure/Aband/Aband.azb
+
+# Instance .assets/Models/Structure/Backroom/Backroom.obj 3 1

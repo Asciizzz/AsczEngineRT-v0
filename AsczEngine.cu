@@ -26,6 +26,175 @@ float fXZdz(float x, float z) {
     return sin(x) * sin(z) * WAVE_HEIGHT;
 }
 
+struct HitProp {
+    int idx = -1; // Index of the hit triangle
+    float t = INFINITY; // Distance to the hit triangle
+};
+
+// Check if a line segment intersects with a triangle
+// Return index of triangle, -1 if no intersection
+// Keep in mind this is closest hit, not any hit
+HitProp lineTraverse(Ray &R, float Rl, AzMesh &mesh, std::vector<AzNode> nodes, std::vector<int> f_idx ) {
+    int nstack[32] = { 0 };
+    int ns_top = 1;
+
+    int H_idx = -1;
+    float H_t = Rl;
+
+    while (ns_top > 0) {
+        int nidx = nstack[--ns_top];
+
+        AzNode &node = nodes[nidx];
+
+        // Check if the ray is outside the bounding box
+        float t1n = (node.min_x - R.ox) * R.rdx;
+        float t2n = (node.max_x - R.ox) * R.rdx;
+        float t3n = (node.min_y - R.oy) * R.rdy;
+        float t4n = (node.max_y - R.oy) * R.rdy;
+        float t5n = (node.min_z - R.oz) * R.rdz;
+        float t6n = (node.max_z - R.oz) * R.rdz;
+
+        float tminn1 = fminf(t1n, t2n), tmaxn1 = fmaxf(t1n, t2n);
+        float tminn2 = fminf(t3n, t4n), tmaxn2 = fmaxf(t3n, t4n);
+        float tminn3 = fminf(t5n, t6n), tmaxn3 = fmaxf(t5n, t6n);
+
+        float tminn = fmaxf(fmaxf(tminn1, tminn2), tminn3);
+        float tmaxn = fminf(fminf(tmaxn1, tmaxn2), tmaxn3);
+
+        bool nOut = R.ox < node.min_x || R.ox > node.max_x ||
+                    R.oy < node.min_y || R.oy > node.max_y ||
+                    R.oz < node.min_z || R.oz > node.max_z;
+
+        bool nMiss = tmaxn < tminn | (tminn < 0 & nOut) | tminn > H_t;
+        // Explanation for the tminn > Rl: basically the box is further than the line segment
+
+        if (nMiss) continue;
+
+        bool leaf = node.cl == -1;
+
+        // If node is not a leaf:
+        if (!leaf) {
+            // Find the distance to the left child
+            int tcl = node.cl;
+            AzNode &node_l = nodes[tcl];
+            float t1l = (node_l.min_x - R.ox) * R.rdx;
+            float t2l = (node_l.max_x - R.ox) * R.rdx;
+            float t3l = (node_l.min_y - R.oy) * R.rdy;
+            float t4l = (node_l.max_y - R.oy) * R.rdy;
+            float t5l = (node_l.min_z - R.oz) * R.rdz;
+            float t6l = (node_l.max_z - R.oz) * R.rdz;
+
+            float tminl1 = fminf(t1l, t2l), tmaxl1 = fmaxf(t1l, t2l);
+            float tminl2 = fminf(t3l, t4l), tmaxl2 = fmaxf(t3l, t4l);
+            float tminl3 = fminf(t5l, t6l), tmaxl3 = fmaxf(t5l, t6l);
+
+            float tminl = fmaxf(fmaxf(tminl1, tminl2), tminl3);
+            float tmaxl = fminf(fminf(tmaxl1, tmaxl2), tmaxl3);
+
+            bool lOut = R.ox < node_l.min_x || R.ox > node_l.max_x ||
+                        R.oy < node_l.min_y || R.oy > node_l.max_y ||
+                        R.oz < node_l.min_z || R.oz > node_l.max_z;
+            bool lMiss = tmaxl < tminl | tminl < 0;
+            float lDist = (-lMiss + tminl * !lMiss) * lOut;
+
+            // Find the distance to the right child
+            int tcr = node.cr;
+            AzNode node_r = nodes[tcr];
+            float t1r = (node_r.min_x - R.ox) * R.rdx;
+            float t2r = (node_r.max_x - R.ox) * R.rdx;
+            float t3r = (node_r.min_y - R.oy) * R.rdy;
+            float t4r = (node_r.max_y - R.oy) * R.rdy;
+            float t5r = (node_r.min_z - R.oz) * R.rdz;
+            float t6r = (node_r.max_z - R.oz) * R.rdz;
+
+            float tminr1 = fminf(t1r, t2r), tmaxr1 = fmaxf(t1r, t2r);
+            float tminr2 = fminf(t3r, t4r), tmaxr2 = fmaxf(t3r, t4r);
+            float tminr3 = fminf(t5r, t6r), tmaxr3 = fmaxf(t5r, t6r);
+
+            float tminr = fmaxf(fmaxf(tminr1, tminr2), tminr3);
+            float tmaxr = fminf(fminf(tmaxr1, tmaxr2), tmaxr3);
+
+            bool rOut = R.ox < node_r.min_x || R.ox > node_r.max_x ||
+                        R.oy < node_r.min_y || R.oy > node_r.max_y ||
+                        R.oz < node_r.min_z || R.oz > node_r.max_z;
+            bool rMiss = tmaxr < tminr | tminr < 0;
+            float rDist = (-rMiss + tminr * !rMiss) * rOut;
+
+
+            // Child ordering for closer intersection and early exit
+            bool lcloser = lDist < rDist;
+
+            nstack[ns_top] = tcr * lcloser + tcl * !lcloser;
+            ns_top += (rDist >= 0) * lcloser + (lDist >= 0) * !lcloser;
+
+            nstack[ns_top] = tcl * lcloser + tcr * !lcloser;
+            ns_top += (lDist >= 0) * lcloser + (rDist >= 0) * !lcloser;
+
+            continue;
+        }
+
+        // Just return 0 for the time being
+        // return 0;
+
+        // for (int i = BV_pl[nidx]; i < BV_pr[nidx]; ++i) {
+        for (int i = node.ll; i <= node.lr; ++i) {
+            int fi = f_idx[i];
+
+            bool hit = true;
+
+            int fv0 = mesh.fv0[fi],
+                fv1 = mesh.fv1[fi],
+                fv2 = mesh.fv2[fi];
+
+            float e1x = mesh.vx[fv1] - mesh.vx[fv0];
+            float e1y = mesh.vy[fv1] - mesh.vy[fv0];
+            float e1z = mesh.vz[fv1] - mesh.vz[fv0];
+
+            float e2x = mesh.vx[fv2] - mesh.vx[fv0];
+            float e2y = mesh.vy[fv2] - mesh.vy[fv0];
+            float e2z = mesh.vz[fv2] - mesh.vz[fv0];
+
+            float hx = R.dy * e2z - R.dz * e2y;
+            float hy = R.dz * e2x - R.dx * e2z;
+            float hz = R.dx * e2y - R.dy * e2x;
+
+            float a = e1x * hx + e1y * hy + e1z * hz;
+
+            hit &= a != 0.0f;
+            a += !hit;
+
+            float sx = R.ox - mesh.vx[fv0];
+            float sy = R.oy - mesh.vy[fv0];
+            float sz = R.oz - mesh.vz[fv0];
+
+            float f = 1.0f / a;
+
+            float u = f * (sx * hx + sy * hy + sz * hz);
+
+            hit &= u >= 0.0f & u <= 1.0f;
+
+            float qx = sy * e1z - sz * e1y;
+            float qy = sz * e1x - sx * e1z;
+            float qz = sx * e1y - sy * e1x;
+
+            float v = f * (R.dx * qx + R.dy * qy + R.dz * qz);
+            float w = 1.0f - u - v;
+
+            hit &= v >= 0.0f & w >= 0.0f;
+
+            float t = f * (e2x * qx + e2y * qy + e2z * qz);
+
+            hit &= t > 0.0f & t < Rl;
+
+            H_t = t * hit + H_t * !hit;
+            H_idx = fi * hit + H_idx * !hit;
+        }
+    }
+
+    return { H_idx, H_t };
+}
+
+
 
 int main() {
     // =================== Initialize FPS and Window ==============
@@ -284,6 +453,10 @@ int main() {
     bool hasDebug = true;
     bool hasCrosshair = true;
 
+    float3 local_pos = { 0.0f, 0.0f, 0.0f };
+    float cam_scale = 5.0f;
+    float cam_scale_fixed = 5.0f;
+
     MSG msg = { 0 };
     while (msg.message != WM_QUIT) {
         FPS.startFrame();
@@ -351,6 +524,8 @@ int main() {
                             (Win.keys[VK_SHIFT] ? 0.1f : 0.005f);
         }
 
+        // Hear me out, why the fuck dont I use the BVH for collision detection as well???????????
+
         if (Cam.focus) {
             // Get previous cursor position
             POINT prev;
@@ -369,6 +544,7 @@ int main() {
             Cam.ryaw += dx * dMsens;
             Cam.rpit += dy * dMsens;
 
+            //*
             // CSGO perspective movement
             float dVel = Cam.velSpec * FPS.dTimeSec;
             bool k_w = Win.keys['W'];
@@ -385,17 +561,34 @@ int main() {
             short moveFrwd = (k_w && !k_s) - (k_s && !k_w);
             short moveSide = (k_a && !k_d) - (k_d && !k_a);
 
-            Cam.px += (Cam.fw_x * moveFrwd + Cam.rg_x * moveSide) * dVel;
-            Cam.py += (Cam.fw_y * moveFrwd + Cam.rg_y * moveSide) * dVel;
-            Cam.pz += (Cam.fw_z * moveFrwd + Cam.rg_z * moveSide) * dVel;
-
-            // Update camera
-            Cam.update();
-
-            center = { Win.width / 2, Win.height / 2 };
-            ClientToScreen(Win.hwnd, &center);
-            SetCursorPos(center.x, center.y);
+            // Cam.px += (Cam.fw_x * moveFrwd + Cam.rg_x * moveSide) * dVel;
+            // Cam.py += (Cam.fw_y * moveFrwd + Cam.rg_y * moveSide) * dVel;
+            // Cam.pz += (Cam.fw_z * moveFrwd + Cam.rg_z * moveSide) * dVel;
+            local_pos.x += (Cam.fw_x * moveFrwd + Cam.rg_x * moveSide) * dVel;
+            local_pos.y += (Cam.fw_y * moveFrwd + Cam.rg_y * moveSide) * dVel;
+            local_pos.z += (Cam.fw_z * moveFrwd + Cam.rg_z * moveSide) * dVel;
         }
+        Cam.update();
+
+        // Lock camera to a p_dist sphere around the player
+        // Cam.px = -Cam.fw_x * cam_dist + local_pos.x;
+        // Cam.py = -Cam.fw_y * cam_dist + local_pos.y;
+        // Cam.pz = -Cam.fw_z * cam_dist + local_pos.z;
+
+        Ray c_ray = Ray(Cam.px, Cam.py, Cam.pz, -Cam.fw_x, -Cam.fw_y, -Cam.fw_z);
+
+        HitProp c_line = lineTraverse(
+            c_ray, cam_scale_fixed, GLB.MS, Bvh.h_nodes, Bvh.h_fIdx
+        );
+        float cur_scale = c_line.t * 0.9f;
+
+        // Smoothly interpolate the camera scale throught time
+        cam_scale += (cur_scale - cam_scale) * 10.0f * FPS.dTimeSec;
+
+        // If camera hit something, push
+        Cam.px = -Cam.fw_x * cam_scale + local_pos.x;
+        Cam.py = -Cam.fw_y * cam_scale + local_pos.y;
+        Cam.pz = -Cam.fw_z * cam_scale + local_pos.z;
 
         // Render
         if (renderMode == 0) {
@@ -465,6 +658,7 @@ int main() {
                 Frame.toDraw2(true);
             }
         }
+
 
         if (hasDebug) {
             Win.appendDebug(L"AsczEngineRT_v0", 155, 255, 155);
